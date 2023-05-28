@@ -416,9 +416,9 @@ func main() {
 	Soldy = make([]float64, Exsf.Nexs)
 	Solmon = make([]float64, Exsf.Nexs)
 
-	//dTM := Simc.DTm
+	DTM = float64(Simc.DTm)
 	dminute = int(float64(Simc.DTm) / 60.0)
-	//cff_kWh := dTM / 3600.0 / 1000.0
+	Cff_kWh = DTM / 3600.0 / 1000.0
 
 	for rm := 0; rm < Rmvls.Nroom; rm++ {
 		Rm := &Rmvls.Room[rm]
@@ -456,7 +456,7 @@ func main() {
 
 	// ボイラ機器仕様の初期化
 	Boicaint(Eqcat.Nboica, Eqcat.Boica, &Simc, Ncompnt, Compnt, &Wd, &Exsf, &Schdl)
-	Mecsinit(DTM, &Eqsys, &Simc, Ncompnt, Compnt, Exsf.Nexs, Exsf.Exs, &Wd, &Rmvls)
+	Mecsinit(&Eqsys, &Simc, Ncompnt, Compnt, Exsf.Nexs, Exsf.Exs, &Wd, &Rmvls)
 
 	if DEBUG {
 		fmt.Println("<<main>> Mecsinit")
@@ -734,7 +734,7 @@ func main() {
 			CalcControlStatus(&Eqsys, &Rmvls, &Wd, &Exsf)
 
 			// Update control information
-			Contlschdlr(DTM, Ncontl, Contl, Nmpath, Mpath, Ncompnt, Compnt)
+			Contlschdlr(Ncontl, Contl, Nmpath, Mpath, Ncompnt, Compnt)
 
 			// Recalculate internal heat gains after setting air conditioning on/off schedule
 			Qischdlr(Rmvls.Nroom, Rmvls.Room)
@@ -1012,7 +1012,7 @@ func main() {
 			CalcPowerOutput(Rmvls.Nsrf, Rmvls.Sd, &Wd, &Exsf)
 
 			if Simc.Helmkey == 'y' {
-				Helmroom(Rmvls.Nroom, Rmvls.Room, Rmvls.Qrm, &Rmvls.Qetotal, DTM, Wd.T, Wd.X)
+				Helmroom(Rmvls.Nroom, Rmvls.Room, Rmvls.Qrm, &Rmvls.Qetotal, Wd.T, Wd.X)
 			}
 
 			/*************

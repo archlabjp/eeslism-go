@@ -262,21 +262,21 @@ func Qmeasdyprt(fo *os.File, id, Nqmeas int, Qmeas []QMEAS) {
 				Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name)
 		default:
 			if Qmeas[i].Plistxc != nil && Qmeas[i].Plistxh != nil {
-				fmt.Fprintf(fo, "%1ld %3.1f ", Qmeas[i].Qdys.Hhr, Qmeas[i].Qdys.H)
-				fmt.Fprintf(fo, "%1ld %3.1f ", Qmeas[i].Qdys.Chr, Qmeas[i].Qdys.C)
-				fmt.Fprintf(fo, "%1ld %2.0f ", Qmeas[i].Qdys.Hmxtime, Qmeas[i].Qdys.Hmx)
-				fmt.Fprintf(fo, "%1ld %2.0f\n", Qmeas[i].Qdys.Cmxtime, Qmeas[i].Qdys.Cmx)
+				fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].Qdys.Hhr, Qmeas[i].Qdys.H)
+				fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].Qdys.Chr, Qmeas[i].Qdys.C)
+				fmt.Fprintf(fo, "%1d %2.0f ", Qmeas[i].Qdys.Hmxtime, Qmeas[i].Qdys.Hmx)
+				fmt.Fprintf(fo, "%1d %2.0f\n", Qmeas[i].Qdys.Cmxtime, Qmeas[i].Qdys.Cmx)
 
-				fmt.Fprintf(fo, "%1ld %3.1f ", Qmeas[i].Qdyl.Hhr, Qmeas[i].Qdyl.H)
-				fmt.Fprintf(fo, "%1ld %3.1f ", Qmeas[i].Qdyl.Chr, Qmeas[i].Qdyl.C)
-				fmt.Fprintf(fo, "%1ld %2.0f ", Qmeas[i].Qdyl.Hmxtime, Qmeas[i].Qdyl.Hmx)
-				fmt.Fprintf(fo, "%1ld %2.0f\n", Qmeas[i].Qdyl.Cmxtime, Qmeas[i].Qdyl.Cmx)
+				fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].Qdyl.Hhr, Qmeas[i].Qdyl.H)
+				fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].Qdyl.Chr, Qmeas[i].Qdyl.C)
+				fmt.Fprintf(fo, "%1d %2.0f ", Qmeas[i].Qdyl.Hmxtime, Qmeas[i].Qdyl.Hmx)
+				fmt.Fprintf(fo, "%1d %2.0f\n", Qmeas[i].Qdyl.Cmxtime, Qmeas[i].Qdyl.Cmx)
 			}
 
-			fmt.Fprintf(fo, "%1ld %3.1f ", Qmeas[i].Qdyt.Hhr, Qmeas[i].Qdyt.H)
-			fmt.Fprintf(fo, "%1ld %3.1f ", Qmeas[i].Qdyt.Chr, Qmeas[i].Qdyt.C)
-			fmt.Fprintf(fo, "%1ld %2.0f ", Qmeas[i].Qdyt.Hmxtime, Qmeas[i].Qdyt.Hmx)
-			fmt.Fprintf(fo, "%1ld %2.0f\n", Qmeas[i].Qdyt.Cmxtime, Qmeas[i].Qdyt.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].Qdyt.Hhr, Qmeas[i].Qdyt.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].Qdyt.Chr, Qmeas[i].Qdyt.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", Qmeas[i].Qdyt.Hmxtime, Qmeas[i].Qdyt.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f\n", Qmeas[i].Qdyt.Cmxtime, Qmeas[i].Qdyt.Cmx)
 		}
 	}
 }
@@ -310,21 +310,21 @@ func Qmeasmonprt(fo *os.File, id, Nqmeas int, Qmeas []QMEAS) {
 				Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name)
 		default:
 			if Qmeas[i].Plistxc != nil && Qmeas[i].Plistxh != nil {
-				fmt.Fprintf(fo, "%1ld %3.1f ", Qmeas[i].mQdys.Hhr, Qmeas[i].mQdys.H)
-				fmt.Fprintf(fo, "%1ld %3.1f ", Qmeas[i].mQdys.Chr, Qmeas[i].mQdys.C)
-				fmt.Fprintf(fo, "%1ld %2.0f ", Qmeas[i].mQdys.Hmxtime, Qmeas[i].mQdys.Hmx)
-				fmt.Fprintf(fo, "%1ld %2.0f\n", Qmeas[i].mQdys.Cmxtime, Qmeas[i].mQdys.Cmx)
+				fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].mQdys.Hhr, Qmeas[i].mQdys.H)
+				fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].mQdys.Chr, Qmeas[i].mQdys.C)
+				fmt.Fprintf(fo, "%1d %2.0f ", Qmeas[i].mQdys.Hmxtime, Qmeas[i].mQdys.Hmx)
+				fmt.Fprintf(fo, "%1d %2.0f\n", Qmeas[i].mQdys.Cmxtime, Qmeas[i].mQdys.Cmx)
 
-				fmt.Fprintf(fo, "%1ld %3.1f ", Qmeas[i].mQdyl.Hhr, Qmeas[i].mQdyl.H)
-				fmt.Fprintf(fo, "%1ld %3.1f ", Qmeas[i].mQdyl.Chr, Qmeas[i].mQdyl.C)
-				fmt.Fprintf(fo, "%1ld %2.0f ", Qmeas[i].mQdyl.Hmxtime, Qmeas[i].mQdyl.Hmx)
-				fmt.Fprintf(fo, "%1ld %2.0f\n", Qmeas[i].mQdyl.Cmxtime, Qmeas[i].mQdyl.Cmx)
+				fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].mQdyl.Hhr, Qmeas[i].mQdyl.H)
+				fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].mQdyl.Chr, Qmeas[i].mQdyl.C)
+				fmt.Fprintf(fo, "%1d %2.0f ", Qmeas[i].mQdyl.Hmxtime, Qmeas[i].mQdyl.Hmx)
+				fmt.Fprintf(fo, "%1d %2.0f\n", Qmeas[i].mQdyl.Cmxtime, Qmeas[i].mQdyl.Cmx)
 			}
 
-			fmt.Fprintf(fo, "%1ld %3.1f ", Qmeas[i].mQdyt.Hhr, Qmeas[i].mQdyt.H)
-			fmt.Fprintf(fo, "%1ld %3.1f ", Qmeas[i].mQdyt.Chr, Qmeas[i].mQdyt.C)
-			fmt.Fprintf(fo, "%1ld %2.0f ", Qmeas[i].mQdyt.Hmxtime, Qmeas[i].mQdyt.Hmx)
-			fmt.Fprintf(fo, "%1ld %2.0f\n", Qmeas[i].mQdyt.Cmxtime, Qmeas[i].mQdyt.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].mQdyt.Hhr, Qmeas[i].mQdyt.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].mQdyt.Chr, Qmeas[i].mQdyt.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", Qmeas[i].mQdyt.Hmxtime, Qmeas[i].mQdyt.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f\n", Qmeas[i].mQdyt.Cmxtime, Qmeas[i].mQdyt.Cmx)
 		}
 	}
 }

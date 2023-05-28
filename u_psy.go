@@ -97,7 +97,7 @@ func FNDbxw(X, Twb float64) float64 {
 
 func FNDbrh(Rh, H float64) float64 {
 	var T0, F, Fd, Dbrh float64
-	T0 = dmin(FNDbxh(0., H), 30.)
+	T0 = math.Min(FNDbxh(0., H), 30.)
 	for I := 1; I <= 10; I++ {
 		F = H - FNH(T0, FNXtr(T0, Rh))
 		Fd = (H - FNH(T0+.1, FNXtr(T0+.1, Rh)) - F) / .1

@@ -35,7 +35,7 @@ func PVcadata(s string, PVca *PVCA) int {
 
 	var st int
 	if st = strings.IndexRune(s, '='); st == -1 {
-		PVca.name = s
+		PVca.Name = s
 		PVca.PVcap = -999.0
 		PVca.Area = -999.0
 		PVca.KHD = 1.0

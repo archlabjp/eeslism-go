@@ -20,6 +20,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -177,8 +178,8 @@ func Thexcfv(Nthex int, Thex []THEX) {
 
 			Thex[i].CGe = Spcheat(Eoet.Fluid) * Thex[i].Ge
 			Thex[i].CGo = Spcheat(Eoot.Fluid) * Thex[i].Go
-			etCGmin = Thex[i].ET * dmin(Thex[i].CGe, Thex[i].CGo)
-			ehGmin = Thex[i].EH * dmin(Thex[i].Ge, Thex[i].Go)
+			etCGmin = Thex[i].ET * math.Min(Thex[i].CGe, Thex[i].CGo)
+			ehGmin = Thex[i].EH * math.Min(Thex[i].Ge, Thex[i].Go)
 
 			Aein = Ca + Cv*Thex[i].Xeinold
 			Aeout = Ca + Cv*Thex[i].Xeoutold
@@ -468,36 +469,36 @@ func Thexdyprt(fo io.Writer, id, Nthex int, Thex []THEX) {
 			}
 		default:
 			for i := 0; i < Nthex; i++ {
-				fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f ",
+				fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 					Thex[i].Teidy.Hrs, Thex[i].Teidy.M,
 					Thex[i].Teidy.Mntime, Thex[i].Teidy.Mn,
 					Thex[i].Teidy.Mxtime, Thex[i].Teidy.Mx)
-				fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f\n",
+				fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f\n",
 					Thex[i].Toidy.Hrs, Thex[i].Toidy.M,
 					Thex[i].Toidy.Mntime, Thex[i].Toidy.Mn,
 					Thex[i].Toidy.Mxtime, Thex[i].Toidy.Mx)
-				fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f ",
+				fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 					Thex[i].Xeidy.Hrs, Thex[i].Xeidy.M,
 					Thex[i].Xeidy.Mntime, Thex[i].Xeidy.Mn,
 					Thex[i].Xeidy.Mxtime, Thex[i].Xeidy.Mx)
-				fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f\n",
+				fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f\n",
 					Thex[i].Xoidy.Hrs, Thex[i].Xoidy.M,
 					Thex[i].Xoidy.Mntime, Thex[i].Xoidy.Mn,
 					Thex[i].Xoidy.Mxtime, Thex[i].Xoidy.Mx)
-				fmt.Fprintf(fo, "%1ld %3.1f ", Thex[i].Qdyes.Hhr, Thex[i].Qdyes.H)
-				fmt.Fprintf(fo, "%1ld %3.1f ", Thex[i].Qdyes.Chr, Thex[i].Qdyes.C)
-				fmt.Fprintf(fo, "%1ld %2.0f ", Thex[i].Qdyes.Hmxtime, Thex[i].Qdyes.Hmx)
-				fmt.Fprintf(fo, "%1ld %2.0f\n", Thex[i].Qdyes.Cmxtime, Thex[i].Qdyes.Cmx)
+				fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].Qdyes.Hhr, Thex[i].Qdyes.H)
+				fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].Qdyes.Chr, Thex[i].Qdyes.C)
+				fmt.Fprintf(fo, "%1d %2.0f ", Thex[i].Qdyes.Hmxtime, Thex[i].Qdyes.Hmx)
+				fmt.Fprintf(fo, "%1d %2.0f\n", Thex[i].Qdyes.Cmxtime, Thex[i].Qdyes.Cmx)
 
-				fmt.Fprintf(fo, "%1ld %3.1f ", Thex[i].Qdyel.Hhr, Thex[i].Qdyel.H)
-				fmt.Fprintf(fo, "%1ld %3.1f ", Thex[i].Qdyel.Chr, Thex[i].Qdyel.C)
-				fmt.Fprintf(fo, "%1ld %2.0f ", Thex[i].Qdyel.Hmxtime, Thex[i].Qdyel.Hmx)
-				fmt.Fprintf(fo, "%1ld %2.0f\n", Thex[i].Qdyel.Cmxtime, Thex[i].Qdyel.Cmx)
+				fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].Qdyel.Hhr, Thex[i].Qdyel.H)
+				fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].Qdyel.Chr, Thex[i].Qdyel.C)
+				fmt.Fprintf(fo, "%1d %2.0f ", Thex[i].Qdyel.Hmxtime, Thex[i].Qdyel.Hmx)
+				fmt.Fprintf(fo, "%1d %2.0f\n", Thex[i].Qdyel.Cmxtime, Thex[i].Qdyel.Cmx)
 
-				fmt.Fprintf(fo, "%1ld %3.1f ", Thex[i].Qdyet.Hhr, Thex[i].Qdyet.H)
-				fmt.Fprintf(fo, "%1ld %3.1f ", Thex[i].Qdyet.Chr, Thex[i].Qdyet.C)
-				fmt.Fprintf(fo, "%1ld %2.0f ", Thex[i].Qdyet.Hmxtime, Thex[i].Qdyet.Hmx)
-				fmt.Fprintf(fo, "%1ld %2.0f\n", Thex[i].Qdyet.Cmxtime, Thex[i].Qdyet.Cmx)
+				fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].Qdyet.Hhr, Thex[i].Qdyet.H)
+				fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].Qdyet.Chr, Thex[i].Qdyet.C)
+				fmt.Fprintf(fo, "%1d %2.0f ", Thex[i].Qdyet.Hmxtime, Thex[i].Qdyet.Hmx)
+				fmt.Fprintf(fo, "%1d %2.0f\n", Thex[i].Qdyet.Cmxtime, Thex[i].Qdyet.Cmx)
 			}
 		}
 	}
@@ -543,36 +544,36 @@ func Thexmonprt(fo *os.File, id, Nthex int, Thex []THEX) {
 			}
 		default:
 			for i := 0; i < Nthex; i++ {
-				fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f ",
+				fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 					Thex[i].MTeidy.Hrs, Thex[i].MTeidy.M,
 					Thex[i].MTeidy.Mntime, Thex[i].MTeidy.Mn,
 					Thex[i].MTeidy.Mxtime, Thex[i].MTeidy.Mx)
-				fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f\n",
+				fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f\n",
 					Thex[i].MToidy.Hrs, Thex[i].MToidy.M,
 					Thex[i].MToidy.Mntime, Thex[i].MToidy.Mn,
 					Thex[i].MToidy.Mxtime, Thex[i].MToidy.Mx)
-				fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f ",
+				fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 					Thex[i].MXeidy.Hrs, Thex[i].MXeidy.M,
 					Thex[i].MXeidy.Mntime, Thex[i].MXeidy.Mn,
 					Thex[i].MXeidy.Mxtime, Thex[i].MXeidy.Mx)
-				fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f\n",
+				fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f\n",
 					Thex[i].MXoidy.Hrs, Thex[i].MXoidy.M,
 					Thex[i].MXoidy.Mntime, Thex[i].MXoidy.Mn,
 					Thex[i].MXoidy.Mxtime, Thex[i].MXoidy.Mx)
-				fmt.Fprintf(fo, "%1ld %3.1f ", Thex[i].MQdyes.Hhr, Thex[i].MQdyes.H)
-				fmt.Fprintf(fo, "%1ld %3.1f ", Thex[i].MQdyes.Chr, Thex[i].MQdyes.C)
-				fmt.Fprintf(fo, "%1ld %2.0f ", Thex[i].MQdyes.Hmxtime, Thex[i].MQdyes.Hmx)
-				fmt.Fprintf(fo, "%1ld %2.0f\n", Thex[i].MQdyes.Cmxtime, Thex[i].MQdyes.Cmx)
+				fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].MQdyes.Hhr, Thex[i].MQdyes.H)
+				fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].MQdyes.Chr, Thex[i].MQdyes.C)
+				fmt.Fprintf(fo, "%1d %2.0f ", Thex[i].MQdyes.Hmxtime, Thex[i].MQdyes.Hmx)
+				fmt.Fprintf(fo, "%1d %2.0f\n", Thex[i].MQdyes.Cmxtime, Thex[i].MQdyes.Cmx)
 
-				fmt.Fprintf(fo, "%1ld %3.1f ", Thex[i].MQdyel.Hhr, Thex[i].MQdyel.H)
-				fmt.Fprintf(fo, "%1ld %3.1f ", Thex[i].MQdyel.Chr, Thex[i].MQdyel.C)
-				fmt.Fprintf(fo, "%1ld %2.0f ", Thex[i].MQdyel.Hmxtime, Thex[i].MQdyel.Hmx)
-				fmt.Fprintf(fo, "%1ld %2.0f\n", Thex[i].MQdyel.Cmxtime, Thex[i].MQdyel.Cmx)
+				fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].MQdyel.Hhr, Thex[i].MQdyel.H)
+				fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].MQdyel.Chr, Thex[i].MQdyel.C)
+				fmt.Fprintf(fo, "%1d %2.0f ", Thex[i].MQdyel.Hmxtime, Thex[i].MQdyel.Hmx)
+				fmt.Fprintf(fo, "%1d %2.0f\n", Thex[i].MQdyel.Cmxtime, Thex[i].MQdyel.Cmx)
 
-				fmt.Fprintf(fo, "%1ld %3.1f ", Thex[i].MQdyet.Hhr, Thex[i].MQdyet.H)
-				fmt.Fprintf(fo, "%1ld %3.1f ", Thex[i].MQdyet.Chr, Thex[i].MQdyet.C)
-				fmt.Fprintf(fo, "%1ld %2.0f ", Thex[i].MQdyet.Hmxtime, Thex[i].MQdyet.Hmx)
-				fmt.Fprintf(fo, "%1ld %2.0f\n", Thex[i].MQdyet.Cmxtime, Thex[i].MQdyet.Cmx)
+				fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].MQdyet.Hhr, Thex[i].MQdyet.H)
+				fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].MQdyet.Chr, Thex[i].MQdyet.C)
+				fmt.Fprintf(fo, "%1d %2.0f ", Thex[i].MQdyet.Hmxtime, Thex[i].MQdyet.Hmx)
+				fmt.Fprintf(fo, "%1d %2.0f\n", Thex[i].MQdyet.Cmxtime, Thex[i].MQdyet.Cmx)
 			}
 		}
 	}

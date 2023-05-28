@@ -1,22 +1,22 @@
 package main
 
-type SEASN struct /*季節設定*/
-{
+// 季節設定
+type SEASN struct {
 	name       string
 	N          int
 	sday, eday []int
 	end        int // 要素数(インデックス0のみ)
 }
 
-type WKDY struct /*曜日設定*/
-{
+// 曜日設定
+type WKDY struct {
 	name string
 	wday [15]int
 	end  int // 要素数(インデックス0のみ)
 }
 
-type DSCH struct /*一日の設定量スケジュ－ル*/
-{
+// 一日の設定量スケジュ－ル
+type DSCH struct {
 	name         string
 	N            int
 	stime, etime []int
@@ -24,8 +24,8 @@ type DSCH struct /*一日の設定量スケジュ－ル*/
 	end          int // 要素数(インデックス0のみ)
 }
 
-type DSCW struct /*一日の切り替えスケジュ－ル*/
-{
+// 一日の切り替えスケジュ－ル
+type DSCW struct {
 	name         string
 	dcode        [10]rune
 	N            int

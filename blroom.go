@@ -167,9 +167,6 @@ func RMcf(Room *ROOM) {
 
 // 家具内蔵PCMの係数計算
 func FunCoeff(Room *ROOM) {
-	var dTM float64
-	dTM = 0.0 // Define the value of dTM
-
 	// 室温の係数
 	// 家具の熱容量の計算
 	Room.FunHcap = 0.0
@@ -188,12 +185,12 @@ func FunCoeff(Room *ROOM) {
 		}
 	}
 	if Room.FunHcap > 0.0 {
-		Room.FMT = 1.0 / (Room.FunHcap/dTM/(*Room.CM) + 1.0)
+		Room.FMT = 1.0 / (Room.FunHcap/DTM/(*Room.CM) + 1.0)
 	} else {
 		Room.FMT = 1.0
 	}
 
-	Room.RMt = Room.MRM/dTM + Room.AR
+	Room.RMt = Room.MRM/DTM + Room.AR
 
 	if Room.FunHcap > 0.0 {
 		Room.RMt -= *Room.CM * (Room.FMT - 1.0)
@@ -264,7 +261,7 @@ func RMrc(Room *ROOM) {
 }
 
 /* ----------------------------------------------------- */
-// 室内表面温度の計算
+// 室Roomの壁体の表面温度の計算 -- RooM's SuRface Temperature
 func RMsrt(Room *ROOM) {
 	N := Room.N
 
@@ -310,24 +307,21 @@ func RMsrt(Room *ROOM) {
 
 // 重量壁（後退差分）の係数行列の作成
 func RMwlc(Nmwall int, Mw []MWALL, Exsfs *EXSFS, Wd *WDAT) {
-	var Sd *RMSRF
-	var i int
-	var rai, rao, Wp float64
+	for i := 0; i < Nmwall; i++ {
+		var Mw *MWALL = &Mw[i]
+		var Wall *WALL = Mw.wall
 
-	for i = 0; i < Nmwall; i++ {
-		Mw := &Mw[i]
-		Wall := Mw.wall
+		var Sd *RMSRF = Mw.sd
+		rai := 1.0 / Sd.ali // 室内側表面熱抵抗
+		rao := 1.0 / Sd.alo // 室外側表面熱抵抗
 
-		Sd = Mw.sd
-		rai = 1.0 / Sd.ali
-		rao = 1.0 / Sd.alo
-
-		Mw.res[0] = rai // 室内側表面熱抵抗
+		Mw.res[0] = rai
 		if Sd.typ == 'H' {
-			Mw.res[Mw.M] = rao // 室外側表面熱抵抗
+			Mw.res[Mw.M] = rao
 		}
 
 		// 壁体にパネルがある場合
+		var Wp float64
 		if Sd.rpnl != nil {
 			Wp = Sd.rpnl.Wp
 		} else {
@@ -349,11 +343,14 @@ func RMwlt(Nmwall int, Mw []MWALL) {
 		Mw := &Mw[i]
 		Sd := Mw.sd
 
+		// 壁体の反対側の表面温度 ?
 		var Tee float64
 		if Sd.mwtype == 'C' {
+			// 共用壁の場合
 			nxsd := Sd.nxsd
 			Tee = (nxsd.alic*nxsd.room.Tr + nxsd.alir*nxsd.Tmrt + nxsd.RS) / nxsd.ali
 		} else {
+			// 専用壁の場合 => 外表面の相当外気温度
 			Tee = Sd.Te
 		}
 
@@ -361,8 +358,7 @@ func RMwlt(Nmwall int, Mw []MWALL) {
 		Tie := (Sd.alic*Room.Tr + Sd.alir*Sd.Tmrt + Sd.RS) / Sd.ali
 
 		if DEBUG {
-			fmt.Printf("----- RMwlt i=%d room=%s ble=%c %s  Tie=%f Tee=%f\n",
-				i, Sd.room.Name, Sd.ble, Sd.Name, Tie, Tee)
+			fmt.Printf("----- RMwlt i=%d room=%s ble=%c %s  Tie=%f Tee=%f\n", i, Sd.room.Name, Sd.ble, Sd.Name, Tie, Tee)
 		}
 
 		var WTp float64
@@ -373,8 +369,7 @@ func RMwlt(Nmwall int, Mw []MWALL) {
 		}
 
 		// 壁体表面、壁体内部温度の計算
-		Twall(Mw.M, Mw.mp, Mw.UX, Mw.uo, Mw.um, Mw.Pc,
-			Tie, Tee, WTp, Mw.Told, Mw.Tw, Sd, Mw.wall.PCMLyr)
+		Twall(Mw.M, Mw.mp, Mw.UX, Mw.uo, Mw.um, Mw.Pc, Tie, Tee, WTp, Mw.Told, Mw.Tw, Sd, Mw.wall.PCMLyr)
 
 		// 壁体表面温度、壁体内部温度の更新
 		for m := 0; m < Mw.M; m++ {
@@ -389,18 +384,15 @@ func RMwlt(Nmwall int, Mw []MWALL) {
 
 // 壁体内部温度の仮計算
 func RMwltd(Nmwall int, Mw []MWALL) {
-	var Sd, nxsd *RMSRF
-	var Room *ROOM
-	var i int
-	var Tie, Tee, WTp float64
-
-	for i = 0; i < Nmwall; i++ {
-		Mw := &Mw[i]
-		Sd = Mw.sd
-		nxsd = Sd.nxsd
-		Room = Sd.room
+	for i := 0; i < Nmwall; i++ {
+		var Mw *MWALL = &Mw[i]
+		var Sd *RMSRF = Mw.sd
+		var nxsd *RMSRF = Sd.nxsd
+		var Room *ROOM = Sd.room
 
 		if Sd.PCMflg == 'Y' {
+			// Tee
+			var Tee float64
 			if Sd.mwtype == 'C' {
 				Tee = (nxsd.alic*nxsd.room.Tr + nxsd.alir*nxsd.Tmrt + nxsd.RS) /
 					nxsd.ali
@@ -408,13 +400,16 @@ func RMwltd(Nmwall int, Mw []MWALL) {
 				Tee = Sd.Te
 			}
 
-			Tie = (Sd.alic*Room.Tr + Sd.alir*Sd.Tmrt + Sd.RS) / Sd.ali
+			// Tie
+			Tie := (Sd.alic*Room.Tr + Sd.alir*Sd.Tmrt + Sd.RS) / Sd.ali
 
 			if DEBUG {
 				fmt.Printf("----- RMwlt i=%d room=%s ble=%c %s  Tie=%f Tee=%f\n",
 					i, Sd.room.Name, Sd.ble, Sd.Name, Tie, Tee)
 			}
 
+			// WTp
+			var WTp float64
 			if Sd.rpnl != nil {
 				WTp = Sd.rpnl.Wp * Sd.rpnl.Tpi
 			} else {
@@ -430,13 +425,10 @@ func RMwltd(Nmwall int, Mw []MWALL) {
 
 /* ------------------------------------------------------ */
 
+// 室内表面 Sd における平均表面温度の計算 (Room's Temperature of Surface - AVerage)
 func RTsav(N int, Sd []RMSRF) float64 {
 	var Tav, Aroom float64
-	var n int
-
-	Tav = 0.0
-	Aroom = 0.0
-	for n = 0; n < N; n++ {
+	for n := 0; n < N; n++ {
 		Tav += Sd[n].Ts * Sd[n].A
 		Aroom += Sd[n].A
 	}

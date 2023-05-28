@@ -23,12 +23,12 @@ const TSTOLE = 0.04
 
 /*  蓄熱槽仮想分割　*/
 
-func stoint(dTM float64, N int, Vol float64, KAside float64, KAtop float64, KAbtm float64,
+func stoint(N int, Vol float64, KAside float64, KAtop float64, KAbtm float64,
 	dvol, Mdt, KS, Tss, Tssold []float64, Jva, Jvb *int) {
 
 	for i := 0; i < N; i++ {
 		dvol[i] = Vol / float64(N)
-		Mdt[i] = (Cw * Row * Vol / float64(N)) / dTM
+		Mdt[i] = (Cw * Row * Vol / float64(N)) / DTM
 		KS[i] = KAside / float64(N)
 
 		Tss[i] = Tssold[i]

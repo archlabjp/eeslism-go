@@ -76,7 +76,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 
 	for i := 0; i < Ecat.Npvca; i++ {
 		PVca := &Ecat.PVca[i]
-		if catname == PVca.name {
+		if catname == PVca.Name {
 			C.Eqptype = PV_TYPE
 			C.Ncat = i
 			C.Neqp = Esys.Npv
@@ -255,7 +255,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 	// Satoh追加　気化冷却器　2013/10/27
 	for i := 0; i < Ecat.Nevacca; i++ {
 		Evcaca := &Ecat.Evacca[i]
-		if catname == Evcaca.name {
+		if catname == Evcaca.Name {
 			C.Eqptype = EVAC_TYPE
 			C.Ncat = i
 			C.Neqp = Esys.Nevac

@@ -384,21 +384,21 @@ func boidyprt(fo io.Writer, id int, Nboi int, Boi []BOI) {
 		}
 	default:
 		for i = 0; i < Nboi; i++ {
-			fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f ",
+			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				Boi[i].Tidy.Hrs, Boi[i].Tidy.M,
 				Boi[i].Tidy.Mntime, Boi[i].Tidy.Mn,
 				Boi[i].Tidy.Mxtime, Boi[i].Tidy.Mx)
 
-			fmt.Fprintf(fo, "%1ld %3.1f ", Boi[i].Qdy.Hhr, Boi[i].Qdy.H)
-			fmt.Fprintf(fo, "%1ld %3.1f ", Boi[i].Qdy.Chr, Boi[i].Qdy.C)
-			fmt.Fprintf(fo, "%1ld %2.0f ", Boi[i].Qdy.Hmxtime, Boi[i].Qdy.Hmx)
-			fmt.Fprintf(fo, "%1ld %2.0f ", Boi[i].Qdy.Cmxtime, Boi[i].Qdy.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", Boi[i].Qdy.Hhr, Boi[i].Qdy.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", Boi[i].Qdy.Chr, Boi[i].Qdy.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", Boi[i].Qdy.Hmxtime, Boi[i].Qdy.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f ", Boi[i].Qdy.Cmxtime, Boi[i].Qdy.Cmx)
 
-			fmt.Fprintf(fo, "%1ld %3.1f ", Boi[i].Edy.Hrs, Boi[i].Edy.D)
-			fmt.Fprintf(fo, "%1ld %2.0f ", Boi[i].Edy.Mxtime, Boi[i].Edy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", Boi[i].Edy.Hrs, Boi[i].Edy.D)
+			fmt.Fprintf(fo, "%1d %2.0f ", Boi[i].Edy.Mxtime, Boi[i].Edy.Mx)
 
-			fmt.Fprintf(fo, "%1ld %3.1f ", Boi[i].Phdy.Hrs, Boi[i].Phdy.D)
-			fmt.Fprintf(fo, "%1ld %2.0f\n", Boi[i].Phdy.Mxtime, Boi[i].Phdy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", Boi[i].Phdy.Hrs, Boi[i].Phdy.D)
+			fmt.Fprintf(fo, "%1d %2.0f\n", Boi[i].Phdy.Mxtime, Boi[i].Phdy.Mx)
 		}
 	}
 }
@@ -430,21 +430,21 @@ func boimonprt(fo io.Writer, id int, Nboi int, Boi []BOI) {
 		}
 	default:
 		for i = 0; i < Nboi; i++ {
-			fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f ",
+			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				Boi[i].mTidy.Hrs, Boi[i].mTidy.M,
 				Boi[i].mTidy.Mntime, Boi[i].mTidy.Mn,
 				Boi[i].mTidy.Mxtime, Boi[i].mTidy.Mx)
 
-			fmt.Fprintf(fo, "%1ld %3.1f ", Boi[i].mQdy.Hhr, Boi[i].mQdy.H)
-			fmt.Fprintf(fo, "%1ld %3.1f ", Boi[i].mQdy.Chr, Boi[i].mQdy.C)
-			fmt.Fprintf(fo, "%1ld %2.0f ", Boi[i].mQdy.Hmxtime, Boi[i].mQdy.Hmx)
-			fmt.Fprintf(fo, "%1ld %2.0f ", Boi[i].mQdy.Cmxtime, Boi[i].mQdy.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", Boi[i].mQdy.Hhr, Boi[i].mQdy.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", Boi[i].mQdy.Chr, Boi[i].mQdy.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", Boi[i].mQdy.Hmxtime, Boi[i].mQdy.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f ", Boi[i].mQdy.Cmxtime, Boi[i].mQdy.Cmx)
 
-			fmt.Fprintf(fo, "%1ld %3.1f ", Boi[i].mEdy.Hrs, Boi[i].mEdy.D)
-			fmt.Fprintf(fo, "%1ld %2.0f ", Boi[i].mEdy.Mxtime, Boi[i].mEdy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", Boi[i].mEdy.Hrs, Boi[i].mEdy.D)
+			fmt.Fprintf(fo, "%1d %2.0f ", Boi[i].mEdy.Mxtime, Boi[i].mEdy.Mx)
 
-			fmt.Fprintf(fo, "%1ld %3.1f ", Boi[i].mPhdy.Hrs, Boi[i].mPhdy.D)
-			fmt.Fprintf(fo, "%1ld %2.0f\n", Boi[i].mPhdy.Mxtime, Boi[i].mPhdy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", Boi[i].mPhdy.Hrs, Boi[i].mPhdy.D)
+			fmt.Fprintf(fo, "%1d %2.0f\n", Boi[i].mPhdy.Mxtime, Boi[i].mPhdy.Mx)
 		}
 	}
 }

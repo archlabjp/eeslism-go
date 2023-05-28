@@ -48,7 +48,7 @@ type ACS struct {
 }
 
 type EVACCA struct {
-	name       string  // カタログ名
+	Name       string  // カタログ名
 	N          int     // 気化冷却器分割数
 	Awet, Adry float64 // Wet側、Dry側の境界壁接触面積[m2]
 	hwet, hdry float64 // Wet側、Dry側の境界壁の対流熱伝達率[W/m2K]
@@ -767,8 +767,9 @@ type GLOAD struct /* 入力負荷仮想機器 */
 	cmp *COMPNT
 }
 
+// 太陽電池のカタログデータ
 type PVCA struct {
-	name        string
+	Name        string  // 名称
 	PVcap       float64 // 太陽電池容量[W]
 	Area        float64 // アレイ面積[m2]
 	KHD         float64 // 日射量年変動補正係数[-]
@@ -780,15 +781,14 @@ type PVCA struct {
 	ap          float64 // 太陽電池裏面の熱伝達率[W/m2K]
 	Type        rune    // 結晶系：'C'  アモルファス系：'A'
 	A, B        float64 // 設置方式別の太陽電池アレイ温度計算係数
-	InstallType rune    // 太陽電池パネル設置方法
-	// 'A':架台設置形、'B':屋根置き形、'C':屋根材形（裏面通風構造があるタイプ）
-	//PVcap float64					// 太陽電池設置容量[W]
+	InstallType rune    // 太陽電池パネル設置方法 'A':架台設置形、'B':屋根置き形、'C':屋根材形（裏面通風構造があるタイプ）
 }
 
+// 太陽電池
 type PV struct {
-	Name     string
+	Name     string //名称
 	Cmp      *COMPNT
-	Cat      *PVCA
+	Cat      *PVCA    // カタログデータ
 	KTotal   float64  // 太陽電池の総合設計係数[-]
 	KConst   float64  // 温度補正係数以外の補正係数の積（温度補正係数以外は時々刻々変化しない）
 	KPT      float64  // 温度補正係数[-]
@@ -807,8 +807,8 @@ type PV struct {
 	mSoldy   EDAY
 }
 
-type EQCAT struct /*機器仕様データ一覧*/
-{
+// カタログデータ（機器仕様データ一覧）
+type EQCAT struct {
 	Nrfcmp int
 	Rfcmp  []RFCMP
 
@@ -870,8 +870,8 @@ type EQCAT struct /*機器仕様データ一覧*/
 	//Compostca []COMPOSTCA
 }
 
-type EQSYS struct /*システム使用機器データ一覧*/
-{
+// 「実際に」システムを構成する機器(システム使用機器データ一覧)
+type EQSYS struct {
 	Ncnvrg int
 	Cnvrg  []*COMPNT
 
@@ -908,14 +908,15 @@ type EQSYS struct /*システム使用機器データ一覧*/
 	Ngload int
 	Gload  []GLOAD
 
-	/*---- Satoh Debug VAV  2000/10/30 ----*/
+	// VAVユニット
 	Nvav int
 	Vav  []VAV
 
-	/*---- Satoh Debug 電気蓄熱式暖房器 2001/1/21 ----*/
+	// 電気蓄熱式暖房器
 	Nstheat int
 	Stheat  []STHEAT
 
+	// 全熱交換器
 	Nthex int
 	Thex  []THEX
 
@@ -925,17 +926,18 @@ type EQSYS struct /*システム使用機器データ一覧*/
 	Nqmeas int
 	Qmeas  []QMEAS
 
+	// 太陽電池
 	Npv   int
 	PVcmp []PV
 
 	Nomvav int
 	OMvav  []OMVAV
 
-	// Satoh追加 2013/10/20
+	// デシカント槽
 	Ndesi int
 	Desi  []DESI
 
-	// Satoh追加 2013/10/26
+	// 気化冷却器
 	Nevac int
 	Evac  []EVAC
 }

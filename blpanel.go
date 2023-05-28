@@ -77,16 +77,7 @@ func Panelcf(rdpnl *RDPNL) {
 	var Mw *MWALL
 	var C1 float64
 
-	/*
-		printf("Panelcf xxxxxxxxxxxxxx  name=%s Wp=%f\n",
-		rdpnl.name, rdpnl.Wp);
-	*/
-
 	if rdpnl.Wp > 0.0 {
-		/*
-			printf("Panelcf name  %s\n", rdpnl.cmp.name);
-		*/
-
 		for m = 0; m < rdpnl.MC; m++ {
 			Sd = rdpnl.sd[m]
 			rm = rdpnl.rm[m]
@@ -109,7 +100,6 @@ func Panelcf(rdpnl *RDPNL) {
 						rdpnl.FOp[m] = Mw.UX[iup+M-1] * Sd.ColCoeff
 					}
 					rdpnl.FPp = Mw.UX[iup+mp] * Mw.Pc * rdpnl.Wp
-					//printf("FPp=%f\n", rdpnl.FPp);
 				} else {
 					Mw = Sd.mw
 					rdpnl.FIp[1] = rdpnl.FOp[0]
@@ -117,8 +107,6 @@ func Panelcf(rdpnl *RDPNL) {
 				}
 
 				wall = Mw.wall
-				//if ( Sd.mw.wall.WallType == 'P' )
-				//{
 				C1 = Sd.alic
 				for j = 0; j < N; j++ {
 					alr = &rm.alr[nn+j]
@@ -129,7 +117,6 @@ func Panelcf(rdpnl *RDPNL) {
 				}
 				C1 *= rdpnl.FIp[m] / Sd.ali
 
-				//printf("C1=%f\n",C1) ;
 				if wall.WallType == 'P' { // 床暖房パネル
 					rdpnl.EPt[m] = C1 * rdpnl.Wp * Sd.A
 				} else { // 屋根一体型空気集熱器
@@ -139,16 +126,8 @@ func Panelcf(rdpnl *RDPNL) {
 						kd = wall.kd
 					}
 					rdpnl.EPt[m] = C1 * rdpnl.cG * rdpnl.Ec * kd
-					//rdpnl.EPt[m] = C1 * rdpnl.cG * rdpnl.Ec * wall.KdKo ;
 				}
 
-				//printf("Ec=%f  kdo=%f\n", rdpnl.Ec, wall.KdKo) ;
-				//}
-				//else
-				//	rdpnl.EPt[m] = rdpnl.Ec * wall.KdKo * Sd.FI ;
-
-				//if ( Sd.mw.wall.WallType == 'P' )
-				//{
 				for j = 0; j < rm.Ntr; j++ {
 					epr = &rdpnl.EPR[m][j]
 

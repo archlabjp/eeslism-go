@@ -21,7 +21,7 @@ import (
 	"io"
 )
 
-func Contlschdlr(dTM float64, Ncontl int, _Contl []CONTL, Nmpath int, Mpath []MPATH,
+func Contlschdlr(Ncontl int, _Contl []CONTL, Nmpath int, Mpath []MPATH,
 	Ncompnt int, _Compnt []COMPNT) {
 
 	// 全ての経路、機器を停止で初期化
@@ -153,7 +153,7 @@ func Contlschdlr(dTM float64, Ncontl int, _Contl []CONTL, Nmpath int, Mpath []MP
 		for i := 0; i < Mp.Nlpath; i++ {
 			Pli := &Mp.Plist[i]
 			if Pli.Batch == 'y' {
-				lpathschbat(dTM, Pli)
+				lpathschbat(Pli)
 			}
 		}
 	}
@@ -258,7 +258,7 @@ func lpathschd(control ControlSWType, Nelm int, pelm []*PELM) {
 
 /* 蓄熱槽のバッチ給水、排水時の設定  */
 
-func lpathschbat(dTM float64, Plist *PLIST) {
+func lpathschbat(Plist *PLIST) {
 	var j, k, i, jt, ifl, Nelm, Ne int
 	var batop rune
 	var Tsout, Gbat float64
@@ -319,7 +319,7 @@ func lpathschbat(dTM float64, Plist *PLIST) {
 		lpathschd(ON_SW, Ne, Pei)
 
 		if Stank.Batchop == BTFILL {
-			Plist.G = Gbat * Row / dTM
+			Plist.G = Gbat * Row / DTM
 			lpathschd(OFF_SW, Nelm-jt, Plist.Pelm[jt:jt+Ne])
 			Plist.Pelm[jt].Out.Control = BATCH_SW
 		} else if Stank.Batchop == BTDRAW {
@@ -332,7 +332,7 @@ func lpathschbat(dTM float64, Plist *PLIST) {
 				Gbat += Stank.Dvol[j]
 			}
 			Tsout /= float64(Stank.Jout[k] + 1)
-			Plist.G = Gbat * Row / dTM
+			Plist.G = Gbat * Row / DTM
 
 			Plist.Pelm[jt].Out.Sysv = Tsout
 		}
@@ -367,21 +367,17 @@ func contlxprint(Ncontl int, C *CONTL, out io.Writer) {
 						V = 0.0
 					}
 
-					fmt.Fprintf(out, "  lft1=%.2f  lft2=%.2f  rgt=%.2f\n",
-						*cif.Lft1.V, V, *cif.Rgt.V)
+					fmt.Fprintf(out, "  lft1=%.2f  lft2=%.2f  rgt=%.2f\n", *cif.Lft1.V, V, *cif.Rgt.V)
 				} else {
-					fmt.Fprintf(out, "  lft1=%c  lft2=%c  rgt=%c\n",
-						*cif.Lft1.S, *cif.Lft2.S, *cif.Rgt.S)
+					fmt.Fprintf(out, "  lft1=%s  lft2=%s  rgt=%s\n", *cif.Lft1.S, *cif.Lft2.S, *cif.Rgt.S)
 				}
 			}
 
 			fmt.Fprintf(out, "  sttype=%c  pathtype=%c", cst.Type, cst.PathType)
 			if cst.Type == VAL_CTYPE {
-				fmt.Fprintf(out, "  lft=%.2f    rgt=%.2f\n",
-					*cst.Lft.V, *cst.Rgt.V)
+				fmt.Fprintf(out, "  lft=%.2f    rgt=%.2f\n", *cst.Lft.V, *cst.Rgt.V)
 			} else {
-				fmt.Fprintf(out, "  lft=%c    rgt=%c\n",
-					*cst.Lft.S, *cst.Rgt.S)
+				fmt.Fprintf(out, "  lft=%s    rgt=%s\n", *cst.Lft.S, *cst.Rgt.S)
 			}
 		}
 	}
@@ -391,8 +387,7 @@ func contlxprint(Ncontl int, C *CONTL, out io.Writer) {
 		fmt.Fprintln(out, "contlxprint --- Contlschdlr")
 
 		for i = 0; i < Ncontl; i++ {
-			fmt.Fprintf(out, "[%d]\ttype=%c\tlgv=%d\n",
-				i, Contl.Type, Contl.Lgv)
+			fmt.Fprintf(out, "[%d]\ttype=%c\tlgv=%d\n", i, Contl.Type, Contl.Lgv)
 			cif = Contl.Cif
 			cst = Contl.Cst
 
@@ -405,21 +400,17 @@ func contlxprint(Ncontl int, C *CONTL, out io.Writer) {
 						V = 0.0
 					}
 
-					fmt.Fprintf(out, "\tlft1=%.2f\tlft2=%.2f\trgt=%.2f\n",
-						*cif.Lft1.V, V, *cif.Rgt.V)
+					fmt.Fprintf(out, "\tlft1=%.2f\tlft2=%.2f\trgt=%.2f\n", *cif.Lft1.V, V, *cif.Rgt.V)
 				} else {
-					fmt.Fprintf(out, "\tlft1=%c\tlft2=%c\trgt=%c\n",
-						*cif.Lft1.S, *cif.Lft2.S, *cif.Rgt.S)
+					fmt.Fprintf(out, "\tlft1=%s\tlft2=%s\trgt=%s\n", *cif.Lft1.S, *cif.Lft2.S, *cif.Rgt.S)
 				}
 			}
 
 			fmt.Fprintf(out, "\tsttype=%c\tpathtype=%c", cst.Type, cst.PathType)
 			if cst.Type == VAL_CTYPE {
-				fmt.Fprintf(out, "\tlft=%.2f\trgt=%.2f\n",
-					*cst.Lft.V, *cst.Rgt.V)
+				fmt.Fprintf(out, "\tlft=%.2f\trgt=%.2f\n", *cst.Lft.V, *cst.Rgt.V)
 			} else {
-				fmt.Fprintf(out, "\tlft=%c\trgt=%c\n",
-					*cst.Lft.S, *cst.Rgt.S)
+				fmt.Fprintf(out, "\tlft=%s\trgt=%s\n", *cst.Lft.S, *cst.Rgt.S)
 			}
 		}
 	}

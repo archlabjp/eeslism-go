@@ -101,12 +101,12 @@ type RMSRF struct {
 
 	sb int // 日除け定義番号
 
-	A    float64 // 面積
-	Eo   float64 // 外表面輻射率
-	as   float64 // 外表面日射吸収率
-	c    float64 // 隣室温度係数
-	tgtn float64 // 日射総合透過率
-	Bn   float64 // 吸収日射取得率
+	A    float64 // 面積 [m2]
+	Eo   float64 // 外表面輻射率 [-]
+	as   float64 // 外表面日射吸収率 [-]
+	c    float64 // 隣室温度係数 [-]
+	tgtn float64 // 日射総合透過率 [-]
+	Bn   float64 // 吸収日射取得率 [-]
 
 	/*壁体、窓熱抵抗　　　　 */
 	fsol *float64 // 短波長放射の基本吸収比率
@@ -117,18 +117,18 @@ type RMSRF struct {
 	srh     float64 // 人体よりの輻射の吸収比率
 	srl     float64 // 照明よりの輻射の吸収比率
 	sra     float64 // 機器よりの輻射の吸収比率
-	alo     float64
-	ali     float64
+	alo     float64 // 外表面熱伝達率 [W/m2K]
+	ali     float64 // 内表面熱伝達率 [W/m2K]
 	alic    float64
 	alir    float64
 	Qc      float64 // 対流による熱取得 [W]
 	Qr      float64 // 放射による熱取得 [W]
 	Qi      float64 // 壁体貫流熱取得 [W]
-	Qgt     float64 // 透過日射熱取得[W]
-	Qga     float64 // 吸収日射熱取得[W]
-	Qrn     float64 // 夜間放射熱取得[W]
-	K       float64
-	Rwall   float64 // 熱抵抗[m2K/W] 表面熱伝達抵抗は除く
+	Qgt     float64 // 透過日射熱取得 [W]
+	Qga     float64 // 吸収日射熱取得 [W]
+	Qrn     float64 // 夜間放射熱取得 [W]
+	K       float64 // 熱伝達率 [W/m2K] K = 1/(1/alo + Rwall + 1/ali)
+	Rwall   float64 // 熱抵抗 [m2K/W] 表面熱伝達抵抗(1/alo+1/ali)は除く
 	CAPwall float64 // 単位面積当たり熱容量[J/m2K]
 	alicsch *float64
 	alirsch *float64
@@ -147,17 +147,21 @@ type RMSRF struct {
 	Idf     float64 /*higuchi 070918 */
 	Iw      float64 /*higuchi 070918 */
 	rn      float64 /*higuchi 070918 */
-	RS      float64 // 室内表面に吸収される短波長輻射 [W/m2]
-	RSsol   float64 // 室内表面に吸収される日射（短波長）[W/m2]
-	RSsold  float64 // 室内表面に入射する日射（短波長）（隣接室への透過を考慮する前）
-	RSli    float64 // 室内表面に吸収される照明（短波長）[W/m2]
-	RSin    float64
-	TeEsol  float64
-	TeErn   float64
-	Te      float64 // 外表面の相当外気温
-	Tmrt    float64 // 室内表面の平均輻射温度
-	Ei      float64
-	Ts      float64
+
+	// ---- 室内表面に吸収される日射と内部発熱 ----
+
+	RS     float64 // 室内表面に吸収される短波長輻射 [W/m2]
+	RSsol  float64 // 室内表面に吸収される日射（短波長）[W/m2]
+	RSsold float64 // 室内表面に入射する日射（短波長）（隣接室への透過を考慮する前）
+	RSli   float64 // 室内表面に吸収される照明（短波長）[W/m2]
+	RSin   float64 // 室内表面に吸収される人体・照明・設備・設備機器（短波長） [W/m2]
+
+	TeEsol float64
+	TeErn  float64
+	Te     float64 // 外表面の相当外気温
+	Tmrt   float64 // 室内表面の平均輻射温度
+	Ei     float64
+	Ts     float64 // 室内表面の温度 ????
 
 	/*設備機器発熱*/
 	eqrd float64
@@ -305,26 +309,13 @@ type WALL struct {
 	// 通気層上面、下面の放射率
 	ta, Eg, Eb, ag float64
 	// 空気層の厚さ[m]、ガラスの放射率、集熱板放射率、ガラスの日射吸収率
-	chrRinput rune // 熱抵抗が入力されている場合は'Y'
-	// 熱貫流率が入力されている場合は'N'
-	//double	ta,		// 建材一体型空気集熱器の透過体透過率[-]
-	//				// 2009/01/19 Satoh Debug
-	//		Kdd,	// 集熱媒体から集熱器裏面までの熱貫流率[W/m2K]
-	//		Kud,	// 集熱媒体から集熱器表面までの熱貫流率[W/m2K]
-	//		Ku,		// 建材一体型空気集熱器の集熱板から屋外までの熱貫流率[W/m2K]
-	//		Kd,		// 　　　　　　　　〃　　　　　　　裏面までの熱貫流率[W/m2K]
-	//		Ko,		// Ku + Kd
-	//		KdKo,	// Kd / Ko
-	//		//KcKu,	// Kc / Ku
-	//		Kc ;	// 集熱器全体の熱貫流率[W/m2K] ( = 1 / αA + Ko )
-	//				// 2009/01/26 Satoh Debug
-	WallType rune
-	// 建材一体型空気集熱器の場合：'C'
-	// 床暖房等放射パネルの場合：'P'
-	// 一般壁体の場合：'N'
+	chrRinput rune // 熱抵抗が入力されている場合は'Y', 熱貫流率が入力されている場合は'N'
+	WallType  rune // 建材一体型空気集熱器の場合：'C', 床暖房等放射パネルの場合：'P', 一般壁体の場合：'N'
+
 	//char	PVwall ;
 	// 太陽電池一体型建材（裏面通気）：'Y'
 	ColType string
+
 	// 集熱器タイプ　JSES2009大会論文（宇田川先生発表）のタイプ
 	PVwallcat  PVWALLCAT
 	PCM        []*PCM
@@ -428,41 +419,77 @@ type MWALL struct {
 
 // 窓およびドア定義デ－タ
 type WINDOW struct {
-	name         string // 名称
-	Cidtype      string // 入射角特性のタイプ。 'N':一般ガラス
-	K, Rwall, Ei float64
-	Eo           float64 // 外表面輻射率（ドアのみ）
-	tgtn         float64 // 日射総合透過率
-	Bn           float64 // 吸収日射取得率
-	as           float64 // 日射吸収率（ドアのみ）
-	Ag           float64 // 窓ガラス面積
-	Ao           float64 // 開口面積
-	W, H         float64 // 巾、高さ
-	RStrans      rune    // 室内透過日射が窓室内側への入射日射を屋外に透過する場合'y'
-	end          int     // 要素数(インデックス0に設定される)
+	Name    string  // 名称
+	Cidtype string  // 入射角特性のタイプ。 'N':一般ガラス
+	K       float64 // !入力されてる？!
+	Rwall   float64 // 窓部材熱抵抗 [m2K/W]
+	Ei      float64 // 室内表面放射率(0.9) [-]
+	Eo      float64 // 外表面放射率(0.9)（ドアのみ） [-]
+	tgtn    float64 // 日射透過率 [-]
+	Bn      float64 // 吸収日射取得率 [-]
+	As      float64 // 日射吸収率（ドアのみ）[-]
+	Ag      float64 // 窓ガラス面積 !入力されてる？!
+	Ao      float64 // 開口面積 !入力されてる？!
+	W       float64 // 巾 !入力されてる？!
+	H       float64 // 高さ !入力されてる？!
+	RStrans rune    // 室内透過日射が窓室内側への入射日射を屋外に透過する場合'y'
+	end     int     // 要素数(インデックス0に設定される)
+}
+
+func NewWINDOW() *WINDOW {
+	W := new(WINDOW)
+	W.Name = ""
+	W.Cidtype = "N" // 入射角特性のタイプは一般ガラスとする
+	W.K = 0.0
+	W.Rwall = 0.0
+	W.Ei = 0.9 // 室内表面放射率 デフォルト値
+	W.Eo = 0.9 // 外表面放射率 デフォルト値
+	W.tgtn = 0.0
+	W.Bn = 0.0
+	W.As = 0.0
+	W.Ag = 0.0
+	W.Ao = 0.0
+	W.W = 0.0
+	W.H = 0.0
+	W.RStrans = 'n' // 室内透過日射が窓室内側への入射日射を屋外に透過しない
+	W.end = 0
+	return W
 }
 
 // 日除け
 type SNBK struct {
-	name      string
-	Type, ksi int
-	W, H      float64
-	D         float64
-	W1, W2    float64
-	H1, H2    float64
-	end       int // 要素数(インデックス0に設定)
+	Name string  // 名称
+	Type int     // 日除けタイプ 1: 一般の庇(H), 2: 袖壁(HL), 5: 長い庇(S), 6: 長い袖壁(SL), 9: 格子ルーバー(K)
+	Ksi  int     // 日影部分と日照部分の反転 0: 反転なし, 1: 反転あり
+	W    float64 // 開口部の高さ (W=Width)
+	H    float64 // 開口部の幅 (H=Height)
+	D    float64 // 庇の付け根から先端までの長さ (D=Depth)
+	W1   float64 // 開口部の左端から壁の左端までの距離 (L=Left)
+	W2   float64 // 開口部の右端から壁の右端までの距離 (R=Right)
+	H1   float64 // 開口部の上端から壁の上端までの距離 (T=Top)
+	H2   float64 // 地面から開口部の下端までの高さ (B=Bottom)
+	end  int     // 要素数(インデックス0に設定)
 }
 
 // 日射、室内発熱熱取得
 type QRM struct {
-	Tsol  float64 // 透過日射
-	Asol  float64 // 外表面吸収日射室内熱取得
-	Arn   float64 // 外表面吸収長波長輻射熱損失
-	Hums  float64 // 人体顕熱
-	Light float64 // 照明
-	Apls  float64 // 機器顕熱
-	Huml  float64 // 人体潜熱
-	Apll  float64 // 機器潜熱
+	Tsol float64 // 透過日射 [W]
+	Asol float64 // 外表面吸収日射室内熱取得 [W]
+	Arn  float64 // 外表面吸収長波長輻射熱損失 [W]
+
+	// --- 人体・照明・機器の顕熱 [W] ---
+
+	Hums  float64 // 人体顕熱 [W]
+	Light float64 // 照明 [W]
+	Apls  float64 // 機器顕熱 [W]
+	Hgins float64 //  室内発熱（顕熱）の合計 [W]
+
+	// --- 人体・機器の潜熱 [W] ---
+
+	Huml float64 // 人体潜熱 [W]
+	Apll float64 // 機器潜熱 [W]
+
+	// --- 熱負荷 ---
 
 	Qinfs float64 // 換気顕熱負荷[W]
 	Qinfl float64 // 換気潜熱負荷[W]
@@ -472,11 +499,12 @@ type QRM struct {
 
 	Qeqp float64 // 室内設置の配管、ボイラからの熱取得[W]
 
-	Solo   float64 //  外壁面入射日射量[W]
-	Solw   float64 //  窓面入射日射量[W]
-	Asl    float64 // 外表面吸収日射[W]
-	Hgins  float64 //  室内発熱（顕熱）[W]
-	AE, AG float64 // 消費電力[W]、消費ガス[W]
+	Solo float64 //  外壁面入射日射量[W]
+	Solw float64 //  窓面入射日射量[W]
+	Asl  float64 // 外表面吸収日射[W]
+
+	AE float64 // 消費電力[W]
+	AG float64 // 消費ガス[W]
 }
 
 // 室間相互換気
@@ -619,36 +647,36 @@ type RZONE struct /* ゾーン集計 */
 /* 要素別熱損失・熱取得計算用 */
 
 type BHELM struct {
-	trs float64 /* 貫流 */
-	so  float64 /* 外壁入射日射 */
-	sg  float64 /* 窓入射日射 */
-	rn  float64 /* 大気放射 */
-	in  float64 /* 室内発熱 */
-	pnl float64 /* 放射暖・冷房パネル */
+	trs float64 // 貫流
+	so  float64 // 外壁入射日射
+	sg  float64 // 窓入射日射
+	rn  float64 // 大気放射
+	in  float64 // 室内発熱
+	pnl float64 // 放射暖・冷房パネル
 }
 
 type QHELM struct {
 	qe   BHELM
-	slo  float64 /* 外壁面入射日射量　W */
-	slw  float64 /* 窓面入射日射量　W */
-	asl  float64 /* 外壁面吸収日射量 W */
-	tsol float64 /* 窓透過日射量　W */
-	hins float64 /* 室内発熱（顕熱） W */
-	hinl float64 /* 室内発熱（潜熱） */
+	slo  float64 // 外壁面入射日射量 [W]
+	slw  float64 // 窓面入射日射量 [W]
+	asl  float64 // 外壁面吸収日射量 [W]
+	tsol float64 // 窓透過日射量 [W]
+	hins float64 // 室内発熱（顕熱） [W]
+	hinl float64 // 室内発熱（潜熱） [W]
 
-	nx     float64 /* 隣室熱損失 */
-	gd     float64 /* 窓熱損失 */
-	ew     float64 /* 外壁熱損失 */
-	wn     float64 /* 窓熱損失 */
-	i      float64 /* 内壁熱損失 */
-	c      float64 /* 天井、屋根 */
-	f      float64 /* 床（内・外）*/
-	vo     float64 /* 換気 */
-	vol    float64 /* 換気（潜熱） */
-	vr     float64 /* 室間換気 */
-	vrl    float64 /* 室間換気（潜熱） */
-	sto    float64 /* 室内空気蓄熱 */
-	stol   float64 /* 室内空気蓄熱（潜熱） */
+	nx     float64 // 隣室熱損失
+	gd     float64 // 窓熱損失
+	ew     float64 // 外壁熱損失
+	wn     float64 // 窓熱損失
+	i      float64 // 内壁熱損失
+	c      float64 // 天井、屋根
+	f      float64 // 床（内・外）
+	vo     float64 // 換気
+	vol    float64 // 換気（潜熱）
+	vr     float64 // 室間換気
+	vrl    float64 // 室間換気（潜熱）
+	sto    float64 // 室内空気蓄熱
+	stol   float64 // 室内空気蓄熱（潜熱）
 	loadh  float64
 	loadhl float64
 	loadc  float64
@@ -697,8 +725,9 @@ type ROOM struct {
 	// 室空気に加算したものは除く
 	FMT, FMC float64
 
-	// 家具の計算用パラメータ
-	Qgt         float64 // 透過日射熱取得
+	// --- 家具の計算用パラメータ ----
+
+	Qgt         float64 // 透過日射熱取得 [W]
 	Nachr       int
 	Ntr         int //内壁を共有する隣室数
 	Nrp         int //輻射パネル数
@@ -766,7 +795,8 @@ type ROOM struct {
 	Visc     *float64 // 隙間風スケジュール (未設定時はnil)
 	alc      *float64 // 室内側対流熱伝達率のスケジュール設定値  (未設定時はnil)
 
-	/*室内発熱*/
+	// --- 室内発熱 ---
+
 	Hc float64 //人体よりの対流  [W]
 	Hr float64 //人体よりの輻射  [W]
 	HL float64 //人体よりの潜熱　[W]
@@ -788,13 +818,13 @@ type ROOM struct {
 	RMx  float64
 	RMXC float64
 
-	Tr     float64
-	Trold  float64
-	xr     float64
-	xrold  float64
+	Tr     float64 //室内温度
+	Trold  float64 //室内温度
+	xr     float64 //室内絶対湿度 [kg/kg]
+	xrold  float64 //室内絶対湿度
 	RH     float64
-	Tsav   float64
-	Tot    float64
+	Tsav   float64 // 平均表面温度
+	Tot    float64 // 作用温度
 	hr     float64 // エンタルピー
 	PMV    float64
 	SET    float64
@@ -811,8 +841,8 @@ type ROOM struct {
 	OTsetCwgt                    *float64 // 作用温度設定時の対流成分重み係数
 	// デフォルトは0.5
 	HGc, CA, AR float64
-	Qsab        float64 // 吸収日射熱取得
-	Qrnab       float64 // 夜間放射による熱損失
+	Qsab        float64 // 吸収日射熱取得 [W]
+	Qrnab       float64 // 夜間放射による熱損失 [W]
 }
 
 /* --------------------------------

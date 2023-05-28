@@ -19,7 +19,10 @@ package main
 
 import "math"
 
-/*  -----------------------------------------------------  */
+// 入力:
+//
+// 出力:
+//   日よけの影面積率 Fsdw [-]
 func FNFsdw(Ksdw, Ksi int, Xazm, Xprf, D, Wr, Hr, Wi1, Hi1, Wi2, Hi2 float64) float64 {
 	var Da, Dp, Asdw, Fsdw float64
 

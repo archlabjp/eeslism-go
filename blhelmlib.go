@@ -19,8 +19,9 @@ package main
 
 import "fmt"
 
-/* 外乱要素別表面温度の計算 */
-
+// 外乱要素別表面温度の計算
+// 入力値:
+//  外気温度 Ta [C]
 func helmrmsrt(Room *ROOM, Ta float64) {
 	if Room.rmqe == nil {
 		return
@@ -45,7 +46,7 @@ func helmrmsrt(Room *ROOM, Ta float64) {
 		}
 
 		switch Rmsb.Type {
-		case 'E':
+		case 'E': // 外気に接する壁
 			WSC.trs += Sd.FO * Ta
 			WSC.rn += Sd.FO * Sd.TeErn
 			if Sd.ble == 'E' {
@@ -53,9 +54,9 @@ func helmrmsrt(Room *ROOM, Ta float64) {
 			} else if Sd.ble == 'W' {
 				WSC.sg += Sd.FO * Sd.TeEsol
 			}
-		case 'G':
+		case 'G': // 地盤に接する壁
 			WSC.trs += Sd.FO * Sd.Te
-		case 'i':
+		case 'i': // 内壁
 			WSC.trs += Sd.FO * Sd.nextroom.Trold
 		}
 
@@ -75,7 +76,8 @@ func helmrmsrt(Room *ROOM, Ta float64) {
 /* ---------------------------------------------- */
 
 /* 壁体内温度 */
-
+// 入力値:
+//  外気温度 Ta [C]
 func helmwall(Room *ROOM, Ta float64) {
 	if Room.rmqe == nil {
 		return
@@ -108,13 +110,13 @@ func helmwall(Room *ROOM, Ta float64) {
 			}
 
 			switch rmsb.Type {
-			case 'E':
+			case 'E': // 外気に接する壁
 				Te.trs = Ta
 				Te.so = Sd.TeEsol
 				Te.rn = Sd.TeErn
-			case 'G':
+			case 'G': // 地盤に接する壁
 				Te.trs = Sd.Te
-			case 'i':
+			case 'i': // 内壁
 				Te.trs = Sd.nextroom.Trold
 			}
 
@@ -154,20 +156,14 @@ func helmwlsft(i, N int, alr []float64, rmsb []RMSB, Tm *BHELM) {
 /* ---------------------------------------------- */
 
 func helmwlt(M, mp int, UX []float64, uo, um, Pc float64, Tie, Te, Tpe, Told, Tw []BHELM) {
-	var m int
-	var Toldo, Toldm, Toldp *BHELM
-
-	Toldo = &Told[0]
-	Toldm = &Told[M-1]
-	helmsumpd(1, []float64{uo}, Tie, Toldo)
-	helmsumpd(1, []float64{um}, Te, Toldm)
+	helmsumpd(1, []float64{uo}, Tie, &Told[0])
+	helmsumpd(1, []float64{um}, Te, &Told[M-1])
 
 	if Pc > 0.0 {
-		Toldp = &Told[mp]
-		helmsumpd(1, []float64{Pc}, Tpe, Toldp)
+		helmsumpd(1, []float64{Pc}, Tpe, &Told[mp])
 	}
 
-	for m = 0; m < M; m++ {
+	for m := 0; m < M; m++ {
 		helmclear(&Tw[m])
 		helmsumpd(M, UX, Told, &Tw[m])
 		UX = UX[M:]
@@ -178,7 +174,10 @@ func helmwlt(M, mp int, UX []float64, uo, um, Pc float64, Tie, Te, Tpe, Told, Tw
 
 /* 要素別熱損失・熱取得 */
 
-func helmq(_Room []ROOM, dTM, Ta, xa float64) {
+// 入力値:
+//  外気温度 Ta [C]
+//  絶対湿度 xa [kg/kg]
+func helmq(_Room []ROOM, Ta, xa float64) {
 	var q, Ts *BHELM
 	var qh *QHELM
 	var Sd *RMSRF
@@ -250,8 +249,8 @@ func helmq(_Room []ROOM, dTM, Ta, xa float64) {
 
 	qh.hinl = Room.AL + Room.HL
 
-	qh.sto = Room.MRM * (Room.Trold - Room.Tr) / dTM
-	qh.stol = Room.GRM * Ro * (Room.xrold - Room.xr) / dTM
+	qh.sto = Room.MRM * (Room.Trold - Room.Tr) / DTM
+	qh.stol = Room.GRM * Ro * (Room.xrold - Room.xr) / DTM
 	qh.vo = Ca * Room.Gvent * (Ta - Room.Tr)
 	qh.vol = Ro * Room.Gvent * (xa - Room.xr)
 
@@ -266,6 +265,7 @@ func helmq(_Room []ROOM, dTM, Ta, xa float64) {
 
 /* ---------------------------------------------- */
 
+// Reset q to zero
 func qelmclear(q *QHELM) {
 	helmclear(&q.qe)
 	q.slo = 0.0
@@ -295,6 +295,7 @@ func qelmclear(q *QHELM) {
 
 /* ---------------------------------------------- */
 
+// Add a to b
 func qelmsum(a, b *QHELM) {
 	helmsum(&a.qe, &b.qe)
 
@@ -328,6 +329,7 @@ func qelmsum(a, b *QHELM) {
 
 /* ---------------------------------------------- */
 
+// Reset b to zero
 func helmclear(b *BHELM) {
 	b.trs = 0.0
 	b.so = 0.0
@@ -339,6 +341,7 @@ func helmclear(b *BHELM) {
 
 /* ---------------------------------------------- */
 
+// Mutiply a by u(vector) and add to b
 func helmsumpd(N int, u []float64, a []BHELM, b *BHELM) {
 	for i := 0; i < N; i++ {
 		b.trs += u[i] * a[i].trs
@@ -352,6 +355,7 @@ func helmsumpd(N int, u []float64, a []BHELM, b *BHELM) {
 
 /* ---------------------------------------------- */
 
+// Mutiply a by u(scalar) and add to b
 func helmsumpf(N int, u float64, a *BHELM, b *BHELM) {
 	if N != 1 {
 		panic("N != 1")
@@ -367,6 +371,7 @@ func helmsumpf(N int, u float64, a *BHELM, b *BHELM) {
 
 /* ---------------------------------------------- */
 
+// Divide a by c
 func helmdiv(a *BHELM, c float64) {
 	a.trs /= c
 	a.so /= c
@@ -378,6 +383,7 @@ func helmdiv(a *BHELM, c float64) {
 
 /* ---------------------------------------------- */
 
+// Add a to b
 func helmsum(a, b *BHELM) {
 	b.trs += a.trs
 	b.so += a.so
@@ -389,6 +395,7 @@ func helmsum(a, b *BHELM) {
 
 /* ---------------------------------------------- */
 
+// Copy a to b
 func helmcpy(a, b *BHELM) {
 	b.trs = a.trs
 	b.so = a.so
@@ -402,6 +409,5 @@ func helmcpy(a, b *BHELM) {
 
 func helmxxprint(s string, a *BHELM) {
 	fmt.Printf("xxx helmprint xxx %s  trs so sg rn in pnl\n", s)
-	fmt.Printf("%6.2f %6.2f %6.2f %6.2f %6.2f %6.2f\n",
-		a.trs, a.so, a.sg, a.rn, a.in, a.pnl)
+	fmt.Printf("%6.2f %6.2f %6.2f %6.2f %6.2f %6.2f\n", a.trs, a.so, a.sg, a.rn, a.in, a.pnl)
 }

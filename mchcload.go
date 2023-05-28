@@ -1062,7 +1062,7 @@ func hcldmonprt(fo *os.File, id, Nhcload int, _Hcload []HCLOAD) {
 	}
 }
 
-func hcldmtprt(fo *os.File, id, Nhcload, Mo, tt int, _Hcload []HCLOAD, cff_kWh float64) {
+func hcldmtprt(fo *os.File, id, Nhcload, Mo, tt int, _Hcload []HCLOAD) {
 	switch id {
 	case 0:
 		if Nhcload > 0 {
@@ -1082,7 +1082,7 @@ func hcldmtprt(fo *os.File, id, Nhcload, Mo, tt int, _Hcload []HCLOAD, cff_kWh f
 	default:
 		for i := 0; i < Nhcload; i++ {
 			Hcload := &_Hcload[i]
-			fmt.Fprintf(fo, " %.2f \n", Hcload.mtEdy[Mo-1][tt-1].D*cff_kWh)
+			fmt.Fprintf(fo, " %.2f \n", Hcload.mtEdy[Mo-1][tt-1].D*Cff_kWh)
 		}
 	}
 }

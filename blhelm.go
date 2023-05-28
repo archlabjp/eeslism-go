@@ -118,10 +118,11 @@ func Helminit(errkey string, helmkey rune, Nroom int, _Room []ROOM, Qetotal *QET
 
 /* ----------------------------------------------------- */
 
-/* 要素別熱損失・熱取得（計算） */
-
-//TODO(uda): たぶんオリジナルコードがバグっている。
-func Helmroom(Nroom int, Room []ROOM, Qrm []QRM, Qetotal *QETOTAL, dTM, Ta, xa float64) {
+// 要素別熱損失・熱取得（計算）
+// 入力値:
+//  外気温度 Ta [C]
+//  絶対湿度 xa [kg/kg]
+func Helmroom(Nroom int, Room []ROOM, Qrm []QRM, Qetotal *QETOTAL, Ta, xa float64) {
 	qelmclear(&Qetotal.Qelm)
 
 	for i := 0; i < Nroom; i++ {
@@ -130,7 +131,7 @@ func Helmroom(Nroom int, Room []ROOM, Qrm []QRM, Qetotal *QETOTAL, dTM, Ta, xa f
 		qe := &Rm.rmqe.qelm
 
 		helmrmsrt(Rm, Ta)
-		helmq(Room, dTM, Ta, xa)
+		helmq(Room, Ta, xa)
 
 		qe.slo = Qr.Solo
 		qe.slw = Qr.Solw
@@ -143,7 +144,6 @@ func Helmroom(Nroom int, Room []ROOM, Qrm []QRM, Qetotal *QETOTAL, dTM, Ta, xa f
 
 	for i := 0; i < Nroom; i++ {
 		Rm := &Room[i]
-		//TODO(uda): たぶんオリジナルコードがバグっている。
 		helmwall(Rm, Ta)
 	}
 }

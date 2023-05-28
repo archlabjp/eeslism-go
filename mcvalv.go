@@ -99,7 +99,7 @@ func Valvene(Nvalv int, Valv []VALV, Valvreset *int) {
 
 				if math.Abs(*Valv[i].Tout-*Valv[i].Tset) >= 1.0e-3 && math.Abs(T1-T2) >= 1.0e-3 {
 					r = (*Valv[i].Tset - T2) / (T1 - T2)
-					r = dmin(1.0, dmax(r, 0.0))
+					r = math.Min(1.0, math.Max(r, 0.0))
 					Valv[i].X = r
 					Vcb.X = 1.0 - r
 

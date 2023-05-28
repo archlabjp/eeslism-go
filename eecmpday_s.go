@@ -217,7 +217,7 @@ func Compomtprt(fo *os.File, mrk string, Simc *SIMCONTL, Eqsys *EQSYS, Nrdpnl in
 			refamtprt(fo, id, Eqsys.Nrefa, Eqsys.Refa, 0, 0)
 			pumpmtprt(fo, id, Eqsys.Npump, Eqsys.Pump, 0, 0)
 			PVmtprt(fo, id, Eqsys.Npv, Eqsys.PVcmp, 0, 0)
-			hcldmtprt(fo, id, Eqsys.Nhcload, 0, 0, Eqsys.Hcload, Cff_kWh)
+			hcldmtprt(fo, id, Eqsys.Nhcload, 0, 0, Eqsys.Hcload)
 			panelmtprt(fo, id, Nrdpnl, Rdpnl, 0, 0)
 
 			if j == 0 {
@@ -236,7 +236,7 @@ func Compomtprt(fo *os.File, mrk string, Simc *SIMCONTL, Eqsys *EQSYS, Nrdpnl in
 			refamtprt(fo, id, Eqsys.Nrefa, Eqsys.Refa, mo, tt)
 			pumpmtprt(fo, id, Eqsys.Npump, Eqsys.Pump, mo, tt)
 			PVmtprt(fo, id, Eqsys.Npv, Eqsys.PVcmp, mo, tt)
-			hcldmtprt(fo, id, Eqsys.Nhcload, mo, tt, Eqsys.Hcload, Cff_kWh)
+			hcldmtprt(fo, id, Eqsys.Nhcload, mo, tt, Eqsys.Hcload)
 			panelmtprt(fo, id, Nrdpnl, Rdpnl, mo, tt)
 		}
 	}

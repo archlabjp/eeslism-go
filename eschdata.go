@@ -642,6 +642,14 @@ func SchCount(fi *os.File, ssn, wkd, vl, sw, ssnmx, vlmx, swmx *int) {
 			break
 		}
 
+		imax := func(a, b int) int {
+			if a > b {
+				return a
+			} else {
+				return b
+			}
+		}
+
 		if string(s[:]) == "-ssn" || string(s[:]) == "SSN" {
 			(*ssn)++
 			i = Schcmpcount(fi)

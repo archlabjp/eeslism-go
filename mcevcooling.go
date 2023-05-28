@@ -33,7 +33,7 @@ func Evacdata(s string, Evacca *EVACCA) int {
 	st := strings.IndexByte(s, '=')
 
 	if st == -1 {
-		Evacca.name = s
+		Evacca.Name = s
 		Evacca.N = -999
 		Evacca.Nlayer = -999
 		Evacca.Awet = -999.0
@@ -98,12 +98,12 @@ func Evacint(Nevac int, Evac []EVAC) {
 
 		// 入力漏れのチェック
 		if cat.N < 0 {
-			msg := fmt.Sprintf("Name=%s catname=%s 分割数が未定義です", evac.Name, cat.name)
+			msg := fmt.Sprintf("Name=%s catname=%s 分割数が未定義です", evac.Name, cat.Name)
 			Eprint("<Evacint>", msg)
 		}
 		if cat.Adry < 0.0 || cat.Awet < 0.0 || (cat.Nlayer < 0 && (cat.hdry < 0.0 || cat.hwet < 0.0)) {
 			msg := fmt.Sprintf("Name=%s catname=%s Adry=%.1g Awet=%.1g hdry=%.1g hwet=%.1g\n",
-				evac.Name, cat.name, cat.Adry, cat.Awet, cat.hdry, cat.hwet)
+				evac.Name, cat.Name, cat.Adry, cat.Awet, cat.hdry, cat.hwet)
 			Eprint("<Evacint>", msg)
 		}
 

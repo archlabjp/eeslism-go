@@ -139,9 +139,7 @@ func Pflow(Nmpath int, _Mpath []MPATH, Wd *WDAT) {
 								break
 							}
 						}
-						Err = fmt.Sprintf("Mpath=%s  lpath=%Ild  elm=%s  Go=%f\n",
-							Mpath.Name, l,
-							Plist.Pelm[0].Cmp.Name, Go)
+						Err = fmt.Sprintf("Mpath=%s  lpath=%d  elm=%s  Go=%f\n", Mpath.Name, l, Plist.Pelm[0].Cmp.Name, Go)
 					}
 				}
 			}

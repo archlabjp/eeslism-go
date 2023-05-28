@@ -520,21 +520,21 @@ func refamonprt(fo *os.File, id int, Nrefa int, Refa []REFA) {
 	default:
 		for i := 0; i < Nrefa; i++ {
 			refa := &Refa[i]
-			fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f ",
+			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				refa.mTidy.Hrs, refa.mTidy.M,
 				refa.mTidy.Mntime, refa.mTidy.Mn,
 				refa.mTidy.Mxtime, refa.mTidy.Mx)
 
-			fmt.Fprintf(fo, "%1ld %3.1f ", refa.mQdy.Hhr, refa.mQdy.H)
-			fmt.Fprintf(fo, "%1ld %3.1f ", refa.mQdy.Chr, refa.mQdy.C)
-			fmt.Fprintf(fo, "%1ld %2.0f ", refa.mQdy.Hmxtime, refa.mQdy.Hmx)
-			fmt.Fprintf(fo, "%1ld %2.0f ", refa.mQdy.Cmxtime, refa.mQdy.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", refa.mQdy.Hhr, refa.mQdy.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", refa.mQdy.Chr, refa.mQdy.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", refa.mQdy.Hmxtime, refa.mQdy.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f ", refa.mQdy.Cmxtime, refa.mQdy.Cmx)
 
-			fmt.Fprintf(fo, "%1ld %3.1f ", refa.mEdy.Hrs, refa.mEdy.D)
-			fmt.Fprintf(fo, "%1ld %2.0f ", refa.mEdy.Mxtime, refa.mEdy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", refa.mEdy.Hrs, refa.mEdy.D)
+			fmt.Fprintf(fo, "%1d %2.0f ", refa.mEdy.Mxtime, refa.mEdy.Mx)
 
-			fmt.Fprintf(fo, "%1ld %3.1f ", refa.mPhdy.Hrs, refa.mPhdy.D)
-			fmt.Fprintf(fo, "%1ld %2.0f\n", refa.mPhdy.Mxtime, refa.mPhdy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", refa.mPhdy.Hrs, refa.mPhdy.D)
+			fmt.Fprintf(fo, "%1d %2.0f\n", refa.mPhdy.Mxtime, refa.mPhdy.Mx)
 		}
 	}
 }

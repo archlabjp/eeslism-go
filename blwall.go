@@ -187,15 +187,6 @@ func Wallfdc(M int, mp int, res []float64, cap []float64,
 	uo *float64, um *float64, Pc *float64, WallType rune,
 	Sd *RMSRF, Wd *WDAT,
 	Exsf *EXSFS, Wall *WALL, Told []float64, Twd []float64, _pcmstate []*PCMSTATE) {
-	// extern double   dTM;
-	// double  *Ul, *Ur, C;
-	// int     m, j;
-	// double	*PCMrate;
-	// PCM		*PCM, *PCM1;
-	// WELM	*Welm;
-	// double	capm, capm1, resm, resm1;
-	// double	T, lamda, Toldn;
-	// double	*captempL, *captempR;
 	var PCMf = 0
 	// double	Croa;				// 見かけの比熱
 	var ToldPCMave, ToldPCMNodeL, ToldPCMNodeR float64

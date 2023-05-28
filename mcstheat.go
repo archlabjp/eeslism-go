@@ -373,24 +373,24 @@ func stheatdyprt(fo *os.File, id, Nstheat int, stheat []STHEAT) {
 		}
 	default:
 		for i := 0; i < Nstheat; i++ {
-			fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f ",
+			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				stheat[i].Tidy.Hrs, stheat[i].Tidy.M,
 				stheat[i].Tidy.Mntime, stheat[i].Tidy.Mn,
 				stheat[i].Tidy.Mxtime, stheat[i].Tidy.Mx)
-			fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f ",
+			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				stheat[i].Tody.Hrs, stheat[i].Tody.M,
 				stheat[i].Tody.Mntime, stheat[i].Tody.Mn,
 				stheat[i].Tody.Mxtime, stheat[i].Tody.Mx)
-			fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f ",
+			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				stheat[i].Tsdy.Hrs, stheat[i].Tsdy.M,
 				stheat[i].Tsdy.Mntime, stheat[i].Tsdy.Mn,
 				stheat[i].Tsdy.Mxtime, stheat[i].Tsdy.Mx)
-			fmt.Fprintf(fo, "%1ld %3.1f ", stheat[i].Qdy.Hhr, stheat[i].Qdy.H)
-			fmt.Fprintf(fo, "%1ld %3.1f ", stheat[i].Qdy.Chr, stheat[i].Qdy.C)
-			fmt.Fprintf(fo, "%1ld %2.0f ", stheat[i].Qdy.Hmxtime, stheat[i].Qdy.Hmx)
-			fmt.Fprintf(fo, "%1ld %2.0f ", stheat[i].Qdy.Cmxtime, stheat[i].Qdy.Cmx)
-			fmt.Fprintf(fo, "%1ld %3.1f ", stheat[i].Edy.Hrs, stheat[i].Edy.D)
-			fmt.Fprintf(fo, "%1ld %2.0f ", stheat[i].Edy.Mxtime, stheat[i].Edy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", stheat[i].Qdy.Hhr, stheat[i].Qdy.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", stheat[i].Qdy.Chr, stheat[i].Qdy.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", stheat[i].Qdy.Hmxtime, stheat[i].Qdy.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f ", stheat[i].Qdy.Cmxtime, stheat[i].Qdy.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", stheat[i].Edy.Hrs, stheat[i].Edy.D)
+			fmt.Fprintf(fo, "%1d %2.0f ", stheat[i].Edy.Mxtime, stheat[i].Edy.Mx)
 			fmt.Fprintf(fo, " %3.1f %3.1f\n",
 				stheat[i].Qlossdy*Cff_kWh, stheat[i].Qstody*Cff_kWh)
 		}
@@ -428,24 +428,24 @@ func stheatmonprt(fo *os.File, id, Nstheat int, stheat []STHEAT) {
 		}
 	default:
 		for i := 0; i < Nstheat; i++ {
-			fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f ",
+			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				stheat[i].MTidy.Hrs, stheat[i].MTidy.M,
 				stheat[i].MTidy.Mntime, stheat[i].MTidy.Mn,
 				stheat[i].MTidy.Mxtime, stheat[i].MTidy.Mx)
-			fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f ",
+			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				stheat[i].MTody.Hrs, stheat[i].MTody.M,
 				stheat[i].MTody.Mntime, stheat[i].MTody.Mn,
 				stheat[i].MTody.Mxtime, stheat[i].MTody.Mx)
-			fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f ",
+			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				stheat[i].MTsdy.Hrs, stheat[i].MTsdy.M,
 				stheat[i].MTsdy.Mntime, stheat[i].MTsdy.Mn,
 				stheat[i].MTsdy.Mxtime, stheat[i].MTsdy.Mx)
-			fmt.Fprintf(fo, "%1ld %3.1f ", stheat[i].MQdy.Hhr, stheat[i].MQdy.H)
-			fmt.Fprintf(fo, "%1ld %3.1f ", stheat[i].MQdy.Chr, stheat[i].MQdy.C)
-			fmt.Fprintf(fo, "%1ld %2.0f ", stheat[i].MQdy.Hmxtime, stheat[i].MQdy.Hmx)
-			fmt.Fprintf(fo, "%1ld %2.0f ", stheat[i].MQdy.Cmxtime, stheat[i].MQdy.Cmx)
-			fmt.Fprintf(fo, "%1ld %3.1f ", stheat[i].MEdy.Hrs, stheat[i].MEdy.D)
-			fmt.Fprintf(fo, "%1ld %2.0f ", stheat[i].MEdy.Mxtime, stheat[i].MEdy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", stheat[i].MQdy.Hhr, stheat[i].MQdy.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", stheat[i].MQdy.Chr, stheat[i].MQdy.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", stheat[i].MQdy.Hmxtime, stheat[i].MQdy.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f ", stheat[i].MQdy.Cmxtime, stheat[i].MQdy.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", stheat[i].MEdy.Hrs, stheat[i].MEdy.D)
+			fmt.Fprintf(fo, "%1d %2.0f ", stheat[i].MEdy.Mxtime, stheat[i].MEdy.Mx)
 			fmt.Fprintf(fo, " %3.1f %3.1f\n",
 				stheat[i].MQlossdy*Cff_kWh, stheat[i].MQstody*Cff_kWh)
 		}

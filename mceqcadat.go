@@ -283,7 +283,7 @@ func Eqcadata(f *os.File, dsn string, Eqcat *EQCAT) {
 			Eqcat.PVca = append(Eqcat.PVca, PVCA{})
 			PVca := &Eqcat.PVca[len(Eqcat.PVca)-1]
 
-			PVca.name = ""
+			PVca.Name = ""
 			for scanner.Scan() {
 				ss = scanner.Text()
 				if ss[0] == ';' {
@@ -511,7 +511,7 @@ func Eqcadata(f *os.File, dsn string, Eqcat *EQCAT) {
 			Eqcat.Evacca = append(Eqcat.Evacca, EVACCA{})
 			Evacca := &Eqcat.Evacca[len(Eqcat.Evacca)-1]
 
-			Evacca.name = ""
+			Evacca.Name = ""
 			for scanner.Scan() {
 				s = scanner.Text()
 				if s[0] == ';' {

@@ -1,0 +1,33 @@
+TITLE
+    title;
+
+GDAT
+    FILE w=tokyo_3column_SI.has ;
+    RUN (10/1) 11/1-10/31 Tinit=20.0 ;
+    PRINT *helm ;
+*
+
+EXSRF
+    r=0.15 ;
+    South a=0 ;
+    West a=South+90 ;
+    North a=South+180 ;
+    East a=South-90 ;
+    W30 a=West t=30 ;
+    E30 a=East t=30 ;
+*
+
+WALL
+    -E:W1 Ei=0.9 Eo=0.9 as=0.7 APR-100 F31-200 ;
+*
+
+WINDOW
+    C6mm t=0.79 B=0.04 R=0.0 ;
+*
+
+ROOM
+    Sroom Vol=8.5*8.5*2.7 *s *q
+        West: -E W1 i=ColRoof1 44.0 *p Wsu=5 Wsd=5;
+        East: -E W1 i=ColRoof2 20.0 *p Wsu=5 Wsd=5;
+    *
+*

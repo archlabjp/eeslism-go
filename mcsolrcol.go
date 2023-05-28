@@ -305,15 +305,15 @@ func colldyprt(fo *os.File, id, Ncoll int, Coll []COLL) {
 		}
 	default:
 		for i := 0; i < Ncoll; i++ {
-			fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f ",
+			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				Coll[i].Tidy.Hrs, Coll[i].Tidy.M, Coll[i].Tidy.Mntime, Coll[i].Tidy.Mn,
 				Coll[i].Tidy.Mxtime, Coll[i].Tidy.Mx)
-			fmt.Fprintf(fo, "%1ld %3.1f ", Coll[i].Qdy.Hhr, Coll[i].Qdy.H)
-			fmt.Fprintf(fo, "%1ld %3.1f ", Coll[i].Qdy.Chr, Coll[i].Qdy.C)
-			fmt.Fprintf(fo, "%1ld %2.0f ", Coll[i].Qdy.Hmxtime, Coll[i].Qdy.Hmx)
-			fmt.Fprintf(fo, "%1ld %2.0f ", Coll[i].Qdy.Cmxtime, Coll[i].Qdy.Cmx)
-			fmt.Fprintf(fo, "%1ld %3.1f ", Coll[i].Soldy.Hrs, Coll[i].Soldy.D)
-			fmt.Fprintf(fo, "%1ld %2.0f\n", Coll[i].Soldy.Mxtime, Coll[i].Soldy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", Coll[i].Qdy.Hhr, Coll[i].Qdy.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", Coll[i].Qdy.Chr, Coll[i].Qdy.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", Coll[i].Qdy.Hmxtime, Coll[i].Qdy.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f ", Coll[i].Qdy.Cmxtime, Coll[i].Qdy.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", Coll[i].Soldy.Hrs, Coll[i].Soldy.D)
+			fmt.Fprintf(fo, "%1d %2.0f\n", Coll[i].Soldy.Mxtime, Coll[i].Soldy.Mx)
 		}
 	}
 }
@@ -337,15 +337,15 @@ func collmonprt(fo *os.File, id, Ncoll int, Coll []COLL) {
 		}
 	default:
 		for i := 0; i < Ncoll; i++ {
-			fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f ",
+			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				Coll[i].mTidy.Hrs, Coll[i].mTidy.M, Coll[i].mTidy.Mntime,
 				Coll[i].mTidy.Mn, Coll[i].mTidy.Mxtime, Coll[i].mTidy.Mx)
-			fmt.Fprintf(fo, "%1ld %3.1f ", Coll[i].mQdy.Hhr, Coll[i].mQdy.H)
-			fmt.Fprintf(fo, "%1ld %3.1f ", Coll[i].mQdy.Chr, Coll[i].mQdy.C)
-			fmt.Fprintf(fo, "%1ld %2.0f ", Coll[i].mQdy.Hmxtime, Coll[i].mQdy.Hmx)
-			fmt.Fprintf(fo, "%1ld %2.0f ", Coll[i].mQdy.Cmxtime, Coll[i].mQdy.Cmx)
-			fmt.Fprintf(fo, "%1ld %3.1f ", Coll[i].mSoldy.Hrs, Coll[i].mSoldy.D)
-			fmt.Fprintf(fo, "%1ld %2.0f\n", Coll[i].mSoldy.Mxtime, Coll[i].mSoldy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", Coll[i].mQdy.Hhr, Coll[i].mQdy.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", Coll[i].mQdy.Chr, Coll[i].mQdy.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", Coll[i].mQdy.Hmxtime, Coll[i].mQdy.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f ", Coll[i].mQdy.Cmxtime, Coll[i].mQdy.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", Coll[i].mSoldy.Hrs, Coll[i].mSoldy.D)
+			fmt.Fprintf(fo, "%1d %2.0f\n", Coll[i].mSoldy.Mxtime, Coll[i].mSoldy.Mx)
 		}
 	}
 }

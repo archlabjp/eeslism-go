@@ -184,7 +184,7 @@ func Exsfinit(e *EXSF) {
 	e.Typ = 'S'
 	e.Wa, e.Wb = 0.0, 0.0
 	e.Rg, e.Fs, e.Wz, e.Ww, e.Ws = 0.0, 0.0, 0.0, 0.0, 0.0
-	e.Swb, e.Cbsa, e.Cbca, e.Cwa = 0.0, 0.0, 0.0, 0.0
+	e.Swb, e.CbSa, e.CbCa, e.Cwa = 0.0, 0.0, 0.0, 0.0
 	e.Swa, e.Z, e.Erdff, e.Cinc = 0.0, 0.0, 0.0, 0.0
 	e.Tazm, e.Tprof, e.Idre, e.Idf = 0.0, 0.0, 0.0, 0.0
 	e.Iw, e.Rn, e.Tearth = 0.0, 0.0, 0.0

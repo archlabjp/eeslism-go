@@ -82,7 +82,10 @@ func Rmhtrsmcf(Nsrf int, _Sd []RMSRF) {
 // 透過日射、相当外気温度の計算
 func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK, Qrm []QRM, nday, mt int) {
 	var n, nn, ed, Nrm int
-	var Fsdw, Idre, Idf, RN float64
+	var Fsdw float64
+	var Idre float64 // 直逹日射  [W/m2]
+	var Idf float64  // 拡散日射  [W/m2]
+	var RN float64   //  夜間輻射  [W/m2]
 	var Qgtn, Qga, Sab, Rab float64
 	var Sdn, Sdnx *RMSRF
 	var rm *ROOM
@@ -161,7 +164,9 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 				sb := Sdn.sb
 				if sb >= 0 && e.Cinc > 0.0 {
 					S = &Snbk[sb]
-					Fsdw = FNFsdw(S.Type, S.ksi, e.Tazm, e.Tprof, S.D, S.W, S.H, S.W1, S.H1, S.W2, S.H2)
+
+					// 日よけの影面積率 [-]
+					Fsdw = FNFsdw(S.Type, S.Ksi, e.Tazm, e.Tprof, S.D, S.W, S.H, S.W1, S.H1, S.W2, S.H2)
 					Sdn.Fsdworg = Fsdw
 				} else {
 					Fsdw = 0.0
@@ -182,27 +187,23 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 			case 'W':
 				// 通常窓の場合
 				/*--higuchi add--*/
-				Glasstga(Sdn.A, Sdn.tgtn, Sdn.Bn,
-					e.Cinc, Fsdw, Idre, Idf, &Qgtn, &Qga, Sdn.window.Cidtype, e.Prof, e.Gamma)
-				Rab = Sdn.Eo * RN / Sdn.alo
+				Qgtn, Qga = Glasstga(Sdn.A, Sdn.tgtn, Sdn.Bn,
+					e.Cinc, Fsdw, Idre, Idf, Sdn.window.Cidtype, e.Prof, e.Gamma)
+				Rab = Sdn.Eo * RN / Sdn.alo // 夜間放射熱取得 [W]
+				Sab = Qga / Sdn.A           // [W/m2]
 
-				Sab = Qga / Sdn.A
 				Sdn.TeEsol = Sab
 				Sdn.TeErn = -Rab
 				Sdn.TeEsol = Sab / Sdn.K
+				Sdn.Te = Sab/Sdn.K - Rab + Wd.T // 外表面の相当外気温
+				Sdn.Qgt = Qgtn                  // 開口部の透過日射熱取得 [W]
+				Sdn.Qga = Qga                   // 開口部の吸収日射熱取得 [W]
+				Sdn.Qrn = -Rab                  // 開口部の夜間放射熱取得 [W/m2]
 
-				Sdn.Te = Sab/Sdn.K - Rab + Wd.T
-
-				// 開口部の透過日射熱取得
-				Sdn.Qgt = Qgtn
-				// 開口部の吸収日射熱取得
-				Sdn.Qga = Qga
-				// 開口部の夜間放射熱取得
-				Sdn.Qrn = -Rab
-
-				rm.Qgt += Qgtn
-				rm.Qsab += Sab * Sdn.A
-				rm.Qrnab += Rab * Sdn.A * Sdn.K
+				// 部屋rm の日射
+				rm.Qgt += Qgtn                  // 部屋rmの透過日射熱取得 [W]
+				rm.Qsab += Sab * Sdn.A          // 部屋rmの吸収日射熱取得 [W]
+				rm.Qrnab += Rab * Sdn.A * Sdn.K // 部屋rmの夜間放射による熱損失 [W]
 
 				Q.Solw += Sdn.A * (Idre + Idf) /*--higuchi add  --*/
 				break
@@ -312,11 +313,8 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 		for nn := 0; nn < rm.N; nn++ {
 			Sdn := &Sd[n]
 
-			Sdn.RS = (Sdn.RSsol*Sdn.A + rm.Hr*Sdn.srh +
-				rm.Lr*Sdn.srl + rm.Ar*Sdn.sra + rm.Qeqp*Sdn.eqrd) / Sdn.A
-
-			Sdn.RSin = (rm.Hr*Sdn.srh +
-				rm.Lr*Sdn.srl + rm.Ar*Sdn.sra + rm.Qeqp*Sdn.eqrd) / Sdn.A
+			Sdn.RS = (Sdn.RSsol*Sdn.A + rm.Hr*Sdn.srh + rm.Lr*Sdn.srl + rm.Ar*Sdn.sra + rm.Qeqp*Sdn.eqrd) / Sdn.A
+			Sdn.RSin = (rm.Hr*Sdn.srh + rm.Lr*Sdn.srl + rm.Ar*Sdn.sra + rm.Qeqp*Sdn.eqrd) / Sdn.A
 			Sdn.RSli = rm.Lr * Sdn.srl / Sdn.A
 
 			n++
@@ -337,6 +335,7 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 		Q.Tsol = rm.Qgt
 		Q.Asol = rm.Qsab
 		Q.Arn = rm.Qrnab
+
 		// 家具の日射吸収量の計算
 		rm.Qsolm = 0.
 		if rm.fsolm != nil {
@@ -423,8 +422,8 @@ func Rmsurft(nroom int, rooms []ROOM, sd []RMSRF) {
 		// 室内表面温度の計算
 		RMsrt(&room)
 
-		room.Tsav = RTsav(n, sdr)
-		room.Tot = r*room.Tr + (1.0-r)*room.Tsav
+		room.Tsav = RTsav(n, sdr)                // 平均表面温度 Ts,av
+		room.Tot = r*room.Tr + (1.0-r)*room.Tsav // 作用温度 Tot
 	}
 }
 
@@ -464,34 +463,39 @@ func Rmsurftd(Nroom int, _Room []ROOM, Sd []RMSRF) {
 
 // 室の熱取得要素の計算
 func Qrmsim(Room []ROOM, Wd *WDAT, Qrm []QRM) {
-	var dTM, ro, ca float64
-	Nrm := Room[0].end
+	if Room[0].end != len(Room) {
+		panic("Room[0].end != len(Room)")
+	}
 
-	for i := 0; i < Nrm; i++ {
+	for i := range Room {
 		Q := &Qrm[i]
 		rm := &Room[i]
 
+		// 人体・照明・機器の顕熱 [W]
 		Q.Hums = rm.Hc + rm.Hr
 		Q.Light = rm.Lc + rm.Lr
 		Q.Apls = rm.Ac + rm.Ar
+		Q.Hgins = Q.Hums + Q.Light + Q.Apls
 
+		// 人体・機器の潜熱 [W]
 		Q.Huml = rm.HL
 		Q.Apll = rm.AL
 
-		Q.Hgins = Q.Hums + Q.Light + Q.Apls
-
-		Q.Qinfs = ca * rm.Gvent * (Wd.T - rm.Tr)
-		Q.Qinfl = ro * rm.Gvent * (Wd.X - rm.xr)
+		// 熱負荷 [W]
+		Q.Qinfs = Ca * rm.Gvent * (Wd.T - rm.Tr)
+		Q.Qinfl = Ro * rm.Gvent * (Wd.X - rm.xr)
 		Q.Qeqp = rm.Qeqp
-		Q.Qsto = rm.MRM * (rm.Trold - rm.Tr) / dTM
-		Q.Qstol = rm.GRM * ro * (rm.xrold - rm.xr) / dTM
+		Q.Qsto = rm.MRM * (rm.Trold - rm.Tr) / DTM
+		Q.Qstol = rm.GRM * Ro * (rm.xrold - rm.xr) / DTM
 
+		// 電力の消費量 [W]
 		if rm.AEsch != nil {
 			Q.AE = rm.AE * *rm.AEsch
 		} else {
 			Q.AE = 0.0
 		}
 
+		// ガスの消費量 [W]
 		if rm.AGsch != nil {
 			Q.AG = rm.AG * *rm.AGsch
 		} else {

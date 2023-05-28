@@ -215,7 +215,7 @@ func Stankmemloc(errkey string, Stank *STANK) {
 
 /* 蓄熱槽初期設定 */
 
-func Stankint(dTM float64, Nstank int, Stank []STANK, Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT, Wd *WDAT) {
+func Stankint(Nstank int, Stank []STANK, Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT, Wd *WDAT) {
 	var s, ss, Err, E string
 	var mrk rune
 	var Tso float64
@@ -274,7 +274,7 @@ func Stankint(dTM float64, Nstank int, Stank []STANK, Simc *SIMCONTL, Ncompnt in
 		}
 
 		Stank.Tenv = envptr(Stank.Cmp.Envname, Simc, Ncompnt, Compnt, Wd, nil)
-		stoint(dTM, Stank.Ndiv, Stank.Cat.Vol, Stank.Cat.KAside, Stank.Cat.KAtop, Stank.Cat.KAbtm,
+		stoint(Stank.Ndiv, Stank.Cat.Vol, Stank.Cat.KAside, Stank.Cat.KAtop, Stank.Cat.KAbtm,
 			Stank.Dvol, Stank.Mdt, Stank.KS, Stank.Tss, Stank.Tssold, &Stank.Jva, &Stank.Jvb)
 
 		if Stank.Cat.Vol < 0.0 {
@@ -689,15 +689,15 @@ func stankdyprt(fo *os.File, id, Nstank int, Stank []STANK) {
 			for j := 0; j < stank.Nin; j++ {
 				S := &stank.Stkdy[j]
 
-				fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f ",
+				fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 					S.Tidy.Hrs, S.Tidy.M,
 					S.Tidy.Mntime, S.Tidy.Mn,
 					S.Tidy.Mxtime, S.Tidy.Mx)
 
-				fmt.Fprintf(fo, "%1ld %3.1f ", S.Qdy.Hhr, S.Qdy.H)
-				fmt.Fprintf(fo, "%1ld %3.1f ", S.Qdy.Chr, S.Qdy.C)
-				fmt.Fprintf(fo, "%1ld %2.0f ", S.Qdy.Hmxtime, S.Qdy.Hmx)
-				fmt.Fprintf(fo, "%1ld %2.0f ", S.Qdy.Cmxtime, S.Qdy.Cmx)
+				fmt.Fprintf(fo, "%1d %3.1f ", S.Qdy.Hhr, S.Qdy.H)
+				fmt.Fprintf(fo, "%1d %3.1f ", S.Qdy.Chr, S.Qdy.C)
+				fmt.Fprintf(fo, "%1d %2.0f ", S.Qdy.Hmxtime, S.Qdy.Hmx)
+				fmt.Fprintf(fo, "%1d %2.0f ", S.Qdy.Cmxtime, S.Qdy.Cmx)
 			}
 			fmt.Fprintf(fo, " %3.1f %3.1f\n",
 				stank.Qlossdy*Cff_kWh, stank.Qstody*Cff_kWh)
@@ -750,15 +750,15 @@ func stankmonprt(fo *os.File, id, Nstank int, Stank []STANK) {
 			for j := 0; j < stank.Nin; j++ {
 				S := &stank.Mstkdy[j]
 
-				fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f ",
+				fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 					S.Tidy.Hrs, S.Tidy.M,
 					S.Tidy.Mntime, S.Tidy.Mn,
 					S.Tidy.Mxtime, S.Tidy.Mx)
 
-				fmt.Fprintf(fo, "%1ld %3.1f ", S.Qdy.Hhr, S.Qdy.H)
-				fmt.Fprintf(fo, "%1ld %3.1f ", S.Qdy.Chr, S.Qdy.C)
-				fmt.Fprintf(fo, "%1ld %2.0f ", S.Qdy.Hmxtime, S.Qdy.Hmx)
-				fmt.Fprintf(fo, "%1ld %2.0f ", S.Qdy.Cmxtime, S.Qdy.Cmx)
+				fmt.Fprintf(fo, "%1d %3.1f ", S.Qdy.Hhr, S.Qdy.H)
+				fmt.Fprintf(fo, "%1d %3.1f ", S.Qdy.Chr, S.Qdy.C)
+				fmt.Fprintf(fo, "%1d %2.0f ", S.Qdy.Hmxtime, S.Qdy.Hmx)
+				fmt.Fprintf(fo, "%1d %2.0f ", S.Qdy.Cmxtime, S.Qdy.Cmx)
 			}
 			fmt.Fprintf(fo, " %3.1f %3.1f\n",
 				stank.MQlossdy*Cff_kWh, stank.MQstody*Cff_kWh)

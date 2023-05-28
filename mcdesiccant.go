@@ -155,7 +155,6 @@ func Desiint(NDesi int, _Desi []DESI, Simc *SIMCONTL, Ncompnt int, Compnt []COMP
 
 func Desicfv(NDesi int, Desi []DESI) {
 	var Eo *ELOUT
-	var dTM float64
 	var h, i, j float64
 	var Te, hsa, hsad, hAsa, hdAsa float64
 	var Desica *DESICA
@@ -207,13 +206,13 @@ func Desicfv(NDesi int, Desi []DESI) {
 
 		// 定数行列Cの作成
 		Cmat = C
-		Cmat[0] = Desica.ms * Desica.cps / dTM * Desi.Tsold
+		Cmat[0] = Desica.ms * Desica.cps / DTM * Desi.Tsold
 		Cmat[1] = Desi.UA * Te
-		Cmat[3] = Desica.ms / dTM * Desi.Pold
+		Cmat[3] = Desica.ms / DTM * Desi.Pold
 		Cmat[4] = -j
 
 		// 係数行列の作成
-		U[0*N+0] = Desica.ms*Desica.cps/dTM + hAsa
+		U[0*N+0] = Desica.ms*Desica.cps/DTM + hAsa
 		U[0*N+1] = -hAsa
 		U[0*N+2] = -hdAsa * Ro
 		U[0*N+3] = hdAsa * Ro
@@ -223,7 +222,7 @@ func Desicfv(NDesi int, Desi []DESI) {
 		U[2*N+3] = -hdAsa
 		U[3*N+2] = -hdAsa
 		U[3*N+3] = hdAsa
-		U[3*N+4] = Desica.ms / dTM
+		U[3*N+4] = Desica.ms / DTM
 		U[4*N+0] = h
 		U[4*N+3] = -1.0
 		U[4*N+4] = i
@@ -459,33 +458,33 @@ func Desidyprt(fo *os.File, id, Ndesi int, _Desi []DESI) {
 	default:
 		for i := 0; i < Ndesi; i++ {
 			Desi := &_Desi[i]
-			fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f ", Desi.Tidy.Hrs, Desi.Tidy.M, Desi.Tidy.Mntime, Desi.Tidy.Mn, Desi.Tidy.Mxtime, Desi.Tidy.Mx)
-			fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f ", Desi.Tody.Hrs, Desi.Tody.M, Desi.Tody.Mntime, Desi.Tody.Mn, Desi.Tody.Mxtime, Desi.Tody.Mx)
-			fmt.Fprintf(fo, "%1ld %3.1f %1ld %3.1f %1ld %3.1f ", Desi.Tsdy.Hrs, Desi.Tsdy.M, Desi.Tsdy.Mntime, Desi.Tsdy.Mn, Desi.Tsdy.Mxtime, Desi.Tsdy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ", Desi.Tidy.Hrs, Desi.Tidy.M, Desi.Tidy.Mntime, Desi.Tidy.Mn, Desi.Tidy.Mxtime, Desi.Tidy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ", Desi.Tody.Hrs, Desi.Tody.M, Desi.Tody.Mntime, Desi.Tody.Mn, Desi.Tody.Mxtime, Desi.Tody.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ", Desi.Tsdy.Hrs, Desi.Tsdy.M, Desi.Tsdy.Mntime, Desi.Tsdy.Mn, Desi.Tsdy.Mxtime, Desi.Tsdy.Mx)
 
-			fmt.Fprintf(fo, "%1ld %.4f %1ld %.4f %1ld %.4f ", Desi.xidy.Hrs, Desi.xidy.M, Desi.xidy.Mntime, Desi.xidy.Mn, Desi.xidy.Mxtime, Desi.xidy.Mx)
-			fmt.Fprintf(fo, "%1ld %.4f %1ld %.4f %1ld %.4f ", Desi.xody.Hrs, Desi.xody.M, Desi.xody.Mntime, Desi.xody.Mn, Desi.xody.Mxtime, Desi.xody.Mx)
-			fmt.Fprintf(fo, "%1ld %.4f %1ld %.4f %1ld %.4f ", Desi.xsdy.Hrs, Desi.xsdy.M, Desi.xsdy.Mntime, Desi.xsdy.Mn, Desi.xsdy.Mxtime, Desi.xsdy.Mx)
+			fmt.Fprintf(fo, "%1d %.4f %1d %.4f %1d %.4f ", Desi.xidy.Hrs, Desi.xidy.M, Desi.xidy.Mntime, Desi.xidy.Mn, Desi.xidy.Mxtime, Desi.xidy.Mx)
+			fmt.Fprintf(fo, "%1d %.4f %1d %.4f %1d %.4f ", Desi.xody.Hrs, Desi.xody.M, Desi.xody.Mntime, Desi.xody.Mn, Desi.xody.Mxtime, Desi.xody.Mx)
+			fmt.Fprintf(fo, "%1d %.4f %1d %.4f %1d %.4f ", Desi.xsdy.Hrs, Desi.xsdy.M, Desi.xsdy.Mntime, Desi.xsdy.Mn, Desi.xsdy.Mxtime, Desi.xsdy.Mx)
 
-			fmt.Fprintf(fo, "%1ld %3.1f ", Desi.Qsdy.Hhr, Desi.Qsdy.H)
-			fmt.Fprintf(fo, "%1ld %3.1f ", Desi.Qsdy.Chr, Desi.Qsdy.C)
-			fmt.Fprintf(fo, "%1ld %2.0f ", Desi.Qsdy.Hmxtime, Desi.Qsdy.Hmx)
-			fmt.Fprintf(fo, "%1ld %2.0f ", Desi.Qsdy.Cmxtime, Desi.Qsdy.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", Desi.Qsdy.Hhr, Desi.Qsdy.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", Desi.Qsdy.Chr, Desi.Qsdy.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", Desi.Qsdy.Hmxtime, Desi.Qsdy.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f ", Desi.Qsdy.Cmxtime, Desi.Qsdy.Cmx)
 
-			fmt.Fprintf(fo, "%1ld %3.1f ", Desi.Qldy.Hhr, Desi.Qldy.H)
-			fmt.Fprintf(fo, "%1ld %3.1f ", Desi.Qldy.Chr, Desi.Qldy.C)
-			fmt.Fprintf(fo, "%1ld %2.0f ", Desi.Qldy.Hmxtime, Desi.Qldy.Hmx)
-			fmt.Fprintf(fo, "%1ld %2.0f ", Desi.Qldy.Cmxtime, Desi.Qldy.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", Desi.Qldy.Hhr, Desi.Qldy.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", Desi.Qldy.Chr, Desi.Qldy.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", Desi.Qldy.Hmxtime, Desi.Qldy.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f ", Desi.Qldy.Cmxtime, Desi.Qldy.Cmx)
 
-			fmt.Fprintf(fo, "%1ld %3.1f ", Desi.Qtdy.Hhr, Desi.Qtdy.H)
-			fmt.Fprintf(fo, "%1ld %3.1f ", Desi.Qtdy.Chr, Desi.Qtdy.C)
-			fmt.Fprintf(fo, "%1ld %2.0f ", Desi.Qtdy.Hmxtime, Desi.Qtdy.Hmx)
-			fmt.Fprintf(fo, "%1ld %2.0f ", Desi.Qtdy.Cmxtime, Desi.Qtdy.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", Desi.Qtdy.Hhr, Desi.Qtdy.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", Desi.Qtdy.Chr, Desi.Qtdy.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", Desi.Qtdy.Hmxtime, Desi.Qtdy.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f ", Desi.Qtdy.Cmxtime, Desi.Qtdy.Cmx)
 
-			fmt.Fprintf(fo, "%1ld %3.1f ", Desi.Qlsdy.Hhr, Desi.Qlsdy.H)
-			fmt.Fprintf(fo, "%1ld %3.1f ", Desi.Qlsdy.Chr, Desi.Qlsdy.C)
-			fmt.Fprintf(fo, "%1ld %2.0f ", Desi.Qlsdy.Hmxtime, Desi.Qlsdy.Hmx)
-			fmt.Fprintf(fo, "%1ld %2.0f\n", Desi.Qlsdy.Cmxtime, Desi.Qlsdy.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", Desi.Qlsdy.Hhr, Desi.Qlsdy.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", Desi.Qlsdy.Chr, Desi.Qlsdy.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", Desi.Qlsdy.Hmxtime, Desi.Qlsdy.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f\n", Desi.Qlsdy.Cmxtime, Desi.Qlsdy.Cmx)
 		}
 	}
 }

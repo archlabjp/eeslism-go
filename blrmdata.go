@@ -382,7 +382,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 						Nwindow := Rmvls.Window[0].end
 						for j := 0; j < Nwindow; j++ {
 							W := &Rmvls.Window[j]
-							if W.name == s {
+							if W.Name == s {
 								Sd.ifwin = W
 								Sd.Rwall = W.Rwall
 								Sd.CAPwall = 0.0
@@ -411,7 +411,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							Nwindow := Rmvls.Window[0].end
 							for j := 0; j < Nwindow; j++ {
 								W := &Rmvls.Window[j]
-								if W.name == stt {
+								if W.Name == stt {
 									Sd.window = W
 									Sd.fnd[nf] = j
 									Sd.Rwall = W.Rwall
@@ -476,7 +476,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 						Nsnbk := Rmvls.Snbk[0].end
 						for j := 0; j < Nsnbk; j++ {
 							S := &Rmvls.Snbk[j]
-							if S.name == s[st+1:] {
+							if S.Name == s[st+1:] {
 								Sd.sb = j
 								break
 							}

@@ -398,7 +398,7 @@ func Pathdata(
 						break
 					}
 				}
-				fmt.Printf("<<Pathdata>>  Mpath=%Ild fliud=%c\n", i, Mpath.Fluid)
+				fmt.Printf("<<Pathdata>>  Mpath=%d fliud=%c\n", i, Mpath.Fluid)
 			}
 
 			if Mpath.Fluid == AIR_FLD {
@@ -477,8 +477,7 @@ func Pathdata(
 					}
 				}
 				fmt.Printf("eepath.c  Mpath.Nlpath=%d\n", Mpath.Nlpath)
-				fmt.Printf("<<Pathdata>>  i=%d Mpath=%Ild  j=%d Plist=%Ild\n", i, MpathPos,
-					j, PlistPos)
+				fmt.Printf("<<Pathdata>>  i=%d Mpath=%d  j=%d Plist=%d\n", i, MpathPos, j, PlistPos)
 			}
 
 			for m = 0; m < Plist.Nelm; m++ {

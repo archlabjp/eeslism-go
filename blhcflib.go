@@ -35,7 +35,7 @@ func Htrcf(alc, alo *float64, alotype rune, Exs []EXSF, Tr float64, N int, alr [
 	var n int
 	var alic float64
 	var hc *float64
-	var dT float64
+	//var dT float64
 
 	for n = 0; n < N; n++ {
 		Sd := &_Sd[n]
@@ -58,7 +58,7 @@ func Htrcf(alc, alo *float64, alotype rune, Exs []EXSF, Tr float64, N int, alr [
 		}
 
 		if alic < 0.0 {
-			dT = Sd.Ts - Tr
+			dT := Sd.Ts - Tr
 			switch Sd.ble {
 			case 'F', 'f':
 				if dT > 0 {

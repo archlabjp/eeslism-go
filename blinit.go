@@ -317,6 +317,7 @@ func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]WALL, Nwall
 		// 建材一体型空気集熱器の総合熱貫流率の計算、データ入力状況のチェック
 		if Wa.Ip >= 0 {
 			if Wa.tra > 0. {
+				// 壁種類 -> 建材一体型空気集熱器
 				Wa.WallType = 'C'
 
 				if (Wa.Ksu > 0. && Wa.Ksd > 0.) || (Wa.Rd > 0. && (Wa.Ru >= 0. || Wa.ta > 0.)) {
@@ -356,7 +357,7 @@ func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]WALL, Nwall
 					Eprint("<Walldata>", s)
 				}
 			} else {
-				// 通常の床暖房等放射パネル
+				// 壁種類 -> 床暖房等放射パネル
 				Wa.WallType = 'P'
 			}
 		}
@@ -377,11 +378,6 @@ func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]WALL, Nwall
 /*  窓デ－タの入力     */
 
 func Windowdata(section *EeTokens, dsn string, Window *[]WINDOW, Nwindow *int) {
-	// char   s[SCHAR], E[SCHAR], Err[SCHAR], ss[SCHAR], *st ;
-	// int    i= -1, N, j, k ;
-	// //double  dt;
-	// WINDOW	*W, *Wc ;
-
 	E := fmt.Sprintf(ERRFMT, dsn)
 
 	var N int
@@ -397,26 +393,7 @@ func Windowdata(section *EeTokens, dsn string, Window *[]WINDOW, Nwindow *int) {
 		*Window = make([]WINDOW, N)
 
 		for j := 0; j < N; j++ {
-			W := &(*Window)[j]
-			W.name = ""
-			W.end = 0
-			W.K = 0.0
-			W.Rwall = 0.0
-			W.tgtn = 0.0
-			W.Bn = 0.0
-			W.as = 0.0
-			W.Ag = 0.0
-			W.Ao = 0.0
-			W.W = 0.0
-			W.H = 0.0
-			W.Eo = 0.9
-			W.Ei = 0.9
-			W.RStrans = 'n'
-			//W.Cidtype = nil ;
-			W.Cidtype = "N"
-			//W.AirFlowFlg = 'N' ;
-			//W.AirFlowcat.aci = W.AirFlowcat.acioff = W.AirFlowcat.aco = W.AirFlowcat.acooff = -999. ;
-			//W.AirFlowcat.ai = W.AirFlowcat.alr = W.AirFlowcat.ao = W.AirFlowcat.ti = W.AirFlowcat.to = -999. ;
+			(*Window)[j] = *NewWINDOW()
 		}
 	}
 
@@ -432,13 +409,13 @@ func Windowdata(section *EeTokens, dsn string, Window *[]WINDOW, Nwindow *int) {
 		W := &(*Window)[j]
 
 		// 名称
-		W.name = line[0]
+		W.Name = line[0]
 
 		// 名前の重複確認
 		for k := 0; k < i; k++ {
 			Wc := &(*Window)[k]
-			if W.name == Wc.name {
-				ss := fmt.Sprintf("<WINDOW>  WindowName Already Defined  (%s)", W.name)
+			if W.Name == Wc.Name {
+				ss := fmt.Sprintf("<WINDOW>  WindowName Already Defined  (%s)", W.Name)
 				Eprint("<Windowdata>", ss)
 			}
 		}
@@ -473,9 +450,9 @@ func Windowdata(section *EeTokens, dsn string, Window *[]WINDOW, Nwindow *int) {
 				// 値の設定
 				switch key {
 				case "t":
-					W.tgtn = realValue // Ttn 日射透過率
+					W.tgtn = realValue // 日射透過率
 				case "B":
-					W.Bn = realValue // Bn吸収日射取得率
+					W.Bn = realValue // 吸収日射取得率
 				case "R":
 					W.Rwall = realValue // 窓部材熱抵抗 [m2K/W]
 				case "Ei":
@@ -488,6 +465,9 @@ func Windowdata(section *EeTokens, dsn string, Window *[]WINDOW, Nwindow *int) {
 					Err := fmt.Sprintf("%s %s\n", E, s)
 					Eprint("<Windowdata>", Err)
 				}
+
+				//NOTE: 以下の項目を入力する箇所が不明
+				// 窓ガラス面積 Ag, 開口面積 Ao, 幅 W, 高さ H, ??? K
 			}
 		}
 
@@ -501,9 +481,17 @@ func Windowdata(section *EeTokens, dsn string, Window *[]WINDOW, Nwindow *int) {
 /* --------------------------------------------------- */
 
 func Snbkdata(section *EeTokens, dsn string, Snbk *[]SNBK) {
+	// 入力チェック用パターン文字列
 	typstr := []string{
-		"HWDTLR.", "HWDTLRB", "HWDTL.B", "HWDT.RB", "HWDT...",
-		"HWD.LR.", "HWD.L..", "HWD..R.", "HWDTLRB",
+		"HWDTLR.", // 庇
+		"HWDTLRB", // 袖壁(その1)　(左右)
+		"HWDTL.B", // 袖壁(その2)　(左のみ)
+		"HWDT.RB", // 袖壁(その3)　(右のみ)
+		"HWDT...", // 長い庇
+		"HWD.LR.", // 長い袖壁(その1) (左右)
+		"HWD.L..", // 長い袖壁(その2) (左のみ)
+		"HWD..R.", // 長い袖壁(その3) (右のみ)
+		"HWDTLRB", // ルーバー
 	}
 
 	Er := fmt.Sprintf(ERRFMT, dsn)
@@ -520,7 +508,7 @@ func Snbkdata(section *EeTokens, dsn string, Snbk *[]SNBK) {
 
 		for j := 0; j < N; j++ {
 			S := &(*Snbk)[j]
-			S.name = ""
+			S.Name = ""
 			S.W = 0.0
 			S.H = 0.0
 			S.D = 0.0
@@ -530,7 +518,7 @@ func Snbkdata(section *EeTokens, dsn string, Snbk *[]SNBK) {
 			S.H2 = 0.0
 			S.end = 0
 			S.Type = 0
-			S.ksi = 0
+			S.Ksi = 0
 		}
 	}
 
@@ -541,8 +529,9 @@ func Snbkdata(section *EeTokens, dsn string, Snbk *[]SNBK) {
 		fields := section.GetLogicalLine()
 
 		// 名前
-		S.name = fields[0]
+		S.Name = fields[0]
 
+		// 入力チェック用
 		code := [8]rune{'.', '.', '.', '.', '.', '.', '.', '.'}
 
 		for _, s := range fields[1:] {
@@ -555,13 +544,14 @@ func Snbkdata(section *EeTokens, dsn string, Snbk *[]SNBK) {
 			v := s[st+1:]
 
 			var err error
-			if key == "type" {
+			switch key {
+			case "type":
 				var vs string
 				if v[0] == '-' {
-					S.ksi = 1
+					S.Ksi = 1
 					vs = v[1:]
 				} else {
-					S.ksi = 0
+					S.Ksi = 0
 					vs = v[0:]
 				}
 
@@ -579,7 +569,8 @@ func Snbkdata(section *EeTokens, dsn string, Snbk *[]SNBK) {
 					E := fmt.Sprintf("`%s` is invalid", vs)
 					Eprint("<Snbkdata>", E)
 				}
-			} else if key == "window" {
+
+			case "window":
 				// For `window=HhhhxWwww`
 				hw := strings.Split(v, "x")
 				h, w := hw[0], hw[1]
@@ -588,59 +579,78 @@ func Snbkdata(section *EeTokens, dsn string, Snbk *[]SNBK) {
 					panic(fmt.Sprintf("Invaid window format: %s", v))
 				}
 
+				// 開口部の高さ
 				S.H, err = strconv.ParseFloat(h[1:], 64)
 				if err != nil {
 					panic(err)
 				}
 				code[0] = 'H'
 
+				// 開口部の幅
 				S.W, err = strconv.ParseFloat(w[1:], 64)
 				if err != nil {
 					panic(err)
 				}
 				code[1] = 'W'
-			} else if key == "D" {
+
+			case "D":
+				// 庇の付け根から先端までの長さ
 				S.D, err = strconv.ParseFloat(v, 64)
 				if err != nil {
 					panic(err)
 				}
 				code[2] = 'D'
-			} else if key == "T" {
+
+			case "T":
+				// 開口部の上端から壁の上端までの距離
 				S.H1, err = strconv.ParseFloat(v, 64)
 				if err != nil {
 					panic(err)
 				}
 				code[3] = 'T'
-			} else if key == "L" {
+
+			case "L":
+				// 開口部の左端から壁の左端までの距離
 				S.W1, err = strconv.ParseFloat(v, 64)
 				if err != nil {
 					panic(err)
 				}
 				code[4] = 'L'
-			} else if key == "R" {
+
+			case "R":
+				// 開口部の右端から壁の右端までの距離
 				S.W2, err = strconv.ParseFloat(v, 64)
 				if err != nil {
 					panic(err)
 				}
 				code[5] = 'R'
-			} else if key == "B" {
+
+			case "B":
+				// 地面から開口部の下端までの高さ
 				S.H2, err = strconv.ParseFloat(v, 64)
 				if err != nil {
 					panic(err)
 				}
 				code[6] = 'B'
-			} else {
+
+			default:
 				panic(fmt.Sprintf("Invaid window format: %s", s))
 			}
 		}
+
+		// 日除けの種類
 		S.Type = Type
+
+		// 日除けの種類ごとに入力チェック
 		switch Type {
 		case 1, 5, 9:
+			// 庇 or ルーバー
 			if string(code[:]) != typstr[Type-1] {
-				E := fmt.Sprintf("%s %s  type=%d %s\n", Er, fields[0], Type, code)
+				E := fmt.Sprintf("%s %s  type=%d %s\n", Er, fields[0], Type, string(code[:]))
 				Eprint("<Snbkdata>", E)
 			}
 		case 2, 6:
+			// 袖壁
 			if string(code[:]) != typstr[Type-1] {
 				for j := 1; j < 3; j++ {
 					if string(code[:]) == typstr[Type+j-1] {
@@ -648,7 +658,7 @@ func Snbkdata(section *EeTokens, dsn string, Snbk *[]SNBK) {
 						break
 					}
 					if j == 3 {
-						E := fmt.Sprintf("%s %s  type=%d %s\n", Er, fields[0], Type, code)
+						E := fmt.Sprintf("%s %s  type=%d %s\n", Er, fields[0], Type, string(code[:]))
 						Eprint("<Snbkdata>", E)
 					}
 				}

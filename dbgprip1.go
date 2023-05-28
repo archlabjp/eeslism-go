@@ -313,7 +313,7 @@ func dprwwdata(Wa []WALL, Wi []WINDOW) {
 
 		for i := 0; i < Wi[0].end; i++ {
 			Window := &Wi[i]
-			fmt.Printf("windows  %s\n", Window.name)
+			fmt.Printf("windows  %s\n", Window.Name)
 			fmt.Printf(" R=%f t=%f B=%f  Ei=%f Eo=%f\n", Window.Rwall, Window.tgtn, Window.Bn, Window.Ei, Window.Eo)
 		}
 	}
@@ -337,7 +337,7 @@ func dprwwdata(Wa []WALL, Wi []WINDOW) {
 
 		for i := 0; i < Wi[0].end; i++ {
 			Window := &Wi[i]
-			fmt.Fprintf(Ferr, "windows[%d]\t%s\n", i, Window.name)
+			fmt.Fprintf(Ferr, "windows[%d]\t%s\n", i, Window.Name)
 			fmt.Fprintf(Ferr, "\tR=%.3g\tt=%.2g\tB=%.2g\tEi=%.2g\tEo=%.2g\n", Window.Rwall,
 				Window.tgtn, Window.Bn, Window.Ei, Window.Eo)
 		}

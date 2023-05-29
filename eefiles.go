@@ -8,12 +8,9 @@ import (
 
 /* ----------------------------------------------------- */
 
-func eeflopen(Simc *SIMCONTL, Nflout int, Flout []*FLOUT) {
-	var fl *FLOUT
-	var Fname string
-
-	//Err = fmt.Sprintf(ERRFMT, "(eeflopen)")
-
+// ファイルのオープン
+func (Simc *SIMCONTL) eeflopen(Nflout int, Flout []*FLOUT) {
+	// 気象データファイルを開く
 	if Simc.Wdtype == 'H' {
 		var err error
 		Simc.Fwdata, err = os.Open(Simc.Wfname)
@@ -40,9 +37,11 @@ func eeflopen(Simc *SIMCONTL, Nflout int, Flout []*FLOUT) {
 	//     os.Exit(1)
 	// }
 
+	// 出力ファイルを開く
 	for i := 0; i < Nflout; i++ {
-		fl = Flout[i]
-		Fname = Simc.Ofname + string(fl.Idn) + ".es"
+		fl := Flout[i]
+		Fname := Simc.Ofname + string(fl.Idn) + ".es"
+
 		var err error
 		fl.F, err = os.Create(Fname)
 		if err != nil {
@@ -64,7 +63,7 @@ func Eeflclose(Nflout int, Flout []*FLOUT) {
 	for i := 0; i < Nflout; i++ {
 		fl = Flout[i]
 		fmt.Fprintln(fl.F, "-999")
-		fl.F.Sync()
-		fl.F.Close()
+		// fl.F.Sync()
+		// fl.F.Close()
 	}
 }

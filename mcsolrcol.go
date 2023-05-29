@@ -19,8 +19,8 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -215,7 +215,7 @@ func collvptr(key []string, Coll *COLL, vptr *VPTR) int {
 
 /* ------------------------------------------------------------- */
 
-func collprint(fo *os.File, id int, Ncoll int, Coll []COLL) {
+func collprint(fo io.Writer, id int, Ncoll int, Coll []COLL) {
 	switch id {
 	case 0:
 		if Ncoll > 0 {
@@ -286,7 +286,7 @@ func collday(Mon, Day, ttmm, Ncoll int, Coll []COLL, Nday, SimDayend int) {
 	}
 }
 
-func colldyprt(fo *os.File, id, Ncoll int, Coll []COLL) {
+func colldyprt(fo io.Writer, id, Ncoll int, Coll []COLL) {
 	switch id {
 	case 0:
 		if Ncoll > 0 {
@@ -318,7 +318,7 @@ func colldyprt(fo *os.File, id, Ncoll int, Coll []COLL) {
 	}
 }
 
-func collmonprt(fo *os.File, id, Ncoll int, Coll []COLL) {
+func collmonprt(fo io.Writer, id, Ncoll int, Coll []COLL) {
 	switch id {
 	case 0:
 		if Ncoll > 0 {

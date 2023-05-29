@@ -28,7 +28,7 @@ import (
 
 /*  壁体デ－タの入力  */
 
-func PCMdata(fi *os.File, dsn string, pcm *[]PCM, Npcm *int, pcmiterate *rune) {
+func PCMdata(fi io.ReadSeeker, dsn string, pcm *[]PCM, Npcm *int, pcmiterate *rune) {
 	N := PCMcount(fi)
 
 	s := "PCMdata --"
@@ -404,7 +404,7 @@ func dparaminit(A float64) int {
 	}
 }
 
-func PCMcount(fi *os.File) int {
+func PCMcount(fi io.ReadSeeker) int {
 	N := 0
 	add, _ := fi.Seek(0, io.SeekCurrent)
 

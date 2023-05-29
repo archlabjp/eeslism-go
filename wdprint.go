@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"io"
 )
 
 func Wdtsum(Mon int, Day int, Nday int, ttmm int, Wd *WDAT, Nexs int, Exs []EXSF,
@@ -124,7 +124,7 @@ func Wdtsum(Mon int, Day int, Nday int, ttmm int, Wd *WDAT, Nexs int, Exs []EXSF
 var __Wdtdprint_ic int
 
 /* 気象データ日集計値出力 */
-func Wdtdprint(fo *os.File, title string, Mon int, Day int, Wdd *WDAT, Nexs int, Exs []EXSF, Soldy []float64) {
+func Wdtdprint(fo io.Writer, title string, Mon int, Day int, Wdd *WDAT, Nexs int, Exs []EXSF, Soldy []float64) {
 	if __Wdtdprint_ic == 0 {
 		__Wdtdprint_ic++
 		fmt.Fprintf(fo, "%s;\n %d\n", title, Nexs)
@@ -151,11 +151,10 @@ func Wdtdprint(fo *os.File, title string, Mon int, Day int, Wdd *WDAT, Nexs int,
 	fmt.Fprintf(fo, "\n")
 }
 
-/* 気象データ出力 */
-
 var __Wdtprint_ic int
 
-func Wdtprint(fo *os.File, title string, Mon, Day int, time float64, Wd *WDAT, Exsfst *EXSFS) {
+// 気象データの出力
+func Wdtprint(fo io.Writer, title string, Mon, Day int, time float64, Wd *WDAT, Exsfst *EXSFS) {
 	var Nexs, i int
 	Nexs = Exsfst.Nexs
 
@@ -196,11 +195,12 @@ func Wdtprint(fo *os.File, title string, Mon, Day int, time float64, Wd *WDAT, E
 	fmt.Fprintf(fo, "\n")
 }
 
-var Wdtmprint_ic int
+var __Wdtmprint_ic int
 
-func Wdtmprint(fo *os.File, title string, Mon, Day int, Wdm *WDAT, Nexs int, Exs []EXSF, Solmon []float64) {
-	if Wdtmprint_ic == 0 {
-		Wdtmprint_ic++
+// 気象データの出力
+func Wdtmprint(fo io.Writer, title string, Mon, Day int, Wdm *WDAT, Nexs int, Exs []EXSF, Solmon []float64) {
+	if __Wdtmprint_ic == 0 {
+		__Wdtmprint_ic++
 		fmt.Fprintf(fo, "%s;\n%d\n", title, Nexs)
 
 		fmt.Fprintf(fo, "Mo\tNd\tWd_T\tWd_x\tWd_Wv\tWd_RN\tWd_Idn\tWd_Isky\t")

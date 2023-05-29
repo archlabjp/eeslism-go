@@ -21,7 +21,7 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"io"
 )
 
 // 出入り口温湿度の割り当て
@@ -130,7 +130,7 @@ func Qmeasene(Nqmeas int, Qmeas []QMEAS) {
 	}
 }
 
-func Qmeasprint(fo *os.File, id int, Nqmeas int, Qmeas []QMEAS) {
+func Qmeasprint(fo io.Writer, id int, Nqmeas int, Qmeas []QMEAS) {
 	for i := 0; i < Nqmeas; i++ {
 		qmeas := &Qmeas[i]
 		el := qmeas.Cmp.Elouts[0]
@@ -233,7 +233,7 @@ func Qmeasday(Mon, Day, ttmm, Nqmeas int, Qmeas []QMEAS, Nday, SimDayend int) {
 	}
 }
 
-func Qmeasdyprt(fo *os.File, id, Nqmeas int, Qmeas []QMEAS) {
+func Qmeasdyprt(fo io.Writer, id, Nqmeas int, Qmeas []QMEAS) {
 	for i := 0; i < Nqmeas; i++ {
 		switch id {
 		case 0:
@@ -281,7 +281,7 @@ func Qmeasdyprt(fo *os.File, id, Nqmeas int, Qmeas []QMEAS) {
 	}
 }
 
-func Qmeasmonprt(fo *os.File, id, Nqmeas int, Qmeas []QMEAS) {
+func Qmeasmonprt(fo io.Writer, id, Nqmeas int, Qmeas []QMEAS) {
 	for i := 0; i < Nqmeas; i++ {
 		switch id {
 		case 0:

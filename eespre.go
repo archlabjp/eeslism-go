@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -188,7 +189,7 @@ func Eespre(File string, Ipath string, key *int) {
 
 /******************************************************************/
 
-func Syscheck(fi *os.File, syspth *int, syscmp *int) {
+func Syscheck(fi io.ReadSeeker, syspth *int, syscmp *int) {
 	var s string
 	for _, err := fmt.Fscanf(fi, "%s", &s); err == nil; _, err = fmt.Fscanf(fi, "%s", &s) {
 		if s == "SYSPTH" {

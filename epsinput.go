@@ -5,14 +5,13 @@ import (
 
 	"fmt"
 	"io"
-	"os"
 	"strconv"
 	"strings"
 )
 
 /* シミュレーション結果、標題、識別データの入力 */
 
-func esondat(fi *os.File, Estl *ESTL) {
+func esondat(fi io.Reader, Estl *ESTL) {
 	var s string
 	var i, j, Nparm, Ndat int
 	var catnm, C *CATNM
@@ -123,7 +122,7 @@ func esondat(fi *os.File, Estl *ESTL) {
 
 /* 要素名、シミュレーション結果入力用記憶域確保 */
 
-func esoint(fi *os.File, err string, Ntime int, Estl *ESTL, _Tlist []TLIST) {
+func esoint(fi io.Reader, err string, Ntime int, Estl *ESTL, _Tlist []TLIST) {
 	var nm, id string
 	var V *rune
 	var st int
@@ -365,7 +364,7 @@ func tmdata(Vcfile *VCFILE, Tmdt *TMDT, Daytm *DAYTM, perio rune) int {
 
 /* シミュレーション結果データ入力 */
 
-func esdatgt(fi *os.File, i int, Ndata int, Tlist []TLIST) {
+func esdatgt(fi io.Reader, i int, Ndata int, Tlist []TLIST) {
 	scanner := bufio.NewScanner(fi)
 	for j := 0; j < Ndata; j++ {
 		if scanner.Scan() {

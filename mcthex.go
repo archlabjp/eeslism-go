@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -503,7 +502,7 @@ func Thexdyprt(fo io.Writer, id, Nthex int, Thex []THEX) {
 		}
 	}
 }
-func Thexmonprt(fo *os.File, id, Nthex int, Thex []THEX) {
+func Thexmonprt(fo io.Writer, id, Nthex int, Thex []THEX) {
 	for i := 0; i < Nthex; i++ {
 		switch id {
 		case 0:

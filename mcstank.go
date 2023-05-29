@@ -21,8 +21,8 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 	"unicode"
@@ -30,7 +30,7 @@ import (
 
 /*　蓄熱槽仕様入力　　　　*/
 
-func Stankdata(f *os.File, s string, Stankca *STANKCA) int {
+func Stankdata(f io.ReadSeeker, s string, Stankca *STANKCA) int {
 	id := 0
 	st := ""
 	Stankca.gxr = 0.0
@@ -485,7 +485,7 @@ func Stankene(Nstank int, Stank []STANK) {
 /* ------------------------------------------------------- */
 
 // 代表日の出力
-func stankcmpprt(fo *os.File, id int, Nstank int, Stank []STANK) {
+func stankcmpprt(fo io.Writer, id int, Nstank int, Stank []STANK) {
 	switch id {
 	case 0:
 		if Nstank > 0 {
@@ -551,7 +551,7 @@ func stankcmpprt(fo *os.File, id int, Nstank int, Stank []STANK) {
 }
 
 /* ------------------------------------------------------- */
-func stankivprt(fo *os.File, id int, Nstank int, Stank []STANK) {
+func stankivprt(fo io.Writer, id int, Nstank int, Stank []STANK) {
 	if id == 0 && Nstank > 0 {
 		for m := 0; m < Nstank; m++ {
 			stank := &Stank[m]
@@ -645,7 +645,7 @@ func stankday(Mon, Day, ttmm, Nstank int, Stank []STANK, Nday, SimDayend int) {
 }
 
 // 日集計の出力
-func stankdyprt(fo *os.File, id, Nstank int, Stank []STANK) {
+func stankdyprt(fo io.Writer, id, Nstank int, Stank []STANK) {
 	switch id {
 	case 0:
 		if Nstank > 0 {
@@ -706,7 +706,7 @@ func stankdyprt(fo *os.File, id, Nstank int, Stank []STANK) {
 }
 
 // 月集計の出力
-func stankmonprt(fo *os.File, id, Nstank int, Stank []STANK) {
+func stankmonprt(fo io.Writer, id, Nstank int, Stank []STANK) {
 	switch id {
 	case 0:
 		if Nstank > 0 {

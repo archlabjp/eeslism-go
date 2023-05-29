@@ -21,12 +21,12 @@ func Eeprinth(Daytm *DAYTM, Simc *SIMCONTL, Nflout int, flout []*FLOUT, Rmvls *R
 				fmt.Printf("Eeprinth MAX=%d flo[%d]=%s\n", Nflout, i, flo.Idn)
 			}
 
-			// 気象データの出力
 			switch flo.Idn {
 			case PRTHWD:
 				if DEBUG {
 					fmt.Println("<Eeprinth> xprsolrd")
 				}
+				// 気象データの出力
 				Wdtprint(flo.F, title, Mon, Day, time, Wd, Exsfst)
 			case PRTCOMP: // 毎時機器の出力
 				Hcmpprint(flo.F, string(PRTCOMP), Simc, Mon, Day, time, Eqsys, Rmvls.Nrdpnl, Rmvls.Rdpnl)
@@ -37,29 +37,41 @@ func Eeprinth(Daytm *DAYTM, Simc *SIMCONTL, Nflout int, flout []*FLOUT, Rmvls *R
 			default:
 				if SIMUL_BUILDG { // these blocks are only compiled in debug builds
 					switch flo.Idn {
-					case PRTREV: // 毎時室温、MRTの出力
+					case PRTREV:
+						// 毎時室温、MRTの出力
 						Rmevprint(flo.F, title, Rmvls.Room, Mon, Day, time)
 					case PRTHROOM:
-						Rmpnlprint(flo.F, string(PRTHROOM), Simc, Mon, Day, time, Rmvls.Nroom, Rmvls.Room) // 放射パネルの出力
+						// 放射パネルの出力
+						Rmpnlprint(flo.F, string(PRTHROOM), Simc, Mon, Day, time, Rmvls.Nroom, Rmvls.Room)
 					case PRTHELM:
+						// 要素別熱損失・熱取得
 						Helmprint(flo.F, string(PRTHELM), Simc, Mon, Day, time, Rmvls.Nroom, Rmvls.Room, &Rmvls.Qetotal)
 					case PRTHELMSF:
+						// 要素別熱損失・熱取得
 						Helmsurfprint(flo.F, string(PRTHELMSF), Simc, Mon, Day, time, Rmvls.Nroom, Rmvls.Room)
-					case PRTPMV: // PMV計算
+					case PRTPMV:
+						// PMV計算
 						Pmvprint(flo.F, title, Rmvls.Room, Mon, Day, time)
-					case PRTQRM: // Output of heat gain elements in room
+					case PRTQRM:
+						// 日射、室内熱取得の出力
 						Qrmprint(flo.F, title, Mon, Day, time, Rmvls.Room, Rmvls.Qrm)
-					case PRTRSF: // Output of indoor surface temperature
+					case PRTRSF:
+						// 室内表面温度の出力
 						Rmsfprint(flo.F, title, Mon, Day, time, Rmvls.Room, Rmvls.Sd)
-					case PRTSHD: // Output of sunshade area
+					case PRTSHD:
+						// 日よけの影面積の出力
 						Shdprint(flo.F, title, Mon, Day, time, Rmvls.Nsrf, Rmvls.Sd)
-					case PRTWAL: // Output of wall internal temperature
+					case PRTWAL:
+						// 壁体内部温度の出力
 						Wallprint(flo.F, title, Mon, Day, time, Rmvls.Nsrf, Rmvls.Sd)
-					case PRTPCM: // Output of PCM state value
+					case PRTPCM:
+						// 潜熱蓄熱材の状態値の出力
 						PCMprint(flo.F, title, Mon, Day, time, Rmvls.Nsrf, Rmvls.Sd)
-					case PRTSFQ: // Output of indoor surface heat flow
+					case PRTSFQ:
+						// 室内表面熱流の出力
 						Rmsfqprint(flo.F, title, Mon, Day, time, Rmvls.Room, Rmvls.Sd)
-					case PRTSFA: // Output of indoor surface heat transfer coefficient
+					case PRTSFA:
+						// 室内表面熱伝達率の出力
 						Rmsfaprint(flo.F, title, Mon, Day, time, Rmvls.Room, Rmvls.Sd)
 					}
 				}
@@ -74,43 +86,42 @@ func Eeprinth(Daytm *DAYTM, Simc *SIMCONTL, Nflout int, flout []*FLOUT, Rmvls *R
 var __Eeprintd_ic int
 
 func Eeprintd(Daytm *DAYTM, Simc *SIMCONTL, Nflout int, flout []*FLOUT, Rmvls *RMVLS, Nexs int, Exs []EXSF, Soldy []float64, Eqsys *EQSYS, Wdd *WDAT) {
-	var title string
-	var Mon, Day, i int
-
 	if Daytm.Ddpri != 0 {
-		title = Simc.Title
-		Mon = int(Daytm.Mon)
-		Day = int(Daytm.Day)
+		title := Simc.Title
+		Mon := int(Daytm.Mon)
+		Day := int(Daytm.Day)
 
-		for i = 0; i < Nflout; i++ {
+		for i := 0; i < Nflout; i++ {
 			flo := flout[i]
 
 			switch flo.Idn {
 			case PRTDWD:
+				// 気象データ日集計値出力
 				Wdtdprint(flo.F, title, Mon, Day, Wdd, Nexs, Exs, Soldy)
 			case PRTWK:
+				// 計算年月日出力
 				if __Eeprintd_ic == 0 {
 					fmt.Fprintf(flo.F, "Mo Nd Day Week\n")
 					__Eeprintd_ic = 1
 				}
 
-				fmt.Fprintf(flo.F, "%2d %2d %3d %s\n", Mon, Day, Daytm.day, DAYweek[Simc.Daywk[Daytm.Day]])
+				fmt.Fprintf(flo.F, "%2d %2d %3d %s\n", Mon, Day, Daytm.DayOfYear, DAYweek[Simc.Daywk[Daytm.Day]])
 			case PRTDYCOMP:
-				Compodyprt(flo.F, string(PRTDYCOMP), Simc, Mon, Day, Eqsys,
-					Rmvls.Nrdpnl, Rmvls.Rdpnl)
+				// システム要素機器の日集計結果出力
+				Compodyprt(flo.F, string(PRTDYCOMP), Simc, Mon, Day, Eqsys, Rmvls.Nrdpnl, Rmvls.Rdpnl)
 			case PRTDYRM:
-				Rmdyprint(flo.F, string(PRTDYRM), Simc, Mon, Day,
-					Rmvls.Nroom, Rmvls.Room)
+				// 部屋ごとの熱集計結果出力
+				Rmdyprint(flo.F, string(PRTDYRM), Simc, Mon, Day, Rmvls.Nroom, Rmvls.Room)
 			case PRTDYHELM:
-				Helmdyprint(flo.F, PRTDYHELM, Simc, Mon, Day,
-					Rmvls.Nroom, Rmvls.Room, &Rmvls.Qetotal)
+				// 要素別熱損失・熱取得（日積算値出力）
+				Helmdyprint(flo.F, string(PRTDYHELM), Simc, Mon, Day, Rmvls.Nroom, Rmvls.Room, &Rmvls.Qetotal)
 			case PRTDQR:
-				Dyqrmprint(flo.F, title, Mon, Day,
-					Rmvls.Room, Rmvls.Trdav, Rmvls.Qrmd)
+				// 日射、室内熱取得の出力
+				Dyqrmprint(flo.F, title, Mon, Day, Rmvls.Room, Rmvls.Trdav, Rmvls.Qrmd)
 			case PRTDYSF:
+				// 日積算壁体貫流熱取得の出力
 				Dysfprint(flo.F, title, Mon, Day, Rmvls.Room)
 			}
-			// #endif
 		}
 	}
 }
@@ -127,11 +138,16 @@ func Eeprintm(daytm *DAYTM, simc *SIMCONTL, nflout int, flout []*FLOUT, rmvls *R
 	if daytm.Ddpri != 0 {
 		for i := 0; i < nflout; i++ {
 			flo := flout[i]
-			if flo.Idn == PRTMWD {
+
+			switch flo.Idn {
+			case PRTMWD:
+				// 気象データ月集計値出力
 				Wdtmprint(flo.F, title, mon, day, wdm, nexs, exs, solmon)
-			} else if flo.Idn == PRTMNCOMP {
+			case PRTMNCOMP:
+				// システム要素機器の月集計結果出力
 				Compomonprt(flo.F, string(PRTMNCOMP), simc, mon, day, eqsys, rmvls.Nrdpnl, rmvls.Rdpnl)
-			} else if flo.Idn == PRTMNRM {
+			case PRTMNRM:
+				// 部屋ごとの熱集計結果出力
 				Rmmonprint(flo.F, string(PRTMNRM), simc, mon, day, rmvls.Nroom, rmvls.Room)
 			}
 		}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"math"
 	"os"
 )
@@ -257,7 +258,7 @@ func Matprint(format string, N int, a []float64) {
 //
 // 正方行列のファイル出力
 //*/
-func Matfiprint(f *os.File, fmtStr string, N int, a []float64) {
+func Matfiprint(f io.Writer, fmtStr string, N int, a []float64) {
 	for i := 0; i < N; i++ {
 		for j := 0; j < N; j++ {
 			fmt.Fprintf(f, fmtStr, a[i*N+j])

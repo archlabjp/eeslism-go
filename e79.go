@@ -433,7 +433,7 @@ func main() {
 	dprroomdata(Rmvls.Room, Rmvls.Sd)
 	dprballoc(Rmvls.Mw, Rmvls.Sd)
 
-	eeflopen(&Simc, Nflout, Flout)
+	Simc.eeflopen(Nflout, Flout)
 
 	if DEBUG {
 		fmt.Println("<<main>> eeflopen ")
@@ -515,7 +515,7 @@ func main() {
 		if Simc.Perio == 'y' {
 			day = Simc.Daystart
 		}
-		Daytm.day = day
+		Daytm.DayOfYear = day
 
 		dayprn = Simc.Dayprn[day] != 0
 

@@ -21,12 +21,12 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"io"
 )
 
 var Pmvprint_count = 0
 
-func Pmvprint(fpout *os.File, title string, Room []ROOM, Mon, Day int, time float64) {
+func Pmvprint(fpout io.Writer, title string, Room []ROOM, Mon, Day int, time float64) {
 	var Nroom, Nr int
 	if Pmvprint_count == 0 && Room != nil {
 		Nroom = Room[0].end
@@ -70,7 +70,7 @@ func Pmvprint(fpout *os.File, title string, Room []ROOM, Mon, Day int, time floa
 
 var Rmevprint_count = 0
 
-func Rmevprint(fpout *os.File, title string, Room []ROOM, Mon, Day int, time float64) {
+func Rmevprint(fpout io.Writer, title string, Room []ROOM, Mon, Day int, time float64) {
 	var Nroom int
 	if Rmevprint_count == 0 {
 		Nroom = Room[0].end

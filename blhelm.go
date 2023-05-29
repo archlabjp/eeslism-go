@@ -20,7 +20,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"os"
 )
 
 /* 要素別熱損失・熱取得（記憶域確保） */
@@ -152,7 +151,7 @@ func Helmroom(Nroom int, Room []ROOM, Qrm []QRM, Qetotal *QETOTAL, Ta, xa float6
 
 /* 要素別熱損失・熱取得（時刻別出力） */
 
-func Helmprint(fo *os.File, mrk string, Simc *SIMCONTL, mon, day int, time float64,
+func Helmprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time float64,
 	Nroom int, Room []ROOM, Qetotal *QETOTAL) {
 	var j int
 	staticID := 0
@@ -267,7 +266,7 @@ func helmrmprint(fo io.Writer, id, Nroom int, _Room []ROOM, Qetotal *QETOTAL) {
 
 /* 要素別熱損失・熱取得（時刻別出力） */
 
-func Helmsurfprint(fo *os.File, mrk string, Simc *SIMCONTL, mon, day int, time float64,
+func Helmsurfprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time float64,
 	Nroom int, Room []ROOM) {
 	var j int
 	staticID := 0
@@ -401,7 +400,7 @@ func helmdyint(Nroom int, Room []ROOM, Qetotal *QETOTAL) {
 
 var __Helmdyprint_id int
 
-func Helmdyprint(fo *os.File, mrk string, Simc *SIMCONTL, mon, day int, Nroom int, Room []ROOM, Qetotal *QETOTAL) {
+func Helmdyprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Nroom int, Room []ROOM, Qetotal *QETOTAL) {
 	var j int
 
 	if __Helmdyprint_id == 0 {

@@ -11,7 +11,7 @@ import (
 
 /* 境界条件・負荷仮想機器の要素機器データ入力ファイル設定 */
 
-func Vcfdata(fi *os.File, simcon *SIMCONTL) {
+func Vcfdata(fi io.ReadSeeker, simcon *SIMCONTL) {
 	var (
 		s      string
 		errFmt = "(vcfileint)"
@@ -126,7 +126,7 @@ func Vcfdata(fi *os.File, simcon *SIMCONTL) {
 
 /***** VCFILEの定義数を数える ******/
 
-func VCFcount(fi *os.File) int {
+func VCFcount(fi io.ReadSeeker) int {
 	var N int
 	ad, _ := fi.Seek(0, io.SeekCurrent)
 

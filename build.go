@@ -1,6 +1,8 @@
 package main
 
-import "os"
+import (
+	"io"
+)
 
 type BMLST struct {
 	Mcode string  // 名称
@@ -230,7 +232,7 @@ type CHARTABLE struct {
 	tabletype            rune      // h:見かけの比熱、e:エンタルピー
 	minTemp, maxTemp     float64   // テーブルの下限温度、上限温度
 	itablerow            int       // テーブル形式の入力行数
-	fp                   *os.File
+	fp                   io.ReadCloser
 	lowA, lowB, upA, upB float64
 	// 上下限温度範囲外の特性値計算用線形回帰式の傾きと切片
 	minTempChng float64 // 最低温度変動幅　前時刻からの温度変化がminTempChng以下の場合はminTempChngとして特性値を計算

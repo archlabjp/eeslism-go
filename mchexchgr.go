@@ -23,8 +23,8 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -141,7 +141,7 @@ func Hexene(Nhex int, Hex []HEX) {
 
 /* --------------------------- */
 
-func hexprint(fo *os.File, id int, Nhex int, Hex []HEX) {
+func hexprint(fo io.Writer, id int, Nhex int, Hex []HEX) {
 	switch id {
 	case 0:
 		if Nhex > 0 {
@@ -203,7 +203,7 @@ func hexday(Mon, Day, ttmm, Nhex int, Hex []HEX, Nday, SimDayend int) {
 	}
 }
 
-func hexdyprt(fo *os.File, id, Nhex int, Hex []HEX) {
+func hexdyprt(fo io.Writer, id, Nhex int, Hex []HEX) {
 	var c byte
 
 	switch id {
@@ -253,7 +253,7 @@ func hexdyprt(fo *os.File, id, Nhex int, Hex []HEX) {
 	}
 }
 
-func hexmonprt(fo *os.File, id, Nhex int, Hex []HEX) {
+func hexmonprt(fo io.Writer, id, Nhex int, Hex []HEX) {
 	var c byte
 
 	switch id {

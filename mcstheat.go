@@ -20,6 +20,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -253,7 +254,7 @@ func stheatvptr(key []string, Stheat *STHEAT, vptr *VPTR, vpath *VPTR) int {
 
 /* ---------------------------*/
 
-func stheatprint(fo *os.File, id int, Nstheat int, stheat []STHEAT) {
+func stheatprint(fo io.Writer, id int, Nstheat int, stheat []STHEAT) {
 	switch id {
 	case 0:
 		if Nstheat > 0 {
@@ -342,7 +343,7 @@ func stheatday(Mon, Day, ttmm, Nstheat int, stheat []STHEAT, Nday, SimDayend int
 	}
 }
 
-func stheatdyprt(fo *os.File, id, Nstheat int, stheat []STHEAT) {
+func stheatdyprt(fo io.Writer, id, Nstheat int, stheat []STHEAT) {
 	switch id {
 	case 0:
 		if Nstheat > 0 {
@@ -397,7 +398,7 @@ func stheatdyprt(fo *os.File, id, Nstheat int, stheat []STHEAT) {
 	}
 }
 
-func stheatmonprt(fo *os.File, id, Nstheat int, stheat []STHEAT) {
+func stheatmonprt(fo io.Writer, id, Nstheat int, stheat []STHEAT) {
 	switch id {
 	case 0:
 		if Nstheat > 0 {
@@ -452,7 +453,7 @@ func stheatmonprt(fo *os.File, id, Nstheat int, stheat []STHEAT) {
 	}
 }
 
-func stheatmtprt(fo *os.File, id, Nstheat int, stheat []STHEAT, Mo, tt int) {
+func stheatmtprt(fo io.Writer, id, Nstheat int, stheat []STHEAT, Mo, tt int) {
 	switch id {
 	case 0:
 		if Nstheat > 0 {

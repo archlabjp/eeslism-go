@@ -28,7 +28,7 @@ import (
   Create Date=1999.6.7
 */
 
-func HISASHI(fi *os.File, sb *sunblk) {
+func HISASHI(fi io.Reader, sb *sunblk) {
 	var NAME string
 
 	fmt.Fscanf(fi, "%s", &NAME)
@@ -67,7 +67,7 @@ func HISASHI(fi *os.File, sb *sunblk) {
 
 /*--------------------------------------------------------------*/
 
-func BARUKO(fi *os.File, sb *sunblk) {
+func BARUKO(fi io.Reader, sb *sunblk) {
 	var NAME string
 
 	sb.ref = 0.0
@@ -109,7 +109,7 @@ func BARUKO(fi *os.File, sb *sunblk) {
 
 /*------------------------------------------------------------------*/
 
-func SODEK(fi *os.File, sb *sunblk) {
+func SODEK(fi io.Reader, sb *sunblk) {
 	var NAME string
 
 	sb.rgb[0] = 0.0
@@ -147,7 +147,7 @@ func SODEK(fi *os.File, sb *sunblk) {
 
 /*-----------------------------------------------------------------------*/
 
-func SCREEN(fi *os.File, sb *sunblk) {
+func SCREEN(fi io.Reader, sb *sunblk) {
 	var NAME string
 
 	sb.rgb[0] = 0.0
@@ -184,7 +184,7 @@ func SCREEN(fi *os.File, sb *sunblk) {
 
 /*----------------------------------------------------------------*/
 
-func rmpdata(fi *os.File, rp *RRMP, _wp []MADO) {
+func rmpdata(fi io.Reader, rp *RRMP, _wp []MADO) {
 	var NAME string
 
 	rp.ref = 0.0
@@ -278,7 +278,7 @@ func rmpdata(fi *os.File, rp *RRMP, _wp []MADO) {
 }
 
 /*------------------------------------------------------------------*/
-func rectdata(fi *os.File, obs *OBS) {
+func rectdata(fi io.Reader, obs *OBS) {
 	var NAME string
 
 	obs.ref[0] = 0.0
@@ -320,7 +320,7 @@ func rectdata(fi *os.File, obs *OBS) {
 }
 
 /*------------------------------------------------------------------*/
-func cubdata(fi *os.File, obs *OBS) {
+func cubdata(fi io.Reader, obs *OBS) {
 	var NAME string
 
 	for i := 0; i < 3; i++ {
@@ -370,7 +370,7 @@ func cubdata(fi *os.File, obs *OBS) {
 }
 
 /*-------------------------------------------------------------------*/
-func tridata(fi *os.File, obs *OBS) {
+func tridata(fi io.Reader, obs *OBS) {
 	var NAME string
 
 	obs.ref[0] = 0.0
@@ -412,7 +412,7 @@ func tridata(fi *os.File, obs *OBS) {
 
 /*-------------------------------------------------------------------*/
 // 20170503 higuchi add
-func dividdata(fi *os.File, monten *int, DE *float64) {
+func dividdata(fi io.Reader, monten *int, DE *float64) {
 	var NAME string
 
 	for {
@@ -435,7 +435,7 @@ func dividdata(fi *os.File, monten *int, DE *float64) {
 	fmt.Fscanf(fi, "%s", &NAME)
 }
 
-func treedata(fi *os.File, treen *int, tree *[]TREE) {
+func treedata(fi io.ReadSeeker, treen *int, tree *[]TREE) {
 	var i int
 	var Ntree int
 	var tred *TREE
@@ -519,7 +519,7 @@ func treedata(fi *os.File, treen *int, tree *[]TREE) {
 }
 
 /*-------------------------*/
-func polydata(fi *os.File, polyn *int, poly *[]POLYGN) {
+func polydata(fi io.ReadSeeker, polyn *int, poly *[]POLYGN) {
 	var i int
 	var Npoly int
 	var polyp *POLYGN
@@ -610,7 +610,7 @@ func polydata(fi *os.File, polyn *int, poly *[]POLYGN) {
 }
 
 /*---------------------------------------------------------------------------*/
-func bdpdata(fi *os.File, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
+func bdpdata(fi io.ReadSeeker, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
 
 	var rp *RRMP
 	var wp *MADO
@@ -819,7 +819,7 @@ func bdpdata(fi *os.File, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
 }
 
 /*--------------------------------------------------------------------------*/
-func obsdata(fi *os.File, obsn *int, obs *[]OBS) {
+func obsdata(fi io.ReadSeeker, obsn *int, obs *[]OBS) {
 	var i, Nobs int
 	var obsp *OBS
 
@@ -875,7 +875,7 @@ func obsdata(fi *os.File, obsn *int, obs *[]OBS) {
 	}
 }
 
-func InputCount(fi *os.File, key string) int {
+func InputCount(fi io.ReadSeeker, key string) int {
 	N := 0
 	ad, _ := fi.Seek(0, io.SeekCurrent)
 
@@ -904,7 +904,7 @@ func InputCount(fi *os.File, key string) int {
 	return N
 }
 
-func SBLKCount(fi *os.File) int {
+func SBLKCount(fi io.ReadSeeker) int {
 	N := 0
 	ad, _ := fi.Seek(0, io.SeekCurrent)
 
@@ -924,7 +924,7 @@ func SBLKCount(fi *os.File) int {
 	return N
 }
 
-func RMPCount(fi *os.File) int {
+func RMPCount(fi io.ReadSeeker) int {
 	N := 0
 	ad, _ := fi.Seek(0, io.SeekCurrent)
 
@@ -944,7 +944,7 @@ func RMPCount(fi *os.File) int {
 	return N
 }
 
-func WDCount(fi *os.File) int {
+func WDCount(fi io.ReadSeeker) int {
 	N := 0
 	ad, _ := fi.Seek(0, io.SeekCurrent)
 

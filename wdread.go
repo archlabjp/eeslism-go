@@ -61,10 +61,10 @@ func Weatherdt(Simc *SIMCONTL, Daytm *DAYTM, Loc *LOCAT, Wd *WDAT, Exs []EXSF, E
 	if tt < __Weatherdt_ptt {
 		if Simc.Wdtype == 'H' {
 			if Simc.DTm < 3600 {
-				_, Mon, Day, _ = hspwdread(Simc.Fwdata, Daytm.day-1, Loc, &dtL)
+				_, Mon, Day, _ = hspwdread(Simc.Fwdata, Daytm.DayOfYear-1, Loc, &dtL)
 			}
 
-			_, Mon, Day, _ = hspwdread(Simc.Fwdata, Daytm.day, Loc, &dt)
+			_, Mon, Day, _ = hspwdread(Simc.Fwdata, Daytm.DayOfYear, Loc, &dt)
 			if Daytm.Mon != Mon || Daytm.Day != Day {
 				s := fmt.Sprintf("loop Mon/Day=%d/%d - data Mon/Day=%d/%d", Daytm.Mon, Daytm.Day, Mon, Day)
 				Eprint("<Weatherdt>", s)
@@ -99,11 +99,11 @@ func Weatherdt(Simc *SIMCONTL, Daytm *DAYTM, Loc *LOCAT, Wd *WDAT, Exs []EXSF, E
 		if Wd.Intgtsupw == 'N' {
 			Wd.Twsup = Loc.Twsup[Daytm.Mon-1]
 		} else {
-			Wd.Twsup = Intgtsup(Daytm.day, Loc.Twsup[:])
+			Wd.Twsup = Intgtsup(Daytm.DayOfYear, Loc.Twsup[:])
 		}
 	}
 
-	Exsfter(Daytm.day, Loc.Daymxert, Loc.Tgrav, Loc.DTgr, Exs, Wd, tt)
+	Exsfter(Daytm.DayOfYear, Loc.Daymxert, Loc.Tgrav, Loc.DTgr, Exs, Wd, tt)
 	timedg = float64(Daytm.Tt) + math.Mod(float64(Daytm.Ttmm), 100.0)/60.0
 
 	tas = FNTtas(timedg, E)
@@ -201,7 +201,7 @@ func gtsupw(fp []byte, loc string, nmx *int, Tgrav, DTgr *float64, Tsupw *[12]fl
 var __hspwdread_ic int
 var __hspwdread_recl int
 
-func hspwdread(fp *os.File, nday int, Loc *LOCAT, dt *[7][25]float64) (year int, mon int, day int, wkdy int) {
+func hspwdread(fp io.ReadSeeker, nday int, Loc *LOCAT, dt *[7][25]float64) (year int, mon int, day int, wkdy int) {
 	var d, a, b, c float64
 	var k, t int
 	Data := [24][3]byte{}

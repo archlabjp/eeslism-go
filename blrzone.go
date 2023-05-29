@@ -18,13 +18,13 @@ package main
 
 import (
 	"bufio"
-	"os"
+	"io"
 	"strings"
 )
 
 /* ゾーン集計実施室の指定  */
 
-func Rzonedata(fi *os.File, dsn string, Nroom int, Room []ROOM, Nrzone *int, _Rzone []RZONE) {
+func Rzonedata(fi io.Reader, dsn string, Nroom int, Room []ROOM, Nrzone *int, _Rzone []RZONE) {
 	scanner := bufio.NewScanner(fi)
 
 	for scanner.Scan() {

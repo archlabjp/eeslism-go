@@ -23,8 +23,8 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -198,7 +198,7 @@ func PVene(Npv int, PV []PV) {
 
 /* ------------------------------------------------------------- */
 
-func PVprint(fo *os.File, id int, Npv int, PV []PV) {
+func PVprint(fo io.Writer, id int, Npv int, PV []PV) {
 	switch id {
 	case 0:
 		if Npv > 0 {
@@ -286,7 +286,7 @@ func PVday(Mon int, Day int, ttmm int, Npv int, PV []PV, Nday int, SimDayend int
 	}
 }
 
-func PVdyprt(fo *os.File, id int, Npv int, PV []PV) {
+func PVdyprt(fo io.Writer, id int, Npv int, PV []PV) {
 	switch id {
 	case 0:
 		if Npv > 0 {
@@ -312,7 +312,7 @@ func PVdyprt(fo *os.File, id int, Npv int, PV []PV) {
 	}
 }
 
-func PVmonprt(fo *os.File, id int, Npv int, PV []PV) {
+func PVmonprt(fo io.Writer, id int, Npv int, PV []PV) {
 	switch id {
 	case 0:
 		if Npv > 0 {
@@ -338,7 +338,7 @@ func PVmonprt(fo *os.File, id int, Npv int, PV []PV) {
 	}
 }
 
-func PVmtprt(fo *os.File, id int, Npv int, PV []PV, Mo int, tt int) {
+func PVmtprt(fo io.Writer, id int, Npv int, PV []PV, Mo int, tt int) {
 	switch id {
 	case 0:
 		if Npv > 0 {

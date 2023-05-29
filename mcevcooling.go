@@ -23,8 +23,8 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -540,7 +540,7 @@ func Evaccountreset(Nevac int, Evac []EVAC) {
 }
 
 // 代表日の計算結果出力
-func Evacprint(fo *os.File, id int, Nevac int, Evac []EVAC) {
+func Evacprint(fo io.Writer, id int, Nevac int, Evac []EVAC) {
 	switch id {
 	case 0:
 		if Nevac > 0 {

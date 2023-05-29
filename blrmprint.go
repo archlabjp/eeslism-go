@@ -20,7 +20,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"os"
 )
 
 /* ---------------------------------------------------------------- */
@@ -28,7 +27,7 @@ import (
 
 var __Rmsfprint_ic int
 
-func Rmsfprint(fo *os.File, title string, Mon, Day int, time float64, Room []ROOM, Sd []RMSRF) {
+func Rmsfprint(fo io.Writer, title string, Mon, Day int, time float64, Room []ROOM, Sd []RMSRF) {
 	N := Room[0].end
 
 	if __Rmsfprint_ic == 0 {
@@ -83,7 +82,7 @@ func Rmsfprint(fo *os.File, title string, Mon, Day int, time float64, Room []ROO
 
 var __Rmsfqprint_ic int
 
-func Rmsfqprint(fo *os.File, title string, Mon, Day int, time float64, Room []ROOM, Sd []RMSRF) {
+func Rmsfqprint(fo io.Writer, title string, Mon, Day int, time float64, Room []ROOM, Sd []RMSRF) {
 	N := Room[0].end
 
 	if __Rmsfqprint_ic == 0 {
@@ -143,7 +142,7 @@ func Rmsfqprint(fo *os.File, title string, Mon, Day int, time float64, Room []RO
 
 var __Rmsfaprint_ic int
 
-func Rmsfaprint(fo *os.File, title string, Mon, Day int, time float64, Room []ROOM, Sd []RMSRF) {
+func Rmsfaprint(fo io.Writer, title string, Mon, Day int, time float64, Room []ROOM, Sd []RMSRF) {
 	N := Room[0].end
 
 	if __Rmsfaprint_ic == 0 {
@@ -198,7 +197,7 @@ func Rmsfaprint(fo *os.File, title string, Mon, Day int, time float64, Room []RO
 /* 日積算壁体貫流熱取得の出力 */
 var __Dysfprint_ic int
 
-func Dysfprint(fo *os.File, title string, Mon, Day int, Room []ROOM) {
+func Dysfprint(fo io.Writer, title string, Mon, Day int, Room []ROOM) {
 	N := Room[0].end
 
 	if __Dysfprint_ic == 0 {
@@ -259,7 +258,7 @@ func Dysfprint(fo *os.File, title string, Mon, Day int, Room []ROOM) {
 
 var __Shdprint_ic int
 
-func Shdprint(fo *os.File, title string, Mon, Day int, time float64, Nsrf int, Sd []RMSRF) {
+func Shdprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, Sd []RMSRF) {
 	if __Shdprint_ic == 0 {
 		__Shdprint_ic++
 
@@ -299,7 +298,7 @@ func Shdprint(fo *os.File, title string, Mon, Day int, time float64, Nsrf int, S
 
 var __Wallprint_ic int
 
-func Wallprint(fo *os.File, title string, Mon, Day int, time float64, Nsrf int, Sd []RMSRF) {
+func Wallprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, Sd []RMSRF) {
 	if __Wallprint_ic == 0 {
 		__Wallprint_ic++
 		var m int
@@ -350,7 +349,7 @@ func Wallprint(fo *os.File, title string, Mon, Day int, time float64, Nsrf int, 
 /* 潜熱蓄熱材の状態値の出力 */
 var __PCMprint_ic int
 
-func PCMprint(fo *os.File, title string, Mon, Day int, time float64, Nsrf int, Sd []RMSRF) {
+func PCMprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, Sd []RMSRF) {
 	var Sdd *RMSRF
 	var pcmstate *PCMSTATE
 
@@ -415,7 +414,7 @@ func PCMprint(fo *os.File, title string, Mon, Day int, time float64, Nsrf int, S
 
 var __Qrmprint_ic int
 
-func Qrmprint(fo *os.File, title string, Mon, Day int, time float64, Room []ROOM, Qrm []QRM) {
+func Qrmprint(fo io.Writer, title string, Mon, Day int, time float64, Room []ROOM, Qrm []QRM) {
 	N := Room[0].end
 
 	if __Qrmprint_ic == 0 {

@@ -95,7 +95,7 @@ func e_printf(n int, p []P_MENN, name string) {
 }
 
 /*---------------影面積の出力--------------------*/
-func shadow_printf(fp *os.File, M, D int, mt float64, mpn int, mp []P_MENN) {
+func shadow_printf(fp io.Writer, M, D int, mt float64, mpn int, mp []P_MENN) {
 	var i int
 
 	fmt.Fprintf(fp, "%d %d %5.2f", M, D, mt)

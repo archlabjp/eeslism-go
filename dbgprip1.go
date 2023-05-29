@@ -17,6 +17,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 )
 
@@ -241,7 +242,7 @@ func dprschdata(Sh []SCH, Sw []SCH) {
 
 func dprachv(Nroom int, Room []ROOM) {
 
-	f := func(s *os.File) {
+	f := func(s io.Writer) {
 		fmt.Fprintln(Ferr, "\n*** dprachv***")
 
 		for i := 0; i < Nroom; i++ {

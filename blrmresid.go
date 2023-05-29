@@ -18,7 +18,7 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"io"
 	"strings"
 )
 
@@ -26,7 +26,7 @@ import (
 /*
 居住者スケジュ－ルの入力              */
 
-func Residata(fi *os.File, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int, simc *SIMCONTL) {
+func Residata(fi io.Reader, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int, simc *SIMCONTL) {
 	errFmt := fmt.Sprintf(ERRFMT, dsn)
 	vall := schdl.Val
 
@@ -107,7 +107,7 @@ func Residata(fi *os.File, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int, 
 /*
 照明・機器利用スケジュ－ルの入力              */
 
-func Appldata(fi *os.File, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCONTL) {
+func Appldata(fi io.Reader, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCONTL) {
 	errFmt := fmt.Sprintf(ERRFMT, dsn)
 	vall := schdl.Val
 

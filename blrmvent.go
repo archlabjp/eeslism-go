@@ -18,7 +18,7 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"io"
 	"strings"
 )
 
@@ -26,7 +26,7 @@ import (
 
 /*  外気導入量および室間相互換気量の設定スケジュ－ル入力   */
 
-func Ventdata(fi *os.File, dsn string, Schdl *SCHDL, Room []ROOM, Simc *SIMCONTL) {
+func Ventdata(fi io.Reader, dsn string, Schdl *SCHDL, Room []ROOM, Simc *SIMCONTL) {
 	var achr *ACHIR
 	var room, Rm *ROOM
 	var name1, name2, s, ss, E string

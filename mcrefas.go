@@ -19,6 +19,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -374,7 +375,7 @@ func refaldschd(Refa *REFA) {
 
 /* --------------------------- */
 
-func refaprint(fo *os.File, id, Nrefa int, Refa []REFA) {
+func refaprint(fo io.Writer, id, Nrefa int, Refa []REFA) {
 	switch id {
 	case 0:
 		if Nrefa > 0 {
@@ -445,7 +446,7 @@ func refaday(Mon int, Day int, ttmm int, Nrefa int, Refa []REFA, Nday int, SimDa
 	}
 }
 
-func refadyprt(fo *os.File, id int, Nrefa int, Refa []REFA) {
+func refadyprt(fo io.Writer, id int, Nrefa int, Refa []REFA) {
 	switch id {
 	case 0:
 		if Nrefa > 0 {
@@ -492,7 +493,7 @@ func refadyprt(fo *os.File, id int, Nrefa int, Refa []REFA) {
 	}
 }
 
-func refamonprt(fo *os.File, id int, Nrefa int, Refa []REFA) {
+func refamonprt(fo io.Writer, id int, Nrefa int, Refa []REFA) {
 	switch id {
 	case 0:
 		if Nrefa > 0 {
@@ -539,7 +540,7 @@ func refamonprt(fo *os.File, id int, Nrefa int, Refa []REFA) {
 	}
 }
 
-func refamtprt(fo *os.File, id int, Nrefa int, Refa []REFA, Mo int, tt int) {
+func refamtprt(fo io.Writer, id int, Nrefa int, Refa []REFA, Mo int, tt int) {
 	switch id {
 	case 0:
 		if Nrefa > 0 {

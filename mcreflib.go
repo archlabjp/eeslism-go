@@ -20,15 +20,15 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 )
 
 /*  圧縮式冷凍機定格特性入力    */
 
-func Refcmpdat(frf *os.File, Nrfcmp *int, Rfcmp []RFCMP) {
+func Refcmpdat(frf io.Reader, Nrfcmp *int, Rfcmp []RFCMP) {
 	scanner := bufio.NewScanner(frf)
 	for scanner.Scan() {
 		line := scanner.Text()

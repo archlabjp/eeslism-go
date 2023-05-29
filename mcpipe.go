@@ -19,8 +19,8 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -212,7 +212,7 @@ func pipeldsschd(Pipe *PIPE) {
 
 /* --------------------------- */
 
-func pipeprint(fo *os.File, id int, Npipe int, Pipe []PIPE) {
+func pipeprint(fo io.Writer, id int, Npipe int, Pipe []PIPE) {
 	switch id {
 	case 0:
 		if Npipe > 0 {
@@ -265,7 +265,7 @@ func pipeday(Mon int, Day int, ttmm int, Npipe int, Pipe []PIPE, Nday int, SimDa
 	}
 }
 
-func pipedyprt(fo *os.File, id int, Npipe int, Pipe []PIPE) {
+func pipedyprt(fo io.Writer, id int, Npipe int, Pipe []PIPE) {
 	switch id {
 	case 0:
 		if Npipe > 0 {
@@ -296,7 +296,7 @@ func pipedyprt(fo *os.File, id int, Npipe int, Pipe []PIPE) {
 	}
 }
 
-func pipemonprt(fo *os.File, id int, Npipe int, Pipe []PIPE) {
+func pipemonprt(fo io.Writer, id int, Npipe int, Pipe []PIPE) {
 	switch id {
 	case 0:
 		if Npipe > 0 {

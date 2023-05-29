@@ -20,7 +20,7 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"io"
 	"strconv"
 	"strings"
 )
@@ -343,7 +343,7 @@ func Desivptr(key []string, Desi *DESI, vptr *VPTR) int {
 
 ///* ---------------------------*/
 //
-func Desiprint(fo *os.File, id int, Ndesi int, _Desi []DESI) {
+func Desiprint(fo io.Writer, id int, Ndesi int, _Desi []DESI) {
 	switch id {
 	case 0:
 		if Ndesi > 0 {
@@ -411,7 +411,7 @@ func Desiday(Mon, Day, ttmm, Ndesi int, _Desi []DESI, Nday, SimDayend int) {
 	}
 }
 
-func Desidyprt(fo *os.File, id, Ndesi int, _Desi []DESI) {
+func Desidyprt(fo io.Writer, id, Ndesi int, _Desi []DESI) {
 	switch id {
 	case 0:
 		if Ndesi > 0 {

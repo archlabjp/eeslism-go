@@ -23,7 +23,6 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -378,7 +377,7 @@ func hccdyprt(fo io.Writer, id, Nhcc int, Hcc []HCC) {
 	}
 }
 
-func hccmonprt(fo *os.File, id int, Nhcc int, Hcc []HCC) {
+func hccmonprt(fo io.Writer, id int, Nhcc int, Hcc []HCC) {
 	switch id {
 	case 0:
 		if Nhcc > 0 {

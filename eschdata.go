@@ -28,7 +28,7 @@ import (
 
 /* 曜日の設定  */
 
-func Dayweek(fi *os.File, Ipath string, daywk []int, key int) {
+func Dayweek(fi io.Reader, Ipath string, daywk []int, key int) {
 	var s string
 	var ce int
 	var ds, de, dd, d, id, M, D int
@@ -110,7 +110,7 @@ func Dayweek(fi *os.File, Ipath string, daywk []int, key int) {
 
 /*  スケジュ－ル表の入力          */
 
-func Schtable(fi *os.File, dsn string, Schdl *SCHDL) {
+func Schtable(fi io.ReadSeeker, dsn string, Schdl *SCHDL) {
 	var s string
 	var ce int
 	var code byte
@@ -385,7 +385,7 @@ func Schtable(fi *os.File, dsn string, Schdl *SCHDL) {
 
 /*  季節、曜日によるスケジュ－ル表の組み合わせ    */
 
-func Schdata(fi *os.File, dsn string, daywk []int, Schdl *SCHDL) {
+func Schdata(fi io.Reader, dsn string, daywk []int, Schdl *SCHDL) {
 	var (
 		s       string
 		ss      string
@@ -619,7 +619,7 @@ func Schname(Ipath string, dsn string, schdl *SCHDL) {
 }
 
 /****  スケジュールの数を数える  ****/
-func SchCount(fi *os.File, ssn, wkd, vl, sw, ssnmx, vlmx, swmx *int) {
+func SchCount(fi io.ReadSeeker, ssn, wkd, vl, sw, ssnmx, vlmx, swmx *int) {
 	var (
 		s   string
 		a   int64
@@ -672,7 +672,7 @@ func SchCount(fi *os.File, ssn, wkd, vl, sw, ssnmx, vlmx, swmx *int) {
 
 /***************************************************************************/
 
-func Schcmpcount(fi *os.File) int {
+func Schcmpcount(fi io.Reader) int {
 	N := 0
 	scanner := bufio.NewScanner(fi)
 	for scanner.Scan() {

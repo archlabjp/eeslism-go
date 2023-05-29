@@ -17,12 +17,12 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"io"
 )
 
 /* 室供給熱量、放射パネルについての出力 */
 
-func Rmpnlprint(fo *os.File, mrk string, Simc *SIMCONTL, mon, day int, time float64,
+func Rmpnlprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time float64,
 	Nroom int, Room []ROOM) {
 	id := 0
 

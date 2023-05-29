@@ -21,8 +21,8 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 	"unicode"
@@ -801,7 +801,7 @@ func hcldschd(Hcload *HCLOAD) {
 
 /* ------------------------------------------ */
 
-func hcldprint(fo *os.File, id int, Nhcload int, _Hcload []HCLOAD) {
+func hcldprint(fo io.Writer, id int, Nhcload int, _Hcload []HCLOAD) {
 	switch id {
 	case 0:
 		if Nhcload > 0 {
@@ -936,7 +936,7 @@ func hcldday(Mon, Day, ttmm, Nhcload, Nday, SimDayend int, _Hcload []HCLOAD) {
 	}
 }
 
-func hclddyprt(fo *os.File, id, Nhcload int, _Hcload []HCLOAD) {
+func hclddyprt(fo io.Writer, id, Nhcload int, _Hcload []HCLOAD) {
 	switch id {
 	case 0:
 		if Nhcload > 0 {
@@ -999,7 +999,7 @@ func hclddyprt(fo *os.File, id, Nhcload int, _Hcload []HCLOAD) {
 	}
 }
 
-func hcldmonprt(fo *os.File, id, Nhcload int, _Hcload []HCLOAD) {
+func hcldmonprt(fo io.Writer, id, Nhcload int, _Hcload []HCLOAD) {
 	switch id {
 	case 0:
 		if Nhcload > 0 {
@@ -1062,7 +1062,7 @@ func hcldmonprt(fo *os.File, id, Nhcload int, _Hcload []HCLOAD) {
 	}
 }
 
-func hcldmtprt(fo *os.File, id, Nhcload, Mo, tt int, _Hcload []HCLOAD) {
+func hcldmtprt(fo io.Writer, id, Nhcload, Mo, tt int, _Hcload []HCLOAD) {
 	switch id {
 	case 0:
 		if Nhcload > 0 {

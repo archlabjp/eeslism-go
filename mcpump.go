@@ -21,8 +21,8 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -236,7 +236,7 @@ func Pumpene(Npump int, Pump []PUMP) {
 
 /* --------------------------- */
 
-func pumpprint(fo *os.File, id int, Npump int, Pump []PUMP) {
+func pumpprint(fo io.Writer, id int, Npump int, Pump []PUMP) {
 	var G float64
 
 	switch id {
@@ -305,7 +305,7 @@ func pumpday(Mon, Day, ttmm, Npump int, Pump []PUMP, Nday, SimDayend int) {
 	}
 }
 
-func pumpdyprt(fo *os.File, id, Npump int, Pump []PUMP) {
+func pumpdyprt(fo io.Writer, id, Npump int, Pump []PUMP) {
 	switch id {
 	case 0:
 		if Npump > 0 {
@@ -335,7 +335,7 @@ func pumpdyprt(fo *os.File, id, Npump int, Pump []PUMP) {
 	}
 }
 
-func pumpmonprt(fo *os.File, id, Npump int, Pump []PUMP) {
+func pumpmonprt(fo io.Writer, id, Npump int, Pump []PUMP) {
 	switch id {
 	case 0:
 		if Npump > 0 {
@@ -364,7 +364,7 @@ func pumpmonprt(fo *os.File, id, Npump int, Pump []PUMP) {
 		}
 	}
 }
-func pumpmtprt(fo *os.File, id, Npump int, Pump []PUMP, Mo, tt int) {
+func pumpmtprt(fo io.Writer, id, Npump int, Pump []PUMP, Mo, tt int) {
 	switch id {
 	case 0:
 		if Npump > 0 {
@@ -392,7 +392,7 @@ func PFcmpInit(Npfcmp int, Pfcmp []PFCMP) {
 	}
 }
 
-func PFcmpdata(fl *os.File, Npfcmp *int, pfcmp []PFCMP) {
+func PFcmpdata(fl io.Reader, Npfcmp *int, pfcmp []PFCMP) {
 	var s string
 	var c byte
 	var i int

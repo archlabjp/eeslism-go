@@ -3,14 +3,14 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"os"
+	"io"
 	"strings"
 )
 
 /* システム要素の接続経路の入力 */
 
 func Pathdata(
-	f *os.File,
+	f io.ReadSeeker,
 	errkey string,
 	Simc *SIMCONTL,
 	Wd *WDAT,
@@ -634,7 +634,7 @@ func Pathdata(
 
 /***********************************************************************/
 
-func Mpathcount(fi *os.File, Pl *int) int {
+func Mpathcount(fi io.ReadSeeker, Pl *int) int {
 	var N int
 	var ad int64
 	var s string
@@ -668,7 +668,7 @@ func Mpathcount(fi *os.File, Pl *int) int {
 
 /***********************************************************************/
 
-func Plcount(fi *os.File, N []int) {
+func Plcount(fi io.ReadSeeker, N []int) {
 	var i int
 	var M int
 	var ad int64
@@ -709,7 +709,7 @@ func Plcount(fi *os.File, N []int) {
 
 /***********************************************************************/
 
-func Pelmcount(fi *os.File) int {
+func Pelmcount(fi io.ReadSeeker) int {
 	var i, N int
 	var ad int64
 	var s, t string

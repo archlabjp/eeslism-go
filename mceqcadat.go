@@ -30,7 +30,7 @@ import (
 
 /*  機器仕様入力       */
 
-func Eqcadata(f *os.File, dsn string, Eqcat *EQCAT) {
+func Eqcadata(f io.ReadSeeker, dsn string, Eqcat *EQCAT) {
 	var (
 		s       string
 		ss      string
@@ -549,7 +549,7 @@ func Eqcadata(f *os.File, dsn string, Eqcat *EQCAT) {
 }
 
 /****************************************************************************/
-func Eqpcount(fi *os.File, NBOI, NREFA, NCOL, NSTANK, NHCC, NHEX, NPIPE, NPUMP, NVAV, NSTHEAT, NTHEX, NPV, NOMVAV, NDESI, NEVAC *int) {
+func Eqpcount(fi io.ReadSeeker, NBOI, NREFA, NCOL, NSTANK, NHCC, NHEX, NPIPE, NPUMP, NVAV, NSTHEAT, NTHEX, NPV, NOMVAV, NDESI, NEVAC *int) {
 	ad, err := fi.Seek(0, io.SeekCurrent)
 	if err != nil {
 		log.Fatal(err)
@@ -614,7 +614,7 @@ func Eqpcount(fi *os.File, NBOI, NREFA, NCOL, NSTANK, NHCC, NHEX, NPIPE, NPUMP, 
 	}
 }
 
-func pflistcount(fl *os.File) int {
+func pflistcount(fl io.ReadSeeker) int {
 	N := 0
 	reader := bufio.NewReader(fl)
 

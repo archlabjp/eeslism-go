@@ -2,14 +2,14 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"io"
 )
 
 /* 経路に沿ったシステム要素の出力 */
 
 var __Pathprint_id int
 
-func Pathprint(fo *os.File, title string, mon int, day int, time float64, Nmpath int, _Mpath []MPATH) {
+func Pathprint(fo io.Writer, title string, mon int, day int, time float64, Nmpath int, _Mpath []MPATH) {
 	if __Pathprint_id == 0 {
 		__Pathprint_id++
 		fmt.Fprintf(fo, "%s ;\n", title)

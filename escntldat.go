@@ -21,7 +21,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -32,7 +31,7 @@ import (
 // 	 Cload,  /* Cload = COOLING_LOAD */
 // 	 HCload;  /* HCload = HEATCOOL_LOAD */
 
-func Contrldata(fi *os.File, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int,
+func Contrldata(fi io.ReadSeeker, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int,
 	Cs *[]CTLST, Nctlst *int,
 	Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT,
 	Nmpath int, Mpath []MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL) {
@@ -212,7 +211,7 @@ func Contrldata(fi *os.File, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int,
 	}
 }
 
-func ContrlCount(fi *os.File) (Nif, N int) {
+func ContrlCount(fi io.ReadSeeker) (Nif, N int) {
 	ad, _ := fi.Seek(0, io.SeekCurrent)
 	var N1, N2 int
 

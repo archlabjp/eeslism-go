@@ -2,14 +2,14 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"io"
 )
 
 /*  システム使用機器についての出力  */
 
 var __Hcmpprint_id int
 
-func Hcmpprint(fo *os.File, mrk string, Simc *SIMCONTL, mon, day int, time float64, Eqsys *EQSYS, Nrdpnl int, Rdpnl []RDPNL) {
+func Hcmpprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time float64, Eqsys *EQSYS, Nrdpnl int, Rdpnl []RDPNL) {
 	var j int
 
 	if __Hcmpprint_id == 0 {
@@ -70,7 +70,7 @@ func Hcmpprint(fo *os.File, mrk string, Simc *SIMCONTL, mon, day int, time float
 
 }
 
-func Hstkprint(fo *os.File, title string, mon int, day int, time float64, Eqsys *EQSYS) {
+func Hstkprint(fo io.Writer, title string, mon int, day int, time float64, Eqsys *EQSYS) {
 	staticId := 0
 	if staticId == 0 {
 		fmt.Fprintf(fo, "%s ;\n", title)

@@ -11,7 +11,7 @@ import (
 )
 
 /*   システム要素の入力 */
-func Compodata(f *os.File, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
+func Compodata(f io.ReadSeeker, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 	Cmp *[]COMPNT, Ncompnt *int, Eqsys *EQSYS, Ncmpalloc *int, ID int) {
 	var (
 		//cmp    *[]COMPNT
@@ -850,7 +850,7 @@ func Compodata(f *os.File, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 	//printf("<<Compodata>> end\n");
 }
 
-func Compntcount(fi *os.File) int {
+func Compntcount(fi io.ReadSeeker) int {
 	N := 0
 	ad, _ := fi.Seek(0, io.SeekCurrent)
 

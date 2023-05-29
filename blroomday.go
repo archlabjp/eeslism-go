@@ -20,7 +20,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"os"
 )
 
 var oldday = -999
@@ -219,7 +218,7 @@ func Roomday(Mon int, Day int, Nday int, ttmm int, Nroom int, Rm []ROOM, Nrdpnl 
 
 var __Rmdyprint_id int = 0
 
-func Rmdyprint(fo *os.File, mrk string, Simc *SIMCONTL, mon, day, Nroom int, Rm []ROOM) {
+func Rmdyprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day, Nroom int, Rm []ROOM) {
 	if __Rmdyprint_id == 0 && Nroom > 0 {
 		__Rmdyprint_id++
 
@@ -363,7 +362,7 @@ func Rmdyprint(fo *os.File, mrk string, Simc *SIMCONTL, mon, day, Nroom int, Rm 
 // 月集計結果の出力
 var __Rmmonprint_id int
 
-func Rmmonprint(fo *os.File, mrk string, Simc *SIMCONTL, mon, day, Nroom int, Rm []ROOM) {
+func Rmmonprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day, Nroom int, Rm []ROOM) {
 	if __Rmmonprint_id == 0 && Nroom > 0 {
 		__Rmmonprint_id++
 
@@ -684,7 +683,7 @@ func panelmonprt(fo io.Writer, id, Nrdpnl int, _Rdpnl []RDPNL) {
 	}
 }
 
-func panelmtprt(fo *os.File, id int, Nrdpnl int, Rdpnl []RDPNL, Mo int, tt int) {
+func panelmtprt(fo io.Writer, id int, Nrdpnl int, Rdpnl []RDPNL, Mo int, tt int) {
 	switch id {
 	case 0:
 		if Nrdpnl > 0 {

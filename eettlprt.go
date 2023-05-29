@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"io"
 	"strings"
 )
 
@@ -13,7 +13,7 @@ func __replace_dir_sep(path *string) {
 	*path = strings.Replace(*path, "/", "\\", -1)
 }
 
-func ttlprint(fo *os.File, fileid string, simc *SIMCONTL) {
+func ttlprint(fo io.Writer, fileid string, simc *SIMCONTL) {
 	// Replace directory separator to unify them
 	__replace_dir_sep(&simc.File)
 
@@ -39,7 +39,7 @@ func ttlprint(fo *os.File, fileid string, simc *SIMCONTL) {
 
 /* 標題、注記の出力（日集計値ファイル） */
 
-func ttldyprint(fo *os.File, fileid string, simc *SIMCONTL) {
+func ttldyprint(fo io.Writer, fileid string, simc *SIMCONTL) {
 	fmt.Fprintf(fo, "%s#\n", fileid)
 	fmt.Fprintf(fo, "-ver %s\n", EEVERSION)
 	fmt.Fprintf(fo, "-t %s ;\n", simc.Title)
@@ -62,7 +62,7 @@ func ttldyprint(fo *os.File, fileid string, simc *SIMCONTL) {
 
 /* 標題、注記の出力（日集計値ファイル） */
 
-func ttlmtprint(fo *os.File, fileid string, simc *SIMCONTL) {
+func ttlmtprint(fo io.Writer, fileid string, simc *SIMCONTL) {
 	fmt.Fprintf(fo, "%s#\n", fileid)
 	fmt.Fprintf(fo, "-ver %s\n", EEVERSION)
 	fmt.Fprintf(fo, "-t %s ;\n", simc.Title)

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"os"
+	"io"
 )
 
 /* システム要素機器の日集計処理 */
@@ -83,161 +83,158 @@ func Compoday(Mon, Day, Nday, ttmm int, Eqsys *EQSYS, SimDayend int) {
 
 /* システム要素機器の日集計結果出力 */
 
-func Compodyprt(fo *os.File, mrk string, Simc *SIMCONTL, mon, day int, Eqsys *EQSYS, Nrdpnl int, Rdpnl []RDPNL) {
-	var j, id int
+var __Compodyprt_id int
 
-	if id == 0 {
+func Compodyprt(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Eqsys *EQSYS, Nrdpnl int, Rdpnl []RDPNL) {
+	if __Compodyprt_id == 0 {
 		ttldyprint(fo, mrk, Simc)
 
-		for j = 0; j < 2; j++ {
+		for j := 0; j < 2; j++ {
 			if j == 0 {
 				fmt.Fprintf(fo, "-cat\n")
 			}
 
-			boidyprt(fo, id, Eqsys.Nboi, Eqsys.Boi)
-			refadyprt(fo, id, Eqsys.Nrefa, Eqsys.Refa)
-			colldyprt(fo, id, Eqsys.Ncoll, Eqsys.Coll)
-			hccdyprt(fo, id, Eqsys.Nhcc, Eqsys.Hcc)
-			pipedyprt(fo, id, Eqsys.Npipe, Eqsys.Pipe)
-			hexdyprt(fo, id, Eqsys.Nhex, Eqsys.Hex)
-			stankdyprt(fo, id, Eqsys.Nstank, Eqsys.Stank)
-			pumpdyprt(fo, id, Eqsys.Npump, Eqsys.Pump)
-			hclddyprt(fo, id, Eqsys.Nhcload, Eqsys.Hcload)
-			stheatdyprt(fo, id, Eqsys.Nstheat, Eqsys.Stheat)
-			Qmeasdyprt(fo, id, Eqsys.Nqmeas, Eqsys.Qmeas)
-			Thexdyprt(fo, id, Eqsys.Nthex, Eqsys.Thex)
-			PVdyprt(fo, id, Eqsys.Npv, Eqsys.PVcmp)
-			Desidyprt(fo, id, Eqsys.Ndesi, Eqsys.Desi)
+			boidyprt(fo, __Compodyprt_id, Eqsys.Nboi, Eqsys.Boi)
+			refadyprt(fo, __Compodyprt_id, Eqsys.Nrefa, Eqsys.Refa)
+			colldyprt(fo, __Compodyprt_id, Eqsys.Ncoll, Eqsys.Coll)
+			hccdyprt(fo, __Compodyprt_id, Eqsys.Nhcc, Eqsys.Hcc)
+			pipedyprt(fo, __Compodyprt_id, Eqsys.Npipe, Eqsys.Pipe)
+			hexdyprt(fo, __Compodyprt_id, Eqsys.Nhex, Eqsys.Hex)
+			stankdyprt(fo, __Compodyprt_id, Eqsys.Nstank, Eqsys.Stank)
+			pumpdyprt(fo, __Compodyprt_id, Eqsys.Npump, Eqsys.Pump)
+			hclddyprt(fo, __Compodyprt_id, Eqsys.Nhcload, Eqsys.Hcload)
+			stheatdyprt(fo, __Compodyprt_id, Eqsys.Nstheat, Eqsys.Stheat)
+			Qmeasdyprt(fo, __Compodyprt_id, Eqsys.Nqmeas, Eqsys.Qmeas)
+			Thexdyprt(fo, __Compodyprt_id, Eqsys.Nthex, Eqsys.Thex)
+			PVdyprt(fo, __Compodyprt_id, Eqsys.Npv, Eqsys.PVcmp)
+			Desidyprt(fo, __Compodyprt_id, Eqsys.Ndesi, Eqsys.Desi)
 
-			paneldyprt(fo, id, Nrdpnl, Rdpnl)
+			paneldyprt(fo, __Compodyprt_id, Nrdpnl, Rdpnl)
 
 			if j == 0 {
 				fmt.Fprintf(fo, "*\n#\n")
 			}
 
-			id++
+			__Compodyprt_id++
 		}
 	}
 
 	fmt.Fprintf(fo, "%02d %02d\n", mon, day)
 
-	boidyprt(fo, id, Eqsys.Nboi, Eqsys.Boi)
-	refadyprt(fo, id, Eqsys.Nrefa, Eqsys.Refa)
-	colldyprt(fo, id, Eqsys.Ncoll, Eqsys.Coll)
-	hccdyprt(fo, id, Eqsys.Nhcc, Eqsys.Hcc)
-	pipedyprt(fo, id, Eqsys.Npipe, Eqsys.Pipe)
-	hexdyprt(fo, id, Eqsys.Nhex, Eqsys.Hex)
-	stankdyprt(fo, id, Eqsys.Nstank, Eqsys.Stank)
-	pumpdyprt(fo, id, Eqsys.Npump, Eqsys.Pump)
-	hclddyprt(fo, id, Eqsys.Nhcload, Eqsys.Hcload)
-	stheatdyprt(fo, id, Eqsys.Nstheat, Eqsys.Stheat)
-	Qmeasdyprt(fo, id, Eqsys.Nqmeas, Eqsys.Qmeas)
-	Thexdyprt(fo, id, Eqsys.Nthex, Eqsys.Thex)
-	PVdyprt(fo, id, Eqsys.Npv, Eqsys.PVcmp)
-	Desidyprt(fo, id, Eqsys.Ndesi, Eqsys.Desi)
+	boidyprt(fo, __Compodyprt_id, Eqsys.Nboi, Eqsys.Boi)
+	refadyprt(fo, __Compodyprt_id, Eqsys.Nrefa, Eqsys.Refa)
+	colldyprt(fo, __Compodyprt_id, Eqsys.Ncoll, Eqsys.Coll)
+	hccdyprt(fo, __Compodyprt_id, Eqsys.Nhcc, Eqsys.Hcc)
+	pipedyprt(fo, __Compodyprt_id, Eqsys.Npipe, Eqsys.Pipe)
+	hexdyprt(fo, __Compodyprt_id, Eqsys.Nhex, Eqsys.Hex)
+	stankdyprt(fo, __Compodyprt_id, Eqsys.Nstank, Eqsys.Stank)
+	pumpdyprt(fo, __Compodyprt_id, Eqsys.Npump, Eqsys.Pump)
+	hclddyprt(fo, __Compodyprt_id, Eqsys.Nhcload, Eqsys.Hcload)
+	stheatdyprt(fo, __Compodyprt_id, Eqsys.Nstheat, Eqsys.Stheat)
+	Qmeasdyprt(fo, __Compodyprt_id, Eqsys.Nqmeas, Eqsys.Qmeas)
+	Thexdyprt(fo, __Compodyprt_id, Eqsys.Nthex, Eqsys.Thex)
+	PVdyprt(fo, __Compodyprt_id, Eqsys.Npv, Eqsys.PVcmp)
+	Desidyprt(fo, __Compodyprt_id, Eqsys.Ndesi, Eqsys.Desi)
 
-	paneldyprt(fo, id, Nrdpnl, Rdpnl)
+	paneldyprt(fo, __Compodyprt_id, Nrdpnl, Rdpnl)
 
 }
 
 /* システム要素機器の月集計結果出力 */
 
-func Compomonprt(fo *os.File, mrk string, Simc *SIMCONTL, mon, day int, Eqsys *EQSYS, Nrdpnl int, Rdpnl []RDPNL) {
-	var j int
-	staticId := 0
+var __Compomonprt_id int
 
-	if staticId == 0 {
+func Compomonprt(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Eqsys *EQSYS, Nrdpnl int, Rdpnl []RDPNL) {
+	if __Compomonprt_id == 0 {
 		ttldyprint(fo, mrk, Simc)
 
-		for j = 0; j < 2; j++ {
+		for j := 0; j < 2; j++ {
 			if j == 0 {
 				fmt.Fprintf(fo, "-cat\n")
 			}
 
-			boimonprt(fo, staticId, Eqsys.Nboi, Eqsys.Boi)
-			refamonprt(fo, staticId, Eqsys.Nrefa, Eqsys.Refa)
-			collmonprt(fo, staticId, Eqsys.Ncoll, Eqsys.Coll)
-			hccmonprt(fo, staticId, Eqsys.Nhcc, Eqsys.Hcc)
-			pipemonprt(fo, staticId, Eqsys.Npipe, Eqsys.Pipe)
-			hexmonprt(fo, staticId, Eqsys.Nhex, Eqsys.Hex)
-			stankmonprt(fo, staticId, Eqsys.Nstank, Eqsys.Stank)
-			pumpmonprt(fo, staticId, Eqsys.Npump, Eqsys.Pump)
-			hcldmonprt(fo, staticId, Eqsys.Nhcload, Eqsys.Hcload)
-			stheatmonprt(fo, staticId, Eqsys.Nstheat, Eqsys.Stheat)
-			Qmeasmonprt(fo, staticId, Eqsys.Nqmeas, Eqsys.Qmeas)
-			Thexmonprt(fo, staticId, Eqsys.Nthex, Eqsys.Thex)
-			PVmonprt(fo, staticId, Eqsys.Npv, Eqsys.PVcmp)
+			boimonprt(fo, __Compomonprt_id, Eqsys.Nboi, Eqsys.Boi)
+			refamonprt(fo, __Compomonprt_id, Eqsys.Nrefa, Eqsys.Refa)
+			collmonprt(fo, __Compomonprt_id, Eqsys.Ncoll, Eqsys.Coll)
+			hccmonprt(fo, __Compomonprt_id, Eqsys.Nhcc, Eqsys.Hcc)
+			pipemonprt(fo, __Compomonprt_id, Eqsys.Npipe, Eqsys.Pipe)
+			hexmonprt(fo, __Compomonprt_id, Eqsys.Nhex, Eqsys.Hex)
+			stankmonprt(fo, __Compomonprt_id, Eqsys.Nstank, Eqsys.Stank)
+			pumpmonprt(fo, __Compomonprt_id, Eqsys.Npump, Eqsys.Pump)
+			hcldmonprt(fo, __Compomonprt_id, Eqsys.Nhcload, Eqsys.Hcload)
+			stheatmonprt(fo, __Compomonprt_id, Eqsys.Nstheat, Eqsys.Stheat)
+			Qmeasmonprt(fo, __Compomonprt_id, Eqsys.Nqmeas, Eqsys.Qmeas)
+			Thexmonprt(fo, __Compomonprt_id, Eqsys.Nthex, Eqsys.Thex)
+			PVmonprt(fo, __Compomonprt_id, Eqsys.Npv, Eqsys.PVcmp)
 
-			panelmonprt(fo, staticId, Nrdpnl, Rdpnl)
+			panelmonprt(fo, __Compomonprt_id, Nrdpnl, Rdpnl)
 
 			if j == 0 {
 				fmt.Fprintf(fo, "*\n#\n")
 			}
 
-			staticId++
+			__Compomonprt_id++
 		}
 	}
 
 	fmt.Fprintf(fo, "%02d %02d\n", mon, day)
 
-	boimonprt(fo, staticId, Eqsys.Nboi, Eqsys.Boi)
-	refamonprt(fo, staticId, Eqsys.Nrefa, Eqsys.Refa)
-	collmonprt(fo, staticId, Eqsys.Ncoll, Eqsys.Coll)
-	hccmonprt(fo, staticId, Eqsys.Nhcc, Eqsys.Hcc)
-	pipemonprt(fo, staticId, Eqsys.Npipe, Eqsys.Pipe)
-	hexmonprt(fo, staticId, Eqsys.Nhex, Eqsys.Hex)
-	stankmonprt(fo, staticId, Eqsys.Nstank, Eqsys.Stank)
-	pumpmonprt(fo, staticId, Eqsys.Npump, Eqsys.Pump)
-	hcldmonprt(fo, staticId, Eqsys.Nhcload, Eqsys.Hcload)
-	stheatmonprt(fo, staticId, Eqsys.Nstheat, Eqsys.Stheat)
-	Qmeasmonprt(fo, staticId, Eqsys.Nqmeas, Eqsys.Qmeas)
-	Thexmonprt(fo, staticId, Eqsys.Nthex, Eqsys.Thex)
-	PVmonprt(fo, staticId, Eqsys.Npv, Eqsys.PVcmp)
+	boimonprt(fo, __Compomonprt_id, Eqsys.Nboi, Eqsys.Boi)
+	refamonprt(fo, __Compomonprt_id, Eqsys.Nrefa, Eqsys.Refa)
+	collmonprt(fo, __Compomonprt_id, Eqsys.Ncoll, Eqsys.Coll)
+	hccmonprt(fo, __Compomonprt_id, Eqsys.Nhcc, Eqsys.Hcc)
+	pipemonprt(fo, __Compomonprt_id, Eqsys.Npipe, Eqsys.Pipe)
+	hexmonprt(fo, __Compomonprt_id, Eqsys.Nhex, Eqsys.Hex)
+	stankmonprt(fo, __Compomonprt_id, Eqsys.Nstank, Eqsys.Stank)
+	pumpmonprt(fo, __Compomonprt_id, Eqsys.Npump, Eqsys.Pump)
+	hcldmonprt(fo, __Compomonprt_id, Eqsys.Nhcload, Eqsys.Hcload)
+	stheatmonprt(fo, __Compomonprt_id, Eqsys.Nstheat, Eqsys.Stheat)
+	Qmeasmonprt(fo, __Compomonprt_id, Eqsys.Nqmeas, Eqsys.Qmeas)
+	Thexmonprt(fo, __Compomonprt_id, Eqsys.Nthex, Eqsys.Thex)
+	PVmonprt(fo, __Compomonprt_id, Eqsys.Npv, Eqsys.PVcmp)
 
-	panelmonprt(fo, staticId, Nrdpnl, Rdpnl)
+	panelmonprt(fo, __Compomonprt_id, Nrdpnl, Rdpnl)
 }
 
 /* システム要素機器の年集計結果出力 */
 
-func Compomtprt(fo *os.File, mrk string, Simc *SIMCONTL, Eqsys *EQSYS, Nrdpnl int, Rdpnl []RDPNL) {
-	var j int
-	var id int = 0
-	var mo, tt int
+var __Compomtprt_id int = 0
 
-	if id == 0 {
+func Compomtprt(fo io.Writer, mrk string, Simc *SIMCONTL, Eqsys *EQSYS, Nrdpnl int, Rdpnl []RDPNL) {
+	if __Compomtprt_id == 0 {
 		ttlmtprint(fo, mrk, Simc)
 
-		for j = 0; j < 2; j++ {
+		for j := 0; j < 2; j++ {
 			if j == 0 {
 				fmt.Fprintf(fo, "-cat\n")
 			}
 
-			stheatmtprt(fo, id, Eqsys.Nstheat, Eqsys.Stheat, 0, 0)
-			boimtprt(fo, id, Eqsys.Nboi, Eqsys.Boi, 0, 0)
-			refamtprt(fo, id, Eqsys.Nrefa, Eqsys.Refa, 0, 0)
-			pumpmtprt(fo, id, Eqsys.Npump, Eqsys.Pump, 0, 0)
-			PVmtprt(fo, id, Eqsys.Npv, Eqsys.PVcmp, 0, 0)
-			hcldmtprt(fo, id, Eqsys.Nhcload, 0, 0, Eqsys.Hcload)
-			panelmtprt(fo, id, Nrdpnl, Rdpnl, 0, 0)
+			stheatmtprt(fo, __Compomtprt_id, Eqsys.Nstheat, Eqsys.Stheat, 0, 0)
+			boimtprt(fo, __Compomtprt_id, Eqsys.Nboi, Eqsys.Boi, 0, 0)
+			refamtprt(fo, __Compomtprt_id, Eqsys.Nrefa, Eqsys.Refa, 0, 0)
+			pumpmtprt(fo, __Compomtprt_id, Eqsys.Npump, Eqsys.Pump, 0, 0)
+			PVmtprt(fo, __Compomtprt_id, Eqsys.Npv, Eqsys.PVcmp, 0, 0)
+			hcldmtprt(fo, __Compomtprt_id, Eqsys.Nhcload, 0, 0, Eqsys.Hcload)
+			panelmtprt(fo, __Compomtprt_id, Nrdpnl, Rdpnl, 0, 0)
 
 			if j == 0 {
 				fmt.Fprintf(fo, "*\n#\n")
 			}
 
-			id++
+			__Compomtprt_id++
 		}
 	}
 
-	for mo = 1; mo <= 12; mo++ {
-		for tt = 1; tt <= 24; tt++ {
+	for mo := 1; mo <= 12; mo++ {
+		for tt := 1; tt <= 24; tt++ {
 			fmt.Fprintf(fo, "%02d %02d\n", mo, tt)
-			stheatmtprt(fo, id, Eqsys.Nstheat, Eqsys.Stheat, mo, tt)
-			boimtprt(fo, id, Eqsys.Nboi, Eqsys.Boi, mo, tt)
-			refamtprt(fo, id, Eqsys.Nrefa, Eqsys.Refa, mo, tt)
-			pumpmtprt(fo, id, Eqsys.Npump, Eqsys.Pump, mo, tt)
-			PVmtprt(fo, id, Eqsys.Npv, Eqsys.PVcmp, mo, tt)
-			hcldmtprt(fo, id, Eqsys.Nhcload, mo, tt, Eqsys.Hcload)
-			panelmtprt(fo, id, Nrdpnl, Rdpnl, mo, tt)
+			stheatmtprt(fo, __Compomtprt_id, Eqsys.Nstheat, Eqsys.Stheat, mo, tt)
+			boimtprt(fo, __Compomtprt_id, Eqsys.Nboi, Eqsys.Boi, mo, tt)
+			refamtprt(fo, __Compomtprt_id, Eqsys.Nrefa, Eqsys.Refa, mo, tt)
+			pumpmtprt(fo, __Compomtprt_id, Eqsys.Npump, Eqsys.Pump, mo, tt)
+			PVmtprt(fo, __Compomtprt_id, Eqsys.Npv, Eqsys.PVcmp, mo, tt)
+			hcldmtprt(fo, __Compomtprt_id, Eqsys.Nhcload, mo, tt, Eqsys.Hcload)
+			panelmtprt(fo, __Compomtprt_id, Nrdpnl, Rdpnl, mo, tt)
 		}
 	}
 }

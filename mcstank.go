@@ -30,7 +30,7 @@ import (
 
 /*　蓄熱槽仕様入力　　　　*/
 
-func Stankdata(f io.ReadSeeker, s string, Stankca *STANKCA) int {
+func Stankdata(f *EeTokens, s string, Stankca *STANKCA) int {
 	id := 0
 	st := ""
 	Stankca.gxr = 0.0
@@ -62,7 +62,7 @@ func Stankdata(f io.ReadSeeker, s string, Stankca *STANKCA) int {
 
 	} else if s == "-S" {
 		st = ""
-		fmt.Fscanf(f, "%[^*]*", &st)
+		s = f.GetToken()
 		s += " *"
 		Stankca.tparm = s
 	} else {

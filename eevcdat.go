@@ -1,8 +1,6 @@
 package main
 
 import (
-	"bufio"
-
 	"fmt"
 	"io"
 	"os"
@@ -11,7 +9,7 @@ import (
 
 /* 境界条件・負荷仮想機器の要素機器データ入力ファイル設定 */
 
-func Vcfdata(fi io.ReadSeeker, simcon *SIMCONTL) {
+func Vcfdata(fi *EeTokens, simcon *SIMCONTL) {
 	var (
 		s      string
 		errFmt = "(vcfileint)"
@@ -54,24 +52,23 @@ func Vcfdata(fi io.ReadSeeker, simcon *SIMCONTL) {
 	}
 
 	vcIdx := 0
-	for {
-		_, err := fmt.Fscanf(fi, "%s", &s)
-		if err != nil || s == "*" {
+	for fi.IsEnd() == false {
+		s = fi.GetToken()
+		if s == "*" {
 			break
 		}
 
 		vcfile := &simcon.Vcfile[vcIdx]
 
 		vcfile.Name = s
-		for {
-			_, err := fmt.Fscanf(fi, "%s", &s)
-			if err != nil || s == ";" {
+		for fi.IsEnd() == false {
+			s = fi.GetToken()
+			if s == ";" {
 				break
 			}
 			switch s {
 			case "-f":
-				fmt.Fscanf(fi, "%s", &s)
-				vcfile.Fname = s
+				vcfile.Fname = fi.GetToken()
 			default:
 				e := fmt.Sprintf("Vcfile=%s %s %s", vcfile.Name, errFmt, s)
 				Eprint("<Vcfdata>", e)
@@ -126,13 +123,12 @@ func Vcfdata(fi io.ReadSeeker, simcon *SIMCONTL) {
 
 /***** VCFILEの定義数を数える ******/
 
-func VCFcount(fi io.ReadSeeker) int {
+func VCFcount(fi *EeTokens) int {
 	var N int
-	ad, _ := fi.Seek(0, io.SeekCurrent)
+	ad := fi.GetPos()
 
-	scanner := bufio.NewScanner(fi)
-	for scanner.Scan() {
-		s := scanner.Text()
+	for fi.IsEnd() == false {
+		s := fi.GetToken()
 		if s[0] != '*' {
 			words := strings.Fields(s)
 			if len(words) > 0 && words[0] == "-f" {
@@ -141,7 +137,8 @@ func VCFcount(fi io.ReadSeeker) int {
 		}
 	}
 
-	fi.Seek(ad, io.SeekStart)
+	fi.RestorePos(ad)
+
 	return N
 }
 

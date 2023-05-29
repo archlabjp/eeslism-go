@@ -13,7 +13,7 @@ import (
 /*        注釈文の除去             */
 
 // Eesprera removes comments from the input file.
-func Eesprera(file string) {
+func Eesprera(file string) string {
 	// 設定ファイルを開く
 	fi, err := os.Open(file)
 	if err != nil {
@@ -24,12 +24,7 @@ func Eesprera(file string) {
 
 	// 注釈文の除去語の設定ファイルを作成
 	RET := strings.TrimSuffix(file, filepath.Ext(file))
-	fb, err := os.Create(strings.Join([]string{RET, "bdata0.ewk"}, ""))
-	if err != nil {
-		fmt.Println("Error creating file: ", err)
-		return
-	}
-	defer fb.Close()
+	fb := new(strings.Builder)
 
 	scanner := bufio.NewScanner(fi)
 	var s string
@@ -64,6 +59,17 @@ func Eesprera(file string) {
 	}
 
 	fmt.Fprintln(fb, " ")
+
+	//互換性のために出力
+	fbo, err := os.Create(strings.Join([]string{RET, "bdata0.ewk"}, ""))
+	if err != nil {
+		fmt.Println("Error creating file: ", err)
+	} else {
+		fmt.Fprint(fbo, fb)
+	}
+	defer fbo.Close()
+
+	return fb.String()
 }
 
 /* ---------------------------------------------------------- */
@@ -71,46 +77,18 @@ func Eesprera(file string) {
 /*              スケジュ－ルデ－タファイルの作成    */
 
 // Eespre creates a schedule data file.
-func Eespre(File string, Ipath string, key *int) {
-	fi, err := os.Open(strings.Join([]string{Ipath, File}, ""))
-	if err != nil {
-		fmt.Printf("<eespre> %s\n", File)
-		os.Exit(1)
-	}
-	defer fi.Close()
+func Eespre(bdata0 string, Ipath string, key *int) (string, string, string, string) {
+	fi := strings.NewReader(bdata0) //bdata0.ewk 相当
 
 	syspth := 0
 	syscmp := 0
 
 	Syscheck(fi, &syspth, &syscmp)
 
-	fb, err := os.Create(strings.Join([]string{Ipath, "bdata.ewk"}, ""))
-	if err != nil {
-		fmt.Println("Error creating file: ", err)
-		return
-	}
-	defer fb.Close()
-
-	fs, err := os.Create(strings.Join([]string{Ipath, "schtba.ewk"}, ""))
-	if err != nil {
-		fmt.Println("Error creating file: ", err)
-		return
-	}
-	defer fs.Close()
-
-	fsn, err := os.Create(strings.Join([]string{Ipath, "schnma.ewk"}, ""))
-	if err != nil {
-		fmt.Println("Error creating file: ", err)
-		return
-	}
-	defer fsn.Close()
-
-	fw, err := os.Create(strings.Join([]string{Ipath, "week.ewk"}, ""))
-	if err != nil {
-		fmt.Println("Error creating file: ", err)
-		return
-	}
-	defer fw.Close()
+	fb := new(strings.Builder)  //bdata.ewk 相当
+	fs := new(strings.Builder)  //schtba.ewk 相当
+	fsn := new(strings.Builder) //schenma.ewk 相当
+	fw := new(strings.Builder)  //week.ewk 相当
 
 	var t string
 	var st int
@@ -179,12 +157,47 @@ func Eespre(File string, Ipath string, key *int) {
 	}
 
 	fmt.Fprintln(fb, "")
-	fb.Seek(0, 1)
+	//fb.Seek(0, 1)
 
 	fmt.Fprintln(fb, " *")
 	fmt.Fprintln(fw, "")
 	fmt.Fprintln(fs, "*")
 	fmt.Fprintln(fsn, "*")
+
+	// ファイルに保存する(互換性のため)
+	fbo, err := os.Create(strings.Join([]string{Ipath, "bdata.ewk"}, ""))
+	if err != nil {
+		fmt.Println("Error creating file: ", err)
+	} else {
+		fmt.Fprint(fbo, fb)
+		defer fbo.Close()
+	}
+
+	fso, err := os.Create(strings.Join([]string{Ipath, "schtba.ewk"}, ""))
+	if err != nil {
+		fmt.Println("Error creating file: ", err)
+	} else {
+		fmt.Fprint(fso, fs)
+		defer fso.Close()
+	}
+
+	fsno, err := os.Create(strings.Join([]string{Ipath, "schnma.ewk"}, ""))
+	if err != nil {
+		fmt.Println("Error creating file: ", err)
+	} else {
+		fmt.Fprint(fsno, fsn)
+		defer fsno.Close()
+	}
+
+	fwo, err := os.Create(strings.Join([]string{Ipath, "week.ewk"}, ""))
+	if err != nil {
+		fmt.Println("Error creating file: ", err)
+	} else {
+		fmt.Fprint(fwo, fw)
+		defer fwo.Close()
+	}
+
+	return fb.String(), fs.String(), fsn.String(), fw.String()
 }
 
 /******************************************************************/

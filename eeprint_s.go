@@ -7,18 +7,17 @@ import (
 /* ---------------------------------------------------------------- */
 /* 毎時計算値出力　*/
 
-func Eeprinth(Daytm *DAYTM, Simc *SIMCONTL, Nflout int, flout []*FLOUT, Rmvls *RMVLS, Exsfst *EXSFS, Nmpath int, Mpath []MPATH, Eqsys *EQSYS, Wd *WDAT) {
+func Eeprinth(Daytm *DAYTM, Simc *SIMCONTL, flout []*FLOUT, Rmvls *RMVLS, Exsfst *EXSFS, Nmpath int, Mpath []MPATH, Eqsys *EQSYS, Wd *WDAT) {
 	if Daytm.Ddpri != 0 && Simc.Dayprn[Daytm.Day] != 0 {
 		title := Simc.Title
 		Mon := Daytm.Mon
 		Day := Daytm.Day
 		time := Daytm.Time
 
-		for i := 0; i < Nflout; i++ {
-			flo := flout[i]
+		for i, flo := range flout {
 
 			if DEBUG {
-				fmt.Printf("Eeprinth MAX=%d flo[%d]=%s\n", Nflout, i, flo.Idn)
+				fmt.Printf("Eeprinth MAX=%d flo[%d]=%s\n", len(flout), i, flo.Idn)
 			}
 
 			switch flo.Idn {
@@ -85,15 +84,13 @@ func Eeprinth(Daytm *DAYTM, Simc *SIMCONTL, Nflout int, flout []*FLOUT, Rmvls *R
 
 var __Eeprintd_ic int
 
-func Eeprintd(Daytm *DAYTM, Simc *SIMCONTL, Nflout int, flout []*FLOUT, Rmvls *RMVLS, Nexs int, Exs []EXSF, Soldy []float64, Eqsys *EQSYS, Wdd *WDAT) {
+func Eeprintd(Daytm *DAYTM, Simc *SIMCONTL, flout []*FLOUT, Rmvls *RMVLS, Nexs int, Exs []EXSF, Soldy []float64, Eqsys *EQSYS, Wdd *WDAT) {
 	if Daytm.Ddpri != 0 {
 		title := Simc.Title
 		Mon := int(Daytm.Mon)
 		Day := int(Daytm.Day)
 
-		for i := 0; i < Nflout; i++ {
-			flo := flout[i]
-
+		for _, flo := range flout {
 			switch flo.Idn {
 			case PRTDWD:
 				// 気象データ日集計値出力
@@ -129,16 +126,14 @@ func Eeprintd(Daytm *DAYTM, Simc *SIMCONTL, Nflout int, flout []*FLOUT, Rmvls *R
 /* ----------------------------------------------------------- */
 /*  月集計値出力  */
 
-func Eeprintm(daytm *DAYTM, simc *SIMCONTL, nflout int, flout []*FLOUT, rmvls *RMVLS, nexs int, exs []EXSF, solmon []float64, eqsys *EQSYS, wdm *WDAT) {
+func Eeprintm(daytm *DAYTM, simc *SIMCONTL, flout []*FLOUT, rmvls *RMVLS, nexs int, exs []EXSF, solmon []float64, eqsys *EQSYS, wdm *WDAT) {
 	var title string
 	var mon, day int
 	title = simc.Title
 	mon = daytm.Mon
 	day = daytm.Day
 	if daytm.Ddpri != 0 {
-		for i := 0; i < nflout; i++ {
-			flo := flout[i]
-
+		for _, flo := range flout {
 			switch flo.Idn {
 			case PRTMWD:
 				// 気象データ月集計値出力
@@ -157,9 +152,8 @@ func Eeprintm(daytm *DAYTM, simc *SIMCONTL, nflout int, flout []*FLOUT, rmvls *R
 /* ----------------------------------------------------------- */
 /*  月－時刻集計値出力  */
 
-func Eeprintmt(simc *SIMCONTL, nflout int, flout []*FLOUT, eqsys *EQSYS, nrdpnl int, rdpnl []RDPNL) {
-	for i := 0; i < nflout; i++ {
-		flo := flout[i]
+func Eeprintmt(simc *SIMCONTL, flout []*FLOUT, eqsys *EQSYS, nrdpnl int, rdpnl []RDPNL) {
+	for _, flo := range flout {
 		if flo.Idn == PRTMTCOMP {
 			Compomtprt(flo.F, string(PRTMNCOMP), simc, eqsys, nrdpnl, rdpnl)
 		}

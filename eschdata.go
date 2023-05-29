@@ -28,19 +28,14 @@ import (
 
 /* 曜日の設定  */
 
-func Dayweek(fi io.Reader, Ipath string, daywk []int, key int) {
+func Dayweek(fi io.Reader, week string, daywk []int, key int) {
 	var s string
 	var ce int
 	var ds, de, dd, d, id, M, D int
-	var fw *os.File
-	var err error
 
 	var DAYweek = [8]string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", ""}
 
-	if fw, err = os.Open(strings.Join([]string{Ipath, "week.ewk"}, "")); err != nil {
-		Eprint("<Dayweek>", "week.ewk")
-		os.Exit(EXIT_WEEK)
-	}
+	fw := strings.NewReader(week)
 
 	if key == 0 {
 		n, err := fmt.Fscanf(fi, "%d/%d=%s", &M, &D, &s)
@@ -102,21 +97,21 @@ func Dayweek(fi io.Reader, Ipath string, daywk []int, key int) {
 			daywk[d] = 7
 		}
 	}
-
-	fw.Close()
 }
 
 /* ------------------------------------------------------------ */
 
 /*  スケジュ－ル表の入力          */
+var __Schtable_ic int
+var __Schtable_is, __Schtable_js, __Schtable_iw, __Schtable_j, __Schtable_sc, __Schtable_jsc, __Schtable_sw, __Schtable_jsw, __Schtable_Nmod int
 
-func Schtable(fi io.ReadSeeker, dsn string, Schdl *SCHDL) {
+func Schtable(schtba string, Schdl *SCHDL) {
+	fi := strings.NewReader(schtba)
+
 	var s string
 	var ce int
 	var code byte
-	var is, js, iw, j, sc, jsc, sw, jsw, Nmod int
 	var ssn, wkd, vl, swn, N, i int
-	var ic int
 	var ssnmx, vlmx, swmx int
 	var Sn *SEASN
 	var Wk *WKDY
@@ -135,9 +130,9 @@ func Schtable(fi io.ReadSeeker, dsn string, Schdl *SCHDL) {
 	vl = 0
 	swn = 0
 
-	ic = 0
+	__Schtable_ic = 0
 
-	if ic == 0 {
+	if __Schtable_ic == 0 {
 		Schdl.Dsch = nil
 		Schdl.Dscw = nil
 		Schdl.Seasn = nil
@@ -182,8 +177,8 @@ func Schtable(fi io.ReadSeeker, dsn string, Schdl *SCHDL) {
 					end:  0,
 					//wday: make([]int, 8),
 				}
-				for j = 0; j < 8; j++ {
-					Wkdy.wday[j] = 0
+				for __Schtable_j = 0; __Schtable_j < 8; __Schtable_j++ {
+					Wkdy.wday[__Schtable_j] = 0
 				}
 				Schdl.Wkdy[i] = Wkdy
 			}
@@ -228,7 +223,7 @@ func Schtable(fi io.ReadSeeker, dsn string, Schdl *SCHDL) {
 				Schdl.Dscw[i] = Dscw
 			}
 		}
-		ic = 1
+		__Schtable_ic = 1
 	}
 
 	// Seasn := &Schdl.Seasn[0]
@@ -254,24 +249,24 @@ func Schtable(fi io.ReadSeeker, dsn string, Schdl *SCHDL) {
 				}
 
 				if strings.IndexRune(s, '-') == -1 {
-					is++
-					Sn = &Schdl.Seasn[is]
+					__Schtable_is++
+					Sn = &Schdl.Seasn[__Schtable_is]
 					Sn.name = s
-					js = -1
+					__Schtable_js = -1
 				} else {
 					var Ms, Ds, Me, De int
-					js++
+					__Schtable_js++
 					fmt.Sscanf(s, "%d/%d-%d/%d", &Ms, &Ds, &Me, &De)
-					Sn.sday[js] = FNNday(Ms, Ds)
-					Sn.eday[js] = FNNday(Me, De)
+					Sn.sday[__Schtable_js] = FNNday(Ms, Ds)
+					Sn.eday[__Schtable_js] = FNNday(Me, De)
 				}
 				if ce != -1 {
 					break
 				}
 			}
-			Sn.N = js + 1
+			Sn.N = __Schtable_js + 1
 		} else if s == "-wkd" || s == "WKD" {
-			j = 9
+			__Schtable_j = 9
 			for {
 				_, err := fmt.Fscanf(fi, "%s", &s)
 				if err != nil || s[0] == ';' {
@@ -283,16 +278,16 @@ func Schtable(fi io.ReadSeeker, dsn string, Schdl *SCHDL) {
 					s = before + after
 				}
 
-				if j == 9 {
-					iw++
-					Wk = &Schdl.Wkdy[iw]
+				if __Schtable_j == 9 {
+					__Schtable_iw++
+					Wk = &Schdl.Wkdy[__Schtable_iw]
 					Wk.name = s
-					j = 0
+					__Schtable_j = 0
 				} else {
 					wday := Wk.wday
-					for j = 0; j < 8; j++ {
-						if s == DAYweek[j] {
-							wday[j] = 1
+					for __Schtable_j = 0; __Schtable_j < 8; __Schtable_j++ {
+						if s == DAYweek[__Schtable_j] {
+							wday[__Schtable_j] = 1
 							break
 						}
 					}
@@ -314,32 +309,32 @@ func Schtable(fi io.ReadSeeker, dsn string, Schdl *SCHDL) {
 				}
 
 				if strings.IndexRune(s, '(') == -1 {
-					sc++
-					Dh = &Schdl.Dsch[sc]
+					__Schtable_sc++
+					Dh = &Schdl.Dsch[__Schtable_sc]
 					Dh.name = s
-					jsc = -1
+					__Schtable_jsc = -1
 				} else {
-					jsc++
+					__Schtable_jsc++
 
 					// if jsc > SCDAYTMMAX {
 					// 	fmt.Printf("<Schtable> Name=%s  MAX=%d  jsc=%d\n", Dh.name, SCDAYTMMAX, jsc)
 					// }
 
-					fmt.Sscanf(s, "%d-(%f)-%d", &Dh.stime[jsc], &Dh.val[jsc], &Dh.etime[jsc])
+					fmt.Sscanf(s, "%d-(%f)-%d", &Dh.stime[__Schtable_jsc], &Dh.val[__Schtable_jsc], &Dh.etime[__Schtable_jsc])
 				}
 				if ce != -1 {
 					break
 				}
 			}
-			Dh.N = jsc + 1
+			Dh.N = __Schtable_jsc + 1
 		} else if s == "-s" || s == "SW" {
-			Nmod = 0
+			__Schtable_Nmod = 0
 			fmt.Fscanf(fi, " %s ", &s)
 
-			sw++
-			Dw = &Schdl.Dscw[sw]
+			__Schtable_sw++
+			Dw = &Schdl.Dscw[__Schtable_sw]
 			Dw.name = s
-			jsw = -1
+			__Schtable_jsw = -1
 
 			for {
 				_, err := fmt.Fscanf(fi, "%s", &s)
@@ -352,40 +347,42 @@ func Schtable(fi io.ReadSeeker, dsn string, Schdl *SCHDL) {
 					s = before + after
 				}
 
-				jsw++
-				fmt.Sscanf(s, "%d-(%c)-%d", &Dw.stime[jsw], &code, &Dw.etime[jsw])
-				Dw.mode[jsw] = rune(code)
+				__Schtable_jsw++
+				fmt.Sscanf(s, "%d-(%c)-%d", &Dw.stime[__Schtable_jsw], &code, &Dw.etime[__Schtable_jsw])
+				Dw.mode[__Schtable_jsw] = rune(code)
 
-				for j = 0; j < Nmod; j++ {
-					if Dw.dcode[j] == rune(code) {
+				for __Schtable_j = 0; __Schtable_j < __Schtable_Nmod; __Schtable_j++ {
+					if Dw.dcode[__Schtable_j] == rune(code) {
 						break
 					}
 				}
 
-				if j == Nmod {
-					Dw.dcode[Nmod] = rune(code)
-					Nmod++
+				if __Schtable_j == __Schtable_Nmod {
+					Dw.dcode[__Schtable_Nmod] = rune(code)
+					__Schtable_Nmod++
 				}
 
 				if ce != -1 {
 					break
 				}
 			}
-			Dw.N = jsw + 1
-			Dw.Nmod = Nmod
+			Dw.N = __Schtable_jsw + 1
+			Dw.Nmod = __Schtable_Nmod
 		}
 	}
-	Schdl.Seasn[0].end = is + 1
-	Schdl.Wkdy[0].end = iw + 1
-	Schdl.Dsch[0].end = sc + 1
-	Schdl.Dscw[0].end = sw + 1
+	Schdl.Seasn[0].end = __Schtable_is + 1
+	Schdl.Wkdy[0].end = __Schtable_iw + 1
+	Schdl.Dsch[0].end = __Schtable_sc + 1
+	Schdl.Dscw[0].end = __Schtable_sw + 1
 }
 
 /* ------------------------------------------------------------ */
 
 /*  季節、曜日によるスケジュ－ル表の組み合わせ    */
 
-func Schdata(fi io.Reader, dsn string, daywk []int, Schdl *SCHDL) {
+func Schdata(schnma string, dsn string, daywk []int, Schdl *SCHDL) {
+	fi := strings.NewReader(schnma)
+
 	var (
 		s       string
 		ss      string

@@ -30,7 +30,7 @@ import (
 
 /*  機器仕様入力       */
 
-func Eqcadata(f io.ReadSeeker, dsn string, Eqcat *EQCAT) {
+func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 	var (
 		s       string
 		ss      string
@@ -209,9 +209,8 @@ func Eqcadata(f io.ReadSeeker, dsn string, Eqcat *EQCAT) {
 
 	E = fmt.Sprintf(ERRFMT, dsn)
 
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		s = scanner.Text()
+	for f.IsEnd() == false {
+		s = f.GetToken()
 		if s[0] == '*' {
 			break
 		}
@@ -223,8 +222,8 @@ func Eqcadata(f io.ReadSeeker, dsn string, Eqcat *EQCAT) {
 			Hccca := &Eqcat.Hccca[len(Eqcat.Hccca)-1]
 
 			Hccca.name = ""
-			for scanner.Scan() {
-				s = scanner.Text()
+			for f.IsEnd() == false {
+				s = f.GetToken()
 				if s[0] == ';' {
 					break
 				}
@@ -243,8 +242,8 @@ func Eqcadata(f io.ReadSeeker, dsn string, Eqcat *EQCAT) {
 			Boica := &Eqcat.Boica[len(Eqcat.Boica)-1]
 
 			Boica.name = ""
-			for scanner.Scan() {
-				s = scanner.Text()
+			for f.IsEnd() == false {
+				s = f.GetToken()
 				if s[0] == ';' {
 					break
 				}
@@ -264,8 +263,8 @@ func Eqcadata(f io.ReadSeeker, dsn string, Eqcat *EQCAT) {
 
 			Collca.name = ""
 			Collca.Fd = 0.9
-			for scanner.Scan() {
-				ss = scanner.Text()
+			for f.IsEnd() == false {
+				ss = f.GetToken()
 				if ss[0] == ';' {
 					break
 				}
@@ -284,8 +283,8 @@ func Eqcadata(f io.ReadSeeker, dsn string, Eqcat *EQCAT) {
 			PVca := &Eqcat.PVca[len(Eqcat.PVca)-1]
 
 			PVca.Name = ""
-			for scanner.Scan() {
-				ss = scanner.Text()
+			for f.IsEnd() == false {
+				ss = f.GetToken()
 				if ss[0] == ';' {
 					break
 				}
@@ -304,8 +303,8 @@ func Eqcadata(f io.ReadSeeker, dsn string, Eqcat *EQCAT) {
 			Refaca := &Eqcat.Refaca[len(Eqcat.Refaca)-1]
 
 			Refaca.name = ""
-			for scanner.Scan() {
-				s = scanner.Text()
+			for f.IsEnd() == false {
+				s = f.GetToken()
 				if s[0] == ';' {
 					break
 				}
@@ -324,8 +323,8 @@ func Eqcadata(f io.ReadSeeker, dsn string, Eqcat *EQCAT) {
 			Pipeca := &Eqcat.Pipeca[len(Eqcat.Pipeca)-1]
 
 			Pipeca.name = ""
-			for scanner.Scan() {
-				ss = scanner.Text()
+			for f.IsEnd() == false {
+				ss = f.GetToken()
 				if ss[0] == ';' {
 					break
 				}
@@ -344,8 +343,8 @@ func Eqcadata(f io.ReadSeeker, dsn string, Eqcat *EQCAT) {
 			Stankca := &Eqcat.Stankca[len(Eqcat.Stankca)-1]
 
 			Stankca.name = ""
-			for scanner.Scan() {
-				s = scanner.Text()
+			for f.IsEnd() == false {
+				s = f.GetToken()
 				if s[0] == ';' {
 					break
 				}
@@ -364,8 +363,8 @@ func Eqcadata(f io.ReadSeeker, dsn string, Eqcat *EQCAT) {
 			Hexca := &Eqcat.Hexca[len(Eqcat.Hexca)-1]
 
 			Hexca.Name = ""
-			for scanner.Scan() {
-				s = scanner.Text()
+			for f.IsEnd() == false {
+				s = f.GetToken()
 				if s[0] == ';' {
 					break
 				}
@@ -387,8 +386,8 @@ func Eqcadata(f io.ReadSeeker, dsn string, Eqcat *EQCAT) {
 			Pumpca.Type = ""
 			Pumpca.val = nil
 			Pumpca.pfcmp = nil
-			for scanner.Scan() {
-				ss = scanner.Text()
+			for f.IsEnd() == false {
+				ss = f.GetToken()
 				if ss[0] == ';' {
 					break
 				}
@@ -408,8 +407,8 @@ func Eqcadata(f io.ReadSeeker, dsn string, Eqcat *EQCAT) {
 
 			vavca.dTset = -999.0
 			vavca.Name = ""
-			for scanner.Scan() {
-				ss = scanner.Text()
+			for f.IsEnd() == false {
+				ss = f.GetToken()
 				if ss[0] == ';' {
 					break
 				}
@@ -430,8 +429,8 @@ func Eqcadata(f io.ReadSeeker, dsn string, Eqcat *EQCAT) {
 			OMvavca.Name = ""
 			OMvavca.Gmax = -999.0
 			OMvavca.Gmin = -999.0
-			for scanner.Scan() {
-				ss = scanner.Text()
+			for f.IsEnd() == false {
+				ss = f.GetToken()
 				if ss[0] == ';' {
 					break
 				}
@@ -451,8 +450,8 @@ func Eqcadata(f io.ReadSeeker, dsn string, Eqcat *EQCAT) {
 
 			stheatca.Name = ""
 			stheatca.PCMName = ""
-			for scanner.Scan() {
-				s = scanner.Text()
+			for f.IsEnd() == false {
+				s = f.GetToken()
 				if s[0] == ';' {
 					break
 				}
@@ -472,8 +471,8 @@ func Eqcadata(f io.ReadSeeker, dsn string, Eqcat *EQCAT) {
 
 			Thexca.Name = ""
 			Thexca.et = -999.0
-			for scanner.Scan() {
-				s = scanner.Text()
+			for f.IsEnd() == false {
+				s = f.GetToken()
 				if s[0] == ';' {
 					break
 				}
@@ -492,8 +491,8 @@ func Eqcadata(f io.ReadSeeker, dsn string, Eqcat *EQCAT) {
 			Desica := &Eqcat.Desica[len(Eqcat.Desica)-1]
 
 			Desica.name = ""
-			for scanner.Scan() {
-				s = scanner.Text()
+			for f.IsEnd() == false {
+				s = f.GetToken()
 				if s[0] == ';' {
 					break
 				}
@@ -512,8 +511,8 @@ func Eqcadata(f io.ReadSeeker, dsn string, Eqcat *EQCAT) {
 			Evacca := &Eqcat.Evacca[len(Eqcat.Evacca)-1]
 
 			Evacca.Name = ""
-			for scanner.Scan() {
-				s = scanner.Text()
+			for f.IsEnd() == false {
+				s = f.GetToken()
 				if s[0] == ';' {
 					break
 				}
@@ -549,20 +548,11 @@ func Eqcadata(f io.ReadSeeker, dsn string, Eqcat *EQCAT) {
 }
 
 /****************************************************************************/
-func Eqpcount(fi io.ReadSeeker, NBOI, NREFA, NCOL, NSTANK, NHCC, NHEX, NPIPE, NPUMP, NVAV, NSTHEAT, NTHEX, NPV, NOMVAV, NDESI, NEVAC *int) {
-	ad, err := fi.Seek(0, io.SeekCurrent)
-	if err != nil {
-		log.Fatal(err)
-	}
+func Eqpcount(fi *EeTokens, NBOI, NREFA, NCOL, NSTANK, NHCC, NHEX, NPIPE, NPUMP, NVAV, NSTHEAT, NTHEX, NPV, NOMVAV, NDESI, NEVAC *int) {
+	ad := fi.GetPos()
 
-	reader := bufio.NewReader(fi)
-	for {
-		s, err := reader.ReadString(' ')
-		if err != nil && err != io.EOF {
-			log.Fatal(err)
-		}
-
-		s = strings.TrimSpace(s)
+	for fi.IsEnd() == false {
+		s := fi.GetToken()
 
 		if s == "*" {
 			break
@@ -597,21 +587,9 @@ func Eqpcount(fi io.ReadSeeker, NBOI, NREFA, NCOL, NSTANK, NHCC, NHEX, NPIPE, NP
 		} else if s == string(EVAC_TYPE) {
 			*NEVAC++
 		}
-
-		_, err = reader.ReadString(';')
-		if err != nil && err != io.EOF {
-			log.Fatal(err)
-		}
-
-		if err == io.EOF {
-			break
-		}
 	}
 
-	_, err = fi.Seek(ad, io.SeekStart)
-	if err != nil {
-		log.Fatal(err)
-	}
+	fi.RestorePos(ad)
 }
 
 func pflistcount(fl io.ReadSeeker) int {

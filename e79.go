@@ -13,12 +13,9 @@ func main() {
 
 	var Daytm DAYTM
 	var Simc SIMCONTL
-	var Flout []*FLOUT = make([]*FLOUT, 30)
-	var Nflout int
 	var Loc LOCAT
 	var Wd, Wdd, Wdm WDAT
 	var dminute int
-	var Schdl SCHDL
 	var Rmvls RMVLS
 	var Eqcat EQCAT
 	var Eqsys EQSYS
@@ -111,14 +108,12 @@ func main() {
 	Loc.Name = ""
 	Fbmlist = ""
 
-	Floutinit(Flout)
 	Rmvlsinit(&Rmvls)
 	Simcinit(&Simc)
 
 	Eqsysinit(&Eqsys)
 	Locinit(&Loc)
 	Eqcatinit(&Eqcat)
-	Schdlinit(&Schdl)
 
 	File := os.Args
 	Narg := len(os.Args)
@@ -143,15 +138,6 @@ func main() {
 			}
 		}
 	}
-
-	/*--*/
-
-	// コンソール出力の遅延を回避
-	// NOTE: Goでは標準出力のバッファリングを無効にする方法がない (UDA)
-	// if DISPLAY_DELAY == 1 {
-	// 	setvbuf(stdout, nil, _IONBF, 0)
-	// }
-
 	/* ------------------------------------------------------ */
 
 	Psyint()
@@ -174,25 +160,32 @@ func main() {
 	// ディレクトリ名のみ
 	Ifile = filepath.Dir(Ifile)
 
-	// 一時吐き出しファイル"*.ewk"のパス変更
-	//Ipath = fmt.Sprintf("%s%c", Ifile, filepath.Separator)
-
 	// 注釈文の除去
-	// "xxx.txt" => 注釈文削除 => "xxxbdata.ewk"
-	Eesprera(s)
+	bdata0 := Eesprera(s)
 
-	EWKFile := strings.TrimSuffix(s, filepath.Ext(s)) // "xxx"
-	Eespre("bdata0.ewk", EWKFile, &key)               // "xxxbdata0.ewk"
+	// スケジュ－ルデ－タの作成
+	EWKFile := strings.TrimSuffix(s, filepath.Ext(s))
+	bdata, schtba, schnma, week := Eespre(bdata0, EWKFile, &key)
 
 	Simc.File = File[1]
 	Simc.Loc = &Loc
 
-	Eeinput(EWKFile, &Simc, &Schdl, &Exsf, &Rmvls, &Eqcat, &Eqsys, &Compnt, &Ncompnt, &Ncmpalloc,
-		&Elout, &Nelout, &Elin, &Nelin, &Mpath, &Nmpath, &Plist, &Pelm, &Npelm,
-		&Contl, &Ncontl, &Ctlif, &Nctlif, &Ctlst, &Nctlst, &Flout, &Nflout, &Wd,
+	Schdl, Flout := Eeinput(
+		EWKFile,
+		bdata, week, schtba, schnma,
+		&Simc, &Exsf, &Rmvls, &Eqcat, &Eqsys,
+		&Compnt, &Ncompnt, &Ncmpalloc,
+		&Elout, &Nelout,
+		&Elin, &Nelin,
+		&Mpath, &Nmpath,
+		&Plist,
+		&Pelm, &Npelm,
+		&Contl, &Ncontl,
+		&Ctlif, &Nctlif,
+		&Ctlst, &Nctlst,
+		&Wd,
 		&Daytm, key, &Nplist,
 		&bdpn, &obsn, &treen, &shadn, &polyn, &BDP, &obs, &tree, &shadtb, &poly, &monten, &gpn, &DE, &Noplpmp)
-	//fmt.Printf("bdpn=%d \n", bdpn)
 
 	// 外部障害物のメモリを確保
 	op = make([]P_MENN, Noplpmp.Nop)
@@ -208,7 +201,7 @@ func main() {
 	for i := 0; i < Rmvls.Nsrf; i++ {
 		Sd := &Rmvls.Sd[i]
 		if Sd.DynamicCode != "" {
-			ctifdecode(Sd.DynamicCode, Sd.Ctlif, &Simc, Ncompnt, Compnt, Nmpath, Mpath, &Wd, &Exsf, &Schdl)
+			ctifdecode(Sd.DynamicCode, Sd.Ctlif, &Simc, Ncompnt, Compnt, Nmpath, Mpath, &Wd, &Exsf, Schdl)
 		}
 	}
 
@@ -433,7 +426,7 @@ func main() {
 	dprroomdata(Rmvls.Room, Rmvls.Sd)
 	dprballoc(Rmvls.Mw, Rmvls.Sd)
 
-	Simc.eeflopen(Nflout, Flout)
+	Simc.eeflopen(Flout)
 
 	if DEBUG {
 		fmt.Println("<<main>> eeflopen ")
@@ -455,7 +448,7 @@ func main() {
 	}
 
 	// ボイラ機器仕様の初期化
-	Boicaint(Eqcat.Nboica, Eqcat.Boica, &Simc, Ncompnt, Compnt, &Wd, &Exsf, &Schdl)
+	Boicaint(Eqcat.Nboica, Eqcat.Boica, &Simc, Ncompnt, Compnt, &Wd, &Exsf, Schdl)
 	Mecsinit(&Eqsys, &Simc, Ncompnt, Compnt, Exsf.Nexs, Exsf.Exs, &Wd, &Rmvls)
 
 	if DEBUG {
@@ -724,7 +717,7 @@ func main() {
 			}
 
 			// Create schedule for current time step
-			Eeschdlr(day, Daytm.Ttmm, &Schdl, &Rmvls)
+			Eeschdlr(day, Daytm.Ttmm, Schdl, &Rmvls)
 
 			if DEBUG {
 				fmt.Println("<<main>>  Eeschdlr")
@@ -1074,8 +1067,7 @@ func main() {
 			//xprsolrd (Exsf.Nexs, Exsf.Exs);
 
 			// 代表日の毎時計算結果のファイル出力
-			Eeprinth(&Daytm, &Simc, Nflout, Flout, &Rmvls, &Exsf,
-				Nmpath, Mpath, &Eqsys, &Wd)
+			Eeprinth(&Daytm, &Simc, Flout, &Rmvls, &Exsf, Nmpath, Mpath, &Eqsys, &Wd)
 
 			if DEBUG {
 				fmt.Printf("xxxmain 6\n")
@@ -1117,7 +1109,7 @@ func main() {
 		}
 
 		// 日集計の出力
-		Eeprintd(&Daytm, &Simc, Nflout, Flout, &Rmvls, Exsf.Nexs, Exsf.Exs, Soldy, &Eqsys, &Wdd)
+		Eeprintd(&Daytm, &Simc, Flout, &Rmvls, Exsf.Nexs, Exsf.Exs, Soldy, &Eqsys, &Wdd)
 		/*****fmt.Printf("xxxmain 9\n")*****/
 
 		//if (Daytm.Mon == 4 && Daytm.Day == 25)
@@ -1126,18 +1118,18 @@ func main() {
 		// 月集計の出力
 		if IsEndDay(Daytm.Mon, Daytm.Day, Daytm.Day, Simc.Dayend) && Daytm.Ddpri != 0 {
 			//fmt.Printf("月集計出力\n")
-			Eeprintm(&Daytm, &Simc, Nflout, Flout, &Rmvls, Exsf.Nexs, Exsf.Exs, Solmon, &Eqsys, &Wdm)
+			Eeprintm(&Daytm, &Simc, Flout, &Rmvls, Exsf.Nexs, Exsf.Exs, Solmon, &Eqsys, &Wdm)
 		}
 
 	}
 	// 月－時刻別集計値の出力
-	Eeprintmt(&Simc, Nflout, Flout, &Eqsys, Rmvls.Nrdpnl, Rmvls.Rdpnl)
+	Eeprintmt(&Simc, Flout, &Eqsys, Rmvls.Nrdpnl, Rmvls.Rdpnl)
 
 	if DEBUG {
 		fmt.Printf("メモリ領域の解放\n")
 	}
 
-	Eeflclose(Nflout, Flout)
+	Eeflclose(Flout)
 
 	/*------------------higuchi add---------------------start*/
 	if bdpn != 0 {

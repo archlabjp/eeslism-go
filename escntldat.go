@@ -18,9 +18,7 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"strconv"
 	"strings"
 )
@@ -31,7 +29,7 @@ import (
 // 	 Cload,  /* Cload = COOLING_LOAD */
 // 	 HCload;  /* HCload = HEATCOOL_LOAD */
 
-func Contrldata(fi io.ReadSeeker, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int,
+func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int,
 	Cs *[]CTLST, Nctlst *int,
 	Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT,
 	Nmpath int, Mpath []MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL) {
@@ -88,13 +86,8 @@ func Contrldata(fi io.ReadSeeker, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif 
 	ctlifIdx := 0
 	ctlstIdx := 0
 	load = nil
-	for {
-		var s string
-		var err error
-		_, err = fmt.Fscanf(fi, "%s", &s)
-		if err != nil {
-			panic(err)
-		}
+	for fi.IsEnd() == false {
+		s := fi.GetToken()
 		if len(s) == 0 || s[0] == '*' {
 			break
 		}
@@ -107,13 +100,13 @@ func Contrldata(fi io.ReadSeeker, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif 
 		Contl.Type = ' '
 		Contl.Cst = &(*Cs)[ctlstIdx]
 
-		for {
+		for fi.IsEnd() == false {
 			if s == "if" {
 				Ctlif := &(*Ci)[ctlifIdx]
 				Contl.Type = 'c'
 				Contl.Cif = Ctlif
-				_, err = fmt.Fscanf(fi, " (%[^)])", &s)
-				ctifdecode(string(s), Ctlif, Simc, Ncompnt, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl)
+				s = strings.Trim(fi.GetToken(), "()")
+				ctifdecode(s, Ctlif, Simc, Ncompnt, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl)
 				ctlifIdx++
 				*Nctlif = ctlifIdx
 			} else if s == "AND" {
@@ -124,7 +117,7 @@ func Contrldata(fi io.ReadSeeker, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif 
 				} else {
 					Contl.AndAndCif = Ctlif
 				}
-				_, err = fmt.Fscanf(fi, " (%[^)])", &s)
+				s = strings.Trim(fi.GetToken(), "()")
 				ctifdecode(s, Ctlif, Simc, Ncompnt, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl)
 				ctlifIdx++
 				*Nctlif = ctlifIdx
@@ -132,7 +125,7 @@ func Contrldata(fi io.ReadSeeker, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif 
 				Ctlif := &(*Ci)[ctlifIdx]
 				Contl.Type = 'c'
 				Contl.OrCif = Ctlif
-				_, err = fmt.Fscanf(fi, " (%[^)])", &s)
+				s = strings.Trim(fi.GetToken(), "()")
 				ctifdecode(s, Ctlif, Simc, Ncompnt, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl)
 				ctlifIdx++
 				*Nctlif = ctlifIdx
@@ -157,7 +150,7 @@ func Contrldata(fi io.ReadSeeker, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif 
 					load = &HCload
 				}
 			} else if s == "-e" {
-				_, err = fmt.Fscanf(fi, "%s", &s)
+				s = fi.GetToken()
 				for i = 0; i < Ncompnt; i++ {
 					cmp := &Compnt[i]
 					if s == cmp.Name {
@@ -197,7 +190,7 @@ func Contrldata(fi io.ReadSeeker, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif 
 				Eprint("<Contrldata>", s)
 			}
 
-			_, err = fmt.Fscanf(fi, "%s", &s)
+			s = fi.GetToken()
 			if len(s) == 0 || s[0] == ';' {
 				break
 			}
@@ -211,15 +204,14 @@ func Contrldata(fi io.ReadSeeker, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif 
 	}
 }
 
-func ContrlCount(fi io.ReadSeeker) (Nif, N int) {
-	ad, _ := fi.Seek(0, io.SeekCurrent)
+func ContrlCount(fi *EeTokens) (Nif, N int) {
+	ad := fi.GetPos()
 	var N1, N2 int
 
 	Nif, N = 0, 0
 
-	scanner := bufio.NewScanner(fi)
-	for scanner.Scan() {
-		s := scanner.Text()
+	for fi.IsEnd() == false {
+		s := fi.GetToken()
 		if s[0] == '*' {
 			break
 		}
@@ -234,7 +226,8 @@ func ContrlCount(fi io.ReadSeeker) (Nif, N int) {
 
 	N = N2
 	Nif = N1
-	fi.Seek(ad, io.SeekStart)
+
+	fi.RestorePos(ad)
 
 	return Nif, N
 }

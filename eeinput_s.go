@@ -162,9 +162,23 @@ func (t *EeTokens) GetToken() string {
 	return ""
 }
 
+// Get next token as float64 value
+func (t *EeTokens) GetFloat() float64 {
+	var f float64
+	fmt.Sscanf(t.GetToken(), "%f", &f)
+	return f
+}
+
+// Get next token as int value
+func (t *EeTokens) GetInt() int {
+	var i int
+	fmt.Sscanf(t.GetToken(), "%d", &i)
+	return i
+}
+
 /*  建築・設備システムデータ入力  */
 
-func Eeinput(Ipath string, Simc *SIMCONTL, Schdl *SCHDL,
+func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 	Exsf *EXSFS, Rmvls *RMVLS, Eqcat *EQCAT, Eqsys *EQSYS,
 	Compnt *[]COMPNT, Ncompnt *int,
 	Ncmpalloc *int,
@@ -175,12 +189,10 @@ func Eeinput(Ipath string, Simc *SIMCONTL, Schdl *SCHDL,
 	Contl *[]CONTL, Ncontl *int,
 	Ctlif *[]CTLIF, Nctlif *int,
 	Ctlst *[]CTLST, Nctlst *int,
-	Flout *[]*FLOUT, Nflout *int, Wd *WDAT, Daytm *DAYTM, key int, Nplist *int,
+	Wd *WDAT, Daytm *DAYTM, key int, Nplist *int,
 	bdpn *int, obsn *int, treen *int, shadn *int, polyn *int,
-	bp *[]BBDP, obs *[]OBS, tree *[]TREE, shadtb *[]SHADTB, poly *[]POLYGN, monten *int, gpn *int, DE *float64, Noplpmp *NOPLPMP) {
+	bp *[]BBDP, obs *[]OBS, tree *[]TREE, shadtb *[]SHADTB, poly *[]POLYGN, monten *int, gpn *int, DE *float64, Noplpmp *NOPLPMP) (*SCHDL, []*FLOUT) {
 
-	var fi *os.File
-	var flo int
 	var Twallinit float64
 	var i, j int
 	dtm := 3600
@@ -189,8 +201,8 @@ func Eeinput(Ipath string, Simc *SIMCONTL, Schdl *SCHDL,
 	daystartx := 0
 	daystart := 0
 	dayend := 0
-	var s, Err, File string
-	wdpri := 0
+	var Err, File string
+	wdpri := 0 // 気象データの出力フラグ
 	revpri := 0
 	pmvpri := 0
 	Nrmspri := 0
@@ -228,61 +240,50 @@ func Eeinput(Ipath string, Simc *SIMCONTL, Schdl *SCHDL,
 	Rmvls.Nmwall = 0
 
 	var err error
-	if fi, err = os.Open("dayweek.efl"); err != nil {
+
+	// -------------------------------------------------------
+	// 曜日設定ファイルの読み取り
+	// -------------------------------------------------------
+	var fi_dayweek *os.File
+	if fi_dayweek, err = os.Open("dayweek.efl"); err != nil {
 		Eprint("<Eeinput>", "dayweek.efl")
 		os.Exit(EXIT_DAYWEK)
 	}
-	Dayweek(fi, Ipath, Simc.Daywk, key)
-	fi.Close()
+	Dayweek(fi_dayweek, week, Simc.Daywk, key)
+	fi_dayweek.Close()
 
 	if DEBUG {
 		dprdayweek(Simc.Daywk)
 	}
 
-	if fi, err := os.Open(Ipath + "schtba.ewk"); err != nil {
-		Eprint("<Eeinput>", "schtba.ewk")
-		os.Exit(EXIT_SCHTB)
+	// -------------------------------------------------------
+	// スケジュ－ル表の読み取り
+	// -------------------------------------------------------
+	var Schdl *SCHDL = new(SCHDL)
+	Schtable(schtba, Schdl)
+	Schname(Ipath, "Schname", Schdl)
+	Schdl.Nsch = Schdl.Sch[0].end
+	Schdl.Nscw = Schdl.Scw[0].end
+
+	// -------------------------------------------------------
+	//  季節、曜日によるスケジュ－ル表の組み合わせの読み取り
+	// -------------------------------------------------------
+	Schdata(schnma, "schnm", Simc.Daywk, Schdl)
+	Schdl.Nsch = Schdl.Sch[0].end
+	Schdl.Nscw = Schdl.Scw[0].end
+	if Schdl.Nsch > 0 {
+		Schdl.Val = make([]float64, Schdl.Nsch)
 	} else {
-		Schtable(fi, s, Schdl)
-		fi.Close()
-
-		Schname(Ipath, "Schname", Schdl)
-
-		Schdl.Nsch = Schdl.Sch[0].end
-		Schdl.Nscw = Schdl.Scw[0].end
+		Schdl.Val = nil
 	}
-
-	if fi, err := os.Open(Ipath + "schnma.ewk"); err != nil {
-		Eprint("<Eeinput>", "schnma.ewk")
-		os.Exit(EXIT_SCHNM)
+	if Schdl.Nscw > 0 {
+		Schdl.Isw = make([]rune, Schdl.Nscw)
 	} else {
-		Schdata(fi, "schnm", Simc.Daywk, Schdl)
-		fi.Close()
-
-		Schdl.Nsch = Schdl.Sch[0].end
-		Schdl.Nscw = Schdl.Scw[0].end
-
-		if Schdl.Nsch > 0 {
-			Schdl.Val = make([]float64, Schdl.Nsch)
-		} else {
-			Schdl.Val = nil
-		}
-
-		if Schdl.Nscw > 0 {
-			Schdl.Isw = make([]rune, Schdl.Nscw)
-		} else {
-			Schdl.Isw = nil
-		}
-	}
-
-	bdataBytes, err := ioutil.ReadFile(Ipath + "bdata.ewk")
-	if err != nil {
-		Eprint("<Eeinput>", "bdata.ewk")
-		os.Exit(EXIT_BDATA)
+		Schdl.Isw = nil
 	}
 
 	// 入力を正規化することで後処理を簡単にする
-	tokens := NewEeTokens(string(bdataBytes))
+	tokens := NewEeTokens(bdata)
 
 	for tokens.IsEnd() == false {
 		s := tokens.GetToken()
@@ -318,13 +319,13 @@ func Eeinput(Ipath string, Simc *SIMCONTL, Schdl *SCHDL,
 
 			fmt.Printf("== File  Output=%s\n", Simc.Ofname)
 		case "SCHTB":
-			Schtable(fi, s, Schdl)
+			Schtable(schtba, Schdl)
 			Schname(Ipath, "Schname", Schdl)
 
 			Schdl.Nsch = Schdl.Sch[0].end
 			Schdl.Nscw = Schdl.Scw[0].end
 		case "SCHNM":
-			Schdata(fi, s, Simc.Daywk, Schdl)
+			Schdata(schnma, s, Simc.Daywk, Schdl)
 
 			Schdl.Nsch = Schdl.Sch[0].end
 			Schdl.Nscw = Schdl.Scw[0].end
@@ -338,7 +339,8 @@ func Eeinput(Ipath string, Simc *SIMCONTL, Schdl *SCHDL,
 			Snbkdata(section, s, &Rmvls.Snbk)
 
 		case "PCM":
-			PCMdata(fi, s, &Rmvls.PCM, &Rmvls.Npcm, &Rmvls.Pcmiterate)
+			section := tokens.GetSection()
+			PCMdata(section, s, &Rmvls.PCM, &Rmvls.Npcm, &Rmvls.Pcmiterate)
 
 		case "WALL":
 			if Fbmlist == "" {
@@ -367,33 +369,38 @@ func Eeinput(Ipath string, Simc *SIMCONTL, Schdl *SCHDL,
 			Balloc(Rmvls.Nsrf, Rmvls.Sd, Rmvls.Wall, &Rmvls.Mw, &Rmvls.Nmwall)
 
 		case "RAICH", "VENT":
-			Ventdata(fi, s, Schdl, Rmvls.Room, Simc)
+			section := tokens.GetSection()
+			Ventdata(section, s, Schdl, Rmvls.Room, Simc)
 
 		case "RESI":
-			Residata(fi, s, Schdl, Rmvls.Room, &pmvpri, Simc)
+			section := tokens.GetSection()
+			Residata(section, s, Schdl, Rmvls.Room, &pmvpri, Simc)
 
 		case "APPL":
-			Appldata(fi, s, Schdl, Rmvls.Room, Simc)
+			section := tokens.GetSection()
+			Appldata(section, s, Schdl, Rmvls.Room, Simc)
 		case "VCFILE":
-			Vcfdata(fi, Simc)
+			section := tokens.GetSection()
+			Vcfdata(section, Simc)
 		case "EQPCAT":
-			Eqcadata(fi, "Eqcadata", Eqcat)
+			section := tokens.GetSection()
+			Eqcadata(section, "Eqcadata", Eqcat)
 
 		case "SYSCMP":
 			/*****Flwindata(Flwin, Nflwin,  Wd);********/
-			Compodata(fi, "Compodata", Rmvls, Eqcat, Compnt, Ncompnt, Eqsys, Ncmpalloc, 0)
-			Elmalloc("Elmalloc ", *Ncompnt, *Compnt, Eqcat, Eqsys,
-				Elout, Nelout, Elin, Nelin)
+			section := tokens.GetSection()
+			Compodata(section, "Compodata", Rmvls, Eqcat, Compnt, Ncompnt, Eqsys, Ncmpalloc, 0)
+			Elmalloc("Elmalloc ", *Ncompnt, *Compnt, Eqcat, Eqsys, Elout, Nelout, Elin, Nelin)
 			SYSCMP_ID++
 
 		case "SYSPTH":
+			section := tokens.GetSection()
 			if SYSCMP_ID == 0 {
-				Compodata(fi, "Compodata", Rmvls, Eqcat, Compnt, Ncompnt, Eqsys, Ncmpalloc, 1)
-
+				Compodata(section, "Compodata", Rmvls, Eqcat, Compnt, Ncompnt, Eqsys, Ncmpalloc, 1)
 				Elmalloc("Elmalloc ", *Ncompnt, *Compnt, Eqcat, Eqsys, Elout, Nelout, Elin, Nelin)
 				SYSCMP_ID++
 			}
-			Pathdata(fi, "Pathdata", Simc, Wd, *Ncompnt, *Compnt, Schdl,
+			Pathdata(section, "Pathdata", Simc, Wd, *Ncompnt, *Compnt, Schdl,
 				Mpath, Nmpath, Plist, Pelm, Npelm, Nplist, 0, Eqsys)
 			Roomelm(Rmvls.Nroom, Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl)
 
@@ -407,19 +414,15 @@ func Eeinput(Ipath string, Simc *SIMCONTL, Schdl *SCHDL,
 			SYSPTH_ID++
 
 		case "CONTL":
+			section := tokens.GetSection()
 			if SYSCMP_ID == 0 {
-
-				Compodata(fi, "Compodata", Rmvls, Eqcat, Compnt, Ncompnt, Eqsys, Ncmpalloc, 1)
-
-				Elmalloc("Elmalloc ", *Ncompnt, *Compnt, Eqcat, Eqsys,
-					Elout, Nelout, Elin, Nelin)
+				Compodata(section, "Compodata", Rmvls, Eqcat, Compnt, Ncompnt, Eqsys, Ncmpalloc, 1)
+				Elmalloc("Elmalloc ", *Ncompnt, *Compnt, Eqcat, Eqsys, Elout, Nelout, Elin, Nelin)
 				SYSCMP_ID++
 			}
 
 			if SYSPTH_ID == 0 {
-				Pathdata(fi, "Pathdata", Simc, Wd, *Ncompnt, *Compnt, Schdl,
-					Mpath, Nmpath, Plist, Pelm, Npelm, Nplist, 1, Eqsys)
-
+				Pathdata(section, "Pathdata", Simc, Wd, *Ncompnt, *Compnt, Schdl, Mpath, Nmpath, Plist, Pelm, Npelm, Nplist, 1, Eqsys)
 				Roomelm(Rmvls.Nroom, Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl)
 
 				Hclelm(Eqsys.Nhcload, Eqsys.Hcload)
@@ -432,30 +435,34 @@ func Eeinput(Ipath string, Simc *SIMCONTL, Schdl *SCHDL,
 				SYSPTH_ID++
 			}
 
-			Contrldata(fi, Contl, Ncontl, Ctlif, Nctlif, Ctlst, Nctlst,
-				Simc, *Ncompnt, *Compnt, *Nmpath, *Mpath, Wd, Exsf, Schdl)
+			Contrldata(section, Contl, Ncontl, Ctlif, Nctlif, Ctlst, Nctlst, Simc, *Ncompnt, *Compnt, *Nmpath, *Mpath, Wd, Exsf, Schdl)
 
 		/*--------------higuchi add-------------------start*/
 
 		// 20170503 higuchi add
 		case "DIVID":
-			dividdata(fi, monten, DE)
+			section := tokens.GetSection()
+			dividdata(section, monten, DE)
 
 		/*--対象建物データ読み込み--*/
 		case "COORDNT":
-			bdpdata(fi, bdpn, bp, Exsf)
+			section := tokens.GetSection()
+			bdpdata(section, bdpn, bp, Exsf)
 
 		/*--障害物データ読み込み--*/
 		case "OBS":
-			obsdata(fi, obsn, obs)
+			section := tokens.GetSection()
+			obsdata(section, obsn, obs)
 
 		/*--樹木データ読み込み--*/
 		case "TREE":
-			treedata(fi, treen, tree)
+			section := tokens.GetSection()
+			treedata(section, treen, tree)
 
 		/*--多角形障害物直接入力分の読み込み--*/
 		case "POLYGON":
-			polydata(fi, polyn, poly)
+			section := tokens.GetSection()
+			polydata(section, polyn, poly)
 
 		/*--落葉スケジュール読み込み--*/
 		case "SHDSCHTB":
@@ -463,18 +470,17 @@ func Eeinput(Ipath string, Simc *SIMCONTL, Schdl *SCHDL,
 			var Nshadn int
 			//var shdp *SHADTB
 			// 落葉スケジュールの数を数える
-			Nshadn = InputCount(fi, ";")
+			section := tokens.GetSection()
+			Nshadn = InputCount(section, ";")
+			section.Reset()
 
 			if Nshadn > 0 {
 				*shadtb = make([]SHADTB, Nshadn)
 			}
 
 			i := 0
-			for {
-				_, err := fmt.Fscanf(fi, "%s", s)
-				if err != nil {
-					panic(err)
-				}
+			for section.IsEnd() == false {
+				s = section.GetToken()
 				if s[0] == '*' {
 					break
 				}
@@ -483,11 +489,8 @@ func Eeinput(Ipath string, Simc *SIMCONTL, Schdl *SCHDL,
 				(*shadn)++
 				shdp.indatn = 0
 
-				for {
-					_, err := fmt.Fscanf(fi, "%s", &s)
-					if err != nil {
-						panic(err)
-					}
+				for section.IsEnd() == false {
+					s = section.GetToken()
 					if s[0] == '*' {
 						break
 					}
@@ -517,8 +520,6 @@ func Eeinput(Ipath string, Simc *SIMCONTL, Schdl *SCHDL,
 	}
 	/*----------------higuchi 7.11,061123------------------end*/
 
-	fi.Close()
-
 	// 外部障害物の数を数える
 	Noplpmp.Nop = OPcount(*bdpn, *bp, *polyn, *poly)
 	Noplpmp.Nlp = LPcount(*bdpn, *bp, *obsn, *obs, *treen, *polyn, *poly)
@@ -527,13 +528,15 @@ func Eeinput(Ipath string, Simc *SIMCONTL, Schdl *SCHDL,
 	//////////////////////////////////////
 
 	if SYSCMP_ID == 0 {
-		Compodata(fi, "Compodata", Rmvls, Eqcat, Compnt, Ncompnt, Eqsys, Ncmpalloc, 1)
+		section := tokens.GetSection()
+		Compodata(section, "Compodata", Rmvls, Eqcat, Compnt, Ncompnt, Eqsys, Ncmpalloc, 1)
 
 		Elmalloc("Elmalloc ", *Ncompnt, *Compnt, Eqcat, Eqsys, Elout, Nelout, Elin, Nelin)
 	}
 
 	if SYSPTH_ID == 0 {
-		Pathdata(fi, "Pathdata", Simc, Wd, *Ncompnt, *Compnt, Schdl,
+		section := tokens.GetSection()
+		Pathdata(section, "Pathdata", Simc, Wd, *Ncompnt, *Compnt, Schdl,
 			Mpath, Nmpath, Plist, Pelm, Npelm, Nplist, 1, Eqsys)
 
 		Roomelm(Rmvls.Nroom, Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl)
@@ -543,6 +546,10 @@ func Eeinput(Ipath string, Simc *SIMCONTL, Schdl *SCHDL,
 
 		Qmeaselm(Eqsys.Nqmeas, Eqsys.Qmeas)
 	}
+
+	//----------------------------------------------------
+	// シミュレーション設定
+	//----------------------------------------------------
 
 	if daystart > dayend {
 		dayend = dayend + 365
@@ -570,6 +577,10 @@ func Eeinput(Ipath string, Simc *SIMCONTL, Schdl *SCHDL,
 			Simc.Ntimehrprt += Simc.Dayntime
 		}
 	}
+
+	//----------------------------------------------------
+	// 出力ファイルの追加
+	//----------------------------------------------------
 
 	for i := range Rmvls.Room {
 		Rm := &Rmvls.Room[i]
@@ -600,40 +611,30 @@ func Eeinput(Ipath string, Simc *SIMCONTL, Schdl *SCHDL,
 		}
 	}
 
-	flo = 0
+	// 出力ファイルの追加手続き
+	var Flout []*FLOUT = make([]*FLOUT, 0, 30) // ファイル出力設定
+	addFlout := func(idn PrintType) {
+		Flout = append(Flout, &FLOUT{Idn: idn})
+	}
 
-	(*Flout)[flo].Idn = PRTPATH
-	flo++
-	(*Flout)[flo].Idn = PRTCOMP
-	flo++
-	(*Flout)[flo].Idn = PRTDYCOMP
-	flo++
-	(*Flout)[flo].Idn = PRTMNCOMP
-	flo++
-	(*Flout)[flo].Idn = PRTMTCOMP
-	flo++
-	(*Flout)[flo].Idn = PRTHRSTANK
-	flo++
-	(*Flout)[flo].Idn = PRTWK
-	flo++
-	(*Flout)[flo].Idn = PRTREV
-	flo++
-	(*Flout)[flo].Idn = PRTHROOM
-	flo++
-	(*Flout)[flo].Idn = PRTDYRM
-	flo++
-	(*Flout)[flo].Idn = PRTMNRM
-	flo++
+	// 必須出力ファイル
+	addFlout(PRTPATH)    // 時間別計算値(システム経路の温湿度出力)
+	addFlout(PRTCOMP)    // 時間別計算値(機器の出力)
+	addFlout(PRTDYCOMP)  // 日別計算値(システム要素機器の日集計結果出力)
+	addFlout(PRTMNCOMP)  // 月別計算値(システム要素機器の月集計結果出力)
+	addFlout(PRTMTCOMP)  // 月-時刻計算値(部屋ごとの熱集計結果出力)
+	addFlout(PRTHRSTANK) // 時間別計算値(蓄熱槽内温度分布の出力)
+	addFlout(PRTWK)      // 計算年月日出力
+	addFlout(PRTREV)     // 時間別計算値(毎時室温、MRTの出力)
+	addFlout(PRTHROOM)   // 時間別計算値(放射パネルの出力)
+	addFlout(PRTDYRM)    // 日別計算値(部屋ごとの熱集計結果出力)
+	addFlout(PRTMNRM)    // 月別計算値(部屋ごとの熱集計結果出力)
 
-	Helminit("Helminit", Simc.Helmkey,
-		Rmvls.Nroom, Rmvls.Room, &Rmvls.Qetotal)
+	Helminit("Helminit", Simc.Helmkey, Rmvls.Nroom, Rmvls.Room, &Rmvls.Qetotal)
 
 	if Simc.Helmkey == 'y' {
-		(*Flout)[flo].Idn = PRTHELM
-		flo++
-
-		(*Flout)[flo].Idn = PRTDYHELM
-		flo++
+		addFlout(PRTHELM)   // 時間別計算値(要素別熱損失・熱取得)
+		addFlout(PRTDYHELM) // 日別計算値(要素別熱損失・熱取得)
 
 		Simc.Nhelmsfpri = 0
 		for i = 0; i < Rmvls.Nroom; i++ {
@@ -646,61 +647,46 @@ func Eeinput(Ipath string, Simc *SIMCONTL, Schdl *SCHDL,
 			}
 		}
 		if Simc.Nhelmsfpri > 0 {
-			(*Flout)[flo].Idn = PRTHELMSF
-			flo++
+			addFlout(PRTHELMSF) // 時間別計算値(要素別熱損失・熱取得) 表面?
 		}
 	}
 
 	if pmvpri > 0 {
-		(*Flout)[flo].Idn = PRTPMV
-		flo++
+		addFlout(PRTPMV) // 時間別計算値(PMV計算)
 	}
 
 	if Nqrmpri > 0 {
-		(*Flout)[flo].Idn = PRTQRM
-		flo++
-
-		(*Flout)[flo].Idn = PRTDQR
-		flo++
+		addFlout(PRTQRM) // 時間別計算値(日射、室内熱取得の出力)
+		addFlout(PRTDQR) // 日別計算値(日射、室内熱取得の出力)
 	}
 
 	if Nrmspri > 0 {
-		(*Flout)[flo].Idn = PRTRSF
-		flo++
-		(*Flout)[flo].Idn = PRTSFQ
-		flo++
-		(*Flout)[flo].Idn = PRTSFA
-		flo++
-		(*Flout)[flo].Idn = PRTDYSF
-		flo++
+		addFlout(PRTRSF)  // 時間別計算値(室内表面温度の出力)
+		addFlout(PRTSFQ)  // 時間別計算値(室内表面熱流の出力)
+		addFlout(PRTSFA)  // 時間別計算値(室内表面熱伝達率の出力)
+		addFlout(PRTDYSF) // 日別計算値(日積算壁体貫流熱取得の出力)
 	}
 
 	if Nwalpri > 0 {
-		(*Flout)[flo].Idn = PRTWAL
-		flo++
+		addFlout(PRTWAL) // // 時間別計算値(壁体内部温度の出力)
 	}
 
 	// 日よけの影面積出力
 	if Nshdpri > 0 {
-		(*Flout)[flo].Idn = PRTSHD
-		flo++
+		addFlout(PRTSHD) // 時間別計算値(日よけの影面積の出力)
 	}
 
+	// 潜熱蓄熱材がある場合
 	if Npcmpri > 0 {
-		(*Flout)[flo].Idn = PRTPCM
-		flo++
+		addFlout(PRTPCM) // 時間別計算値(潜熱蓄熱材の状態値の出力)
 	}
 
+	// 気象データの出力を追加
 	if wdpri > 0 {
-		(*Flout)[flo].Idn = PRTHWD
-		flo++
-
-		(*Flout)[flo].Idn = PRTDWD
-		flo++
-
-		(*Flout)[flo].Idn = PRTMWD
-		flo++
+		addFlout(PRTHWD) // 時間別計算値(気象データ出力)
+		addFlout(PRTDWD) // 日別計算値(気象データ日集計値出力)
+		addFlout(PRTMWD) // 月別計算値(気象データ月集計値出力)
 	}
 
-	*Nflout = flo
+	return Schdl, Flout
 }

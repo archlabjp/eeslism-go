@@ -18,7 +18,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"strings"
 )
 
@@ -26,14 +25,14 @@ import (
 /*
 居住者スケジュ－ルの入力              */
 
-func Residata(fi io.Reader, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int, simc *SIMCONTL) {
+func Residata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int, simc *SIMCONTL) {
 	errFmt := fmt.Sprintf(ERRFMT, dsn)
 	vall := schdl.Val
 
-	for {
+	for fi.IsEnd() == false {
 		var s, ss, sss, s4 string
-		_, err := fmt.Fscanf(fi, "%s", &s)
-		if err != nil || s == "*" {
+		s = fi.GetToken()
+		if s == "*" {
 			break
 		}
 
@@ -42,8 +41,8 @@ func Residata(fi io.Reader, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int,
 		rm := rooms[i]
 
 		for {
-			_, err := fmt.Fscanf(fi, "%s", &s)
-			if err != nil || s == ";" {
+			s = fi.GetToken()
+			if s == ";" {
 				break
 			}
 
@@ -107,14 +106,14 @@ func Residata(fi io.Reader, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int,
 /*
 照明・機器利用スケジュ－ルの入力              */
 
-func Appldata(fi io.Reader, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCONTL) {
+func Appldata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCONTL) {
 	errFmt := fmt.Sprintf(ERRFMT, dsn)
 	vall := schdl.Val
 
-	for {
+	for fi.IsEnd() == false {
 		var s, ss string
-		_, err := fmt.Fscanf(fi, "%s", &s)
-		if err != nil || s == "*" {
+		s = fi.GetToken()
+		if s == "*" {
 			break
 		}
 
@@ -122,9 +121,9 @@ func Appldata(fi io.Reader, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCON
 		i := idroom(s, rooms, errMsg)
 		rm := rooms[i]
 
-		for {
-			_, err := fmt.Fscanf(fi, "%s", &s)
-			if err != nil || s == ";" {
+		for fi.IsEnd() == false {
+			s = fi.GetToken()
+			if s == ";" {
 				break
 			}
 

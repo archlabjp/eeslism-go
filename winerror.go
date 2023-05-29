@@ -4,9 +4,9 @@ const (
 	EXIT_BDATA  = 2
 	EXIT_WFILE  = 3
 	EXIT_SUPW   = 4
-	EXIT_DAYWEK = 5
-	EXIT_SCHTB  = 6
-	EXIT_SCHNM  = 7
+	EXIT_DAYWEK = 5 // 曜日設定ファイルが開けない
+	EXIT_SCHTB  = 6 // スケジュ－ル表が開けない
+	EXIT_SCHNM  = 7 // 季節、曜日によるスケジュ－ル表の組み合わせが開けない
 	EXIT_WBMLST = 8
 	EXIT_PFLOW  = 9
 	EXIT_VCFILE = 10

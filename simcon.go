@@ -86,9 +86,11 @@ type SIMCONTL struct {
 	MaxIterate int           // 最大収束回数
 }
 
+// 出力ファイルの設定情報
 type FLOUT struct {
-	F   io.Writer // 出力ファイルのファイルポインタ
-	Idn PrintType // 出力ファイルの種類
+	Fname string    // 出力ファイル名
+	F     io.Writer // 出力ファイルのファイルポインタ
+	Idn   PrintType // 出力ファイルの種類
 }
 
 type VCFILE struct {

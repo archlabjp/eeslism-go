@@ -279,14 +279,6 @@ func Locinit(L *LOCAT) {
 	matinitx(L.Twsup[:], 12, -999.0)
 }
 
-func Floutinit(f []*FLOUT) {
-	for i := 0; i < len(f); i++ {
-		f[i] = new(FLOUT)
-		f[i].F = nil
-		f[i].Idn = ""
-	}
-}
-
 func Eqcatinit(E *EQCAT) {
 	E.Nrfcmp = 0
 	E.Nhccca = 0
@@ -319,19 +311,6 @@ func Eqcatinit(E *EQCAT) {
 	E.Pfcmp = nil
 	E.PVca = nil
 	E.OMvavca = nil
-}
-
-func Schdlinit(S *SCHDL) {
-	S.Nsch = 0
-	S.Nscw = 0
-	S.Seasn = nil
-	S.Wkdy = nil
-	S.Dsch = nil
-	S.Dscw = nil
-	S.Sch = nil
-	S.Scw = nil
-	S.Val = nil
-	S.Isw = nil
 }
 
 func MtEdayinit(mtEday *[12][24]EDAY) {

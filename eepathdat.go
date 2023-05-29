@@ -1,16 +1,14 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"strings"
 )
 
 /* システム要素の接続経路の入力 */
 
 func Pathdata(
-	f io.ReadSeeker,
+	f *EeTokens,
 	errkey string,
 	Simc *SIMCONTL,
 	Wd *WDAT,
@@ -109,11 +107,8 @@ func Pathdata(
 
 	Mpath_idx := 0
 	if ID == 0 {
-		for {
-			_, err := fmt.Fscanf(f, "%s", &ss)
-			if err != nil {
-				panic(err)
-			}
+		for f.IsEnd() == false {
+			ss = f.GetToken()
 			if ss[0] == '*' {
 				break
 			}
@@ -144,11 +139,8 @@ func Pathdata(
 			Mpath.Plist = *Plst
 			//Pelmpre = nil
 
-			for {
-				_, err := fmt.Fscanf(f, "%s", &s)
-				if err != nil {
-					panic(err)
-				}
+			for f.IsEnd() == false {
+				s = f.GetToken()
 				if s[0] == ';' {
 					break
 				}
@@ -160,10 +152,7 @@ func Pathdata(
 				Plist = &(*Plst)[plistIdx]
 
 				if s[0] == '-' {
-					_, err := fmt.Fscanf(f, "%s", &ss)
-					if err != nil {
-						panic(err)
-					}
+					ss = f.GetToken()
 
 					if s[1:] == "sys" {
 						Mpath.Sys = ss[0]
@@ -177,11 +166,8 @@ func Pathdata(
 					Plist.Plistname = sss
 					Plist.Pelm = []*PELM{Pelm}
 
-					for {
-						_, err := fmt.Fscanf(f, "%s", &s)
-						if err != nil {
-							panic(err)
-						}
+					for f.IsEnd() == false {
+						s = f.GetToken()
 						if s[0] == '>' {
 							break
 						}
@@ -634,18 +620,16 @@ func Pathdata(
 
 /***********************************************************************/
 
-func Mpathcount(fi io.ReadSeeker, Pl *int) int {
+func Mpathcount(fi *EeTokens, Pl *int) int {
 	var N int
-	var ad int64
+	var ad int
 	var s string
 
-	ad, _ = fi.Seek(0, 1)
+	ad = fi.GetPos()
 	*Pl = 0
 
-	scanner := bufio.NewScanner(fi)
-
-	for scanner.Scan() {
-		s = scanner.Text()
+	for fi.IsEnd() == false {
+		s = fi.GetToken()
 
 		if s == "*" {
 			break
@@ -662,26 +646,20 @@ func Mpathcount(fi io.ReadSeeker, Pl *int) int {
 
 	*Pl /= 2
 
-	fi.Seek(ad, 0)
+	fi.RestorePos(ad)
+
 	return N
 }
 
 /***********************************************************************/
 
-func Plcount(fi io.ReadSeeker, N []int) {
-	var i int
-	var M int
-	var ad int64
-	var s string
+func Plcount(fi *EeTokens, N []int) {
+	i := 0
+	M := 0
+	ad := fi.GetPos()
 
-	i = 0
-	M = 0
-	ad, _ = fi.Seek(0, 1)
-
-	scanner := bufio.NewScanner(fi)
-
-	for scanner.Scan() {
-		s = scanner.Text()
+	for fi.IsEnd() == false {
+		s := fi.GetToken()
 
 		if s == "*" {
 			break
@@ -695,7 +673,7 @@ func Plcount(fi io.ReadSeeker, N []int) {
 
 		if s == ">" {
 			i++
-			scanner.Scan() // skip next token
+			fi.GetToken() // skip next token
 		}
 	}
 
@@ -704,40 +682,33 @@ func Plcount(fi io.ReadSeeker, N []int) {
 	// 	fmt.Printf("i=%d pl=%d\n", i, (*N)[i])
 	// }
 
-	fi.Seek(ad, 0)
+	fi.RestorePos(ad)
 }
 
 /***********************************************************************/
 
-func Pelmcount(fi io.ReadSeeker) int {
-	var i, N int
-	var ad int64
-	var s, t string
+func Pelmcount(fi *EeTokens) int {
+	ad := fi.GetPos()
+	i := 1
+	N := 0
 
-	ad, _ = fi.Seek(0, 1)
-	i = 1
-	N = 0
-
-	scanner := bufio.NewScanner(fi)
-
-	for scanner.Scan() {
-		s = scanner.Text()
+	for fi.IsEnd() == false {
+		s := fi.GetToken()
 		i = 1
 
 		if s == "*" {
 			break
 		}
 
-		for scanner.Scan() {
-			s = scanner.Text()
+		for fi.IsEnd() == false {
+			s = fi.GetToken()
 
 			if s == ";" {
 				break
 			}
 
 			if s == "-f" {
-				scanner.Scan()
-				t = scanner.Text()
+				t := fi.GetToken()
 
 				if t == "W" || t == "a" {
 					i = 1
@@ -747,7 +718,7 @@ func Pelmcount(fi io.ReadSeeker) int {
 			}
 
 			if s == "-sys" {
-				scanner.Scan()
+				fi.GetToken()
 			}
 
 			if s != ">" && s[:1] != "(" && s[:1] != "-" && s[:1] != ";" {
@@ -756,7 +727,7 @@ func Pelmcount(fi io.ReadSeeker) int {
 		}
 	}
 
-	fi.Seek(ad, 0)
+	fi.RestorePos(ad)
 	return N
 }
 

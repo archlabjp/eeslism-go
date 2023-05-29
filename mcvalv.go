@@ -21,9 +21,7 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"math"
-	"os"
 	"strings"
 )
 
@@ -123,26 +121,18 @@ func Valvene(Nvalv int, Valv []VALV, Valvreset *int) {
 
 /************************************************************************/
 
-func ValvControl(fi io.Reader, Ncompnt int, Compnt []COMPNT, Schdl *SCHDL, Simc *SIMCONTL, Wd *WDAT, vptr *VPTR) {
+func ValvControl(fi *EeTokens, Ncompnt int, Compnt []COMPNT, Schdl *SCHDL, Simc *SIMCONTL, Wd *WDAT, vptr *VPTR) {
 	var s string
 	var Valv, Vb *VALV
 	var Vc *COMPNT
 	var k, i int
-	var ad int64
 	var elins *ELIN
 	var Pelm *PELM
 
 	Vb = nil
-	_, err := fmt.Fscanf(fi, "%s", &s)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	ad, err = fi.(io.Seeker).Seek(0, io.SeekCurrent)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	s = fi.GetToken()
+
+	ad := fi.GetPos()
 
 	Vc = Compntptr(s, Ncompnt, Compnt)
 	if Vc == nil {
@@ -154,36 +144,17 @@ func ValvControl(fi io.Reader, Ncompnt int, Compnt []COMPNT, Schdl *SCHDL, Simc 
 
 	Valv = Vc.Eqp.(*VALV)
 	Valv.Org = 'y'
-	for {
-		_, err := fmt.Fscanf(fi, "%s", &s)
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			fmt.Println(err)
-			os.Exit(1)
-		}
+	for fi.IsEnd() == false {
+		s = fi.GetToken()
 
 		if strings.HasPrefix(s, ";") {
-			_, err := fi.(io.Seeker).Seek(ad, io.SeekStart)
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
+			fi.RestorePos(ad)
 			break
 		}
 
 		if s == "-init" {
-			_, err := fmt.Fscanf(fi, "%s", &s)
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
-			ad, err = fi.(io.Seeker).Seek(0, io.SeekCurrent)
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
+			s = fi.GetToken()
+			ad = fi.GetPos()
 
 			if k = idsch(s, Schdl.Sch, ""); k >= 0 {
 				Valv.Xinit = &Schdl.Val[k]
@@ -191,17 +162,8 @@ func ValvControl(fi io.Reader, Ncompnt int, Compnt []COMPNT, Schdl *SCHDL, Simc 
 				Valv.Xinit = envptr(s, Simc, Ncompnt, Compnt, Wd, nil)
 			}
 		} else if s == "-Tout" {
-			_, err := fmt.Fscanf(fi, "%s", &s)
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
-			ad, err = fi.(io.Seeker).Seek(0, io.SeekCurrent)
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
-
+			s = fi.GetToken()
+			ad = fi.GetPos()
 			if k = idsch(s, Schdl.Sch, ""); k >= 0 {
 				Valv.Tset = &Schdl.Val[k]
 			} else {

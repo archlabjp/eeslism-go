@@ -17,9 +17,7 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
 	"math"
 	"os"
 	"strconv"
@@ -28,7 +26,7 @@ import (
 
 /*  壁体デ－タの入力  */
 
-func PCMdata(fi io.ReadSeeker, dsn string, pcm *[]PCM, Npcm *int, pcmiterate *rune) {
+func PCMdata(fi *EeTokens, dsn string, pcm *[]PCM, Npcm *int, pcmiterate *rune) {
 	N := PCMcount(fi)
 
 	s := "PCMdata --"
@@ -97,10 +95,7 @@ func PCMdata(fi io.ReadSeeker, dsn string, pcm *[]PCM, Npcm *int, pcmiterate *ru
 
 		PCMa := &(*pcm)[i]
 
-		_, err := fmt.Fscanf(fi, " %s ", &s)
-		if err == io.EOF {
-			break
-		}
+		s = fi.GetToken()
 
 		if s[0] == '*' {
 			break
@@ -109,10 +104,7 @@ func PCMdata(fi io.ReadSeeker, dsn string, pcm *[]PCM, Npcm *int, pcmiterate *ru
 		PCMa.Name = s // PCM名称
 
 		for {
-			_, err := fmt.Fscanf(fi, "%s", &s)
-			if err != nil || s[0] == ';' {
-				break
-			}
+			s = fi.GetToken()
 
 			ce := strings.IndexByte(s, ';')
 			if ce >= 0 {
@@ -404,13 +396,12 @@ func dparaminit(A float64) int {
 	}
 }
 
-func PCMcount(fi io.ReadSeeker) int {
+func PCMcount(fi *EeTokens) int {
 	N := 0
-	add, _ := fi.Seek(0, io.SeekCurrent)
+	add := fi.GetPos()
 
-	scanner := bufio.NewScanner(fi)
-	for scanner.Scan() {
-		s := scanner.Text()
+	for fi.IsEnd() == false {
+		s := fi.GetToken()
 		if strings.HasPrefix(s, "*") {
 			break
 		}
@@ -419,7 +410,7 @@ func PCMcount(fi io.ReadSeeker) int {
 		}
 	}
 
-	fi.Seek(add, io.SeekStart)
+	fi.RestorePos(add)
 	return N
 }
 

@@ -1,23 +1,19 @@
 package main
 
 import (
-	"bufio"
-
 	"fmt"
-	"io"
 	"os"
 	"strconv"
 	"strings"
 )
 
 /*   システム要素の入力 */
-func Compodata(f io.ReadSeeker, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
+func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 	Cmp *[]COMPNT, Ncompnt *int, Eqsys *EQSYS, Ncmpalloc *int, ID int) {
 	var (
 		//cmp    *[]COMPNT
 		Compnt []COMPNT
 		Ni, No int
-		s      string
 		cio    rune
 		idi    []ELIOType
 		ido    []ELIOType
@@ -135,10 +131,8 @@ func Compodata(f io.ReadSeeker, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 	var comp_num int
 
 	if ID == 0 {
-		for {
-			if _, err := fmt.Fscanf(f, "%s", &s); err != nil {
-				break
-			}
+		for f.IsEnd() == false {
+			s := f.GetToken()
 			if s == "*" {
 				break
 			}
@@ -149,7 +143,7 @@ func Compodata(f io.ReadSeeker, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 
 			if strings.HasPrefix(s, "(") {
 				if len(s) == 1 {
-					fmt.Fscanf(f, "%s", &s)
+					s = f.GetToken()
 				} else {
 					fmt.Sscanf(s, "(%s", &s)
 				}
@@ -157,7 +151,7 @@ func Compodata(f io.ReadSeeker, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 				Compnt[comp_num].Name = s
 				comp_num++
 
-				fmt.Fscanf(f, "%s", s)
+				s = f.GetToken()
 
 				if strings.IndexRune(s, ')') != -1 {
 					idx := strings.IndexRune(s, ')')
@@ -188,9 +182,9 @@ func Compodata(f io.ReadSeeker, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 				}
 			}
 
-			for {
-				_, err := fmt.Fscanf(f, "%s", &s)
-				if err != nil || s[0] == ';' {
+			for f.IsEnd() == false {
+				s = f.GetToken()
+				if s[0] == ';' {
 					break
 				}
 				if strings.HasPrefix(s, "-") {
@@ -272,6 +266,7 @@ func Compodata(f io.ReadSeeker, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 				} else if cio != 'V' && cio != 'S' && strings.IndexRune(s, '-') != -1 {
 					idx := strings.IndexRune(s, '-')
 					st := s[idx+1:]
+					var err error
 					switch {
 					case strings.HasPrefix(s, "Ac"):
 						Compnt[comp_num].Ac, err = strconv.ParseFloat(st, 64)
@@ -338,6 +333,7 @@ func Compodata(f io.ReadSeeker, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 					case 'I':
 						// Satoh DEBUG 1998/5/15
 						if Crm {
+							var err error
 							if Compnt[comp_num].Eqptype == ROOM_TYPE {
 								if SIMUL_BUILDG {
 									room := Compnt[comp_num].Eqp.(*ROOM)
@@ -369,6 +365,7 @@ func Compodata(f io.ReadSeeker, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 						}
 						break
 					case 'O':
+						var err error
 						Compnt[comp_num].Nout, err = strconv.Atoi(s)
 						if err != nil {
 							panic(err)
@@ -381,6 +378,7 @@ func Compodata(f io.ReadSeeker, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 						break
 
 					case 'L':
+						var err error
 						*Compnt[comp_num].Ivparm, err = strconv.ParseFloat(s, 64)
 						if err != nil {
 							panic(err)
@@ -399,8 +397,13 @@ func Compodata(f io.ReadSeeker, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 						Compnt[comp_num].Rdpnlname = s
 						break
 					case 'R':
+						var err error
 						Compnt[comp_num].Roomname = s
-						fmt.Fscanf(f, "%f", &Compnt[comp_num].Eqpeff)
+						s = f.GetToken()
+						Compnt[comp_num].Eqpeff, err = strconv.ParseFloat(s, 64)
+						if err != nil {
+							panic(err)
+						}
 						break
 					case 's':
 						Compnt[comp_num].Exsname = s
@@ -411,8 +414,7 @@ func Compodata(f io.ReadSeeker, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 					case 'S', 'V':
 						s += "  "
 						s += strings.Repeat(" ", len(s))
-						var _s string
-						fmt.Fscanf(f, "%[^*]*", &_s)
+						_s := f.GetToken()
 						s += _s + " *"
 						Compnt[comp_num].Tparm = s
 						break
@@ -421,8 +423,7 @@ func Compodata(f io.ReadSeeker, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 						if strings.HasPrefix(s, "(") {
 							s += " "
 							s += strings.Repeat(" ", len(s))
-							var _s string
-							fmt.Fscanf(f, "%[^)])", &s)
+							_s := f.GetToken()
 							s += _s
 							Compnt[comp_num].Tparm = s
 						} else {
@@ -430,6 +431,7 @@ func Compodata(f io.ReadSeeker, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 						}
 						break
 					case 'w':
+						var err error
 						*Compnt[comp_num].Ivparm, err = strconv.ParseFloat(s, 64)
 						if err != nil {
 							panic(err)
@@ -440,6 +442,7 @@ func Compodata(f io.ReadSeeker, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 						Compnt[comp_num].Valvcmp.MonPlistName = s
 						break
 					case 'P':
+						var err error
 						Compnt[comp_num].MPCM, err = strconv.ParseFloat(s, 64)
 						if err != nil {
 							panic(err)
@@ -850,18 +853,17 @@ func Compodata(f io.ReadSeeker, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 	//printf("<<Compodata>> end\n");
 }
 
-func Compntcount(fi io.ReadSeeker) int {
+func Compntcount(fi *EeTokens) int {
 	N := 0
-	ad, _ := fi.Seek(0, io.SeekCurrent)
+	ad := fi.GetPos()
 
-	scanner := bufio.NewScanner(fi)
-	for scanner.Scan() {
-		s := scanner.Text()
+	for fi.IsEnd() == false {
+		s := fi.GetToken()
 
 		if s == ";" {
 			N++
-			scanner.Scan()
-			s = scanner.Text()
+
+			s = fi.GetToken()
 
 			if s == "*" {
 				break
@@ -875,7 +877,7 @@ func Compntcount(fi io.ReadSeeker) int {
 		}
 	}
 
-	fi.Seek(ad, io.SeekStart)
+	fi.RestorePos(ad)
 
 	return N
 }

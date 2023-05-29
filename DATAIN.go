@@ -17,8 +17,8 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"os"
+	"strconv"
 )
 
 /*
@@ -28,35 +28,32 @@ import (
   Create Date=1999.6.7
 */
 
-func HISASHI(fi io.Reader, sb *sunblk) {
-	var NAME string
-
-	fmt.Fscanf(fi, "%s", &NAME)
-	sb.snbname = NAME
+func HISASHI(fi *EeTokens, sb *sunblk) {
+	sb.snbname = fi.GetToken()
 
 	// 色の初期値
 	sb.rgb[0] = 0.0
 	sb.rgb[1] = 0.2
 	sb.rgb[2] = 0.0
 
-	for {
-		fmt.Fscanf(fi, "%s", &NAME)
+	for fi.IsEnd() == false {
+		NAME := fi.GetToken()
 		if NAME[0] == ';' {
 			break
 		}
 
 		if NAME == "-xy" {
-			fmt.Fscanf(fi, "%f", &sb.x)
-			fmt.Fscanf(fi, "%f", &sb.y)
+			sb.x = fi.GetFloat()
+			sb.y = fi.GetFloat()
 		} else if NAME == "-DW" {
-			fmt.Fscanf(fi, "%f", &sb.D)
-			fmt.Fscanf(fi, "%f", &sb.W)
+			sb.D = fi.GetFloat()
+			sb.W = fi.GetFloat()
 		} else if NAME == "-a" {
-			fmt.Fscanf(fi, "%f", &sb.WA)
+			sb.WA = fi.GetFloat()
 		} else if NAME == "-rgb" {
-			fmt.Fscanf(fi, "%f", &sb.rgb[0])
-			fmt.Fscanf(fi, "%f", &sb.rgb[1])
-			fmt.Fscanf(fi, "%f", &sb.rgb[2])
+			sb.rgb[0] = fi.GetFloat()
+			sb.rgb[1] = fi.GetFloat()
+			sb.rgb[2] = fi.GetFloat()
 		} else {
 			fmt.Printf("ERROR parameter----HISASI: %s\n", NAME)
 
@@ -67,38 +64,35 @@ func HISASHI(fi io.Reader, sb *sunblk) {
 
 /*--------------------------------------------------------------*/
 
-func BARUKO(fi io.Reader, sb *sunblk) {
-	var NAME string
-
+func BARUKO(fi *EeTokens, sb *sunblk) {
 	sb.ref = 0.0
 
 	sb.rgb[0] = 0.0
 	sb.rgb[1] = 0.2
 	sb.rgb[2] = 0.0
 
-	fmt.Fscanf(fi, "%s", &NAME)
-	sb.snbname = NAME
+	sb.snbname = fi.GetToken()
 
-	for {
-		fmt.Fscanf(fi, "%s", &NAME)
+	for fi.IsEnd() == false {
+		NAME := fi.GetToken()
 		if NAME[0] == ';' {
 			break
 		}
 
 		if NAME == "-xy" {
-			fmt.Fscanf(fi, "%f", &sb.x)
-			fmt.Fscanf(fi, "%f", &sb.y)
+			sb.x = fi.GetFloat()
+			sb.y = fi.GetFloat()
 		} else if NAME == "-DHWh" {
-			fmt.Fscanf(fi, "%f", &sb.D)
-			fmt.Fscanf(fi, "%f", &sb.H)
-			fmt.Fscanf(fi, "%f", &sb.W)
-			fmt.Fscanf(fi, "%f", &sb.h)
+			sb.D = fi.GetFloat()
+			sb.H = fi.GetFloat()
+			sb.W = fi.GetFloat()
+			sb.h = fi.GetFloat()
 		} else if NAME == "-ref" {
-			fmt.Fscanf(fi, "%f", &sb.ref)
+			sb.ref = fi.GetFloat()
 		} else if NAME == "-rgb" {
-			fmt.Fscanf(fi, "%f", &sb.rgb[0])
-			fmt.Fscanf(fi, "%f", &sb.rgb[1])
-			fmt.Fscanf(fi, "%f", &sb.rgb[2])
+			sb.rgb[0] = fi.GetFloat()
+			sb.rgb[1] = fi.GetFloat()
+			sb.rgb[2] = fi.GetFloat()
 		} else {
 			fmt.Printf("ERROR parameter----WBARUKONI: %s\n", NAME)
 
@@ -109,34 +103,31 @@ func BARUKO(fi io.Reader, sb *sunblk) {
 
 /*------------------------------------------------------------------*/
 
-func SODEK(fi io.Reader, sb *sunblk) {
-	var NAME string
-
+func SODEK(fi *EeTokens, sb *sunblk) {
 	sb.rgb[0] = 0.0
 	sb.rgb[1] = 0.2
 	sb.rgb[2] = 0.0
 
-	fmt.Fscanf(fi, "%s", &NAME)
-	sb.snbname = NAME
+	sb.snbname = fi.GetToken()
 
-	for {
-		fmt.Fscanf(fi, "%s", &NAME)
+	for fi.IsEnd() == false {
+		NAME := fi.GetToken()
 		if NAME[0] == ';' {
 			break
 		}
 
 		if NAME == "-xy" {
-			fmt.Fscanf(fi, "%f", &sb.x)
-			fmt.Fscanf(fi, "%f", &sb.y)
+			sb.x = fi.GetFloat()
+			sb.y = fi.GetFloat()
 		} else if NAME == "-DH" {
-			fmt.Fscanf(fi, "%f", &sb.D)
-			fmt.Fscanf(fi, "%f", &sb.H)
+			sb.D = fi.GetFloat()
+			sb.H = fi.GetFloat()
 		} else if NAME == "-a" {
-			fmt.Fscanf(fi, "%f", &sb.WA)
+			sb.WA = fi.GetFloat()
 		} else if NAME == "-rgb" {
-			fmt.Fscanf(fi, "%f", &sb.rgb[0])
-			fmt.Fscanf(fi, "%f", &sb.rgb[1])
-			fmt.Fscanf(fi, "%f", &sb.rgb[2])
+			sb.rgb[0] = fi.GetFloat()
+			sb.rgb[1] = fi.GetFloat()
+			sb.rgb[2] = fi.GetFloat()
 		} else {
 			fmt.Printf("ERROR parameter----SODEKABE: %s\n", NAME)
 
@@ -147,33 +138,30 @@ func SODEK(fi io.Reader, sb *sunblk) {
 
 /*-----------------------------------------------------------------------*/
 
-func SCREEN(fi io.Reader, sb *sunblk) {
-	var NAME string
-
+func SCREEN(fi *EeTokens, sb *sunblk) {
 	sb.rgb[0] = 0.0
 	sb.rgb[1] = 0.2
 	sb.rgb[2] = 0.0
 
-	fmt.Fscanf(fi, "%s", &NAME)
-	sb.snbname = NAME
+	sb.snbname = fi.GetToken()
 
-	for {
-		fmt.Fscanf(fi, "%s", &NAME)
+	for fi.IsEnd() == false {
+		NAME := fi.GetToken()
 		if NAME[0] == ';' {
 			break
 		}
 
 		if NAME == "-xy" {
-			fmt.Fscanf(fi, "%f", &sb.x)
-			fmt.Fscanf(fi, "%f", &sb.y)
+			sb.x = fi.GetFloat()
+			sb.y = fi.GetFloat()
 		} else if NAME == "-DHW" {
-			fmt.Fscanf(fi, "%f", &sb.D)
-			fmt.Fscanf(fi, "%f", &sb.H)
-			fmt.Fscanf(fi, "%f", &sb.W)
+			sb.D = fi.GetFloat()
+			sb.H = fi.GetFloat()
+			sb.W = fi.GetFloat()
 		} else if NAME == "-rgb" {
-			fmt.Fscanf(fi, "%f", &sb.rgb[0])
-			fmt.Fscanf(fi, "%f", &sb.rgb[1])
-			fmt.Fscanf(fi, "%f", &sb.rgb[2])
+			sb.rgb[0] = fi.GetFloat()
+			sb.rgb[1] = fi.GetFloat()
+			sb.rgb[2] = fi.GetFloat()
 		} else {
 			fmt.Printf("ERROR paramater---MADOHIYOKE: %s\n", NAME)
 
@@ -184,9 +172,7 @@ func SCREEN(fi io.Reader, sb *sunblk) {
 
 /*----------------------------------------------------------------*/
 
-func rmpdata(fi io.Reader, rp *RRMP, _wp []MADO) {
-	var NAME string
-
+func rmpdata(fi *EeTokens, rp *RRMP, _wp []MADO) {
 	rp.ref = 0.0
 	rp.grpx = 1.0
 
@@ -194,31 +180,29 @@ func rmpdata(fi io.Reader, rp *RRMP, _wp []MADO) {
 	rp.rgb[1] = 0.9
 	rp.rgb[2] = 0.9
 
-	fmt.Fscanf(fi, "%s", &NAME)
-	rp.rmpname = NAME
-	fmt.Fscanf(fi, "%s", &NAME)
-	rp.wallname = NAME
+	rp.rmpname = fi.GetToken()
+	rp.wallname = fi.GetToken()
 
-	for {
-		fmt.Fscanf(fi, "%s", &NAME)
+	for fi.IsEnd() == false {
+		NAME := fi.GetToken()
 		if NAME[0] == ';' {
 			break
 		}
 
 		if NAME == "-xyb" {
-			fmt.Fscanf(fi, "%f", &rp.xb0)
-			fmt.Fscanf(fi, "%f", &rp.yb0)
+			rp.xb0 = fi.GetFloat()
+			rp.yb0 = fi.GetFloat()
 		} else if NAME == "-WH" {
-			fmt.Fscanf(fi, "%f", &rp.Rw)
-			fmt.Fscanf(fi, "%f", &rp.Rh)
+			rp.Rw = fi.GetFloat()
+			rp.Rh = fi.GetFloat()
 		} else if NAME == "-ref" {
-			fmt.Fscanf(fi, "%f", &rp.ref)
+			rp.ref = fi.GetFloat()
 		} else if NAME == "-grpx" {
-			fmt.Fscanf(fi, "%f", &rp.grpx)
+			rp.grpx = fi.GetFloat()
 		} else if NAME == "-rgb" {
-			fmt.Fscanf(fi, "%f", &rp.rgb[0])
-			fmt.Fscanf(fi, "%f", &rp.rgb[1])
-			fmt.Fscanf(fi, "%f", &rp.rgb[2])
+			rp.rgb[0] = fi.GetFloat()
+			rp.rgb[1] = fi.GetFloat()
+			rp.rgb[2] = fi.GetFloat()
 		} else {
 			fmt.Printf("ERROR parameter----RMP: %s\n", NAME)
 			os.Exit(1)
@@ -227,7 +211,7 @@ func rmpdata(fi io.Reader, rp *RRMP, _wp []MADO) {
 
 	rp.sumWD = 0
 	for _, wp := range _wp {
-		fmt.Fscanf(fi, "%s", &NAME)
+		NAME := fi.GetToken()
 		if NAME[0] == ';' {
 			break
 		}
@@ -246,29 +230,28 @@ func rmpdata(fi io.Reader, rp *RRMP, _wp []MADO) {
 
 		rp.sumWD++
 
-		fmt.Fscanf(fi, "%s", &NAME)
-		wp.winname = NAME
+		wp.winname = fi.GetToken()
 
-		for {
-			fmt.Fscanf(fi, "%s", &NAME)
+		for fi.IsEnd() == false {
+			NAME := fi.GetToken()
 			if NAME[0] == ';' {
 				break
 			}
 
 			if NAME == "-xyr" {
-				fmt.Fscanf(fi, "%f", &wp.xr)
-				fmt.Fscanf(fi, "%f", &wp.yr)
+				wp.xr = fi.GetFloat()
+				wp.yr = fi.GetFloat()
 			} else if NAME == "-WH" {
-				fmt.Fscanf(fi, "%f", &wp.Ww)
-				fmt.Fscanf(fi, "%f", &wp.Wh)
+				wp.Ww = fi.GetFloat()
+				wp.Wh = fi.GetFloat()
 			} else if NAME == "-ref" {
-				fmt.Fscanf(fi, "%f", &wp.ref)
+				wp.ref = fi.GetFloat()
 			} else if NAME == "-grpx" {
-				fmt.Fscanf(fi, "%f", &wp.grpx)
+				wp.grpx = fi.GetFloat()
 			} else if NAME == "-rgb" {
-				fmt.Fscanf(fi, "%f", &wp.rgb[0])
-				fmt.Fscanf(fi, "%f", &wp.rgb[1])
-				fmt.Fscanf(fi, "%f", &wp.rgb[2])
+				wp.rgb[0] = fi.GetFloat()
+				wp.rgb[1] = fi.GetFloat()
+				wp.rgb[2] = fi.GetFloat()
 			} else {
 				fmt.Printf("ERROR parameter----WD: %s\n", NAME)
 				os.Exit(1)
@@ -278,40 +261,37 @@ func rmpdata(fi io.Reader, rp *RRMP, _wp []MADO) {
 }
 
 /*------------------------------------------------------------------*/
-func rectdata(fi io.Reader, obs *OBS) {
-	var NAME string
-
+func rectdata(fi *EeTokens, obs *OBS) {
 	obs.ref[0] = 0.0
 
 	obs.rgb[0] = 0.7
 	obs.rgb[1] = 0.7
 	obs.rgb[2] = 0.7
 
-	fmt.Fscanf(fi, "%s", &NAME)
-	obs.obsname = NAME
+	obs.obsname = fi.GetToken()
 
-	for {
-		fmt.Fscanf(fi, "%s", &NAME)
+	for fi.IsEnd() == false {
+		NAME := fi.GetToken()
 		if NAME[0] == ';' {
 			break
 		}
 
 		if NAME == "-xyz" {
-			fmt.Fscanf(fi, "%f", &obs.x)
-			fmt.Fscanf(fi, "%f", &obs.y)
-			fmt.Fscanf(fi, "%f", &obs.z)
+			obs.x = fi.GetFloat()
+			obs.y = fi.GetFloat()
+			obs.z = fi.GetFloat()
 		} else if NAME == "-WH" {
-			fmt.Fscanf(fi, "%f", &obs.W)
-			fmt.Fscanf(fi, "%f", &obs.H)
+			obs.W = fi.GetFloat()
+			obs.H = fi.GetFloat()
 		} else if NAME == "-WaWb" {
-			fmt.Fscanf(fi, "%f", &obs.Wa)
-			fmt.Fscanf(fi, "%f", &obs.Wb)
+			obs.Wa = fi.GetFloat()
+			obs.Wb = fi.GetFloat()
 		} else if NAME == "-ref" {
-			fmt.Fscanf(fi, "%f", &obs.ref[0])
+			obs.ref[0] = fi.GetFloat()
 		} else if NAME == "-rgb" {
-			fmt.Fscanf(fi, "%f", &obs.rgb[0])
-			fmt.Fscanf(fi, "%f", &obs.rgb[1])
-			fmt.Fscanf(fi, "%f", &obs.rgb[2])
+			obs.rgb[0] = fi.GetFloat()
+			obs.rgb[1] = fi.GetFloat()
+			obs.rgb[2] = fi.GetFloat()
 		} else {
 			fmt.Printf("ERROR parameter----OBS.rect: %s\n", NAME)
 			os.Exit(1)
@@ -320,9 +300,7 @@ func rectdata(fi io.Reader, obs *OBS) {
 }
 
 /*------------------------------------------------------------------*/
-func cubdata(fi io.Reader, obs *OBS) {
-	var NAME string
-
+func cubdata(fi *EeTokens, obs *OBS) {
 	for i := 0; i < 3; i++ {
 		obs.ref[i] = 0.0
 	}
@@ -331,37 +309,36 @@ func cubdata(fi io.Reader, obs *OBS) {
 	obs.rgb[1] = 0.7
 	obs.rgb[2] = 0.7
 
-	fmt.Fscanf(fi, "%s", &NAME)
-	obs.obsname = NAME
+	obs.obsname = fi.GetToken()
 
-	for {
-		fmt.Fscanf(fi, "%s", &NAME)
+	for fi.IsEnd() == false {
+		NAME := fi.GetToken()
 		if NAME[0] == ';' {
 			break
 		}
 
 		if NAME == "-xyz" {
-			fmt.Fscanf(fi, "%f", &obs.x)
-			fmt.Fscanf(fi, "%f", &obs.y)
-			fmt.Fscanf(fi, "%f", &obs.z)
+			obs.x = fi.GetFloat()
+			obs.y = fi.GetFloat()
+			obs.z = fi.GetFloat()
 		} else if NAME == "-WDH" {
-			fmt.Fscanf(fi, "%f", &obs.W)
-			fmt.Fscanf(fi, "%f", &obs.D)
-			fmt.Fscanf(fi, "%f", &obs.H)
+			obs.W = fi.GetFloat()
+			obs.D = fi.GetFloat()
+			obs.H = fi.GetFloat()
 		} else if NAME == "-Wa" {
-			fmt.Fscanf(fi, "%f", &obs.Wa)
+			obs.Wa = fi.GetFloat()
 		} else if NAME == "-ref0" {
-			fmt.Fscanf(fi, "%f", &obs.ref[0])
+			obs.ref[0] = fi.GetFloat()
 		} else if NAME == "-ref1" {
-			fmt.Fscanf(fi, "%f", &obs.ref[1])
+			obs.ref[1] = fi.GetFloat()
 		} else if NAME == "-ref2" {
-			fmt.Fscanf(fi, "%f", &obs.ref[2])
+			obs.ref[2] = fi.GetFloat()
 		} else if NAME == "-ref3" {
-			fmt.Fscanf(fi, "%f", &obs.ref[3])
+			obs.ref[3] = fi.GetFloat()
 		} else if NAME == "-rgb" {
-			fmt.Fscanf(fi, "%f", &obs.rgb[0])
-			fmt.Fscanf(fi, "%f", &obs.rgb[1])
-			fmt.Fscanf(fi, "%f", &obs.rgb[2])
+			obs.rgb[0] = fi.GetFloat()
+			obs.rgb[1] = fi.GetFloat()
+			obs.rgb[2] = fi.GetFloat()
 		} else {
 			fmt.Printf("ERROR parameter----OBS.cube: %s\n", NAME)
 			os.Exit(1)
@@ -370,39 +347,37 @@ func cubdata(fi io.Reader, obs *OBS) {
 }
 
 /*-------------------------------------------------------------------*/
-func tridata(fi io.Reader, obs *OBS) {
-	var NAME string
-
+func tridata(fi *EeTokens, obs *OBS) {
 	obs.ref[0] = 0.0
 
 	obs.rgb[0] = 0.7
 	obs.rgb[1] = 0.7
 	obs.rgb[2] = 0.7
 
-	fmt.Fscanf(fi, "%s", &obs.obsname)
+	obs.obsname = fi.GetToken()
 
-	for {
-		fmt.Fscanf(fi, "%s", &NAME)
+	for fi.IsEnd() == false {
+		NAME := fi.GetToken()
 		if NAME[0] == ';' {
 			break
 		}
 
 		if NAME == "-xyz" {
-			fmt.Fscanf(fi, "%f", &obs.x)
-			fmt.Fscanf(fi, "%f", &obs.y)
-			fmt.Fscanf(fi, "%f", &obs.z)
+			obs.x = fi.GetFloat()
+			obs.y = fi.GetFloat()
+			obs.z = fi.GetFloat()
 		} else if NAME == "-WH" {
-			fmt.Fscanf(fi, "%f", &obs.W)
-			fmt.Fscanf(fi, "%f", &obs.H)
+			obs.W = fi.GetFloat()
+			obs.H = fi.GetFloat()
 		} else if NAME == "-WaWb" {
-			fmt.Fscanf(fi, "%f", &obs.Wa)
-			fmt.Fscanf(fi, "%f", &obs.Wb)
+			obs.Wa = fi.GetFloat()
+			obs.Wb = fi.GetFloat()
 		} else if NAME == "-ref" {
-			fmt.Fscanf(fi, "%f", &obs.ref[0])
+			obs.ref[0] = fi.GetFloat()
 		} else if NAME == "-rgb" {
-			fmt.Fscanf(fi, "%f", &obs.rgb[0])
-			fmt.Fscanf(fi, "%f", &obs.rgb[1])
-			fmt.Fscanf(fi, "%f", &obs.rgb[2])
+			obs.rgb[0] = fi.GetFloat()
+			obs.rgb[1] = fi.GetFloat()
+			obs.rgb[2] = fi.GetFloat()
 		} else {
 			fmt.Printf("ERROR parameter----OBS.triangle: %s\n", NAME)
 			os.Exit(1)
@@ -412,19 +387,29 @@ func tridata(fi io.Reader, obs *OBS) {
 
 /*-------------------------------------------------------------------*/
 // 20170503 higuchi add
-func dividdata(fi io.Reader, monten *int, DE *float64) {
+func dividdata(fi *EeTokens, monten *int, DE *float64) {
 	var NAME string
 
-	for {
-		fmt.Fscanf(fi, "%s", &NAME)
+	for fi.IsEnd() == false {
+		NAME = fi.GetToken()
 		if NAME[0] == ';' {
 			break
 		}
 
 		if NAME == "DE" {
-			fmt.Fscanf(fi, "%f", DE)
+			var err error
+			s := fi.GetToken()
+			*DE, err = strconv.ParseFloat(s, 64)
+			if err != nil {
+				fmt.Printf("ERROR parameter----DIVID: %s\n", NAME)
+			}
 		} else if NAME == "MONT" {
-			fmt.Fscanf(fi, "%d", monten)
+			var err error
+			s := fi.GetToken()
+			*monten, err = strconv.Atoi(s)
+			if err != nil {
+				fmt.Printf("ERROR parameter----DIVID: %s\n", NAME)
+			}
 		} else {
 			fmt.Printf("ERROR parameter----DIVID: %s\n", NAME)
 
@@ -432,10 +417,10 @@ func dividdata(fi io.Reader, monten *int, DE *float64) {
 		}
 	}
 
-	fmt.Fscanf(fi, "%s", &NAME)
+	NAME = fi.GetToken()
 }
 
-func treedata(fi io.ReadSeeker, treen *int, tree *[]TREE) {
+func treedata(fi *EeTokens, treen *int, tree *[]TREE) {
 	var i int
 	var Ntree int
 	var tred *TREE
@@ -472,38 +457,38 @@ func treedata(fi io.ReadSeeker, treen *int, tree *[]TREE) {
 		tred = &(*tree)[i]
 
 		var NAME string
-		fmt.Fscanf(fi, "%s", &NAME)
+		NAME = fi.GetToken()
 		if NAME[0] == '*' {
 			break
 		}
 
 		tred.treetype = NAME
 
-		fmt.Fscanf(fi, "%s", &NAME)
+		NAME = fi.GetToken()
 		tred.treename = NAME
 
 		if tred.treetype == "treeA" {
-			for {
-				fmt.Fscanf(fi, "%s", &NAME)
+			for fi.IsEnd() == false {
+				NAME = fi.GetToken()
 				if NAME[0] == ';' {
 					break
 				}
 
 				if NAME == "-xyz" {
-					fmt.Fscanf(fi, "%f", &tred.x)
-					fmt.Fscanf(fi, "%f", &tred.y)
-					fmt.Fscanf(fi, "%f", &tred.z)
+					tred.x = fi.GetFloat()
+					tred.y = fi.GetFloat()
+					tred.z = fi.GetFloat()
 				} else if NAME == "-WH1" {
-					fmt.Fscanf(fi, "%f", &tred.W1)
-					fmt.Fscanf(fi, "%f", &tred.H1)
+					tred.W1 = fi.GetFloat()
+					tred.H1 = fi.GetFloat()
 				} else if NAME == "-WH2" {
-					fmt.Fscanf(fi, "%f", &tred.W2)
-					fmt.Fscanf(fi, "%f", &tred.H2)
+					tred.W2 = fi.GetFloat()
+					tred.H2 = fi.GetFloat()
 				} else if NAME == "-WH3" {
-					fmt.Fscanf(fi, "%f", &tred.W3)
-					fmt.Fscanf(fi, "%f", &tred.H3)
+					tred.W3 = fi.GetFloat()
+					tred.H3 = fi.GetFloat()
 				} else if NAME == "-WH4" {
-					fmt.Fscanf(fi, "%f", &tred.W4)
+					tred.W4 = fi.GetFloat()
 				} else {
 					fmt.Printf("ERROR parameter----TREE: %s %s\n", tred.treename, NAME)
 					os.Exit(1)
@@ -519,7 +504,7 @@ func treedata(fi io.ReadSeeker, treen *int, tree *[]TREE) {
 }
 
 /*-------------------------*/
-func polydata(fi io.ReadSeeker, polyn *int, poly *[]POLYGN) {
+func polydata(fi *EeTokens, polyn *int, poly *[]POLYGN) {
 	var i int
 	var Npoly int
 	var polyp *POLYGN
@@ -551,7 +536,7 @@ func polydata(fi io.ReadSeeker, polyn *int, poly *[]POLYGN) {
 		polyp = &(*poly)[i]
 
 		var NAME string
-		fmt.Fscanf(fi, "%s", &NAME)
+		NAME = fi.GetToken()
 		if NAME[0] == '*' {
 			break
 		}
@@ -569,37 +554,35 @@ func polydata(fi io.ReadSeeker, polyn *int, poly *[]POLYGN) {
 			os.Exit(1)
 		}
 
-		fmt.Fscanf(fi, "%d", &polyp.polyd)
+		polyp.polyd = fi.GetInt()
 		polyp.P = make([]XYZ, polyp.polyd)
 
-		fmt.Fscanf(fi, "%s", &NAME)
-		polyp.polyname = NAME
-		fmt.Fscanf(fi, "%s", &NAME)
-		polyp.wallname = NAME
+		polyp.polyname = fi.GetToken()
+		polyp.wallname = fi.GetToken()
 
-		for {
-			fmt.Fscanf(fi, "%s", &NAME)
+		for fi.IsEnd() == false {
+			NAME = fi.GetToken()
 			if NAME[0] == ';' {
 				break
 			}
 
 			if NAME == "-xyz" {
 				for i = 0; i < polyp.polyd; i++ {
-					fmt.Fscanf(fi, "%f", &polyp.P[i].X)
-					fmt.Fscanf(fi, "%f", &polyp.P[i].Y)
-					fmt.Fscanf(fi, "%f", &polyp.P[i].Z)
+					polyp.P[i].X = fi.GetFloat()
+					polyp.P[i].Y = fi.GetFloat()
+					polyp.P[i].Z = fi.GetFloat()
 				}
 
 			} else if NAME == "-rgb" {
-				fmt.Fscanf(fi, "%f", &polyp.rgb[0])
-				fmt.Fscanf(fi, "%f", &polyp.rgb[1])
-				fmt.Fscanf(fi, "%f", &polyp.rgb[2])
+				polyp.rgb[0] = fi.GetFloat()
+				polyp.rgb[1] = fi.GetFloat()
+				polyp.rgb[2] = fi.GetFloat()
 			} else if NAME == "-ref" {
-				fmt.Fscanf(fi, "%f", &polyp.ref)
+				polyp.ref = fi.GetFloat()
 			} else if NAME == "-refg" {
-				fmt.Fscanf(fi, "%f", &polyp.refg)
+				polyp.refg = fi.GetFloat()
 			} else if NAME == "-grpx" {
-				fmt.Fscanf(fi, "%f", &polyp.grpx)
+				polyp.grpx = fi.GetFloat()
 			} else {
 				fmt.Printf("ERROR parameter----POLYGON: %s\n", NAME)
 				os.Exit(1)
@@ -610,7 +593,7 @@ func polydata(fi io.ReadSeeker, polyn *int, poly *[]POLYGN) {
 }
 
 /*---------------------------------------------------------------------------*/
-func bdpdata(fi io.ReadSeeker, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
+func bdpdata(fi *EeTokens, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
 
 	var rp *RRMP
 	var wp *MADO
@@ -652,7 +635,7 @@ func bdpdata(fi io.ReadSeeker, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
 		bbdp = &(*bp)[i]
 
 		var NAME string
-		fmt.Fscanf(fi, "%s", &NAME)
+		NAME = fi.GetToken()
 		if NAME[0] == '*' {
 			break
 		}
@@ -662,30 +645,28 @@ func bdpdata(fi io.ReadSeeker, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
 			os.Exit(1)
 		}
 
-		fmt.Fscanf(fi, "%s", &NAME)
-		bbdp.bdpname = NAME
+		bbdp.bdpname = fi.GetToken()
 
-		for {
-			fmt.Fscanf(fi, "%s", &NAME)
+		for fi.IsEnd() == false {
+			NAME = fi.GetToken()
 			if NAME[0] == ';' {
 				break
 			}
 
 			if NAME == "-xyz" {
-				fmt.Fscanf(fi, "%f", &bbdp.x0)
-				fmt.Fscanf(fi, "%f", &bbdp.y0)
-				fmt.Fscanf(fi, "%f", &bbdp.z0)
+				bbdp.x0 = fi.GetFloat()
+				bbdp.y0 = fi.GetFloat()
+				bbdp.z0 = fi.GetFloat()
 			} else if NAME == "-WA" {
-				fmt.Fscanf(fi, "%f", &bbdp.Wa)
+				bbdp.Wa = fi.GetFloat()
 			} else if NAME == "-WB" {
-				fmt.Fscanf(fi, "%f", &bbdp.Wb)
+				bbdp.Wb = fi.GetFloat()
 			} else if NAME == "-WH" {
-				fmt.Fscanf(fi, "%f", &bbdp.exw)
-				fmt.Fscanf(fi, "%f", &bbdp.exh)
+				bbdp.exw = fi.GetFloat()
+				bbdp.exh = fi.GetFloat()
 			} else if NAME == "-exs" {
 				// Satoh修正（2018/1/23）
-				fmt.Fscanf(fi, "%s", &NAME)
-				bbdp.exsfname = NAME
+				bbdp.exsfname = fi.GetToken()
 
 				//外表面の検索
 				id := false
@@ -761,15 +742,14 @@ func bdpdata(fi io.ReadSeeker, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
 			sb = &bbdp.SBLK[sb_idx]
 			rp = &bbdp.RMP[rp_idx]
 
-			fmt.Fscanf(fi, "%s", &NAME)
+			NAME = fi.GetToken()
 			if NAME[0] == '*' {
 				break
 			}
 
 			if NAME == "SBLK" {
 				sb.ref = 0.0
-				fmt.Fscanf(fi, "%s", &NAME)
-				sb.sbfname = NAME
+				sb.sbfname = fi.GetToken()
 
 				if sb.sbfname == "HISASI" {
 					HISASHI(fi, sb)
@@ -819,7 +799,7 @@ func bdpdata(fi io.ReadSeeker, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
 }
 
 /*--------------------------------------------------------------------------*/
-func obsdata(fi io.ReadSeeker, obsn *int, obs *[]OBS) {
+func obsdata(fi *EeTokens, obsn *int, obs *[]OBS) {
 	var i, Nobs int
 	var obsp *OBS
 
@@ -845,12 +825,11 @@ func obsdata(fi io.ReadSeeker, obsn *int, obs *[]OBS) {
 	}
 
 	*obsn = 0
-	var NAME string
 	for i = 0; i < Nobs; i++ {
 		obsp = &(*obs)[i]
 
-		_, err := fmt.Fscanf(fi, "%s", &NAME)
-		if err != nil || NAME[0] == '*' {
+		NAME := fi.GetToken()
+		if NAME[0] == '*' {
 			break
 		}
 
@@ -875,24 +854,20 @@ func obsdata(fi io.ReadSeeker, obsn *int, obs *[]OBS) {
 	}
 }
 
-func InputCount(fi io.ReadSeeker, key string) int {
+func InputCount(fi *EeTokens, key string) int {
 	N := 0
-	ad, _ := fi.Seek(0, io.SeekCurrent)
+	ad := fi.GetPos()
 
-	var s string
-	for {
-		_, err := fmt.Fscanf(fi, "%s", &s)
-		if err == io.EOF || s == "*" {
+	for fi.IsEnd() == false {
+		s := fi.GetToken()
+		if s == "*" {
 			break
 		}
 
 		N++
 
-		for {
-			_, err := fmt.Fscanf(fi, "%s", &s)
-			if err == io.EOF {
-				break
-			}
+		for fi.IsEnd() == false {
+			s = fi.GetToken()
 
 			if s == key {
 				break
@@ -900,18 +875,18 @@ func InputCount(fi io.ReadSeeker, key string) int {
 		}
 	}
 
-	_, _ = fi.Seek(ad, io.SeekStart)
+	fi.RestorePos(ad)
 	return N
 }
 
-func SBLKCount(fi io.ReadSeeker) int {
+func SBLKCount(fi *EeTokens) int {
 	N := 0
-	ad, _ := fi.Seek(0, io.SeekCurrent)
+	ad := fi.GetPos()
 
 	var s string
-	for {
-		_, err := fmt.Fscanf(fi, "%s", &s)
-		if err == io.EOF || s == "*" {
+	for fi.IsEnd() == false {
+		s = fi.GetToken()
+		if s == "*" {
 			break
 		}
 
@@ -920,18 +895,18 @@ func SBLKCount(fi io.ReadSeeker) int {
 		}
 	}
 
-	_, _ = fi.Seek(ad, io.SeekStart)
+	fi.RestorePos(ad)
 	return N
 }
 
-func RMPCount(fi io.ReadSeeker) int {
+func RMPCount(fi *EeTokens) int {
 	N := 0
-	ad, _ := fi.Seek(0, io.SeekCurrent)
+	ad := fi.GetPos()
 
 	var s string
-	for {
-		_, err := fmt.Fscanf(fi, "%s", &s)
-		if err == io.EOF || s == "*" {
+	for fi.IsEnd() == false {
+		s = fi.GetToken()
+		if s == "*" {
 			break
 		}
 
@@ -940,21 +915,18 @@ func RMPCount(fi io.ReadSeeker) int {
 		}
 	}
 
-	_, _ = fi.Seek(ad, io.SeekStart)
+	fi.RestorePos(ad)
+
 	return N
 }
 
-func WDCount(fi io.ReadSeeker) int {
+func WDCount(fi *EeTokens) int {
 	N := 0
-	ad, _ := fi.Seek(0, io.SeekCurrent)
+	ad := fi.GetPos()
 
 	Flg := 0
-	var s string
-	for {
-		_, err := fmt.Fscanf(fi, "%s", &s)
-		if err == io.EOF {
-			break
-		}
+	for fi.IsEnd() == false {
+		s := fi.GetToken()
 
 		if s == "WD" {
 			N++
@@ -971,7 +943,8 @@ func WDCount(fi io.ReadSeeker) int {
 		}
 	}
 
-	_, _ = fi.Seek(ad, io.SeekStart)
+	fi.RestorePos(ad)
+
 	return N
 }
 

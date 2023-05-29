@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 /* ----------------------------------------------------- */
 
 // ファイルのオープン
-func (Simc *SIMCONTL) eeflopen(Nflout int, Flout []*FLOUT) {
+func (Simc *SIMCONTL) eeflopen(Flout []*FLOUT) {
 	// 気象データファイルを開く
 	if Simc.Wdtype == 'H' {
 		var err error
@@ -38,32 +39,30 @@ func (Simc *SIMCONTL) eeflopen(Nflout int, Flout []*FLOUT) {
 	// }
 
 	// 出力ファイルを開く
-	for i := 0; i < Nflout; i++ {
-		fl := Flout[i]
-		Fname := Simc.Ofname + string(fl.Idn) + ".es"
-
-		var err error
-		fl.F, err = os.Create(Fname)
-		if err != nil {
-			Eprint("<eeflopen>", Fname)
-			os.Exit(EXIT_WFILE)
-		}
+	for _, fl := range Flout {
+		fl.Fname = Simc.Ofname + string(fl.Idn) + ".es"
+		fl.F = new(strings.Builder)
 	}
 }
 
 /* ----------------------------------------------------- */
 
-func Eeflclose(Nflout int, Flout []*FLOUT) {
+func Eeflclose(Flout []*FLOUT) {
 	var fl *FLOUT
 
 	if Ferr != nil {
 		Ferr.Close()
 	}
 
-	for i := 0; i < Nflout; i++ {
-		fl = Flout[i]
-		fmt.Fprintln(fl.F, "-999")
-		// fl.F.Sync()
-		// fl.F.Close()
+	for _, fl = range Flout {
+		fo, err := os.Create(fl.Fname)
+		if err != nil {
+			Eprint("<eeflopen>", fl.Fname)
+			os.Exit(EXIT_WFILE)
+		}
+
+		fmt.Fprint(fo, fl.F)
+		fmt.Fprintln(fo, "-999")
+		fo.Close()
 	}
 }

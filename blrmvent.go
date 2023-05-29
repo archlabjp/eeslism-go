@@ -18,7 +18,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"strings"
 )
 
@@ -26,27 +25,21 @@ import (
 
 /*  外気導入量および室間相互換気量の設定スケジュ－ル入力   */
 
-func Ventdata(fi io.Reader, dsn string, Schdl *SCHDL, Room []ROOM, Simc *SIMCONTL) {
+func Ventdata(fi *EeTokens, dsn string, Schdl *SCHDL, Room []ROOM, Simc *SIMCONTL) {
 	var achr *ACHIR
 	var room, Rm *ROOM
 	var name1, name2, s, ss, E string
 	var val float64
 	var i, j, v, k int
-	var err error
 
 	E = fmt.Sprintf(ERRFMT, dsn)
-	for {
-		_, err = fmt.Fscanf(fi, " %s ", &name1)
-		if err != nil || name1 == "*" {
-			break
-		}
+	for fi.IsEnd() == false {
+		name1 = fi.GetToken()
+
 		i = idroom(name1, Room, E+name1)
 		Rm = &Room[i]
 
-		_, err = fmt.Fscanf(fi, " %s ", &s)
-		if err != nil {
-			break
-		}
+		s = fi.GetToken()
 		st := strings.IndexByte(s, '=')
 		if st != -1 {
 			for s != "" {
@@ -55,7 +48,11 @@ func Ventdata(fi io.Reader, dsn string, Schdl *SCHDL, Room []ROOM, Simc *SIMCONT
 				valstr := _ss[1]
 				switch key {
 				case "Vent":
+					var err error
 					_, err = fmt.Sscanf(valstr, "(%f,%[^)])", &val, &ss)
+					if err != nil {
+						panic(err)
+					}
 					Rm.Gve = val
 
 					if k = idsch(ss, Schdl.Sch, ""); k >= 0 {
@@ -64,7 +61,11 @@ func Ventdata(fi io.Reader, dsn string, Schdl *SCHDL, Room []ROOM, Simc *SIMCONT
 						Rm.Vesc = envptr(ss, Simc, 0, nil, nil, nil)
 					}
 				case "Inf":
+					var err error
 					_, err = fmt.Sscanf(valstr, "(%f,%[^)])", &val, &ss)
+					if err != nil {
+						panic(err)
+					}
 					Rm.Gvi = val
 
 					if k = idsch(ss, Schdl.Sch, ""); k >= 0 {
@@ -80,17 +81,15 @@ func Ventdata(fi io.Reader, dsn string, Schdl *SCHDL, Room []ROOM, Simc *SIMCONT
 				if st = strings.IndexByte(valstr, ';'); st != -1 {
 					break
 				}
-				_, err = fmt.Fscanf(fi, " %s ", &s)
-				if s == ";" {
-					break
-				}
+				s = fi.GetToken()
 			}
 		} else {
 			c := s[0]
-			_, err = fmt.Fscanf(fi, " %s v= %s ;", &name2, &s)
-			if err != nil {
-				break
+			name2 = fi.GetToken()
+			if fi.GetToken() != "v=" {
+				panic("Invalid format of ventdata")
 			}
+			s = fi.GetToken()
 			if c == ';' {
 				break
 			}

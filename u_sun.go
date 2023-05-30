@@ -65,10 +65,8 @@ func FNTtd(Decl float64) float64 {
 var __Solpos_Sdecl, __Solpos_Sld, __Solpos_Cld float64
 var __Solpos_Ttprev float64 = 25.0
 
-func Solpos(Ttas float64, Decl float64, Sh *float64, Sw *float64, Ss *float64, solh *float64, solA *float64) {
+func Solpos(Ttas float64, Decl float64) (Sh float64, Sw float64, Ss float64, solh float64, solA float64) {
 	const PI float64 = math.Pi
-	// const Slat float64 = 0.0
-	// const Clat float64 = 1.0
 	var Ch, Ca, Sa, W float64
 
 	if Ttas < __Solpos_Ttprev {
@@ -78,31 +76,33 @@ func Solpos(Ttas float64, Decl float64, Sh *float64, Sw *float64, Ss *float64, s
 	}
 
 	W = (Ttas - 12.0) * 0.2618
-	*Sh = __Solpos_Sld + __Solpos_Cld*math.Cos(W)
-	*solh = math.Asin(*Sh) / PI * 180.0
+	Sh = __Solpos_Sld + __Solpos_Cld*math.Cos(W)
+	solh = math.Asin(Sh) / PI * 180.0
 
-	if *Sh > 0.0 {
-		Ch = math.Sqrt(1.0 - *Sh**Sh)
-		Ca = (*Sh*Slat - __Solpos_Sdecl) / (Ch * Clat)
+	if Sh > 0.0 {
+		Ch = math.Sqrt(1.0 - Sh*Sh)
+		Ca = (Sh*Slat - __Solpos_Sdecl) / (Ch * Clat)
 		var fW0 float64
 		if W > 0.0 {
 			fW0 = 1.0
 		} else {
-			fW0 = 0.0
+			fW0 = -1.0
 		}
-		*solA = fW0*1.0 + (1.0-fW0)*(-1.0)*math.Acos(Ca)/PI*180.0
+		solA = fW0 * math.Acos(Ca) / PI * 180.0
 		Sa = (W / math.Abs(W)) * math.Sqrt(1.0-Ca*Ca)
-		*Sw = Ch * Sa
-		*Ss = Ch * Ca
+		Sw = Ch * Sa
+		Ss = Ch * Ca
 	} else {
-		*Sh = 0.0
-		*Sw = 0.0
-		*Ss = 0.0
-		*solh = 0.0
-		*solA = 0.0
+		Sh = 0.0
+		Sw = 0.0
+		Ss = 0.0
+		solh = 0.0
+		solA = 0.0
 	}
 
 	__Solpos_Ttprev = Ttas
+
+	return Sh, Sw, Ss, solh, solA
 }
 
 func Srdclr(Io float64, P float64, Sh float64, Idn *float64, Isky *float64) {

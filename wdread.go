@@ -53,7 +53,6 @@ var __Weatherdt_dt [7][25]float64
 var __Weatherdt_dtL [7][25]float64
 
 func Weatherdt(Simc *SIMCONTL, Daytm *DAYTM, Loc *LOCAT, Wd *WDAT, Exs []EXSF, EarthSrfFlg rune) {
-	var Sh, Sw, Ss float64
 	var tt, Mon, Day int
 
 	tt = Daytm.Tt
@@ -106,11 +105,7 @@ func Weatherdt(Simc *SIMCONTL, Daytm *DAYTM, Loc *LOCAT, Wd *WDAT, Exs []EXSF, E
 	__Weatherdt_timedg = float64(Daytm.Tt) + math.Mod(float64(Daytm.Ttmm), 100.0)/60.0
 
 	__Weatherdt_tas = FNTtas(__Weatherdt_timedg, __Weatherdt_E)
-	Solpos(__Weatherdt_tas, __Weatherdt_decl, &Wd.Sh, &Wd.Sw, &Wd.Ss, &Wd.Solh, &Wd.SolA)
-
-	Wd.Sh = Sh
-	Wd.Sw = Sw
-	Wd.Ss = Ss
+	Wd.Sh, Wd.Sw, Wd.Ss, Wd.Solh, Wd.SolA = Solpos(__Weatherdt_tas, __Weatherdt_decl)
 
 	if Simc.Wdtype == 'H' {
 		// 計算時間間隔が1時間未満の場合には直線補完する
@@ -358,7 +353,7 @@ func WdLineardiv(Wd *WDAT, WdL *WDAT, WdF *WDAT, dt float64) {
 }
 
 func EarthSrfTempInit(Simc *SIMCONTL, Loc *LOCAT, Wd *WDAT) {
-	var decl, E, ac, Te, tas, Sh, Sw, Ss float64
+	var decl, E, ac, Te, tas float64
 	var year, nday, tt int
 	//var wkdy, Year, Mon, Day int
 	dt := [7][25]float64{}
@@ -421,7 +416,8 @@ func EarthSrfTempInit(Simc *SIMCONTL, Loc *LOCAT, Wd *WDAT) {
 				matinit(T, 20)
 
 				tas = FNTtas(float64(tt), E)
-				Solpos(tas, decl, &Sh, &Sw, &Ss, &Wd.Solh, &Wd.Solh)
+				var Sh float64
+				Sh, _, _, Wd.Solh, Wd.Solh = Solpos(tas, decl)
 				dt2wdata(Wd, tt, dt)
 
 				Ihol = Wd.Idn*Sh + Wd.Isky

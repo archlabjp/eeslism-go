@@ -220,7 +220,6 @@ func Exsfsol(Nexs int, Wd *WDAT, Exs []EXSF) {
 				// 見かけの方位角の計算
 				ex.Tazm = (Wd.Sw*ex.Cwa - Wd.Ss*ex.Swa) / cinc
 				ex.Gamma = math.Atan(ex.Tazm)
-
 				ex.Cinc = cinc
 			} else {
 				// 太陽が出ていない場合
@@ -230,9 +229,9 @@ func Exsfsol(Nexs int, Wd *WDAT, Exs []EXSF) {
 			}
 
 			// 日射量の計算
-			ex.Idre = Wd.Idn * cinc                            // 直逹日射  [W/m2]
+			ex.Idre = Wd.Idn * ex.Cinc                         // 直逹日射  [W/m2]
 			ex.Idf = Wd.Isky*ex.Fs + ex.Rg*Wd.Ihor*(1.0-ex.Fs) // 拡散日射  [W/m2]
-			ex.Iw = ex.Idre + ex.Idf                           // 全日射    [W/m2]
+			ex.Iw = ex.Idre + ex.Idf                           // 全日射    [W/m2]w
 			ex.Rn = Wd.RN * ex.Fs                              // 夜間輻射  [W/m2]
 		}
 	}

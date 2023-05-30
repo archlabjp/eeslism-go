@@ -163,6 +163,7 @@ func Wdtprint(fo io.Writer, title string, Mon, Day int, time float64, Wd *WDAT, 
 		fmt.Printf("%s;\n %d\n", title, Nexs)
 	}
 
+	// ヘッダー部の出力
 	if __Wdtprint_ic == 0 {
 		__Wdtprint_ic++
 		fmt.Fprintf(fo, "%s;\n %d\n", title, Nexs)
@@ -180,10 +181,14 @@ func Wdtprint(fo io.Writer, title string, Mon, Day int, time float64, Wd *WDAT, 
 		fmt.Fprintf(fo, "\n")
 	}
 
+	// 月・日・時刻の出力
 	fmt.Fprintf(fo, "%d\t%d\t%.2f\t", Mon, Day, time)
+
+	// 気象データの出力
 	fmt.Fprintf(fo, "%.2f\t%.4f\t%.0f\t%.1f\t%.0f\t%.0f\t%.0f\t%.0f\t%.1f\t%.1f\t",
 		Wd.T, Wd.X, Wd.RH, Wd.Wv, Wd.Wdre, Wd.RN, Wd.Idn, Wd.Isky, Wd.Solh, Wd.SolA)
 
+	// 外表面の全日射・地中温度の出力
 	for i = 0; i < Nexs; i++ {
 		e := Exsfst.Exs[i]
 		if e.Typ != 'E' && e.Typ != 'e' {

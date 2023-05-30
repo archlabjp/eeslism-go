@@ -36,7 +36,7 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 
 	line := section.GetLogicalLine()
 
-	for _, s := range line[1:] {
+	for _, s := range line {
 		if strings.HasPrefix(s, "alo=") {
 			if s[4:] == "Calc" {
 				Exsf.Alotype = 'V'

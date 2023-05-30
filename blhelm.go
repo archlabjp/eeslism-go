@@ -200,9 +200,8 @@ func helmrmprint(fo io.Writer, id, Nroom int, _Room []ROOM, Qetotal *QETOTAL) {
 
 	case 1:
 		for i = 0; i < Nroom+1; i++ {
-			Room := &_Room[i]
 			if i < Nroom {
-				name = Room.Name
+				name = _Room[i].Name
 			} else {
 				name = Qetotal.Name
 			}
@@ -224,8 +223,8 @@ func helmrmprint(fo io.Writer, id, Nroom int, _Room []ROOM, Qetotal *QETOTAL) {
 
 	default:
 		for i = 0; i < Nroom+1; i++ {
-			Room := &_Room[i]
 			if i < Nroom {
+				Room := &_Room[i]
 				q = &(Room.rmqe.qelm.qe)
 				qh = &Room.rmqe.qelm
 

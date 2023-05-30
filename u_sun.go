@@ -35,17 +35,14 @@ func FNE(N int) float64 {
 }
 
 func FNSro(N int) float64 {
-	var Isc float64 = 1178.0
 	return Isc * (1.0 + 0.033*math.Cos(2.0*math.Pi*float64(N)/365.0))
 }
 
 func FNTtas(Tt float64, E float64) float64 {
-	var Lon, Ls float64
 	return Tt + E + (Lon-Ls)/15.0
 }
 
 func FNTt(Ttas float64, E float64) float64 {
-	var Lon, Ls float64
 	return Ttas - E - (Lon-Ls)/15.0
 }
 
@@ -65,26 +62,28 @@ func FNTtd(Decl float64) float64 {
 	return Ttd
 }
 
+var __Solpos_Sdecl, __Solpos_Sld, __Solpos_Cld float64
+var __Solpos_Ttprev float64 = 25.0
+
 func Solpos(Ttas float64, Decl float64, Sh *float64, Sw *float64, Ss *float64, solh *float64, solA *float64) {
 	const PI float64 = math.Pi
-	const Slat float64 = 0.0
-	const Clat float64 = 1.0
-	var Sdecl, Sld, Cld, Ch, Ca, Sa, W float64
-	staticTtprev := 25.0
+	// const Slat float64 = 0.0
+	// const Clat float64 = 1.0
+	var Ch, Ca, Sa, W float64
 
-	if Ttas < staticTtprev {
-		Sdecl = math.Sin(Decl)
-		Sld = Slat * Sdecl
-		Cld = Clat * math.Cos(Decl)
+	if Ttas < __Solpos_Ttprev {
+		__Solpos_Sdecl = math.Sin(Decl)
+		__Solpos_Sld = Slat * __Solpos_Sdecl
+		__Solpos_Cld = Clat * math.Cos(Decl)
 	}
 
 	W = (Ttas - 12.0) * 0.2618
-	*Sh = Sld + Cld*math.Cos(W)
+	*Sh = __Solpos_Sld + __Solpos_Cld*math.Cos(W)
 	*solh = math.Asin(*Sh) / PI * 180.0
 
 	if *Sh > 0.0 {
 		Ch = math.Sqrt(1.0 - *Sh**Sh)
-		Ca = (*Sh*Slat - Sdecl) / (Ch * Clat)
+		Ca = (*Sh*Slat - __Solpos_Sdecl) / (Ch * Clat)
 		var fW0 float64
 		if W > 0.0 {
 			fW0 = 1.0
@@ -103,7 +102,7 @@ func Solpos(Ttas float64, Decl float64, Sh *float64, Sw *float64, Ss *float64, s
 		*solA = 0.0
 	}
 
-	staticTtprev = Ttas
+	__Solpos_Ttprev = Ttas
 }
 
 func Srdclr(Io float64, P float64, Sh float64, Idn *float64, Isky *float64) {

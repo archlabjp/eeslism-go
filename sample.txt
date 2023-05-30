@@ -4,7 +4,7 @@ TITLE
 GDAT
     FILE w=tokyo_3column_SI.has ;
     RUN (10/1) 11/1-10/31 Tinit=20.0 ;
-    PRINT *helm ;
+       PRINT *wd *rev *pmv *helm *log *debug 11/1-11/30;
 *
 
 EXSRF

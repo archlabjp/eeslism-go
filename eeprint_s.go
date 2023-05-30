@@ -8,7 +8,7 @@ import (
 /* 毎時計算値出力　*/
 
 func Eeprinth(Daytm *DAYTM, Simc *SIMCONTL, flout []*FLOUT, Rmvls *RMVLS, Exsfst *EXSFS, Nmpath int, Mpath []MPATH, Eqsys *EQSYS, Wd *WDAT) {
-	if Daytm.Ddpri != 0 && Simc.Dayprn[Daytm.Day] != 0 {
+	if Daytm.Ddpri != 0 && Simc.Dayprn[Daytm.DayOfYear] != 0 {
 		title := Simc.Title
 		Mon := Daytm.Mon
 		Day := Daytm.Day

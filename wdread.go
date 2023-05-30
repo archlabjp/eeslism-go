@@ -48,12 +48,12 @@ var (
 
 var __Weatherdt_ptt int = 25
 var __Weatherdt_nc int = 0
+var __Weatherdt_decl, __Weatherdt_E, __Weatherdt_tas, __Weatherdt_timedg float64
+var __Weatherdt_dt [7][25]float64
+var __Weatherdt_dtL [7][25]float64
 
 func Weatherdt(Simc *SIMCONTL, Daytm *DAYTM, Loc *LOCAT, Wd *WDAT, Exs []EXSF, EarthSrfFlg rune) {
-	var decl, E, tas, timedg float64
 	var Sh, Sw, Ss float64
-	var dt [7][25]float64
-	var dtL [7][25]float64
 	var tt, Mon, Day int
 
 	tt = Daytm.Tt
@@ -61,10 +61,10 @@ func Weatherdt(Simc *SIMCONTL, Daytm *DAYTM, Loc *LOCAT, Wd *WDAT, Exs []EXSF, E
 	if tt < __Weatherdt_ptt {
 		if Simc.Wdtype == 'H' {
 			if Simc.DTm < 3600 {
-				_, Mon, Day, _ = hspwdread(Simc.Fwdata, Daytm.DayOfYear-1, Loc, &dtL)
+				_, Mon, Day, _ = hspwdread(Simc.Fwdata, Daytm.DayOfYear-1, Loc, &__Weatherdt_dtL)
 			}
 
-			_, Mon, Day, _ = hspwdread(Simc.Fwdata, Daytm.DayOfYear, Loc, &dt)
+			_, Mon, Day, _ = hspwdread(Simc.Fwdata, Daytm.DayOfYear, Loc, &__Weatherdt_dt)
 			if Daytm.Mon != Mon || Daytm.Day != Day {
 				s := fmt.Sprintf("loop Mon/Day=%d/%d - data Mon/Day=%d/%d", Daytm.Mon, Daytm.Day, Mon, Day)
 				Eprint("<Weatherdt>", s)
@@ -92,9 +92,8 @@ func Weatherdt(Simc *SIMCONTL, Daytm *DAYTM, Loc *LOCAT, Wd *WDAT, Exs []EXSF, E
 			__Weatherdt_nc = 1
 		}
 
-		// (uda) 結果が使用されていないのでコメントアウト
-		// decl := FNDecl(Daytm.DayOfYear)
-		// E := FNE(Daytm.DayOfYear)
+		__Weatherdt_decl = FNDecl(Daytm.DayOfYear)
+		__Weatherdt_E = FNE(Daytm.DayOfYear)
 
 		if Wd.Intgtsupw == 'N' {
 			Wd.Twsup = Loc.Twsup[Daytm.Mon-1]
@@ -104,10 +103,10 @@ func Weatherdt(Simc *SIMCONTL, Daytm *DAYTM, Loc *LOCAT, Wd *WDAT, Exs []EXSF, E
 	}
 
 	Exsfter(Daytm.DayOfYear, Loc.Daymxert, Loc.Tgrav, Loc.DTgr, Exs, Wd, tt)
-	timedg = float64(Daytm.Tt) + math.Mod(float64(Daytm.Ttmm), 100.0)/60.0
+	__Weatherdt_timedg = float64(Daytm.Tt) + math.Mod(float64(Daytm.Ttmm), 100.0)/60.0
 
-	tas = FNTtas(timedg, E)
-	Solpos(tas, decl, &Wd.Sh, &Wd.Sw, &Wd.Ss, &Wd.Solh, &Wd.SolA)
+	__Weatherdt_tas = FNTtas(__Weatherdt_timedg, __Weatherdt_E)
+	Solpos(__Weatherdt_tas, __Weatherdt_decl, &Wd.Sh, &Wd.Sw, &Wd.Ss, &Wd.Solh, &Wd.SolA)
 
 	Wd.Sh = Sh
 	Wd.Sw = Sw
@@ -116,9 +115,9 @@ func Weatherdt(Simc *SIMCONTL, Daytm *DAYTM, Loc *LOCAT, Wd *WDAT, Exs []EXSF, E
 	if Simc.Wdtype == 'H' {
 		// 計算時間間隔が1時間未満の場合には直線補完する
 		if Simc.DTm < 3600 {
-			wdatadiv(Daytm, Wd, dt, dtL)
+			wdatadiv(Daytm, Wd, __Weatherdt_dt, __Weatherdt_dtL)
 		} else {
-			dt2wdata(Wd, tt, dt)
+			dt2wdata(Wd, tt, __Weatherdt_dt)
 		}
 	} else {
 		// VCFILE形式の気象データの読み込み
@@ -248,7 +247,11 @@ func hspwdread(fp io.ReadSeeker, nday int, Loc *LOCAT, dt *[7][25]float64) (year
 		fp.Read(Sq[:])
 
 		for t = 1; t < 25; t++ {
-			d, _ = strconv.ParseFloat(string(Data[t-1][:]), 64)
+			var err error
+			d, err = strconv.ParseFloat(strings.TrimSpace(string(Data[t-1][:])), 64)
+			if err != nil {
+				panic(err)
+			}
 			switch k {
 			case 0:
 				dt[k][t] = (d - 500.0) * 0.1
@@ -286,8 +289,6 @@ func hspwdread(fp io.ReadSeeker, nday int, Loc *LOCAT, dt *[7][25]float64) (year
 }
 
 func dt2wdata(Wd *WDAT, tt int, dt [7][25]float64) {
-	var Br float64
-
 	Wd.T = dt[0][tt]
 	Wd.X = dt[1][tt]
 	Wd.Idn = dt[2][tt] / 0.86
@@ -295,7 +296,10 @@ func dt2wdata(Wd *WDAT, tt int, dt [7][25]float64) {
 	Wd.Ihor = Wd.Idn*Wd.Sh + Wd.Isky
 
 	if Wd.RNtype == 'C' {
+		Br := 0.51 + 0.209*math.Sqrt(FNPwx(Wd.X))
 		Wd.CC = dt[4][tt]
+		Wd.RN = (1.0 - 0.62*Wd.CC/10.0) * (1.0 - Br) * Sgm * math.Pow(Wd.T+273.15, 4.0)
+		Wd.Rsky = ((1.0-0.62*Wd.CC/10.0)*Br + 0.62*Wd.CC/10.0) * Sgm * math.Pow(Wd.T+273.15, 4.0)
 	} else {
 		Wd.CC = -999.0
 		Wd.RN = dt[4][tt] / 0.86
@@ -306,12 +310,6 @@ func dt2wdata(Wd *WDAT, tt int, dt [7][25]float64) {
 	Wd.Wv = dt[6][tt]
 	Wd.RH = FNRhtx(Wd.T, Wd.X)
 	Wd.H = FNH(Wd.T, Wd.X)
-	Br = 0.51 + 0.209*math.Sqrt(FNPwx(Wd.X))
-
-	if Wd.RNtype == 'C' {
-		Wd.RN = (1.0 - 0.62*Wd.CC/10.0) * (1.0 - Br) * Sgm * math.Pow(Wd.T+273.15, 4.0)
-		Wd.Rsky = ((1.0-0.62*Wd.CC/10.0)*Br + 0.62*Wd.CC/10.0) * Sgm * math.Pow(Wd.T+273.15, 4.0)
-	}
 }
 
 func wdatadiv(Daytm *DAYTM, Wd *WDAT, dt [7][25]float64, dtL [7][25]float64) {

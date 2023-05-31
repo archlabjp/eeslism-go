@@ -82,18 +82,18 @@ type RQLIST struct /* 選択項目 */
 	Id    string
 }
 
-type STATC struct /* 集計期間 */
-{
-	Name     string
-	Yrstart  int
-	Mostart  int
-	Daystart int
-	Yrend    int
-	Moend    int
-	Dayend   int
-	Nday     int
-	Dymrk    [366]rune
-}
+// type STATC struct /* 集計期間 */
+// {
+// 	Name     string
+// 	Yrstart  int
+// 	Mostart  int
+// 	Daystart int
+// 	Yrend    int
+// 	Moend    int
+// 	Dayend   int
+// 	Nday     int
+// 	Dymrk    [366]rune
+// }
 
 type PRQLIST struct /* 作表項目・期間指定 */
 {

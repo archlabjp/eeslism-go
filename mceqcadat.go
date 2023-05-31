@@ -192,7 +192,7 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 		}
 	}
 
-	Refcmpdat(frf, &Eqcat.Nrfcmp, Eqcat.Rfcmp)
+	Refcmpdat(frf, &Eqcat.Rfcmp)
 	frf.Close()
 
 	frf, err = os.Open("pumpfanlst.efl")
@@ -204,7 +204,7 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 		Eqcat.Pfcmp = make([]PFCMP, N)
 	}
 	PFcmpInit(N, Eqcat.Pfcmp)
-	PFcmpdata(frf, &Eqcat.Npfcmp, Eqcat.Pfcmp)
+	PFcmpdata(frf, &Eqcat.Pfcmp)
 	frf.Close()
 
 	E = fmt.Sprintf(ERRFMT, dsn)
@@ -311,7 +311,7 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 				if ce := strings.IndexByte(s, ';'); ce != -1 {
 					s = s[:ce]
 				}
-				if Refadata(s, Refaca, Eqcat.Nrfcmp, Eqcat.Rfcmp) != 0 {
+				if Refadata(s, Refaca, Eqcat.Rfcmp) != 0 {
 					fmt.Println(E, s)
 				}
 				if ce != -1 {
@@ -394,7 +394,7 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 				if ce := strings.IndexRune(ss, ';'); ce != -1 {
 					s = s[:ce]
 				}
-				if Pumpdata(s, ss, Pumpca, Eqcat.Npfcmp, Eqcat.Pfcmp) != 0 {
+				if Pumpdata(s, ss, Pumpca, Eqcat.Pfcmp) != 0 {
 					fmt.Printf("%s %s\n", E, ss)
 				}
 				if ce != -1 {
@@ -530,21 +530,6 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 			fmt.Printf("%s %s\n", E, s)
 		}
 	}
-	Eqcat.Nhccca = len(Eqcat.Hccca)
-	Eqcat.Nboica = len(Eqcat.Boica)
-	Eqcat.Ncollca = len(Eqcat.Collca)
-	Eqcat.Nrefaca = len(Eqcat.Refaca)
-	Eqcat.Npipeca = len(Eqcat.Pipeca)
-	Eqcat.Nstankca = len(Eqcat.Stankca)
-	Eqcat.Nhexca = len(Eqcat.Hexca)
-	Eqcat.Npumpca = len(Eqcat.Pumpca)
-	Eqcat.Nvavca = len(Eqcat.Vavca)
-	Eqcat.Nstheatca = len(Eqcat.Stheatca)
-	Eqcat.Nthexca = len(Eqcat.Thexca)
-	Eqcat.Npvca = len(Eqcat.PVca)
-	Eqcat.Nomvavca = len(Eqcat.OMvavca)
-	Eqcat.Ndesica = len(Eqcat.Desica) // Satoh追加　デシカント空調機　2013/10/20
-	Eqcat.Nevacca = len(Eqcat.Evacca) // Satoh追加　気化冷却器　2013/10/26
 }
 
 /****************************************************************************/

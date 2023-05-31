@@ -448,7 +448,7 @@ func main() {
 	}
 
 	// ボイラ機器仕様の初期化
-	Boicaint(Eqcat.Nboica, Eqcat.Boica, &Simc, Ncompnt, Compnt, &Wd, &Exsf, Schdl)
+	Boicaint(Eqcat.Boica, &Simc, Ncompnt, Compnt, &Wd, &Exsf, Schdl)
 	Mecsinit(&Eqsys, &Simc, Ncompnt, Compnt, Exsf.Nexs, Exsf.Exs, &Wd, &Rmvls)
 
 	if DEBUG {

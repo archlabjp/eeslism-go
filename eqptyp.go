@@ -809,65 +809,23 @@ type PV struct {
 
 // カタログデータ（機器仕様データ一覧）
 type EQCAT struct {
-	Nrfcmp int
-	Rfcmp  []RFCMP
-
-	Npfcmp int
-	Pfcmp  []PFCMP
-
-	Nhccca int
-	Hccca  []HCCCA
-
-	Nboica int
-	Boica  []BOICA
-
-	Nrefaca int
-	Refaca  []REFACA
-
-	Ncollca int
-	Collca  []COLLCA
-
-	Npipeca int
-	Pipeca  []PIPECA
-
-	Nstankca int
+	Rfcmp    []RFCMP
+	Pfcmp    []PFCMP
+	Hccca    []HCCCA
+	Boica    []BOICA
+	Refaca   []REFACA
+	Collca   []COLLCA
+	Pipeca   []PIPECA
 	Stankca  []STANKCA
-
-	Nhexca int
-	Hexca  []HEXCA
-
-	Npumpca int
-	Pumpca  []PUMPCA
-
-	/*---- Satoh Debug VAV  2000/10/30 ----*/
-	Nvavca int
-	Vavca  []VAVCA
-
-	/*---- Satoh Debug 電気蓄熱式暖房器 2001/1/21 ----*/
-	Nstheatca int
-	Stheatca  []STHEATCA
-
-	Nthexca int
-	Thexca  []THEXCA
-
-	Npvca int
-	PVca  []PVCA
-
-	// Satoh OMVAV  2010/12/16
-	Nomvavca int
+	Hexca    []HEXCA
+	Pumpca   []PUMPCA
+	Vavca    []VAVCA
+	Stheatca []STHEATCA
+	Thexca   []THEXCA
+	PVca     []PVCA
 	OMvavca  []OMVAVCA
-
-	// Satoh追加 2013/10/20
-	Ndesica int
-	Desica  []DESICA
-
-	// Satoh追加 2013/10/26
-	Nevacca int
-	Evacca  []EVACCA
-
-	// Satoh追加 2019/8/29
-	//		Ncompost int
-	//Compostca []COMPOSTCA
+	Desica   []DESICA
+	Evacca   []EVACCA
 }
 
 // 「実際に」システムを構成する機器(システム使用機器データ一覧)

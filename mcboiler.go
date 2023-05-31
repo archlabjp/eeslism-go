@@ -89,8 +89,8 @@ func Boidata(s string, boica *BOICA) int {
 	return id
 }
 
-func Boicaint(NBoica int, _Boica []BOICA, Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL) {
-	for i := 0; i < NBoica; i++ {
+func Boicaint(_Boica []BOICA, Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL) {
+	for i := 0; i < len(_Boica); i++ {
 		Boica := &_Boica[i]
 		if idx := idsch(Boica.Qostr, Schdl.Sch, ""); idx >= 0 {
 			Boica.Qo = &Schdl.Val[idx]

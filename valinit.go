@@ -280,22 +280,6 @@ func Locinit(L *LOCAT) {
 }
 
 func Eqcatinit(E *EQCAT) {
-	E.Nrfcmp = 0
-	E.Nhccca = 0
-	E.Nboica = 0
-	E.Nrefaca = 0
-	E.Ncollca = 0
-	E.Npipeca = 0
-	E.Nthexca = 0
-	E.Nstankca = 0
-	E.Nhexca = 0
-	E.Npumpca = 0
-	E.Nvavca = 0
-	E.Nstheatca = 0
-	E.Npvca = 0
-	E.Npfcmp = 0
-	E.Nomvavca = 0
-
 	E.Rfcmp = nil
 	E.Hccca = nil
 	E.Boica = nil

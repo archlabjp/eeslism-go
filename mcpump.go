@@ -29,7 +29,7 @@ import (
 
 /* 機器仕様入力　　　　　　*/
 
-func Pumpdata(cattype string, s string, Pumpca *PUMPCA, Npfcmp int, pfcmp []PFCMP) int {
+func Pumpdata(cattype string, s string, Pumpca *PUMPCA, pfcmp []PFCMP) int {
 	st := strings.IndexByte(s, '=')
 	var dt float64
 	var id int
@@ -59,7 +59,7 @@ func Pumpdata(cattype string, s string, Pumpca *PUMPCA, Npfcmp int, pfcmp []PFCM
 				Pumpca.val = make([]float64, 4)
 			}
 
-			for i = 0; i < Npfcmp; i++ {
+			for i = 0; i < len(pfcmp); i++ {
 				pfc := &pfcmp[i]
 				if Pumpca.pftype == pfc.pftype && Pumpca.Type == pfc.Type {
 					Pumpca.pfcmp = pfc
@@ -392,11 +392,10 @@ func PFcmpInit(Npfcmp int, Pfcmp []PFCMP) {
 	}
 }
 
-func PFcmpdata(fl io.Reader, Npfcmp *int, pfcmp []PFCMP) {
+func PFcmpdata(fl io.Reader, Pfcmp *[]PFCMP) {
 	var s string
 	var c byte
 	var i int
-	var pfIdx = 0
 
 	for {
 		_, err := fmt.Fscanf(fl, "%s", &s)
@@ -412,7 +411,7 @@ func PFcmpdata(fl io.Reader, Npfcmp *int, pfcmp []PFCMP) {
 				}
 			}
 		} else {
-			pfcmp := &pfcmp[pfIdx]
+			pfcmp := PFCMP{}
 
 			if s == PUMP_TYPE {
 				pfcmp.pftype = PUMP_PF
@@ -444,9 +443,7 @@ func PFcmpdata(fl io.Reader, Npfcmp *int, pfcmp []PFCMP) {
 				i++
 			}
 
-			pfIdx++
+			*Pfcmp = append(*Pfcmp, pfcmp)
 		}
 	}
-
-	*Npfcmp = pfIdx
 }

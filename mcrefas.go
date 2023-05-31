@@ -30,7 +30,7 @@ import (
 機器仕様入力          */
 var __Refadata_hpch *HPCH
 
-func Refadata(s string, Refaca *REFACA, Nrfcmp int, Rfcmp []RFCMP) int {
+func Refadata(s string, Refaca *REFACA, Rfcmp []RFCMP) int {
 	var c byte
 	var dt float64
 	var id int
@@ -53,6 +53,7 @@ func Refadata(s string, Refaca *REFACA, Nrfcmp int, Rfcmp []RFCMP) int {
 			Refaca.unlimcap = 'y'
 		} else if s[0] == 'c' {
 			var i int
+			Nrfcmp := len(Rfcmp)
 			for i = 0; i < Nrfcmp; i++ {
 				rfc := &Rfcmp[i]
 				if strings.Compare(s[1:], rfc.cname) == 0 {

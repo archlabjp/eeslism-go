@@ -19,7 +19,6 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"math"
 	"strconv"
@@ -28,7 +27,7 @@ import (
 
 /*  圧縮式冷凍機定格特性入力    */
 
-func Refcmpdat(frf io.Reader, Nrfcmp *int, Rfcmp []RFCMP) {
+func Refcmpdat(frf io.Reader, Rfcmp *[]RFCMP) {
 	scanner := bufio.NewScanner(frf)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -38,39 +37,34 @@ func Refcmpdat(frf io.Reader, Nrfcmp *int, Rfcmp []RFCMP) {
 
 		fields := strings.Fields(line)
 
-		Rfcmp[0].name = fields[0]
-		Rfcmp[0].cname = fields[1]
+		rfcmp := RFCMP{}
+		rfcmp.name = fields[0]
+		rfcmp.cname = fields[1]
 
 		for i := 0; i < 4; i++ {
 			val, _ := strconv.ParseFloat(fields[i+2], 64)
-			Rfcmp[0].e[i] = val
+			rfcmp.e[i] = val
 		}
 		for i := 0; i < 4; i++ {
 			val, _ := strconv.ParseFloat(fields[i+6], 64)
-			Rfcmp[0].d[i] = val
+			rfcmp.d[i] = val
 		}
 		for i := 0; i < 4; i++ {
 			val, _ := strconv.ParseFloat(fields[i+10], 64)
-			Rfcmp[0].w[i] = val
+			rfcmp.w[i] = val
 		}
 		val, _ := strconv.ParseFloat(fields[14], 64)
-		Rfcmp[0].Teo[0] = val
+		rfcmp.Teo[0] = val
 		val, _ = strconv.ParseFloat(fields[15], 64)
-		Rfcmp[0].Teo[1] = val
+		rfcmp.Teo[1] = val
 		val, _ = strconv.ParseFloat(fields[16], 64)
-		Rfcmp[0].Tco[0] = val
+		rfcmp.Tco[0] = val
 		val, _ = strconv.ParseFloat(fields[17], 64)
-		Rfcmp[0].Tco[1] = val
+		rfcmp.Tco[1] = val
 		val, _ = strconv.ParseFloat(fields[18], 64)
-		Rfcmp[0].Meff = val
+		rfcmp.Meff = val
 
-		Rfcmp = append(Rfcmp, RFCMP{})
-	}
-
-	const RFCMPLSTMX = 5
-	*Nrfcmp = len(Rfcmp) - 1
-	if *Nrfcmp >= RFCMPLSTMX {
-		fmt.Printf("xxxxxxxxx Refcfi   reflist=%d [max=%d]\n", *Nrfcmp, RFCMPLSTMX)
+		*Rfcmp = append(*Rfcmp, rfcmp)
 	}
 }
 

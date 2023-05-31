@@ -27,7 +27,6 @@ import (
 
 func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]WALL, Nwall *int, dfwl *DFWL, pcm []PCM, Npcm int) {
 	var s string
-	var layer []string
 	var i = -1
 	var j, jj, jw, Nlyr, k = 0, 0, 0, 0, -1
 	var Nbm, ndiv int // ic
@@ -144,6 +143,7 @@ func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]WALL, Nwall
 
 		// (2) 部位・壁体のパラメータを読み取り
 		// 例) `Eo=0.9 Ei=0.9 as=0.7 type=1 APR-100 APR-100/20 <P:80.3> ;`
+		var layer []string
 		for _, s = range line[1:] {
 			var err error
 			st := strings.IndexRune(s, '=')

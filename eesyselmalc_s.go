@@ -89,7 +89,7 @@ func Elmalloc(
 
 			id = idmrkc
 			for i = 0; i < 2; i++ {
-				Elout := (*Elo)[i]
+				Elout := (*Elo)[eloIdx]
 				Elout.Cmp = Compnt
 				Elout.Id = ELIOType(id[i])
 				Elout.Fluid = rune(id[i])
@@ -101,6 +101,7 @@ func Elmalloc(
 				Elout.Elins = (*Eli)[elinIdx : elinIdx+Elout.Ni]
 
 				elinIdx += Elout.Ni
+				eloIdx++
 			}
 			elo = Compnt.Elouts[0]
 			room.elinasup = elo.Elins[room.Nachr+room.Ntr+room.Nrp:]

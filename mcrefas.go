@@ -28,9 +28,9 @@ import (
 /*  圧縮式冷凍機
 
 機器仕様入力          */
+var __Refadata_hpch *HPCH
 
 func Refadata(s string, Refaca *REFACA, Nrfcmp int, Rfcmp []RFCMP) int {
-	var hpch *HPCH
 	var c byte
 	var dt float64
 	var id int
@@ -70,33 +70,33 @@ func Refadata(s string, Refaca *REFACA, Nrfcmp int, Rfcmp []RFCMP) int {
 			Refaca.mode[Refaca.Nmode] = rune(c)
 			if c == COOLING_SW {
 				Refaca.cool = new(HPCH)
-				hpch = Refaca.cool
+				__Refadata_hpch = Refaca.cool
 			} else if c == HEATING_SW {
 				Refaca.heat = new(HPCH)
-				hpch = Refaca.heat
+				__Refadata_hpch = Refaca.heat
 			}
 			Refaca.Nmode++
 		} else {
 			dt, _ = strconv.ParseFloat(s[1:], 64)
 			switch {
 			case strings.HasPrefix(s, "Qo"):
-				hpch.Qo = dt
+				__Refadata_hpch.Qo = dt
 			case strings.HasPrefix(s, "Go"):
-				hpch.Go = dt
+				__Refadata_hpch.Go = dt
 			case strings.HasPrefix(s, "Two"):
-				hpch.Two = dt
+				__Refadata_hpch.Two = dt
 			case strings.HasPrefix(s, "eo"):
-				hpch.eo = dt
+				__Refadata_hpch.eo = dt
 			case strings.HasPrefix(s, "Qex"):
-				hpch.Qex = dt
+				__Refadata_hpch.Qex = dt
 			case strings.HasPrefix(s, "Gex"):
-				hpch.Gex = dt
+				__Refadata_hpch.Gex = dt
 			case strings.HasPrefix(s, "Tex"):
-				hpch.Tex = dt
+				__Refadata_hpch.Tex = dt
 			case strings.HasPrefix(s, "eex"):
-				hpch.eex = dt
+				__Refadata_hpch.eex = dt
 			case s[0] == 'W':
-				hpch.Wo = dt
+				__Refadata_hpch.Wo = dt
 			case strings.HasPrefix(s, "Ph"):
 				Refaca.Ph = dt
 			default:

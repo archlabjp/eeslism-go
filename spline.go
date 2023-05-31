@@ -4,13 +4,15 @@ package main
 
 // 各月の給水温度は15日の給水温度として補間する
 // Nday:計算対象の通日、Tsupw:1～12月の給水温度
+var __Intgtsup_ic int = 0
+
 func Intgtsup(Nday int, Tsupw []float64) float64 {
 	var h, b, d, g, u [13]float64
 	var r, x, y [14]float64
-	var ic, n, Mo int
+	var n, Mo int
 	var y1 float64
 
-	if ic == 0 {
+	if __Intgtsup_ic == 0 {
 		n = 13
 		x[0], x[13] = -15.0, 380.0
 		for Mo = 1; Mo <= 12; Mo++ {
@@ -19,7 +21,7 @@ func Intgtsup(Nday int, Tsupw []float64) float64 {
 			y[0], y[13] = Tsupw[11], Tsupw[0]
 		}
 
-		ic = 1
+		__Intgtsup_ic = 1
 	}
 
 	y1 = spline(n, x[:], y[:], float64(Nday), h[:], b[:], d[:], g[:], u[:], r[:])

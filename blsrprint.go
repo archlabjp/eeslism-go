@@ -24,11 +24,11 @@ import (
 	"io"
 )
 
-var Pmvprint_count = 0
+var __Pmvprint_count = 0
 
 func Pmvprint(fpout io.Writer, title string, Room []ROOM, Mon, Day int, time float64) {
 	var Nroom, Nr int
-	if Pmvprint_count == 0 && Room != nil {
+	if __Pmvprint_count == 0 && Room != nil {
 		Nroom = Room[0].end
 		for i := 0; i < Nroom; i++ {
 			Rm := &Room[i]
@@ -49,7 +49,7 @@ func Pmvprint(fpout io.Writer, title string, Room []ROOM, Mon, Day int, time flo
 
 		fmt.Fprintf(fpout, "\n")
 
-		Pmvprint_count = 1
+		__Pmvprint_count = 1
 	}
 
 	fmt.Fprintf(fpout, "%02d %02d %5.2f ", Mon, Day, time)
@@ -68,28 +68,28 @@ func Pmvprint(fpout io.Writer, title string, Room []ROOM, Mon, Day int, time flo
 /*   室内温・湿度、室内表面平均温度の出力
  */
 
-var Rmevprint_count = 0
+var __Rmevprint_count = 0
+var __Rmevprint_Nroom int
 
 func Rmevprint(fpout io.Writer, title string, Room []ROOM, Mon, Day int, time float64) {
-	var Nroom int
-	if Rmevprint_count == 0 {
-		Nroom = Room[0].end
+	if __Rmevprint_count == 0 {
+		__Rmevprint_Nroom = Room[0].end
 
 		fmt.Fprintf(fpout, "%s ;\n", title)
-		fmt.Fprintf(fpout, "%d室\t\t\t", Nroom)
+		fmt.Fprintf(fpout, "%d室\t\t\t", __Rmevprint_Nroom)
 
-		for i := 0; i < Nroom; i++ {
+		for i := 0; i < __Rmevprint_Nroom; i++ {
 			Rm := &Room[i]
 			fmt.Fprintf(fpout, "%s\t\t\t\t", Rm.Name)
 		}
 		fmt.Fprintf(fpout, "\n")
 
-		Rmevprint_count = 1
+		__Rmevprint_count = 1
 	}
 	/*======================================= */
 	fmt.Fprintf(fpout, "%d\t%d\t%.2f\t", Mon, Day, time)
 
-	for i := 0; i < Nroom; i++ {
+	for i := 0; i < __Rmevprint_Nroom; i++ {
 		Rm := &Room[i]
 		fmt.Fprintf(fpout, "%.1f\t%.4f\t%.1f\t%.0f\t", Rm.Tr, Rm.xr, Rm.Tsav, Rm.RH)
 	}

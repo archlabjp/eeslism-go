@@ -408,15 +408,16 @@ func dprroomdata(R []ROOM, S []RMSRF) {
 /* ----------------------------------------------------------------- */
 
 func dprballoc(M []MWALL, S []RMSRF) {
-	Mw := M[0]
 
 	if DEBUG {
 		fmt.Println("\n*** dprballoc ***")
 
 		N := M[0].end
 		for mw := 0; mw < N; mw++ {
+			Mw := &M[mw]
 			id := S[Mw.ns].wd
-			fmt.Printf(" %2d n=%2d  rm=%2d  nxrm=%2d wd=%2d wall=%s M=%2d A=%.2f\n", mw, Mw.ns, Mw.rm, Mw.nxrm, id, Mw.wall.name, Mw.M, Mw.sd.A)
+			fmt.Printf(" %2d n=%2d  rm=%2d  nxrm=%2d wd=%2d wall=%s M=%2d A=%.2f\n",
+				mw, Mw.ns, Mw.rm, Mw.nxrm, id, Mw.wall.name, Mw.M, Mw.sd.A)
 		}
 	}
 	if Ferr != nil {
@@ -425,8 +426,10 @@ func dprballoc(M []MWALL, S []RMSRF) {
 
 		N := M[0].end
 		for mw := 0; mw < N; mw++ {
+			Mw := &M[mw]
 			id := S[Mw.ns].wd
-			fmt.Fprintf(Ferr, "\t%d\t%d\t%d\t%d\t%d\t%s\t%d\t%.2f\n", mw, Mw.ns, Mw.rm, Mw.nxrm, id, Mw.wall.name, Mw.M, Mw.sd.A)
+			fmt.Fprintf(Ferr, "\t%d\t%d\t%d\t%d\t%d\t%s\t%d\t%.2g\n",
+				mw, Mw.ns, Mw.rm, Mw.nxrm, id, Mw.wall.name, Mw.M, Mw.sd.A)
 		}
 	}
 }

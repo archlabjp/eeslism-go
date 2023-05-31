@@ -254,6 +254,7 @@ func RMrc(Room *ROOM) {
 		Room.FMC = 0.0
 	}
 
+	Room.RMC = Room.MRM/DTM*Room.Trold + Room.HGc + Room.CA
 	if Room.FunHcap > 0.0 {
 		Room.RMC += *Room.CM * Room.FMC
 	}

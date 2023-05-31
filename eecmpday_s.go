@@ -6,13 +6,13 @@ import (
 )
 
 /* システム要素機器の日集計処理 */
+var __Compoday_OldDay int = 0
+var __Compoday_OldMon int = 0
 
 func Compoday(Mon, Day, Nday, ttmm int, Eqsys *EQSYS, SimDayend int) {
-	staticOldDay := 0
-	staticOldMon := 0
 
 	// 日集計
-	if Nday != staticOldDay {
+	if Nday != __Compoday_OldDay {
 		boidyint(Eqsys.Nboi, Eqsys.Boi)
 		refadyint(Eqsys.Nrefa, Eqsys.Refa)
 		colldyint(Eqsys.Ncoll, Eqsys.Coll)
@@ -28,10 +28,10 @@ func Compoday(Mon, Day, Nday, ttmm int, Eqsys *EQSYS, SimDayend int) {
 		PVdyint(Eqsys.Npv, Eqsys.PVcmp)
 		Desidyint(Eqsys.Ndesi, Eqsys.Desi)
 
-		staticOldDay = Nday
+		__Compoday_OldDay = Nday
 	}
 
-	if Mon != staticOldMon {
+	if Mon != __Compoday_OldMon {
 		boimonint(Eqsys.Nboi, Eqsys.Boi)
 		refamonint(Eqsys.Nrefa, Eqsys.Refa)
 		collmonint(Eqsys.Ncoll, Eqsys.Coll)
@@ -46,7 +46,7 @@ func Compoday(Mon, Day, Nday, ttmm int, Eqsys *EQSYS, SimDayend int) {
 		Qmeasmonint(Eqsys.Nqmeas, Eqsys.Qmeas)
 		PVmonint(Eqsys.Npv, Eqsys.PVcmp)
 
-		staticOldMon = Mon
+		__Compoday_OldMon = Mon
 	}
 
 	// 日集計

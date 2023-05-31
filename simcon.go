@@ -68,18 +68,18 @@ type SIMCONTL struct {
 	Fwdata     io.ReadSeeker // 気象データファイルのファイルポインタ
 	Fwdata2    io.ReadSeeker // 気象データファイルのファイルポインタ(なぜ2つあるのか?)
 	Ftsupw     []byte        // 給水温度データのファイル(バイナリ)
-	Daystartx  int           // 開始日 ??
-	Daystart   int           // 開始日 ??
-	Dayend     int           // 終了日 ??
+	Daystartx  int           // 助走計算開始日
+	Daystart   int           // 本計算開始日
+	Dayend     int           // 計算終了日
 	Daywk      []int         // 計算日 ??
-	Dayprn     []int         // 出力日 ??
-	Dayntime   int           // 計算日数 ??
-	Ntimehrprt int           // 時間別計算値出力時間数 ??
-	Ntimedyprt int           // 日別計算値出力時間数 ??
-	Nhelmsfpri int           // 要素別壁体表面温度出力壁体数
+	Dayprn     []int         // データ出力日
+	Dayntime   int           // 1日あたりの計算回数
+	Ntimehrprt int           // 時間別計算値出力回数
+	Ntimedyprt int           // 日別計算値出力回数
+	Nhelmsfpri int           // 要素別壁体表面温度出力回数
 	Nvcfile    int           // 境界条件、負荷入力用ファイルの数
 	Vcfile     []VCFILE      // 境界条件、負荷入力用ファイル等々???
-	Loc        *LOCAT        // 地域データ ??
+	Loc        *LOCAT        // 地域データ
 	Wdpt       WDPT          // 気象データ
 	DTm        int           // 時間刻み ??
 	Sttmm      int           // 時間刻み ??

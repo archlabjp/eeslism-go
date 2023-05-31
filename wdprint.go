@@ -5,16 +5,17 @@ import (
 	"io"
 )
 
+var __Wdtsum_oldday, __Wdtsum_hrs, __Wdtsum_oldMon, __Wdtsum_hrsm int
+var __Wdtsum_cffWh float64
+
 func Wdtsum(Mon int, Day int, Nday int, ttmm int, Wd *WDAT, Nexs int, Exs []EXSF,
 	Wdd *WDAT, Wdm *WDAT, Soldy []float64, Solmon []float64, Simc *SIMCONTL) {
-	var oldday, hrs, oldMon, hrsm int
-	var cffWh float64
 	var e EXSF
 
 	// 日集計の初期化
-	if Nday != oldday {
-		cffWh = Cff_kWh * 1000.0
-		hrs = 0
+	if Nday != __Wdtsum_oldday {
+		__Wdtsum_cffWh = Cff_kWh * 1000.0
+		__Wdtsum_hrs = 0
 		Wdd.T = 0.0
 		Wdd.X = 0.0
 		Wdd.Wv = 0.0
@@ -26,13 +27,13 @@ func Wdtsum(Mon int, Day int, Nday int, ttmm int, Wd *WDAT, Nexs int, Exs []EXSF
 			Soldy[i] = 0.0
 		}
 
-		oldday = Nday
+		__Wdtsum_oldday = Nday
 	}
 
 	// 月集計の初期化
-	if Mon != oldMon {
-		cffWh = Cff_kWh * 1000.0
-		hrsm = 0
+	if Mon != __Wdtsum_oldMon {
+		__Wdtsum_cffWh = Cff_kWh * 1000.0
+		__Wdtsum_hrsm = 0
 		Wdm.T = 0.0
 		Wdm.X = 0.0
 		Wdm.Wv = 0.0
@@ -44,11 +45,11 @@ func Wdtsum(Mon int, Day int, Nday int, ttmm int, Wd *WDAT, Nexs int, Exs []EXSF
 			Solmon[i] = 0.0
 		}
 
-		oldMon = Mon
+		__Wdtsum_oldMon = Mon
 	}
 
 	// 日集計
-	hrs++
+	__Wdtsum_hrs++
 	Wdd.T += Wd.T
 	Wdd.X += Wd.X
 	Wdd.Wv += Wd.Wv
@@ -67,7 +68,7 @@ func Wdtsum(Mon int, Day int, Nday int, ttmm int, Wd *WDAT, Nexs int, Exs []EXSF
 	}
 
 	// 月集計
-	hrsm++
+	__Wdtsum_hrsm++
 	Wdm.T += Wd.T
 	Wdm.X += Wd.X
 	Wdm.Wv += Wd.Wv
@@ -86,36 +87,36 @@ func Wdtsum(Mon int, Day int, Nday int, ttmm int, Wd *WDAT, Nexs int, Exs []EXSF
 	}
 
 	if ttmm == 2400 {
-		Wdd.T /= float64(hrs)
-		Wdd.X /= float64(hrs)
-		Wdd.Wv /= float64(hrs)
-		Wdd.Idn *= cffWh
-		Wdd.Isky *= cffWh
-		Wdd.RN *= cffWh
+		Wdd.T /= float64(__Wdtsum_hrs)
+		Wdd.X /= float64(__Wdtsum_hrs)
+		Wdd.Wv /= float64(__Wdtsum_hrs)
+		Wdd.Idn *= __Wdtsum_cffWh
+		Wdd.Isky *= __Wdtsum_cffWh
+		Wdd.RN *= __Wdtsum_cffWh
 
 		for i := 0; i < Nexs; i++ {
 			e = Exs[i]
 			if e.Typ != 'E' && e.Typ != 'e' {
-				Soldy[i] *= cffWh
+				Soldy[i] *= __Wdtsum_cffWh
 			} else {
-				Soldy[i] /= float64(hrs)
+				Soldy[i] /= float64(__Wdtsum_hrs)
 			}
 		}
 	}
-	if IsEndDay(Mon, Day, Nday, Simc.Dayend) && hrsm > 0 && ttmm == 2400 {
-		Wdm.T /= float64(hrsm)
-		Wdm.X /= float64(hrsm)
-		Wdm.Wv /= float64(hrsm)
-		Wdm.Idn *= cffWh
-		Wdm.Isky *= cffWh
-		Wdm.RN *= cffWh
+	if IsEndDay(Mon, Day, Nday, Simc.Dayend) && __Wdtsum_hrsm > 0 && ttmm == 2400 {
+		Wdm.T /= float64(__Wdtsum_hrsm)
+		Wdm.X /= float64(__Wdtsum_hrsm)
+		Wdm.Wv /= float64(__Wdtsum_hrsm)
+		Wdm.Idn *= __Wdtsum_cffWh
+		Wdm.Isky *= __Wdtsum_cffWh
+		Wdm.RN *= __Wdtsum_cffWh
 
 		for i := 0; i < Nexs; i++ {
 			e = Exs[i]
 			if e.Typ != 'E' && e.Typ != 'e' {
-				Soldy[i] *= cffWh
+				Soldy[i] *= __Wdtsum_cffWh
 			} else {
-				Soldy[i] /= float64(hrsm)
+				Soldy[i] /= float64(__Wdtsum_hrsm)
 			}
 		}
 	}

@@ -15,26 +15,42 @@
 
 package main
 
+import "fmt"
+
 /* -------------------------------------- */
 
 var __Rmhtrcf_count int
 
 func Rmhtrcf(exs *EXSFS, emrk []rune, rooms []ROOM, sds []RMSRF, wd *WDAT) {
 	if rooms != nil {
-		for _, room := range rooms {
+		for i := range rooms {
+			room := &rooms[i]
 			n := room.N
 			brs := room.Brs
 			sds := sds[brs : brs+n]
+
+			if DEBUG {
+				fmt.Printf("Room Name=%s\n", room.Name)
+			}
 
 			// 放射熱交換係数の計算
 			if __Rmhtrcf_count == 0 || emrk[0] == '*' {
 				radex(n, sds, room.F, room.Wradx)
 			}
+			if DEBUG {
+				fmt.Printf("radex end\n")
+			}
 
 			// 放射熱伝達率の入れ替え
 			Radcf0(room.Tsav, &room.alrbold, n, sds, room.Wradx, room.alr)
+			if DEBUG {
+				fmt.Printf("Radcf0 end\n")
+			}
 
 			Htrcf(room.alc, exs.Alosch, exs.Alotype, exs.Exs, room.Tr, n, room.alr, sds, &room.mrk, wd)
+			if DEBUG {
+				fmt.Printf("Htrcf end\n")
+			}
 		}
 
 		__Rmhtrcf_count++
@@ -398,10 +414,19 @@ func Rmsurft(nroom int, rooms []ROOM, sd []RMSRF) {
 		r = *(rooms[0].OTsetCwgt)
 	}
 
-	for _, room := range rooms {
+	if DEBUG {
+		fmt.Printf("<Rmsurft> Start\n")
+	}
+
+	for i := range rooms {
+		room := &rooms[i]
 		n := room.N
 		brs := room.Brs
 		sdr := sd[brs:]
+
+		if DEBUG {
+			fmt.Printf("Room[%d]=%s\tN=%d\tbrs=%d\n", i, room.Name, room.N, room.Brs)
+		}
 
 		// 前時刻の温度の入れ替え
 		room.mrk = 'C'
@@ -419,8 +444,16 @@ func Rmsurft(nroom int, rooms []ROOM, sd []RMSRF) {
 			room.oldTM = room.TM
 		}
 
+		if DEBUG {
+			fmt.Printf("<Rmsurft>  RMsrt start\n")
+		}
+
 		// 室内表面温度の計算
-		RMsrt(&room)
+		RMsrt(room)
+
+		if DEBUG {
+			fmt.Printf("<Rmsurft>  RMsrt end\n")
+		}
 
 		room.Tsav = RTsav(n, sdr)                // 平均表面温度 Ts,av
 		room.Tot = r*room.Tr + (1.0-r)*room.Tsav // 作用温度 Tot

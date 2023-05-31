@@ -37,8 +37,17 @@ func Htrcf(alc, alo *float64, alotype rune, Exs []EXSF, Tr float64, N int, alr [
 	var hc *float64
 	//var dT float64
 
+	if DEBUG {
+		fmt.Printf("Htrcf Start\n")
+	}
+
 	for n = 0; n < N; n++ {
 		Sd := &_Sd[n]
+
+		if DEBUG {
+			fmt.Printf("n=%d name=%s\n", n, Sd.Name)
+		}
+
 		// 室内側対流熱伝達率の計算
 		alic = -1.0
 
@@ -48,7 +57,15 @@ func Htrcf(alc, alo *float64, alotype rune, Exs []EXSF, Tr float64, N int, alr [
 			}
 		}
 
+		if DEBUG {
+			fmt.Printf("alic=%f\n", alic)
+		}
+
 		hc = nil
+
+		if DEBUG {
+			fmt.Printf("Sd->alicsch\n")
+		}
 
 		if Sd.alicsch != nil {
 			hc = Sd.alicsch
@@ -57,6 +74,9 @@ func Htrcf(alc, alo *float64, alotype rune, Exs []EXSF, Tr float64, N int, alr [
 			}
 		}
 
+		if DEBUG {
+			fmt.Printf("hc set end\n")
+		}
 		if alic < 0.0 {
 			dT := Sd.Ts - Tr
 			switch Sd.ble {
@@ -79,7 +99,10 @@ func Htrcf(alc, alo *float64, alotype rune, Exs []EXSF, Tr float64, N int, alr [
 			}
 		}
 
-		ALITOLE := 0.0 // Define the value for ALITOLE
+		if DEBUG {
+			fmt.Printf("----- Htrcf n=%d mrk=%c alic=%f  Sd->alic=%f\n",
+				n, Sd.mrk, alic, Sd.alic)
+		}
 
 		if math.Abs(alic-Sd.alic) >= ALITOLE || Sd.mrk == '*' || Sd.PCMflg == 'Y' {
 			*RMmrk = '*'
@@ -106,10 +129,15 @@ func Htrcf(alc, alo *float64, alotype rune, Exs []EXSF, Tr float64, N int, alr [
 			Sd.ali = alic + Sd.alir
 		}
 
-		if dayprn && Ferr != nil {
-			fmt.Fprintf(Ferr, "----- Htrcf n=%2d ble=%c Ts=%.1f Tr=%.1f alic=%.3f alir=%.3f rmname=%s\n",
+		if DEBUG {
+			fmt.Printf("----- Htrcf n=%2d ble=%c Ts=%.1f Tr=%.1f alic=%.3f alir=%.3f rmname=%s\n",
 				n, Sd.ble, Sd.Ts, Tr, Sd.alic, Sd.alir, Sd.room.Name)
 		}
+
+		//if dayprn && Ferr != nil {
+		fmt.Fprintf(Ferr, "----- Htrcf n=%2d ble=%c Ts=%f Tr=%f alic=%f alir=%f rmname=%s\n",
+			n, Sd.ble, Sd.Ts, Tr, Sd.alic, Sd.alir, Sd.room.Name)
+		//}
 	}
 }
 

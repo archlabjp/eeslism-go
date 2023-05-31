@@ -6,8 +6,6 @@ import (
 
 /* システム方程式の作成およびシステム変数の計算 */
 
-var dayprn bool
-
 func Syseqv(Nelout int, _Elout []*ELOUT, Syseq *SYSEQ) {
 	var elov *ELOUT
 	var eleq, elosv []*ELOUT
@@ -61,8 +59,8 @@ func Syseqv(Nelout int, _Elout []*ELOUT, Syseq *SYSEQ) {
 		if Elout.Control != LOAD_SW &&
 			Elout.Control != FLWIN_SW &&
 			Elout.Control != BATCH_SW {
-			Elout.Sv = -1
-			Elout.Sysv = 0.0
+			// Elout.Sv = -1
+			// Elout.Sysv = 0.0
 		}
 
 		if Elout.Control == ON_SW {

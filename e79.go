@@ -194,7 +194,7 @@ func main() {
 	P_MENNinit(lp, Noplpmp.Nlp)
 
 	// 最大収束回数のセット
-	//LOOP_MAX := Simc.MaxIterate
+	LOOP_MAX := Simc.MaxIterate
 	VAV_Count_MAX := Simc.MaxIterate
 
 	// 動的カーテンの展開
@@ -687,7 +687,7 @@ func main() {
 				}
 
 				// 20170426 higuchi add 引数追加 dayprn,monten
-				OPIhor(fp2, fp3, lpn, mpn, mp, lp, &Wd, ullp, ulmp, gp, day, dayprn, monten)
+				OPIhor(fp2, fp3, lpn, mpn, mp, lp, &Wd, ullp, ulmp, gp, day, monten)
 				for i := 0; i < Rmvls.Sd[0].end; i++ {
 					if Rmvls.Sd[i].Sname != "" {
 						for j := 0; j < mpn; j++ {
@@ -754,8 +754,8 @@ func main() {
 					fmt.Fprintf(Ferr, "\n\n====== VAV LOOP Count=%d ======\n\n\n", j)
 				}
 
-				// VAVreset := 0
-				// Valvreset := 0
+				VAVreset := 0
+				Valvreset := 0
 
 				Pumpflow(Eqsys.Npump, Eqsys.Pump)
 
@@ -764,7 +764,7 @@ func main() {
 				}
 
 				if Simc.Dayprn[day] != 0 && Ferr != nil {
-					fmt.Fprintf(Ferr, "<<main>> Pumpflow\n")
+					fmt.Fprintln(Ferr, "<<main>> Pumpflow")
 				}
 
 				Pflow(Nmpath, Mpath, &Wd)
@@ -774,7 +774,7 @@ func main() {
 				}
 
 				if dayprn && Ferr != nil {
-					fmt.Fprintf(Ferr, "<<main>> Pflow\n")
+					fmt.Fprintln(Ferr, "<<main>> Pflow")
 				}
 
 				/************
@@ -788,7 +788,7 @@ func main() {
 				}
 
 				if dayprn && Ferr != nil {
-					fmt.Fprintf(Ferr, "<<main>> Sysupv\n")
+					fmt.Fprintln(Ferr, "<<main>> Sysupv")
 				}
 
 				/*****
@@ -809,196 +809,130 @@ func main() {
 					fmt.Println("<<main>> Mecscf")
 				}
 
-				for j := 0; j < VAV_Count_MAX; j++ {
-					if DEBUG {
-						fmt.Printf("\n\n====== VAV LOOP Count=%d ======\n\n\n", j)
+				/*======higuchi update 070918==========*/
+				eeroomcf(&Wd, &Exsf, &Rmvls, nday, mt)
+				/*=====================================*/
+
+				if DEBUG {
+					fmt.Println("<<main>> eeroomcf")
+				}
+
+				/*   作用温度制御時の設定室内空気温度  */
+				Rmotset(Rmvls.Nroom, Rmvls.Room)
+				if DEBUG {
+					fmt.Println("<<main>> Rmotset End")
+				}
+
+				/* 室、放射パネルのシステム方程式作成 */
+				Roomvar(Rmvls.Nroom, Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl)
+
+				if DEBUG {
+					fmt.Println("<<main>>  Roomvar")
+					eloutprint(1, Nelout, Elout, Compnt)
+					elinprint(1, Ncompnt, Compnt, Elout, Elin)
+				}
+
+				if dayprn && Ferr != nil {
+					fmt.Fprintf(Ferr, "<<main>> Roomvar\n")
+					eloutfprint(1, Nelout, Elout, Compnt)
+					elinfprint(1, Ncompnt, Compnt, Elout, Elin)
+				}
+				//eloutprint(1, Nelout, Elout, Compnt);
+
+				//hcldmodeinit(&Eqsys);
+
+				for i := 0; i < LOOP_MAX; i++ {
+					//s := fmt.Sprintf("Loop Start %d", i)
+
+					if i == 0 {
+						hcldwetmdreset(&Eqsys)
 					}
-					if dayprn && Ferr != nil {
-						fmt.Fprintf(Ferr, "\n\n====== VAV LOOP Count=%d ======\n\n\n", j)
-					}
-
-					VAVreset := 0
-					Valvreset := 0
-
-					Pumpflow(Eqsys.Npump, Eqsys.Pump)
-
-					if DEBUG {
-						fmt.Println("<<main>> Pumpflow")
-					}
-
-					if Simc.Dayprn[day] != 0 && Ferr != nil {
-						fmt.Fprintln(Ferr, "<<main>> Pumpflow")
-					}
-
-					Pflow(Nmpath, Mpath, &Wd)
-
-					if DEBUG {
-						fmt.Println("<<main>> Pflow")
-					}
-
-					if dayprn && Ferr != nil {
-						fmt.Fprintln(Ferr, "<<main>> Pflow")
-					}
-
-					/************
-					eloutprint(0, Nelout, Elout, Compnt);
-					***********/
-
-					Sysupv(Nmpath, Mpath, &Rmvls)
-
-					if DEBUG {
-						fmt.Println("<<main>> Sysupv")
-					}
-
-					if dayprn && Ferr != nil {
-						fmt.Fprintln(Ferr, "<<main>> Sysupv")
-					}
-
-					/*****
-					elinprint(0, Ncompnt, Compnt, Elout, Elin);
-					***********/
-
-					for i := 0; i < Rmvls.Nroom; i++ {
-						Rmvls.Emrk[i] = '!'
-					}
-
-					for n := 0; n < Rmvls.Nsrf; n++ {
-						Rmvls.Sd[n].mrk = '!'
-					}
-
-					Mecscf(&Eqsys)
 
 					if DEBUG {
-						fmt.Println("<<main>> Mecscf")
-					}
-
-					/*======higuchi update 070918==========*/
-					eeroomcf(&Wd, &Exsf, &Rmvls, nday, mt)
-					/*=====================================*/
-
-					if DEBUG {
-						fmt.Println("<<main>> eeroomcf")
-					}
-
-					/*   作用温度制御時の設定室内空気温度  */
-					Rmotset(Rmvls.Nroom, Rmvls.Room)
-					if DEBUG {
-						fmt.Println("<<main>> Rmotset End")
-					}
-
-					/* 室、放射パネルのシステム方程式作成 */
-					Roomvar(Rmvls.Nroom, Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl)
-
-					if DEBUG {
-						fmt.Println("<<main>>  Roomvar")
-						eloutprint(1, Nelout, Elout, Compnt)
-						elinprint(1, Ncompnt, Compnt, Elout, Elin)
+						fmt.Printf("再計算が必要な機器のループ %d\n", i)
 					}
 
 					if dayprn && Ferr != nil {
-						fmt.Fprintf(Ferr, "<<main>> Roomvar\n")
-						eloutfprint(1, Nelout, Elout, Compnt)
-						elinfprint(1, Ncompnt, Compnt, Elout, Elin)
-					}
-					//eloutprint(1, Nelout, Elout, Compnt);
-
-					//hcldmodeinit(&Eqsys);
-
-					const LOOP_MAX = 100 // example value, replace with actual value
-
-					for i := 0; i < LOOP_MAX; i++ {
-						//s := fmt.Sprintf("Loop Start %d", i)
-
-						if i == 0 {
-							hcldwetmdreset(&Eqsys)
-						}
-
-						if DEBUG {
-							fmt.Printf("再計算が必要な機器のループ %d\n", i)
-						}
-
-						if dayprn && Ferr != nil {
-							fmt.Fprintf(Ferr, "再計算が必要な機器のループ %d\n\n\n", i)
-						}
-
-						LDreset := 0
-						DWreset := 0
-						TKreset := 0
-						BOIreset := 0
-						Evacreset := 0
-						PCMfunreset := 0
-
-						/********************************
-						if ( TKreset > 0 )
-						fmt.Printf("<< main >> nday=%d mt=%d  tt=%d mm=%d TKreset=%d\n",
-						nday, mt, tt, mm, TKreset );
-						****************************/
-
-						Stankcfv(Eqsys.Nstank, Eqsys.Stank)
-
-						Hcldcfv(Eqsys.Nhcload, Eqsys.Hcload)
-
-						Syseqv(Nelout, Elout, &Syseq)
-
-						Sysvar(Ncompnt, Compnt)
-
-						Roomene(&Rmvls, Rmvls.Nroom, Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl, &Exsf, &Wd)
-
-						Roomload(Rmvls.Nroom, Rmvls.Room, &LDreset)
-
-						// PCM家具の収束判定
-						PCMfunchk(Rmvls.Nroom, Rmvls.Room, &Wd, &PCMfunreset)
-
-						// 壁体内部温度の計算と収束計算のチェック
-						if Rmvls.Pcmiterate == 'y' {
-							PCMwlchk(i, &Rmvls, &Exsf, &Wd, &LDreset)
-						}
-
-						Boiene(Eqsys.Nboi, Eqsys.Boi, &BOIreset)
-
-						Refaene(Eqsys.Nrefa, Eqsys.Refa, &LDreset)
-
-						Hcldene(Eqsys.Nhcload, Eqsys.Hcload, &LDreset, &Wd)
-
-						Hccdwreset(Eqsys.Nhcc, Eqsys.Hcc, &DWreset)
-
-						Stanktss(Eqsys.Nstank, Eqsys.Stank, &TKreset)
-
-						Evacene(Eqsys.Nevac, Eqsys.Evac, &Evacreset)
-
-						if BOIreset+LDreset+DWreset+TKreset+Evacreset+PCMfunreset == 0 {
-							break
-						}
+						fmt.Fprintf(Ferr, "再計算が必要な機器のループ %d\n\n\n", i)
 					}
 
-					if i == LOOP_MAX {
-						fmt.Printf("収束しませんでした。 MAX=%d\n", LOOP_MAX)
+					LDreset := 0
+					DWreset := 0
+					TKreset := 0
+					BOIreset := 0
+					Evacreset := 0
+					PCMfunreset := 0
+
+					/********************************
+					if ( TKreset > 0 )
+					fmt.Printf("<< main >> nday=%d mt=%d  tt=%d mm=%d TKreset=%d\n",
+					nday, mt, tt, mm, TKreset );
+					****************************/
+
+					Stankcfv(Eqsys.Nstank, Eqsys.Stank)
+
+					Hcldcfv(Eqsys.Nhcload, Eqsys.Hcload)
+
+					Syseqv(Nelout, Elout, &Syseq)
+
+					Sysvar(Ncompnt, Compnt)
+
+					Roomene(&Rmvls, Rmvls.Nroom, Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl, &Exsf, &Wd)
+
+					Roomload(Rmvls.Nroom, Rmvls.Room, &LDreset)
+
+					// PCM家具の収束判定
+					PCMfunchk(Rmvls.Nroom, Rmvls.Room, &Wd, &PCMfunreset)
+
+					// 壁体内部温度の計算と収束計算のチェック
+					if Rmvls.Pcmiterate == 'y' {
+						PCMwlchk(i, &Rmvls, &Exsf, &Wd, &LDreset)
 					}
 
-					//fmt.Printf("Loop=%d\n", i)
-					Hccene(Eqsys.Nhcc, Eqsys.Hcc)
-					// 風量の計算は最初だけ
-					//if i == 0 {
-					VAVene(Eqsys.Nvav, Eqsys.Vav, &VAVreset)
-					//}
-					Valvene(Eqsys.Nvalv, Eqsys.Valv, &Valvreset)
+					Boiene(Eqsys.Nboi, Eqsys.Boi, &BOIreset)
 
-					//fmt.Printf("\n\nVAVreset=%d\n", VAVreset)
-					/***************/
-					if VAVreset == 0 && Valvreset == 0 {
+					Refaene(Eqsys.Nrefa, Eqsys.Refa, &LDreset)
+
+					Hcldene(Eqsys.Nhcload, Eqsys.Hcload, &LDreset, &Wd)
+
+					Hccdwreset(Eqsys.Nhcc, Eqsys.Hcc, &DWreset)
+
+					Stanktss(Eqsys.Nstank, Eqsys.Stank, &TKreset)
+
+					Evacene(Eqsys.Nevac, Eqsys.Evac, &Evacreset)
+
+					if BOIreset+LDreset+DWreset+TKreset+Evacreset+PCMfunreset == 0 {
 						break
 					}
-					VAVcountinc(Eqsys.Nvav, Eqsys.Vav)
-					Valvcountinc(Eqsys.Nvalv, Eqsys.Valv)
-
-					// 風量が変わったら電気蓄熱暖房器の係数を再計算
-					Stheatcfv(Eqsys.Nstheat, Eqsys.Stheat)
-
-					/*****************/
-
-					/*---- Satoh Debug VAV  2000/12/6 ----*/
-					/* VAV 計算繰り返しループの終了地点 */
 				}
+
+				if i == LOOP_MAX {
+					fmt.Printf("収束しませんでした。 MAX=%d\n", LOOP_MAX)
+				}
+
+				//fmt.Printf("Loop=%d\n", i)
+				Hccene(Eqsys.Nhcc, Eqsys.Hcc)
+				// 風量の計算は最初だけ
+				//if i == 0 {
+				VAVene(Eqsys.Nvav, Eqsys.Vav, &VAVreset)
+				//}
+				Valvene(Eqsys.Nvalv, Eqsys.Valv, &Valvreset)
+
+				//fmt.Printf("\n\nVAVreset=%d\n", VAVreset)
+				/***************/
+				if VAVreset == 0 && Valvreset == 0 {
+					break
+				}
+				VAVcountinc(Eqsys.Nvav, Eqsys.Vav)
+				Valvcountinc(Eqsys.Nvalv, Eqsys.Valv)
+
+				// 風量が変わったら電気蓄熱暖房器の係数を再計算
+				Stheatcfv(Eqsys.Nstheat, Eqsys.Stheat)
+
+				/*****************/
+
+				/*---- Satoh Debug VAV  2000/12/6 ----*/
+				/* VAV 計算繰り返しループの終了地点 */
 			}
 
 			// 太陽電池内蔵壁体の発電量計算
@@ -1116,7 +1050,7 @@ func main() {
 		//	printf("debug\n");
 
 		// 月集計の出力
-		if IsEndDay(Daytm.Mon, Daytm.Day, Daytm.Day, Simc.Dayend) && Daytm.Ddpri != 0 {
+		if IsEndDay(Daytm.Mon, Daytm.Day, Daytm.DayOfYear, Simc.Dayend) && Daytm.Ddpri != 0 {
 			//fmt.Printf("月集計出力\n")
 			Eeprintm(&Daytm, &Simc, Flout, &Rmvls, Exsf.Nexs, Exsf.Exs, Solmon, &Eqsys, &Wdm)
 		}

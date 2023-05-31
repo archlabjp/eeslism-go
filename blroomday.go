@@ -22,15 +22,15 @@ import (
 	"io"
 )
 
-var oldday = -999
-var oldMon = -999
+var __Roomday_oldday = -999
+var __Roomday_oldMon = -999
 
 func Roomday(Mon int, Day int, Nday int, ttmm int, Nroom int, Rm []ROOM, Nrdpnl int, Rdp []RDPNL, Simdayend int) {
 	Mo := Mon - 1
 	tt := ConvertHour(ttmm)
 
 	// 日集計
-	if Nday != oldday {
+	if Nday != __Roomday_oldday {
 		for i := 0; i < Nroom; i++ {
 			Room := &Rm[i]
 
@@ -70,11 +70,11 @@ func Roomday(Mon int, Day int, Nday int, ttmm int, Nroom int, Rm []ROOM, Nrdpnl 
 			qdyint(&Rdpnl.PVdy)
 		}
 
-		oldday = Nday
+		__Roomday_oldday = Nday
 	}
 
 	// 月集計
-	if Mon != oldMon {
+	if Mon != __Roomday_oldMon {
 		//printf("リセット\n") ;
 		for i := 0; i < Nroom; i++ {
 			Room := &Rm[i]
@@ -115,7 +115,7 @@ func Roomday(Mon int, Day int, Nday int, ttmm int, Nroom int, Rm []ROOM, Nrdpnl 
 			qdyint(&Rdpnl.mPVdy)
 		}
 
-		oldMon = Mon
+		__Roomday_oldMon = Mon
 	}
 
 	// 日集計

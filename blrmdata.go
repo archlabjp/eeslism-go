@@ -105,7 +105,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 	RmIdx--
 	SdIdx--
 
-	var i int
+	var i int = -1
 	for tokens.IsEnd() == false {
 
 		section := tokens.GetSection()
@@ -130,6 +130,10 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 			s := section.GetToken()
 			if s == "\n" {
 				break
+			}
+
+			if DEBUG {
+				fmt.Printf("Roomdata  s=%s\n", s)
 			}
 
 			var err error
@@ -396,6 +400,10 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							os.Exit(1)
 						}
 					} else {
+						if DEBUG {
+							fmt.Printf("Roomdata3  s=%s  c=%c\n", s, c)
+						}
+
 						if c == 'W' {
 							nf := Sd.Nfn
 							Sd.Nfn++
@@ -430,7 +438,16 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							Nwall := Rmvls.Wall[0].end
 							for j := 0; j < Nwall; j++ {
 								w := &Rmvls.Wall[j]
+
+								if DEBUG {
+									fmt.Printf("!!!!Wall.name=%s  s=%s!!!!\n", w.name, s)
+								}
+
 								if w.name == s && w.ble == Sd.ble {
+									if DEBUG {
+										fmt.Printf("---- j=%d Wallname=%s n=%d\n", j, w.name, n)
+									}
+
 									Sd.wd = j
 									Sd.Rwall = w.Rwall
 									Sd.CAPwall = w.CAPwall
@@ -665,7 +682,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 		Rm.GRM = Roa*Rm.VRM + Rm.Mxcap
 		Rm.MRM = Ca*Roa*Rm.VRM + Rm.Hcap
 	}
-	//i++
+	i++
 	Nroom := i
 	Rmvls.Room[0].end = i
 

@@ -134,7 +134,7 @@ func Gdata(section *EeTokens, dsn string, File string, wfname *string, ofname *s
 					if err != nil {
 						panic(err)
 					}
-					*dayxs = FNNday(Mxs, Dxs)
+					*dayxs = FNNday(Mxs, Dxs) // 助走計算開始日
 				} else if s == "-periodic" { // 周期定常計算への対応
 					// For `-periodic 1/1`
 					*perio = 'y'  // 周期定常計算フラグの変更
@@ -145,7 +145,7 @@ func Gdata(section *EeTokens, dsn string, File string, wfname *string, ofname *s
 						panic(err)
 					}
 					*days = FNNday(Ms, Ds)
-					*dayxs = *days
+					*dayxs = *days // 助走計算開始日
 					Daytm.Mon = Ms
 					Daytm.Day = Ds
 				} else if strings.IndexRune(s, '-') != -1 {
@@ -158,7 +158,7 @@ func Gdata(section *EeTokens, dsn string, File string, wfname *string, ofname *s
 					*daye = FNNday(Me, De)
 
 					if Mxs == 0 {
-						*dayxs = *days
+						*dayxs = *days // 助走計算開始日
 						Daytm.Mon = Ms
 						Daytm.Day = Ds
 					} else {
@@ -219,20 +219,21 @@ func Gdata(section *EeTokens, dsn string, File string, wfname *string, ofname *s
 		} else {
 			Eprint("<Gdata>", s)
 		}
+	}
 
-		// Concatenate ".log" to the end of *ofname and copy to s
-		s = filepath.Join(*ofname + ".log")
+	// Concatenate ".log" to the end of *ofname and copy to s
+	s = filepath.Join(*ofname + ".log")
 
-		// Open the file for writing
-		ferr, err := os.Create(s)
-		if err != nil {
-			// Handle error
-		}
+	// Open the file for writing
+	var err error
+	Ferr, err = os.Create(s)
+	if err != nil {
+		// Handle error
+	}
 
-		if logprn == 0 {
-			// Close the file and set ferr to nil if logprn is 0
-			ferr.Close()
-			ferr = nil
-		}
+	if logprn == 0 {
+		// Close the file and set ferr to nil if logprn is 0
+		Ferr.Close()
+		Ferr = nil
 	}
 }

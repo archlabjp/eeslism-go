@@ -40,7 +40,6 @@ func OPIhor(
 	ulmp *bekt,
 	gp [][]XYZ,
 	nday int,
-	dayprn bool,
 	monten int,
 ) {
 	var ls,

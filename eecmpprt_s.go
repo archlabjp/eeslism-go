@@ -70,16 +70,17 @@ func Hcmpprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time floa
 
 }
 
+var __Hstkprint_id int = 0
+
 func Hstkprint(fo io.Writer, title string, mon int, day int, time float64, Eqsys *EQSYS) {
-	staticId := 0
-	if staticId == 0 {
+	if __Hstkprint_id == 0 {
 		fmt.Fprintf(fo, "%s ;\n", title)
-		stankivprt(fo, staticId, Eqsys.Nstank, Eqsys.Stank)
-		staticId++
+		stankivprt(fo, __Hstkprint_id, Eqsys.Nstank, Eqsys.Stank)
+		__Hstkprint_id++
 	}
 	if Eqsys.Nstank > 0 {
 		fmt.Fprintf(fo, "%02d %02d %5.2f  ", mon, day, time)
-		stankivprt(fo, staticId, Eqsys.Nstank, Eqsys.Stank)
+		stankivprt(fo, __Hstkprint_id, Eqsys.Nstank, Eqsys.Stank)
 	}
 	fmt.Fprintln(fo, " ;")
 }

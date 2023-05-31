@@ -226,6 +226,10 @@ func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]WALL, Nwall
 		Wa.welm = []WELM{
 			{
 				Code: "ali", //内表面熱伝達率
+				L:    -999.0,
+				ND:   0,
+				Cond: -999.0,
+				Cro:  -999.0,
 			},
 		}
 

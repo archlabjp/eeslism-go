@@ -432,7 +432,7 @@ func Qrmprint(fo io.Writer, title string, Mon, Day int, time float64, Room []ROO
 		fmt.Fprintf(fo, "%s;\n %d\n", title, n)
 		fmt.Fprint(fo, "Mo\tNd\ttt\t")
 
-		key := [16]string{"Tr", "tsol", "asol", "arn", "hums", "light", "apls",
+		key := [16]string{"tsol", "asol", "arn", "hums", "light", "apls",
 			"huml", "apll", "Qeqp", "Qis", "Qil", "Qsto", "Qstol", "AE", "AG"}
 
 		for i := 0; i < N; i++ {

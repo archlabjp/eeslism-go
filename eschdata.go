@@ -103,7 +103,15 @@ func Dayweek(fi io.Reader, week string, daywk []int, key int) {
 
 /*  スケジュ－ル表の入力          */
 var __Schtable_ic int
-var __Schtable_is, __Schtable_js, __Schtable_iw, __Schtable_j, __Schtable_sc, __Schtable_jsc, __Schtable_sw, __Schtable_jsw, __Schtable_Nmod int
+var __Schtable_is = -1
+var __Schtable_js int
+var __Schtable_iw = -1
+var __Schtable_j int
+var __Schtable_sc = -1
+var __Schtable_jsc int
+var __Schtable_sw = -1
+var __Schtable_jsw int
+var __Schtable_Nmod int
 
 func Schtable(schtba string, Schdl *SCHDL) {
 	fi := strings.NewReader(schtba)

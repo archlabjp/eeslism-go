@@ -33,7 +33,7 @@ var (
 	Fbmlist = "" // Assign the value of Fbmlist here
 
 	DEBUG   = false
-	Dayprn  = false // Assign the value of dayprn here
+	dayprn  = false
 	DAYweek = [8]string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "Hol"}
 	Ferr    = os.Stderr // Assuming you want to write errors to standard error
 	NSTOP   = 0
@@ -43,10 +43,14 @@ var (
 
 // 月の末日かどうかをチェックする
 func IsEndDay(Mon, Day, Dayend, SimDayend int) bool {
-	if Mon == 12 && Day == Dayend {
-		return true
-	} else if Day == SimDayend {
+	Nde := []int{31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}
+	nday := SimDayend
+	if nday > 365 {
+		nday -= 365
+	}
+	if Day == Nde[Mon-1] || Dayend == nday {
 		return true
 	}
+
 	return false
 }

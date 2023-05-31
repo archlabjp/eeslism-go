@@ -5,7 +5,6 @@ import (
 )
 
 func Sysupv(Nmpath int, Mpath []MPATH, Rmvls *RMVLS) {
-	dayprn := 0
 	var Rdpnl *RDPNL
 	var Nrdpnl int
 	var up *ELOUT
@@ -25,7 +24,7 @@ func Sysupv(Nmpath int, Mpath []MPATH, Rmvls *RMVLS) {
 				fmt.Printf("\n<<Sysupv>  i=%d  iMAX=%d\n", i, mpath.Nlpath)
 				fmt.Printf("OFF_SW=%c  Plist->control=%c\n", OFF_SW, plist.Control)
 			}
-			if dayprn != 0 && Ferr != nil {
+			if dayprn && Ferr != nil {
 				fmt.Fprintf(Ferr, "\n<<Sysupv>  i=%d  iMAX=%d\n", i, mpath.Nlpath)
 				fmt.Fprintf(Ferr, "OFF_SW=%c  Plist->control=%c\n", OFF_SW, plist.Control)
 			}
@@ -48,7 +47,7 @@ func Sysupv(Nmpath int, Mpath []MPATH, Rmvls *RMVLS) {
 							fmt.Printf("<< Sysupv >> Pelm->out->control=%c\n", pelm.Out.Control)
 						}
 					}
-					if dayprn != 0 && Ferr != nil {
+					if dayprn && Ferr != nil {
 						fmt.Fprintf(Ferr, "\n<< sysupv >> pelm=%d %s  MAX=%d\n", j, pelm.Cmp.Name, plist.Nelm)
 						if pelm.Out != nil {
 							fmt.Fprintf(Ferr, "<< Sysupv >> Pelm->out->control=%c\n", pelm.Out.Control)
@@ -63,7 +62,7 @@ func Sysupv(Nmpath int, Mpath []MPATH, Rmvls *RMVLS) {
 						if DEBUG {
 							fmt.Printf("<<<<<< Pelm->out->control=%c FLWIN_SW=%c\n", pelm.Out.Control, FLWIN_SW)
 						}
-						if dayprn != 0 && Ferr != nil {
+						if dayprn && Ferr != nil {
 							fmt.Fprintf(Ferr, "<<<<<< Pelm->out->control=%c FLWIN_SW=%c\n", pelm.Out.Control, FLWIN_SW)
 						}
 						if pelm.Out.Control == FLWIN_SW {

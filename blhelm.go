@@ -151,28 +151,29 @@ func Helmroom(Nroom int, Room []ROOM, Qrm []QRM, Qetotal *QETOTAL, Ta, xa float6
 
 /* 要素別熱損失・熱取得（時刻別出力） */
 
+var __Helmprint_id int = 0
+
 func Helmprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time float64,
 	Nroom int, Room []ROOM, Qetotal *QETOTAL) {
 	var j int
-	staticID := 0
 
-	if staticID == 0 {
+	if __Helmprint_id == 0 {
 		ttlprint(fo, mrk, Simc)
 
 		for j = 0; j < 2; j++ {
 			if j == 0 {
 				fmt.Fprintf(fo, "-cat\n")
 			}
-			helmrmprint(fo, staticID, Nroom, Room, Qetotal)
+			helmrmprint(fo, __Helmprint_id, Nroom, Room, Qetotal)
 			if j == 0 {
 				fmt.Fprintf(fo, "*\n#\n")
 			}
-			staticID++
+			__Helmprint_id++
 		}
 	}
 
 	fmt.Fprintf(fo, "%02d %02d %5.2f\n", mon, day, time)
-	helmrmprint(fo, staticID, Nroom, Room, Qetotal)
+	helmrmprint(fo, __Helmprint_id, Nroom, Room, Qetotal)
 }
 
 /* ----------------------------------------------------- */
@@ -265,28 +266,29 @@ func helmrmprint(fo io.Writer, id, Nroom int, _Room []ROOM, Qetotal *QETOTAL) {
 
 /* 要素別熱損失・熱取得（時刻別出力） */
 
+var __Helmsurfprint_id int = 0
+
 func Helmsurfprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time float64,
 	Nroom int, Room []ROOM) {
 	var j int
-	staticID := 0
 
-	if staticID == 0 {
+	if __Helmsurfprint_id == 0 {
 		ttlprint(fo, mrk, Simc)
 
 		for j = 0; j < 2; j++ {
 			if j == 0 {
 				fmt.Fprintf(fo, "-cat\n")
 			}
-			helmsfprint(fo, staticID, Nroom, Room)
+			helmsfprint(fo, __Helmsurfprint_id, Nroom, Room)
 			if j == 0 {
 				fmt.Fprintf(fo, "*\n#\n")
 			}
-			staticID++
+			__Helmsurfprint_id++
 		}
 	}
 
 	fmt.Fprintf(fo, "%02d %02d %5.2f\n", mon, day, time)
-	helmsfprint(fo, staticID, Nroom, Room)
+	helmsfprint(fo, __Helmsurfprint_id, Nroom, Room)
 }
 
 /* ----------------------------------------------------- */
@@ -359,13 +361,14 @@ func helmsfprint(fo io.Writer, id, Nroom int, _Room []ROOM) {
 
 /* 要素別熱損失・熱取得（日積算値） */
 
+var __Helmdy_oldday int = -1
+
 func Helmdy(day, Nroom int, Room []ROOM, Qetotal *QETOTAL) {
 	var i int
-	var oldday = -1
 
-	if day != oldday {
+	if day != __Helmdy_oldday {
 		helmdyint(Nroom, Room, Qetotal)
-		oldday = day
+		__Helmdy_oldday = day
 	}
 
 	for i = 0; i < Nroom; i++ {

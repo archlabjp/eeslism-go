@@ -127,7 +127,7 @@ func Weatherdt(Simc *SIMCONTL, Daytm *DAYTM, Loc *LOCAT, Wd *WDAT, Exs []EXSF, E
 		fmt.Printf("\th=%.0f\n==================\n", Wd.H)
 	}
 
-	if Dayprn && Ferr != nil {
+	if dayprn && Ferr != nil {
 		fmt.Fprintln(Ferr, "\n\n<Weatherdt>  ***** Wdata *****\n\n=================")
 		fmt.Fprintf(Ferr, "\tT=%.1f\n\tx=%.4f\n\tRH=%.0f\n", Wd.T, Wd.X, Wd.RH)
 		fmt.Fprintf(Ferr, "\tIdn=%.0f\n\tIsky=%.0f\n\tIhor=%.0f\n", Wd.Idn, Wd.Isky, Wd.Ihor)
@@ -210,9 +210,17 @@ func hspwdread(fp io.ReadSeeker, nday int, Loc *LOCAT, dt *[7][25]float64) (year
 	}
 
 	if __hspwdread_ic == 0 {
+		// NOTE: 独自のHASPフォーマットになっている
 		fmt.Fscanf(fp, "%s %f %f %f %f %f %f ", &s, &Loc.Lat, &Loc.Lon, &Loc.Ls, &a, &b, &c)
 		Loc.Name = s
 
+		if Ferr != nil {
+			fmt.Fprintf(Ferr, "\n------> <hspwdread> \n")
+			fmt.Fprintf(Ferr, "\nName=%s\tLat=%.4g\tLon=%.4g\tLs=%.4g\ta=%.4g\tb=%.4g\tc=%.4g\n",
+				Loc.Name, Loc.Lat, Loc.Lon, Loc.Ls, a, b, c)
+		}
+
+		//改行コードの判定
 		fp.Seek(0, io.SeekEnd)
 		fsize, _ := fp.Seek(0, io.SeekCurrent)
 		__hspwdread_recl = int(fsize / 2556)

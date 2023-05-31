@@ -14,7 +14,7 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 		//cmp    *[]COMPNT
 		Compnt []COMPNT
 		Ni, No int
-		cio    rune
+		cio    ELIOType
 		idi    []ELIOType
 		ido    []ELIOType
 		N      int
@@ -136,7 +136,7 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 			if s == "*" {
 				break
 			}
-			cio = ' '
+			cio = ELIO_SPACE
 
 			Crm := true
 			comp_num := 0

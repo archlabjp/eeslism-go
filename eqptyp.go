@@ -662,7 +662,7 @@ type PUMPCA struct /* ポンプ・ファン機器仕様 */
 	pfcmp *PFCMP
 }
 
-type PUMP struct /* システム使用熱交換器 */
+type PUMP struct /* システム使用ポンプ・ファン */
 {
 	Name string
 	Cat  *PUMPCA

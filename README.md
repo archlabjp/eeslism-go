@@ -12,9 +12,43 @@ For Ubuntu/Debian user
 sudo apt install golang # if you didnot install golang
 git clone https://github.com/archlabjp/eeslism-go
 cd eeslism-go
-go build main.go -o eeslism-go
-eeslism-go
+go build
+./eeslism
 ```
+
+## How to build
+
+We assume that the Go compiler is available.If not available, please refer to https://go.dev/doc/install to install Go.
+
+Run next command.
+```
+go build
+```
+
+If you build as Windows Executable (64bit), run next command. You will get `eeslism.exe`.
+```
+GOOS=windows GOARCH=amd64 go build -o eeslism.exe
+```
+
+If you build as WebAssembly, run next command. You will get `eeslism.wasm`.
+```
+GOOS=js GOARCH=wasm go build -o eeslism.wasm
+```
+
+For other compilation targets, please refer to [here](https://go.dev/doc/install/source#environment
+).
+
+## Porting Policy
+
+In porting from C to Go language, we keep the changes to a minimum. We also try to keep the source code names as one-to-one as possible. For example, if the original source code name is name.c, the ported source code name is name.go. This is to facilitate verification in case of mistakes by maintaining the correspondence.
+
+### Accuracy of porting
+
+We have confirmed that the same calculation results are obtained for a minimum sample. However, EESLISM is a very versatile program with a long history and requires much validation.
+
+## Internal Structure
+
+Please refer to [this picture](eeslism_data_structure.png) for data structure.
 
 ## Author
 

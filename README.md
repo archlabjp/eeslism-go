@@ -5,6 +5,10 @@ control systems consisting of both buildings and facilities, to the Go language.
 
 The original EESLISM is written in C and is available at https://github.com/satoh-er/open_eeslism.
 
+## Why porting to Go ?
+
+The original EESLISM is littered with improper string memory handling. It was considered difficult to fix these completely. It seemed appropriate to port it to a C-compatible language with garbage collection, so we considered Carbon, Zig, and Go, and based on the popularity of the languages, we decided to try porting it to Go.
+
 ## Quick Start
 
 For Ubuntu/Debian user
@@ -41,6 +45,8 @@ For other compilation targets, please refer to [here](https://go.dev/doc/install
 ## Porting Policy
 
 In porting from C to Go language, we keep the changes to a minimum. We also try to keep the source code names as one-to-one as possible. For example, if the original source code name is name.c, the ported source code name is name.go. This is to facilitate verification in case of mistakes by maintaining the correspondence.
+
+All code is stored in the main module, which is a private function in the Go language if the function name starts with a lowercase letter. In order to maintain identity with the original function name, it was necessary to store all code in the main module.
 
 ### Accuracy of porting
 

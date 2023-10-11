@@ -12,7 +12,7 @@ NOTE: 設定値および切り替え設定は他から引用されます。
 ### 設定値スケジュール定義
 
 ```
--v vdname ttmm-(xxx)-ttmm ttmm-(xxx)-ttmm ...;
+-v vdname ttmm-(xxx)-ttmm ttmm-(xxx)-ttmm ... ;
 ```
 - vdname: 設定値名
 - ttmm: 開始または終了の時分
@@ -23,7 +23,7 @@ NOTE: 設定値および切り替え設定は他から引用されます。
 ### 切替設定スケジュール定義
 
 ```
--s wdname ttmm-(mode)-ttmm ttmm-(mode)-ttmm ...;
+-s wdname ttmm-(mode)-ttmm ttmm-(mode)-ttmm ... ;
 ```
 - wdname: 切替設定名
 - ttmm: 開始または終了の時分
@@ -54,15 +54,29 @@ NOTE: 設定値および切り替え設定は他から引用されます。
 
 例: `-wkd Weekend Sat Sun Hol ;` 
 
+## 他のデータセット中でのスケジュールデータ定義
 
-## 例
+先頭に "%s" を付け加えると、入力データ中の任意の場所で定義をすることができる。この場合は、データセット名 `SCHTB` のくくりは不要である。
+
+## 例1 SCHTBデータセットの中で
 ```
 SCHTB
+	-s    WSCH     001-(N)-800 801-(D)-1700 1701-(N)-2400 ;
+	-wkd  Weekday  Mon Tue Wed Thu Fri ;
+	-wkd  Weekend  Sat Sun Hol ;
+	-ssn  Winter   11/4-4/21 ;
+	-ssn  Summer   5/30-9/23 ;
+	-ssn  Inter	   4/22-5/29  9/24-11/3 ;
+*
+```
+
+
+## 例2 任意の場所で
+```
 	%s -s    WSCH     001-(N)-800 801-(D)-1700 1701-(N)-2400 ;
 	%s -wkd  Weekday  Mon Tue Wed Thu Fri ;
 	%s -wkd  Weekend  Sat Sun Hol ;
 	%s -ssn	Winter		11/4-4/21 ;
 	%s -ssn	Summer		5/30-9/23 ;
 	%s -ssn	Inter		4/22-5/29  9/24-11/3 ;
-*
 ```

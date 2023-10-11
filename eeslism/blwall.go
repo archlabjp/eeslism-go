@@ -70,8 +70,8 @@ func Walli(Nbm int, W []BMLST, Wl *WALL, pcm []PCM, Npcm int) {
 			if st == -1 {
 				panic("PCMの含有率が指定されていません。")
 			}
-			PCMname := PCMcode[:st]                                // PCM名称
-			*PCMrate, err = strconv.ParseFloat(PCMcode[st+1:], 64) // PCM含有率（Vol）
+			PCMname := PCMcode[:st]                                              // PCM名称
+			*PCMrate, err = strconv.ParseFloat(PCMcode[st+1:len(PCMcode)-1], 64) // PCM含有率（Vol）
 			if err != nil {
 				panic(err)
 			}

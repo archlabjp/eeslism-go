@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"unicode"
 )
@@ -27,38 +28,53 @@ func Eesprera(file string) string {
 	fb := new(strings.Builder)
 
 	scanner := bufio.NewScanner(fi)
-	var s string
-	var c byte
+
+	// 各行を処理
 	for scanner.Scan() {
-		s = scanner.Text()
-
-		if s == "!" {
-			//改行するまで読み進める
-			for _, err := fmt.Fscanf(fi, "%c", &c); err == nil && c != '\n'; _, err = fmt.Fscanf(fi, "%c", &c) {
-			}
-		} else {
-			if s == "　" {
-				//全角スペースは半角に置き換える
-				fmt.Fprint(fb, "  \n")
-			} else if s != "" {
-				fmt.Fprintf(fb, " %s ", strings.TrimSpace(s))
-			}
-
-			if s == ";" || strings.HasSuffix(s, ";") {
-				fmt.Fprintln(fb)
-			} else if s == "#" || strings.HasSuffix(s, "#") {
-				fmt.Fprintln(fb)
-			} else if s == "*" || strings.HasSuffix(s, "*") {
-				fmt.Fprintln(fb)
-			} else if s == "*debug" {
-				DEBUG = true
-			} else {
-				fmt.Fprintln(fb)
+		processedLine := processLine(scanner.Text())
+		if processedLine != "" {
+			_, err := fb.WriteString(processedLine + "\n")
+			if err != nil {
+				panic(err)
 			}
 		}
 	}
 
-	fmt.Fprintln(fb, " ")
+	if err := scanner.Err(); err != nil {
+		panic(err)
+	}
+	// var s string
+	// var c byte
+	// for scanner.Scan() {
+	// 	s = scanner.Text()
+
+	// 	if s == "!" {
+	// 		//改行するまで読み進める
+	// 		for _, err := fmt.Fscanf(fi, "%c", &c); err == nil && c != '\n'; _, err = fmt.Fscanf(fi, "%c", &c) {
+	// 		}
+	// 	} else {
+	// 		if s == "　" {
+	// 			//全角スペースは半角に置き換える
+	// 			fmt.Fprint(fb, "  \n")
+	// 		} else if s != "" {
+	// 			fmt.Fprintf(fb, " %s ", strings.TrimSpace(s))
+	// 		}
+
+	// 		if s == ";" || strings.HasSuffix(s, ";") {
+	// 			fmt.Fprintln(fb)
+	// 		} else if s == "#" || strings.HasSuffix(s, "#") {
+	// 			fmt.Fprintln(fb)
+	// 		} else if s == "*" || strings.HasSuffix(s, "*") {
+	// 			fmt.Fprintln(fb)
+	// 		} else if s == "*debug" {
+	// 			DEBUG = true
+	// 		} else {
+	// 			fmt.Fprintln(fb)
+	// 		}
+	// 	}
+	// }
+
+	// fmt.Fprintln(fb, " ")
 
 	//互換性のために出力
 	fbo, err := os.Create(strings.Join([]string{RET, "bdata0.ewk"}, ""))
@@ -70,6 +86,14 @@ func Eesprera(file string) string {
 	defer fbo.Close()
 
 	return fb.String()
+}
+
+func processLine(line string) string {
+	// "!"以降を削除
+	if index := strings.Index(line, "!"); index != -1 {
+		line = line[:index]
+	}
+	return line
 }
 
 /* ---------------------------------------------------------- */
@@ -96,7 +120,8 @@ func Eespre(bdata0 string, Ipath string, key *int) (string, string, string, stri
 	scanner := bufio.NewScanner(fi)
 	for scanner.Scan() {
 
-		for _, s := range strings.Fields(scanner.Text()) {
+		line := scanner.Text()
+		for _, s := range strings.Fields(line) {
 			if s == "TITLE" {
 				// ex)
 				// TITLE
@@ -121,11 +146,25 @@ func Eespre(bdata0 string, Ipath string, key *int) (string, string, string, stri
 				s = strings.TrimSuffix(scanner.Text(), ";")
 				fmt.Fprintf(fw, "WEEK  %s ;\n", s)
 			} else if s == "%s" {
-				fmt.Fscanf(fi, " %[^;];", &s)
-				fmt.Fprintf(fs, "%s ;\n", s)
+				// 任意の場所における SCHTBデータ (Schedule Table ?) の定義
+				r := regexp.MustCompile(`%s(.*?);`)
+				match := r.FindStringSubmatch(line)
+				if match != nil {
+					// match[0] は全体のマッチ、match[1] は最初のキャプチャーグループのマッチ
+					fmt.Fprintf(fs, "%s ;\n", strings.TrimSpace(match[1]))
+				} else {
+					panic(line)
+				}
 			} else if s == "%sn" {
-				fmt.Fscanf(fi, " %[^;];", &s)
-				fmt.Fprintf(fsn, "%s ;\n", s)
+				// 任意の場所における SCHNMデータ (Schedule Name ?) の定義
+				r := regexp.MustCompile(`%sn(.*?);`)
+				match := r.FindStringSubmatch(line)
+				if match != nil {
+					// match[0] は全体のマッチ、match[1] は最初のキャプチャーグループのマッチ
+					fmt.Fprintf(fsn, "%s ;\n", strings.TrimSpace(match[1]))
+				} else {
+					panic(line)
+				}
 			} else if strings.Contains(s, `"`) {
 				fmt.Fprintf(fb, " %s", s)
 				st = strings.Index(s, "\"")
@@ -180,6 +219,7 @@ func Eespre(bdata0 string, Ipath string, key *int) (string, string, string, stri
 		defer fbo.Close()
 	}
 
+	// SCHTBデータセット
 	fso, err := os.Create(strings.Join([]string{Ipath, "schtba.ewk"}, ""))
 	if err != nil {
 		fmt.Println("Error creating file: ", err)
@@ -188,6 +228,7 @@ func Eespre(bdata0 string, Ipath string, key *int) (string, string, string, stri
 		defer fso.Close()
 	}
 
+	// SCHNMAデータセット
 	fsno, err := os.Create(strings.Join([]string{Ipath, "schnma.ewk"}, ""))
 	if err != nil {
 		fmt.Println("Error creating file: ", err)
@@ -196,6 +237,7 @@ func Eespre(bdata0 string, Ipath string, key *int) (string, string, string, stri
 		defer fsno.Close()
 	}
 
+	// WEEKデータセット
 	fwo, err := os.Create(strings.Join([]string{Ipath, "week.ewk"}, ""))
 	if err != nil {
 		fmt.Println("Error creating file: ", err)

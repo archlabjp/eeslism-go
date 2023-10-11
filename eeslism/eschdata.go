@@ -120,8 +120,9 @@ var __Schtable_sw = -1
 var __Schtable_jsw int
 var __Schtable_Nmod int
 
-// SCHTB: 一日の設定値、切換スケジュールおよび季節、曜日の指定
-// 入力文字列`schtba`を読み取って、 `SCHDL`に書き込む
+// SCHTBデータセットの読み取り
+// SCHTBデータセット=一日の設定値、切換スケジュールおよび季節、曜日の指定
+// 入力文字列`schtba`を読み取って、 [eeslism.SCHDL]に書き込む
 func Schtable(schtba string, Schdl *SCHDL) {
 	fi := strings.NewReader(schtba)
 
@@ -129,7 +130,6 @@ func Schtable(schtba string, Schdl *SCHDL) {
 	var ce int
 	var code byte
 	var ssn, wkd, vl, swn, N, i int
-	var ssnmx, vlmx, swmx int
 	var Sn *SEASN
 	var Wk *WKDY
 	var Dh *DSCH
@@ -155,14 +155,11 @@ func Schtable(schtba string, Schdl *SCHDL) {
 		Schdl.Seasn = nil
 		Schdl.Wkdy = nil
 
-		SchCount(fi, &ssn, &wkd, &vl, &swn, &ssnmx, &vlmx, &swmx)
+		SchCount(fi, &ssn, &wkd, &vl, &swn)
 		ssn++
 		wkd++
 		vl++
 		swn++
-		ssnmx++
-		vlmx++
-		swmx++
 
 		N = int(math.Max(float64(1), float64(ssn)))
 		if N > 0 {
@@ -175,8 +172,8 @@ func Schtable(schtba string, Schdl *SCHDL) {
 					name: "",
 					N:    0,
 					end:  0,
-					sday: make([]int, ssnmx),
-					eday: make([]int, ssnmx),
+					sday: make([]int, ssn),
+					eday: make([]int, ssn),
 				}
 				Schdl.Seasn[i] = Seasn
 			}
@@ -212,9 +209,9 @@ func Schtable(schtba string, Schdl *SCHDL) {
 					name:  "",
 					N:     0,
 					end:   0,
-					stime: make([]int, vlmx),
-					etime: make([]int, vlmx),
-					val:   make([]float64, vlmx),
+					stime: make([]int, vl),
+					etime: make([]int, vl),
+					val:   make([]float64, vl),
 				}
 				Schdl.Dsch[i] = Dsch
 			}
@@ -232,9 +229,9 @@ func Schtable(schtba string, Schdl *SCHDL) {
 					N:     0,
 					end:   0,
 					Nmod:  0,
-					stime: make([]int, swmx),
-					etime: make([]int, swmx),
-					mode:  make([]rune, swmx),
+					stime: make([]int, 0),
+					etime: make([]int, 0),
+					mode:  make([]rune, 0),
 					//dcode: make([]rune, swmx),
 				}
 				Schdl.Dscw[i] = Dscw
@@ -403,12 +400,14 @@ func Schtable(schtba string, Schdl *SCHDL) {
 
 /*  季節、曜日によるスケジュ－ル表の組み合わせ    */
 
+// SCHNMデータセットの読み取り
+// SCHNMデータセット = 季節、曜日によるスケジュ－ル表の組み合わせ
+// 入力文字列`schenma`を読み取って、[eeslism.SCHDL]に書き込む
 func Schdata(schnma string, dsn string, daywk []int, Schdl *SCHDL) {
 	fi := strings.NewReader(schnma)
 
 	var (
 		s       string
-		ss      string
 		dmod    rune
 		ce      *rune
 		dname   string
@@ -442,8 +441,10 @@ func Schdata(schnma string, dsn string, daywk []int, Schdl *SCHDL) {
 		fields := strings.Fields(line)
 
 		if fields[0] == "-v" || fields[0] == "VL" {
+			// 設定値名
 			dmod = 'v'
 		} else {
+			// 切換設定名
 			dmod = 'w'
 		}
 
@@ -477,24 +478,31 @@ func Schdata(schnma string, dsn string, daywk []int, Schdl *SCHDL) {
 			sc = -1
 			sw = -1
 
-			fmt.Sscanf(string(field), "%[^:]:%s", dname, &ss)
-			if !strings.ContainsRune(ss, '-') {
-				fmt.Sscanf(ss, "%s", &sname)
+			// 正規表現パターン
+			pattern := `^(\w+)(?::(\w*))?(?:-(\w+))?`
+			re := regexp.MustCompile(pattern)
+
+			// マッチする部分を取り出す
+			match := re.FindStringSubmatch(field)
+
+			// 3つの部分を取り出し
+			if len(match) >= 2 {
+				dname = match[1]
+			} else if len(match) >= 3 {
+				sname = match[2]
+			} else if len(match) >= 4 {
+				sname = match[3]
 			} else {
-				if ss[0] == '-' {
-					fmt.Sscanf(ss[1:], "%s", &wname)
-				} else {
-					fmt.Sscanf(ss, "%[^-]-%s", &sname, &wname)
-				}
+				panic("一致する部分が見つかりませんでした")
 			}
 
-			if sname[0] != '\000' {
+			if sname != "" {
 				is = idssn(string(sname), Seasn, "")
 			}
-			if wname[0] != '\000' {
+			if wname != "" {
 				iw = idwkd(string(wname), Wkdy, "")
 			}
-			if dname[0] != '\000' {
+			if dname != "" {
 				if dmod == 'v' {
 					sc = iddsc(string(dname), Dsch, "")
 				} else {
@@ -557,12 +565,11 @@ var __Schname_ind, __Schname_sco, __Schname_swo int
 
 func Schname(Ipath string, dsn string, schdl *SCHDL) {
 	var (
-		sw, i, j, N       int
-		E                 string
-		vl, sws           int
-		Dsch              = schdl.Dsch
-		Dscw              = schdl.Dscw
-		ssnmx, vlmx, swmx int
+		sw, i, j, N int
+		E           string
+		vl, sws     int
+		Dsch        = schdl.Dsch
+		Dscw        = schdl.Dscw
 	)
 
 	if fi, err := os.Open(Ipath + "schnma.ewk"); err != nil {
@@ -571,12 +578,9 @@ func Schname(Ipath string, dsn string, schdl *SCHDL) {
 	} else {
 		defer fi.Close()
 
-		SchCount(fi, &i, &j, &vl, &sws, &ssnmx, &vlmx, &swmx)
+		SchCount(fi, &i, &j, &vl, &sws)
 		vl++
 		sws++
-		ssnmx++
-		vlmx++
-		swmx++
 	}
 
 	if __Schname_ind == 0 {
@@ -639,71 +643,26 @@ func Schname(Ipath string, dsn string, schdl *SCHDL) {
 }
 
 /****  スケジュールの数を数える  ****/
-func SchCount(fi io.ReadSeeker, ssn, wkd, vl, sw, ssnmx, vlmx, swmx *int) {
-	var (
-		s   string
-		a   int64
-		i   int
-		err error
-	)
-
-	*ssnmx, *vlmx, *swmx = 0, 0, 0
-
-	a, err = fi.Seek(0, io.SeekCurrent)
-	if err != nil {
-		_, _ = fi.Seek(0, io.SeekStart)
-	}
-
-	*ssn, *wkd, *vl, *sw = 0, 0, 0, 0
-
-	for {
-		_, err := fmt.Fscanf(fi, "%s", &s)
-		if err != nil || string(s[:]) == "*" {
-			break
-		}
-
-		imax := func(a, b int) int {
-			if a > b {
-				return a
-			} else {
-				return b
-			}
-		}
-
-		if string(s[:]) == "-ssn" || string(s[:]) == "SSN" {
-			(*ssn)++
-			i = Schcmpcount(fi)
-			*ssnmx = imax(i, *ssnmx)
-		} else if string(s[:]) == "-wkd" || string(s[:]) == "WKD" {
-			(*wkd)++
-		} else if string(s[:]) == "-v" || string(s[:]) == "VL" {
-			(*vl)++
-			i = Schcmpcount(fi)
-			*vlmx = imax(i, *vlmx)
-		} else if string(s[:]) == "-s" || string(s[:]) == "SW" {
-			(*sw)++
-			i = Schcmpcount(fi)
-			*swmx = imax(i, *swmx)
-		}
-	}
-
-	_, _ = fi.Seek(a, io.SeekStart)
-}
-
-/***************************************************************************/
-
-func Schcmpcount(fi io.Reader) int {
-	N := 0
+func SchCount(fi io.ReadSeeker, ssn, wkd, vl, sw *int) {
 	scanner := bufio.NewScanner(fi)
 	for scanner.Scan() {
 		s := scanner.Text()
-		if s == ";" {
-			break
+		fields := strings.Fields(s)
+		if len(fields) > 0 {
+			if fields[0] == "*" {
+				break
+			} else if fields[0] == "-ssn" || fields[0] == "SSN" {
+				(*ssn)++
+			} else if fields[0] == "-wkd" || fields[0] == "WKD" {
+				(*wkd)++
+			} else if fields[0] == "-v" || fields[0] == "VL" {
+				(*vl)++
+			} else if fields[0] == "-s" || fields[0] == "SW" {
+				(*sw)++
+			}
 		}
-		N++
 	}
 	if err := scanner.Err(); err != nil {
 		fmt.Println("Error reading file:", err)
 	}
-	return N - 1
 }

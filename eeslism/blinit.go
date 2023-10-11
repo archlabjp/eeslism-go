@@ -25,6 +25,7 @@ import (
 
 /*  壁体デ－タの入力  */
 
+// WALLデータセットの読み取り
 func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]WALL, Nwall *int, dfwl *DFWL, pcm []PCM, Npcm int) {
 	var s string
 	var i = -1
@@ -114,8 +115,8 @@ func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]WALL, Nwall
 			// 部位コードの指定
 			Wa.ble = rune(s[1])
 
-			if s[2] == ':' {
-				// 部位と壁体名の指定(最初の1文字を必ず英字とする)
+			if len(s) > 2 && s[2] == ':' {
+				// 壁体名の指定(最初の1文字を必ず英字とする)
 				Wa.name = s[3:]
 			} else {
 				// 部位のみ指定（既定値の定義）
@@ -161,7 +162,7 @@ func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]WALL, Nwall
 				case "as":
 					Wa.as = dt // 外表面日射吸収率
 				case "type":
-					Wa.ColType = s[st+1:]
+					Wa.ColType = s[st+1:] // 集熱器のタイプ
 				case "tra":
 					Wa.tra = dt // τα
 				case "Ksu":
@@ -325,22 +326,28 @@ func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]WALL, Nwall
 				Wa.WallType = 'C'
 
 				if (Wa.Ksu > 0. && Wa.Ksd > 0.) || (Wa.Rd > 0. && (Wa.Ru >= 0. || Wa.ta > 0.)) {
+
 					if strings.HasPrefix(Wa.ColType, "A") {
+						// 集熱器のタイプ = A1,A2,A2P or A3
 						if Wa.Ksu > 0. {
+							// 熱抵抗が入力されていない
 							Wa.Kcu = Wa.fcu * Wa.Ksu
 							Wa.Kcd = Wa.fcd * Wa.Ksd
 							Wa.Kc = Wa.Kcu + Wa.Kcd
 							Wa.ku = Wa.Kcu / Wa.Kc
 							Wa.kd = Wa.Kcd / Wa.Kc
 						} else {
+							// 熱抵抗が入力されている
 							Wa.chrRinput = 'Y'
 						}
 					} else if strings.HasPrefix(Wa.ColType, "W") {
+						// 集熱器のタイプ = W3
 						Wa.Ko = Wa.Ksu + Wa.Ksd
 						Wa.ku = Wa.Ksu / Wa.Ko
 						Wa.kd = Wa.Ksd / Wa.Ko
 					}
 
+					// PVがある場合は事前計算をする
 					if Wa.PVwallcat.KHD > 0. {
 						PVwallPreCalc(&Wa.PVwallcat)
 					}
@@ -381,6 +388,7 @@ func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]WALL, Nwall
 
 /*  窓デ－タの入力     */
 
+// WINDOWデータセットの読み取り
 func Windowdata(section *EeTokens, dsn string, Window *[]WINDOW, Nwindow *int) {
 	E := fmt.Sprintf(ERRFMT, dsn)
 
@@ -438,7 +446,7 @@ func Windowdata(section *EeTokens, dsn string, Window *[]WINDOW, Nwindow *int) {
 					st++
 				}
 				key := s[:st-1]
-				value := s[st+1:]
+				value := s[st:]
 
 				// 小数読み取り
 				var realValue float64

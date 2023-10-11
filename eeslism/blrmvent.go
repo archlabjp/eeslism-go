@@ -25,6 +25,7 @@ import (
 
 /*  外気導入量および室間相互換気量の設定スケジュ－ル入力   */
 
+// VENTデータセット
 func Ventdata(fi *EeTokens, dsn string, Schdl *SCHDL, Room []ROOM, Simc *SIMCONTL) {
 	var achr *ACHIR
 	var room, Rm *ROOM

@@ -4,10 +4,12 @@ import (
 	"io"
 )
 
+// 壁体の材料定義
+// wbmlist.efl から読み取った材料定義リストの要素
 type BMLST struct {
-	Mcode string  // 名称
+	Mcode string  // 材料名
 	Cond  float64 // 熱伝導率 [W/mK]
-	Cro   float64 // 容積比熱 [J/m3K]
+	Cro   float64 // 容積比熱 [kJ/m3K]
 }
 
 type PVWALLCAT struct {
@@ -207,11 +209,11 @@ type RMSRF struct {
 
 // 壁体各層の熱抵抗と熱容量
 type WELM struct {
-	Code string  // 材料コード
-	L    float64 // 各層の材料厚さ［m］（分割前）
-	ND   int     // 各層の内部分割数
-	Cond float64 // 熱伝導率  [W/mK]
-	Cro  float64 // 容積比熱  [J/m3K]
+	Code string  // <入力値> 材料コード
+	L    float64 // <入力値> 各層の材料厚さ［m］（分割前）
+	ND   int     // <入力値> 各層の内部分割数
+	Cond float64 // <材料定義リストから読み取り> 熱伝導率  [W/mK]
+	Cro  float64 // <材料定義リストから読み取り> 容積比熱  [J/m3K]
 }
 
 func NewWelm() *WELM {
@@ -269,8 +271,8 @@ type PCMPARAM struct {
 
 // 壁体　定義デ－タ
 type WALL struct {
-	ble    rune   // 部位コ－ド
-	name   string // 壁体名
+	ble    rune   // <入力値> 部位コ－ド = E,R,F,i,c,f,R
+	name   string // <入力値> 壁体名 最初の1文字は英字 省略時は既定値とみなす
 	PCMflg rune   // 部材構成にPCMが含まれる場合は毎時係数行列を作成するので
 	// PCMが含まれるかどうかのフラグ
 
@@ -279,44 +281,47 @@ type WALL struct {
 	//	code [12][5]rune; /*各層の材料コ－ド      */
 	L []float64 /*節点間の材料厚さ        */
 	//	ND []int;      /*各層の内部分割数      */
-	Ei          float64   // 室内表面放射率
-	Eo          float64   // 外表面輻射率
-	as          float64   // 外表面日射吸収率
-	Rwall       float64   // 壁体熱抵抗   [m2K/W]
-	CAPwall     float64   // 単位面積当たりの熱容量[J/m2K]
-	CAP, R      []float64 // 登録された材料（≠節点）ごとの熱容量、熱抵抗
-	effpnl      float64   // パネル効率
-	tnxt        float64   // 当該部位への入射日射の隣接空間への日射分配（連続空間の隣室への日射分配）
+	Ei          float64   // <入力値> 室内表面放射率
+	Eo          float64   // <入力値> 外表面輻射率
+	as          float64   // <入力値> 外表面日射吸収率
+	Rwall       float64   // <内部計算値> 壁体熱抵抗(表面熱伝達抵抗(1/alo+1/ali)は除く) [m2K/W]
+	CAPwall     float64   // <内部計算値> 単位面積当たりの熱容量[J/m2K]
+	CAP, R      []float64 // <入力値> 登録された材料（≠節点）ごとの熱容量、熱抵抗
+	effpnl      float64   // <入力値> 放射暖冷房パネルのパネル効率
+	tnxt        float64   // <入力値> 当該部位への入射日射の隣接空間への日射分配（連続空間の隣室への日射分配）
 	M           int       // 節点数
-	mp          int       // 発熱面のある節点番号
+	mp          int       // <入力値> 放射暖冷房パネルの発熱面のある節点番号
 	res         []float64 // 節点間の熱抵抗 [m2K/W]
 	cap         []float64 // 節点間の熱容量 [J/m2K]
 	end         int       // 要素数(インデックス0にのみ設定)
-	welm        []WELM    // 層構成
-	tra         float64   // τα
-	Ksu         float64   // 通気層上部から屋外までの熱貫流率[W/m2K]
-	Ksd         float64   // 通気層下部から集熱器裏面までの熱貫流率[W/m2K]
-	fcu         float64
-	fcd         float64
-	ku, kd      float64
-	Ru, Rd      float64 // 通気層上部から屋外、通気層下部から集熱器裏面までの熱抵抗[m2K/W]
-	Kc          float64
-	Kcu         float64
-	Kcd         float64
-	Ko          float64
+	welm        []WELM    // <入力値> 層構成(layer)
+	tra         float64   // <入力値> τα
+	Ko          float64   // <内部計算値> Ksu + Ksd
+	Ksu         float64   // <入力値> 通気層上部から屋外までの熱貫流率[W/m2K]
+	Ksd         float64   // <入力値> 通気層下部から集熱器裏面までの熱貫流率[W/m2K]
+	fcu         float64   // <入力値> Kcu / Ksu
+	fcd         float64   // <入力値> Kcd / Ksd
+	ku          float64   // <内部計算値> Kcu / Kc
+	kd          float64   // <内部計算値> Ksu / Ko
+	Ru          float64   // <入力値> 通気層上部から屋外までの熱抵抗 [m2K/W]
+	Rd          float64   // <入力値> 通気層下部から集熱器裏面までの熱抵抗 [m2K/W]
+	Kc          float64   // <入力値> Kcu + Kcd
+	Kcu         float64   // <入力値> 通気層内上側から屋外までの熱貫流率 [W/m2K]
+	Kcd         float64   // <入力値> 通気層内下側から裏面までの熱貫流率 [W/m2K]
 	air_layer_t float64
+	dblEsu      float64 // 通気層の厚さ[m]
+	dblEsd      float64 // 通気層の厚さ[m]
+	ta          float64 // <入力値> 中空層の厚さ [mm]
+	Eg          float64 // <入力値> 透過体の中空層側表面の放射率
+	Eb          float64 // <入力値> 集熱版の中空層側表面の放射率
+	ag          float64 // <入力値> 透過体の日射吸収率
 
-	// 通気層の厚さ[m]
-	dblEsu, dblEsd float64
-	// 通気層上面、下面の放射率
-	ta, Eg, Eb, ag float64
-	// 空気層の厚さ[m]、ガラスの放射率、集熱板放射率、ガラスの日射吸収率
 	chrRinput rune // 熱抵抗が入力されている場合は'Y', 熱貫流率が入力されている場合は'N'
-	WallType  rune // 建材一体型空気集熱器の場合：'C', 床暖房等放射パネルの場合：'P', 一般壁体の場合：'N'
+	WallType  rune // <内部判定値> 建材一体型空気集熱器の場合：'C', 床暖房等放射パネルの場合：'P', 一般壁体の場合：'N'
 
 	//char	PVwall ;
 	// 太陽電池一体型建材（裏面通気）：'Y'
-	ColType string
+	ColType string // <入力値> 集熱器のタイプ: 'A1'=ガラス付集熱器, 'A2'=ガラス無し集熱器 or 'A2P'=太陽電池一体型集熱器
 
 	// 集熱器タイプ　JSES2009大会論文（宇田川先生発表）のタイプ
 	PVwallcat  PVWALLCAT

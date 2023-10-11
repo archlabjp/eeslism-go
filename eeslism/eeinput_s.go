@@ -319,17 +319,20 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 
 			fmt.Printf("== File  Output=%s\n", Simc.Ofname)
 		case "SCHTB":
+			// SCHDBデータセットの読み取り
 			Schtable(schtba, Schdl)
 			Schname(Ipath, "Schname", Schdl)
 
 			Schdl.Nsch = Schdl.Sch[0].end
 			Schdl.Nscw = Schdl.Scw[0].end
 		case "SCHNM":
+			// SCHNMデータセットの読み取り
 			Schdata(schnma, s, Simc.Daywk, Schdl)
 
 			Schdl.Nsch = Schdl.Sch[0].end
 			Schdl.Nscw = Schdl.Scw[0].end
 		case "EXSRF":
+			// EXSRFデータセットの読み取り
 			section := tokens.GetSection()
 			Exsfdata(section, s, Exsf, Schdl, Simc)
 
@@ -364,7 +367,6 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 			Windowdata(section, s, &Rmvls.Window, &Rmvls.Nwindow)
 
 		case "ROOM":
-
 			Roomdata(tokens, "Roomdata", Exsf.Exs, &dfwl, Rmvls, Schdl, Simc)
 			Balloc(Rmvls.Nsrf, Rmvls.Sd, Rmvls.Wall, &Rmvls.Mw, &Rmvls.Nmwall)
 

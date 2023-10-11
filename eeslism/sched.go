@@ -44,15 +44,16 @@ type SCH struct /*スケジュ－ル*/
 }
 
 // 一日の設定値、切換スケジュールおよび季節、曜日の指定
+// See: [eeslism.]
 type SCHDL struct {
-	Nsch  int     // `Sch`の要素数
-	Nscw  int     // `Scw`の要素数
-	Seasn []SEASN // 季節設定 (-wkd or WKD)
-	Wkdy  []WKDY  // 曜日設定 (-wkd)
-	Dsch  []DSCH  // 設定値スケジュール定義(-v or VL)
-	Dscw  []DSCW  // 切替設定スケジュール定義(-s or SW)
-	Sch   []SCH
-	Scw   []SCH
+	Nsch  int       // `Sch`の要素数
+	Nscw  int       // `Scw`の要素数
+	Seasn []SEASN   // SCHTBデータセット:季節設定 (-wkd or WKD)
+	Wkdy  []WKDY    // SCHTBデータセット:曜日設定 (-wkd)
+	Dsch  []DSCH    // SCHTBデータセット:設定値スケジュール定義(-v or VL)
+	Dscw  []DSCW    // SCHTBデータセット:切替設定スケジュール定義(-s or SW)
+	Sch   []SCH     // SCHNMデータセット:
+	Scw   []SCH     // SCHNMデータセット:
 	Val   []float64 // `Sch`の要素数と同数
 	Isw   []rune    // `Scw`の要素数と同数
 }

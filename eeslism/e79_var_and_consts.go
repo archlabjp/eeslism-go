@@ -30,7 +30,7 @@ var (
 	Cff_kWh     = 0.0 // Assign the value of cff_kWh here
 	VAVCountMAX = 0   // Assign the value of VAV_Count_MAX here
 
-	Fbmlist = "" // Assign the value of Fbmlist here
+	Fbmlist = "" // 壁材料リストファイル名 ref: wbmlist.md
 
 	DEBUG   = true
 	dayprn  = false

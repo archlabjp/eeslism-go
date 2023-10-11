@@ -410,7 +410,6 @@ func Windowdata(section *EeTokens, dsn string, Window *[]WINDOW, Nwindow *int) {
 	}
 
 	i := 0
-	j := 0
 	for section.IsEnd() == false {
 		line := section.GetLogicalLine()
 
@@ -418,7 +417,7 @@ func Windowdata(section *EeTokens, dsn string, Window *[]WINDOW, Nwindow *int) {
 			break
 		}
 
-		W := &(*Window)[j]
+		W := &(*Window)[i]
 
 		// 名称
 		W.Name = line[0]

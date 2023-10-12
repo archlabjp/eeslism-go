@@ -75,8 +75,9 @@ type RMSRF struct {
 	pcmpri   rune     // PCMの状態値出力フラグ 'y'
 	fnmrk    [10]rune // 窓変更設定用窓コ－ド
 
-	room, nextroom *ROOM
-	nxsd           *RMSRF
+	room     *ROOM
+	nextroom *ROOM
+	nxsd     *RMSRF
 
 	mw         *MWALL  // 重量壁（差分による非定常計算）
 	rpnl       *RDPNL  // 輻射パネル用
@@ -87,15 +88,16 @@ type RMSRF struct {
 	Ctlif       *CTLIF // 動的窓の制御
 	DynamicCode string // 動的窓 ex) "A > B" のような評価式
 
-	rm   int // 室番号
-	n    int // 室壁体番号
-	exs  int // 方位番号
-	nxrm int // 隣室番号               部屋一覧のインデックス番号
-	nxn  int // 隣室室壁体番号
-	wd   int // 壁体定義番号
-	rmw  int // 重量壁体番号
-	lwd  int
-	dr   int // ドア定義番号
+	rm       int    // 室番号
+	n        int    // 室壁体番号
+	exs      int    // 方位番号
+	nxrmname string //隣室名
+	nxrm     int    // 隣室番号
+	nxn      int    // 隣室室壁体番号
+	wd       int    // 壁体定義番号
+	rmw      int    // 重量壁体番号
+	lwd      int
+	dr       int // ドア定義番号
 	//		drd [4]int
 	fn               int     // 選択窓定義番号
 	Nfn              int     // 窓種類数
@@ -796,8 +798,8 @@ type ROOM struct {
 	Hmsch    *float64 // 在室人数スケジュール (未設定時はnil)
 	Metsch   *float64 // Met値スケジュール (未設定時はnil)
 	Closch   *float64 // Clo値スケジュール (未設定時はnil)
-	Wvsch    *float64 // ??? (未設定時はnil)
-	Hmwksch  *float64 // ??? (未設定時はnil)
+	Wvsch    *float64 // 室内風速設定値名 (未設定時はnil)
+	Hmwksch  *float64 // 作業強度設定値名 (未設定時はnil)
 	Vesc     *float64 // 換気スケジュール (未設定時はnil)
 	Visc     *float64 // 隙間風スケジュール (未設定時はnil)
 	alc      *float64 // 室内側対流熱伝達率のスケジュール設定値  (未設定時はnil)

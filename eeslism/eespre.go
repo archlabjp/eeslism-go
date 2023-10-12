@@ -6,9 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
-	"unicode"
 )
 
 /*        注釈文の除去             */
@@ -101,6 +99,13 @@ func processLine(line string) string {
 /*              スケジュ－ルデ－タファイルの作成    */
 
 // Eespre creates a schedule data file.
+// 入力:
+//   bdata0: コメント除去済みの入力テキスト
+// 出力:
+//   (1) %s または %sn から始まる論理行を除いた入力テキスト -> bdata.ewk
+//   (2) %sから始まる論理行のみを収録したテキスト -> schtba.ewk
+//   (3) %snから始まる論理行のみを収録したテキスト -> schenma.ewk
+//   (4) WEEKデータセット -> week.ewk
 func Eespre(bdata0 string, Ipath string, key *int) (string, string, string, string) {
 	fi := strings.NewReader(bdata0) //bdata0.ewk 相当
 
@@ -110,96 +115,61 @@ func Eespre(bdata0 string, Ipath string, key *int) (string, string, string, stri
 	Syscheck(fi, &syspth, &syscmp)
 
 	fb := new(strings.Builder)  //bdata.ewk 相当
-	fs := new(strings.Builder)  //schtba.ewk 相当
-	fsn := new(strings.Builder) //schenma.ewk 相当
+	fs := new(strings.Builder)  //schtba.ewk 相当 => %s を拾う
+	fsn := new(strings.Builder) //schenma.ewk 相当 => %sn を拾う
 	fw := new(strings.Builder)  //week.ewk 相当
 
-	var t string
 	var st int
-	var stt int
-	scanner := bufio.NewScanner(fi)
-	for scanner.Scan() {
 
-		line := scanner.Text()
-		for _, s := range strings.Fields(line) {
-			if s == "TITLE" {
-				// ex)
-				// TITLE
-				//		Residential House ;
-				scanner.Scan()
-				s = strings.TrimSuffix(scanner.Text(), ";")
-				fmt.Fprintf(fb, "TITLE  %s ;\n", s)
-			} else if strings.HasPrefix(s, "wbmlist=") {
-				if st = strings.IndexRune(s, ';'); st != -1 {
-					s = s[:st+1]
-				} else {
-					fmt.Fscanf(fi, "%*s")
-				}
+	// %s, %sn を先に分離しておく。
+	// 理由: 微妙な位置にある場合にうまく分離できない。
 
-				Fbmlist = s[8:]
-			} else if s == "WEEK" {
-				// ex)
-				// WEEK
-				//		1/1=Sun ;
-				*key = 1
-				scanner.Scan()
-				s = strings.TrimSuffix(scanner.Text(), ";")
-				fmt.Fprintf(fw, "WEEK  %s ;\n", s)
-			} else if s == "%s" {
-				// 任意の場所における SCHTBデータ (Schedule Table ?) の定義
-				r := regexp.MustCompile(`%s(.*?);`)
-				match := r.FindStringSubmatch(line)
-				if match != nil {
-					// match[0] は全体のマッチ、match[1] は最初のキャプチャーグループのマッチ
-					fmt.Fprintf(fs, "%s ;\n", strings.TrimSpace(match[1]))
-				} else {
-					panic(line)
-				}
-			} else if s == "%sn" {
-				// 任意の場所における SCHNMデータ (Schedule Name ?) の定義
-				r := regexp.MustCompile(`%sn(.*?);`)
-				match := r.FindStringSubmatch(line)
-				if match != nil {
-					// match[0] は全体のマッチ、match[1] は最初のキャプチャーグループのマッチ
-					fmt.Fprintf(fsn, "%s ;\n", strings.TrimSpace(match[1]))
-				} else {
-					panic(line)
-				}
-			} else if strings.Contains(s, `"`) {
-				fmt.Fprintf(fb, " %s", s)
-				st = strings.Index(s, "\"")
-				for st != -1 {
-					stt = strings.Index(s[st+1:], "\"")
-					if stt == -1 {
-						break
-					}
-					stt = st + stt + 1
-					t = s[st+1 : stt]
-					if unicode.IsLetter(rune(t[0])) || t == "-" || t == "+" {
-						fmt.Fprintf(fs, "-s %s\"  000-(%c)-2400 ;\n", t, t[1])
-					} else {
-						fmt.Fprintf(fs, "-v %s\"  000-(%s)-2400 ;\n", t, t[1:])
-					}
-					st = strings.Index(s[stt+1:], "\"")
-				}
-			} else {
-				if strings.HasSuffix(s, ";") {
-					t = s[:len(s)-1]
-					fmt.Fprintf(fb, " %s ;", t)
-				} else {
-					fmt.Fprintf(fb, " %s", s)
-				}
+	// トークン分割
+	tokens := NewEeTokens(bdata0)
+	for !tokens.IsEnd() {
 
-				if s == ";" || s[len(s)-1] == ';' {
-					//fmt.Fprintln(fb)
-				} else if s == "#" || s[len(s)-1] == '#' {
-					//fmt.Fprintln(fb)
-				} else if s == "*" || s[len(s)-1] == '*' {
-					//fmt.Fprintln(fb)
-				}
-			}
+		s := tokens.GetToken()
+		if s == "\n" {
+			continue
 		}
-		fmt.Fprintln(fb)
+
+		// 壁体の材料定義リストを指定
+		if strings.HasPrefix(s, "wbmlist=") {
+			if st = strings.IndexRune(s, ';'); st != -1 {
+				s = s[:st+1]
+			} else {
+				fmt.Fscanf(fi, "%*s")
+			}
+
+			Fbmlist = s[8:]
+		} else if s == "WEEK" {
+			line := tokens.GetLogicalLine()
+			for _, item := range line {
+				fmt.Fprintf(fw, "%s ", item)
+			}
+			fw.WriteByte(';')
+		} else if s == "*" {
+			fb.WriteString("*\n")
+		} else if s == "%s" {
+			line := tokens.GetLogicalLine()
+			for _, item := range line {
+				fmt.Fprintf(fs, "%s ", item)
+			}
+			fs.WriteString(" ;\n")
+		} else if s == "%sn" {
+			line := tokens.GetLogicalLine()
+			for _, item := range line {
+				fmt.Fprintf(fsn, "%s ", item)
+			}
+			fsn.WriteString(" ;\n")
+		} else {
+			fb.WriteString(s)
+			line := tokens.GetLogicalLine()
+			for _, item := range line {
+				fmt.Fprintf(fb, " %s", item)
+			}
+			fb.WriteString(" ;\n")
+		}
 	}
 
 	fmt.Fprintln(fb, "")

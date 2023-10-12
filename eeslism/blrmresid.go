@@ -18,6 +18,7 @@ package eeslism
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -35,6 +36,13 @@ func Residata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int,
 		if s == "*" {
 			break
 		}
+		if s == "\n" {
+			continue
+		}
+		if s == "%s" || s == "%sn" {
+			fi.GetLogicalLine()
+			continue
+		}
 
 		errMsg := errFmt + s
 		i, err := idroom(s, rooms, errMsg)
@@ -50,56 +58,80 @@ func Residata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int,
 			}
 
 			errMsg := errFmt + s
-			ce := strings.Index(s, ";")
 			st := strings.Index(s, "=")
-			stVal := s[st+1 : ce]
+			stVal := s[st+1:]
 
 			switch s[:st] {
 			case "H":
-				fmt.Sscanf(stVal, "(%f,%[^,],%[^)])", &rm.Nhm, &ss, &sss)
+				// 人体発熱
+				// H=(基準人数(人),在室率設定値名,作業強度設定値名)
+				regex := regexp.MustCompile(`\(([^,]+),([^,]+),([^,]+)\)`)
+				match := regex.FindStringSubmatch(stVal)
+				if len(match) == 4 {
+					// 基準人数(人)
+					rm.Nhm, err = readFloat(match[1])
+					if err != nil {
+						panic(err)
+					}
 
-				if k, err := idsch(ss, schdl.Sch, ""); err == nil {
-					rm.Hmsch = &vall[k]
-				} else {
-					rm.Hmsch = envptr(ss, simc, 0, nil, nil, nil)
-				}
+					// 在室率設定値名
+					ss = match[2]
+					if k, err := idsch(ss, schdl.Sch, ""); err == nil {
+						rm.Hmsch = &vall[k]
+					} else {
+						rm.Hmsch = envptr(ss, simc, 0, nil, nil, nil)
+					}
 
-				if k, err := idsch(sss, schdl.Sch, ""); err == nil {
-					rm.Hmwksch = &vall[k]
+					// 作業強度設定値名
+					sss = match[3]
+					if k, err := idsch(sss, schdl.Sch, ""); err == nil {
+						rm.Hmwksch = &vall[k]
+					} else {
+						rm.Hmwksch = envptr(sss, simc, 0, nil, nil, nil)
+					}
 				} else {
-					rm.Hmwksch = envptr(sss, simc, 0, nil, nil, nil)
+					fmt.Println("No match found.")
 				}
 			case "comfrt":
-				fmt.Sscanf(stVal, "(%[^,],%[^,],%[^)])", &ss, &sss, &s4)
+				// 熱環境条件
+				// comfrt=(代謝率設定値名,着衣量設定値名,室内風速設定値名)
+				regex := regexp.MustCompile(`\(([^,]+),([^,]+),([^,]+)\)`)
+				match := regex.FindStringSubmatch(stVal)
+				if len(match) == 4 {
+					// 代謝率(Met値)設定値名
+					ss = match[1]
+					if k, err := idsch(ss, schdl.Sch, ""); err == nil {
+						rm.Metsch = &vall[k]
+					} else {
+						rm.Metsch = envptr(ss, simc, 0, nil, nil, nil)
+					}
 
-				if k, err := idsch(ss, schdl.Sch, ""); err == nil {
-					rm.Metsch = &vall[k]
+					// 着衣量(Clo値)設定値名
+					sss = match[2]
+					if k, err := idsch(sss, schdl.Sch, ""); err == nil {
+						rm.Closch = &vall[k]
+					} else {
+						rm.Closch = envptr(sss, simc, 0, nil, nil, nil)
+					}
+
+					// 室内風速設定値名
+					s4 = match[3]
+					if k, err := idsch(s4, schdl.Sch, ""); err == nil {
+						rm.Wvsch = &vall[k]
+					} else {
+						rm.Wvsch = envptr(s4, simc, 0, nil, nil, nil)
+					}
+
+					*pmvpri = 1
+					if SETprint == 1 {
+						rm.setpri = 1
+					}
 				} else {
-					rm.Metsch = envptr(ss, simc, 0, nil, nil, nil)
+					fmt.Println("No match found.")
 				}
 
-				if k, err := idsch(sss, schdl.Sch, ""); err == nil {
-					rm.Closch = &vall[k]
-				} else {
-					rm.Closch = envptr(sss, simc, 0, nil, nil, nil)
-				}
-
-				if k, err := idsch(s4, schdl.Sch, ""); err == nil {
-					rm.Wvsch = &vall[k]
-				} else {
-					rm.Wvsch = envptr(s4, simc, 0, nil, nil, nil)
-				}
-
-				*pmvpri = 1
-				if SETprint == 1 {
-					rm.setpri = 1
-				}
 			default:
 				Eprint("<Residata>", errMsg)
-			}
-
-			if ce != -1 {
-				break
 			}
 		}
 	}
@@ -119,6 +151,13 @@ func Appldata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCON
 		if s == "*" {
 			break
 		}
+		if s == "\n" {
+			continue
+		}
+		if s == "%s" || s == "%sn" {
+			fi.GetLogicalLine()
+			continue
+		}
 
 		errMsg := errFmt + s
 		i, err := idroom(s, rooms, errMsg)
@@ -134,57 +173,136 @@ func Appldata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCON
 			}
 
 			errMsg := errFmt + s
-			ce := strings.Index(s, ";")
 			st := strings.Index(s, "=")
-			stVal := s[st+1 : ce]
+			stVal := s[st+1:]
 
 			switch s[:st] {
 			case "L":
-				fmt.Sscanf(stVal, "(%f,%c,%[^)])", &rm.Light, &rm.Ltyp, &ss)
+				// 照明
+				// L=(基準値[W],器具タイプ,照明入力設定値名)
+				regex := regexp.MustCompile(`\(([^,]+),([^,]+),([^,]+)\)`)
+				match := regex.FindStringSubmatch(stVal)
+				if len(match) == 4 {
+					// 基準値[W]
+					rm.Light, err = readFloat(match[1])
+					if err != nil {
+						panic(err)
+					}
 
-				if k, err := idsch(ss, schdl.Sch, ""); err == nil {
-					rm.Lightsch = &vall[k]
+					// 器具タイプ
+					rm.Ltyp = rune(match[2][0])
+
+					// 照明入力設定値名
+					ss = match[3]
+					if k, err := idsch(ss, schdl.Sch, ""); err == nil {
+						rm.Lightsch = &vall[k]
+					} else {
+						rm.Lightsch = envptr(ss, simc, 0, nil, nil, nil)
+					}
 				} else {
-					rm.Lightsch = envptr(ss, simc, 0, nil, nil, nil)
+					fmt.Println("No match found.")
 				}
+
 			case "As":
-				fmt.Sscanf(stVal, "(%f,%f,%[^)])", &rm.Apsc, &rm.Apsr, &ss)
+				// 機器顕熱
+				// As=(対流成分基準値[W],放射成分基準値[W],設定値名)
+				regex := regexp.MustCompile(`\(([^,]+),([^,]+),([^,]+)\)`)
+				match := regex.FindStringSubmatch(stVal)
+				if len(match) == 4 {
+					// 対流成分基準値[W]
+					rm.Apsc, err = readFloat(match[1])
+					if err != nil {
+						panic(err)
+					}
 
-				if k, err := idsch(ss, schdl.Sch, ""); err == nil {
-					rm.Assch = &vall[k]
+					// 放射成分基準値[W]
+					rm.Apsr, err = readFloat(match[1])
+					if err != nil {
+						panic(err)
+					}
+
+					// 設定値名
+					ss = match[3]
+					if k, err := idsch(ss, schdl.Sch, ""); err == nil {
+						rm.Assch = &vall[k]
+					} else {
+						rm.Assch = envptr(ss, simc, 0, nil, nil, nil)
+					}
 				} else {
-					rm.Assch = envptr(ss, simc, 0, nil, nil, nil)
+					fmt.Println("No match found.")
 				}
+
 			case "Al":
-				fmt.Sscanf(stVal, "(%f,%[^)])", &rm.Apl, &ss)
+				// 機器潜熱
+				// Al=(基準値[W],設定値名)
+				regex := regexp.MustCompile(`\(([^,]+),([^,]+)\)`)
+				match := regex.FindStringSubmatch(stVal)
+				if len(match) == 3 {
+					// 基準値[W]
+					rm.Apl, err = readFloat(match[1])
+					if err != nil {
+						panic(err)
+					}
 
-				if k, err := idsch(ss, schdl.Sch, ""); err == nil {
-					rm.Alsch = &vall[k]
+					// 設定値名
+					ss = match[2]
+					if k, err := idsch(ss, schdl.Sch, ""); err == nil {
+						rm.Alsch = &vall[k]
+					} else {
+						rm.Alsch = envptr(ss, simc, 0, nil, nil, nil)
+					}
 				} else {
-					rm.Alsch = envptr(ss, simc, 0, nil, nil, nil)
+					fmt.Println("No match found.")
 				}
+
 			case "AE":
-				fmt.Sscanf(stVal, "(%f,%[^)])", &rm.AE, &ss)
+				// 電力に関する集計を行う
+				// AE=(基準値[W],電力設定値名
+				regex := regexp.MustCompile(`\(([^,]+),([^,]+)\)`)
+				match := regex.FindStringSubmatch(stVal)
+				if len(match) == 3 {
+					// 基準値[W]
+					rm.AE, err = readFloat(match[1])
+					if err != nil {
+						panic(err)
+					}
 
-				if k, err := idsch(ss, schdl.Sch, ""); err == nil {
-					rm.AEsch = &vall[k]
+					// 電力設定値名
+					ss = match[2]
+					if k, err := idsch(ss, schdl.Sch, ""); err == nil {
+						rm.AEsch = &vall[k]
+					} else {
+						rm.AEsch = envptr(ss, simc, 0, nil, nil, nil)
+					}
 				} else {
-					rm.AEsch = envptr(ss, simc, 0, nil, nil, nil)
+					fmt.Println("No match found.")
 				}
+
 			case "AG":
-				fmt.Sscanf(stVal, "(%f,%[^)])", &rm.AG, &ss)
+				// ガスに関する集計を行う
+				// AG=(基準値[W],ガス設定値名)
+				regex := regexp.MustCompile(`\(([^,]+),([^,]+)\)`)
+				match := regex.FindStringSubmatch(stVal)
+				if len(match) == 3 {
+					// 基準値[W]
+					rm.AG, err = readFloat(match[1])
+					if err != nil {
+						panic(err)
+					}
 
-				if k, err := idsch(ss, schdl.Sch, ""); err == nil {
-					rm.AGsch = &vall[k]
+					// ガス設定値名
+					ss = match[2]
+					if k, err := idsch(ss, schdl.Sch, ""); err == nil {
+						rm.AGsch = &vall[k]
+					} else {
+						rm.AGsch = envptr(ss, simc, 0, nil, nil, nil)
+					}
 				} else {
-					rm.AGsch = envptr(ss, simc, 0, nil, nil, nil)
+					fmt.Println("No match found.")
 				}
+
 			default:
 				Eprint("<Appldata>", errMsg)
-			}
-
-			if ce != -1 {
-				break
 			}
 		}
 	}

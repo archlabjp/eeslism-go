@@ -49,13 +49,11 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 	// var i int
 
 	//i := -1
-	var j, n, nr, nxnm, brs, ij, N2, k, l int
+	var j, n, nr, brs, ij, N2, k, l int
 	n = -1
-	nxnm = -1
 	brs = 0
 	//var s, ss string
 	//var st, ce, stt string
-	var nxrmname []string
 	var dexsname, dnxrname string
 	var Er string
 	var sfemark rune
@@ -82,10 +80,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 	//printf ( "Nsrf=%d\n", N ) ;
 
 	if Nnxrm > 0 {
-		Rmvls.Sd = make([]RMSRF, Nnxrm)
-		nxrmname = make([]string, Nnxrm)
-
-		Rmsrfinit(Nnxrm, Rmvls.Sd)
+		Rmvls.Sd = make([]RMSRF, 0, Nnxrm)
 	}
 
 	//Wall := Rmvls.Wall
@@ -128,8 +123,14 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 		Rm.Name = s
 
 		for section.IsEnd() == false {
+			pos := section.GetPos()
 			s := section.GetToken()
 			if s == "\n" {
+				continue
+			}
+			if strings.ContainsRune(s, ':') {
+				// 壁体の宣言に入っているので、1つ読み戻す
+				section.RestorePos(pos)
 				break
 			}
 
@@ -149,7 +150,13 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 				Rm.eqpri = 'p'
 			} else if s == "*sfe" {
 				sfemark = 'y'
-
+			} else if strings.ContainsRune(s, ':') {
+				ss := strings.Split(s, ":")
+				if ss[0][0] == '(' {
+					dnxrname = strings.TrimSuffix(ss[0], ")")
+				} else {
+					dexsname = ss[0]
+				}
 			} else if s == "Fij" {
 				// 形態係数の入力 （予め計算済みの形態係数を使用する場合）
 				Rm.fij = 'F'
@@ -316,7 +323,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 			nr++
 
 			SdIdx++
-			Sd := &Rmvls.Sd[SdIdx]
+			Sd := Rmsrfinit()
 
 			c := rune(line[1][1])
 			Sd.ble = c
@@ -491,9 +498,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							os.Exit(1)
 						}
 					} else if strings.HasPrefix(s, "r=") {
-						nxnm++                    // 隣室番号をインクリメント
-						Sd.nxrm = nxnm            // 隣室番号を記録
-						nxrmname[nxnm] = s[st+1:] // 隣室名
+						Sd.nxrmname = s[st+1:] // 隣室名
 					} else if strings.HasPrefix(s, "c=") {
 						Sd.c, err = strconv.ParseFloat(s[st+1:], 64)
 						if err != nil {
@@ -597,15 +602,16 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 			case 'i', 'c', 'f':
 				// 内壁, 天井(内部) or 床(内部)の場合
 				if Sd.nxrm == -1 && Sd.c < 0.0 {
-					nxnm++
-					Sd.nxrm = nxnm
-					nxrmname[nxnm] = dnxrname
+					Sd.nxrmname = dnxrname //隣室名
 				}
 				if Sd.c < 0.0 {
+					// 隣室温度係数 1.0
 					Sd.c = 1.0
 				}
 			}
 
+			// 窓を除く面積0より大きい壁体で、固有の壁体定義がない場合：
+			// 既定の壁体定義番号を割り当てる
 			if Sd.ble != 'W' && Sd.wd == -1 && Sd.A > 0.0 {
 				switch Sd.ble {
 				case 'E':
@@ -655,6 +661,8 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 					Sd.tnxt = math.Max(Sd.tnxt, 0.0)
 				}
 			}
+
+			Rmvls.Sd = append(Rmvls.Sd, Sd)
 		}
 
 		nr++
@@ -686,19 +694,16 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 	//printf ( "Nsrf=%d\n", Nsrf ) ;
 	//Room = Rmvls.Room
 
-	nxnm++
 	for n := 0; n < Nsrf; n++ {
 		Sd := &Rmvls.Sd[n]
-		if J := Sd.nxrm; J >= 0 {
-			if nxrmname[J] != "" {
-				err := fmt.Sprintf("%s%s", Er, nxrmname[J])
-				var err2 error
-				Sd.nxrm, err2 = idroom(nxrmname[J], Rmvls.Room, err)
-				if err2 != nil {
-					panic(err2)
-				}
-				Sd.nextroom = &Rmvls.Room[Sd.nxrm]
+		if Sd.nxrmname != "" {
+			err := fmt.Sprintf("%s%s", Er, Sd.nxrmname)
+			var err2 error
+			Sd.nxrm, err2 = idroom(Sd.nxrmname, Rmvls.Room, err)
+			if err2 != nil {
+				panic(err2)
 			}
+			Sd.nextroom = &Rmvls.Room[Sd.nxrm]
 		}
 	}
 
@@ -1248,11 +1253,11 @@ func Balloc(N int, Sd []RMSRF, Wall []WALL, Mwall *[]MWALL, Nmwall *int) {
 			ssd.Npcm = ssd.nxsd.Npcm
 
 			// PCM状態値を保持する構造体
-			pcmstate := ssd.pcmstate
-			nxpcm2 := ssd.nxsd.pcmstate
-			nxpcm := nxpcm2[M:]
+			// pcmstate := ssd.pcmstate
+			// nxpcm2 := ssd.nxsd.pcmstate
 			for m := 0; m <= M; m++ {
-				pcmstate[m] = nxpcm[m]
+				// TODO: ここおかしい？
+				//pcmstate[m] = nxpcm2[M-m]
 			}
 		}
 	}
@@ -1490,109 +1495,109 @@ func Rmsrfcount(tokens *EeTokens) int {
 
 /************************************************************************/
 
-func Rmsrfinit(N int, _S []RMSRF) {
-	for i := 0; i < N; i++ {
-		S := &_S[i]
-		S.Ctlif = nil
-		S.ifwin = nil
-		S.Name = ""
-		S.room = nil
-		S.nextroom = nil
-		S.DynamicCode = ""
-		S.nxsd = nil
-		S.mw = nil
-		S.rpnl = nil
-		S.pcmstate = nil
-		S.Npcm = 0
-		S.Nfn = 0
-		S.pcmpri = ' '
-		S.Rwall = -999.0
-		S.CAPwall = -999.
-		S.A = 0.0
-		S.Eo = 0.0
-		S.as = 0.0
-		S.c = 0.0
-		S.tgtn = 0.0
-		S.Bn = 0.0
-		S.srg = 0.0
-		S.srh = 0.0
-		S.srl = 0.0
-		S.sra = 0.0
-		S.alo = 0.0
-		S.ali = 0.0
-		S.alic = 0.0
-		S.alir = 0.0
-		S.K = 0.0
-		S.FI = 0.0
-		S.FO = 0.0
-		S.FP = 0.0
-		S.CF = 0.0
-		S.WSR = 0.0
-		S.WSC = 0.0
-		S.RS = 0.0
-		S.RSsol = 0.0
-		S.RSin = 0.0
-		S.RSli = 0.0
-		S.Qi = 0.0
-		S.Qga = 0
-		S.Qgt = 0.
-		S.TeEsol = 0.0
-		S.TeErn = 0.0
-		S.Te = 0.0
-		S.Tmrt = 0.0
-		S.Ei = 0.0
-		S.Ts = 0.0
-		S.eqrd = 0.0
-		S.alicsch = nil
-		S.WSRN = nil
-		S.WSPL = nil
+func Rmsrfinit() RMSRF {
+	S := new(RMSRF)
+	S.Ctlif = nil
+	S.ifwin = nil
+	S.Name = ""
+	S.room = nil
+	S.nextroom = nil
+	S.DynamicCode = ""
+	S.nxsd = nil
+	S.mw = nil
+	S.rpnl = nil
+	S.pcmstate = nil
+	S.Npcm = 0
+	S.Nfn = 0
+	S.pcmpri = ' '
+	S.Rwall = -999.0
+	S.CAPwall = -999.
+	S.A = 0.0
+	S.Eo = 0.0
+	S.as = 0.0
+	S.c = 0.0
+	S.tgtn = 0.0
+	S.Bn = 0.0
+	S.srg = 0.0
+	S.srh = 0.0
+	S.srl = 0.0
+	S.sra = 0.0
+	S.alo = 0.0
+	S.ali = 0.0
+	S.alic = 0.0
+	S.alir = 0.0
+	S.K = 0.0
+	S.FI = 0.0
+	S.FO = 0.0
+	S.FP = 0.0
+	S.CF = 0.0
+	S.WSR = 0.0
+	S.WSC = 0.0
+	S.RS = 0.0
+	S.RSsol = 0.0
+	S.RSin = 0.0
+	S.RSli = 0.0
+	S.Qi = 0.0
+	S.Qga = 0
+	S.Qgt = 0.
+	S.TeEsol = 0.0
+	S.TeErn = 0.0
+	S.Te = 0.0
+	S.Tmrt = 0.0
+	S.Ei = 0.0
+	S.Ts = 0.0
+	S.eqrd = 0.0
+	S.alicsch = nil
+	S.WSRN = nil
+	S.WSPL = nil
 
-		S.exs = -1
-		S.sb = -1
-		S.nxrm = -1
-		S.nxn = -1
-		S.wd = -1
-		S.fn = -1
-		S.c = -1.0
-		S.A = -999.0
-		//		S.Rwall = 0.0 ;
-		S.mwside = 'i'
-		S.mwtype = 'I'
-		S.fnmrk = [10]rune{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}
-		S.alirsch = nil
-		S.ffix_flg = '!'
-		S.fsol = nil
+	S.exs = -1
+	S.sb = -1
+	S.nxrm = -1
+	S.nxn = -1
+	S.wd = -1
+	S.fn = -1
+	S.c = -1.0
+	S.A = -999.0
+	//		S.Rwall = 0.0 ;
+	S.mwside = 'i'
+	S.mwtype = 'I'
+	S.fnmrk = [10]rune{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}
+	S.alirsch = nil
+	S.ffix_flg = '!'
+	S.fsol = nil
 
-		S.ColCoeff = -999.
-		S.oldTx = 20.0
-		S.Iw = 0.0
-		//S.Scol = 0.0 ;
-		S.PVwall.Eff = 0.0
-		S.PVwallFlg = 'N'
-		S.PVwall.PVcap = -999.
-		S.Ndiv = 0
-		S.Tc = nil
-		S.dblWsd = -999.0
-		S.dblWsu = -999.0
-		S.dblTf = 20.0
-		S.dblTsd = 20.0
-		S.dblTsu = 20.0
-		S.ras = -999.
-		S.Tg = 20.
+	S.ColCoeff = -999.
+	S.oldTx = 20.0
+	S.Iw = 0.0
+	//S.Scol = 0.0 ;
+	S.PVwall.Eff = 0.0
+	S.PVwallFlg = 'N'
+	S.PVwall.PVcap = -999.
+	S.Ndiv = 0
+	S.Tc = nil
+	S.dblWsd = -999.0
+	S.dblWsu = -999.0
+	S.dblTf = 20.0
+	S.dblTsd = 20.0
+	S.dblTsu = 20.0
+	S.ras = -999.
+	S.Tg = 20.
 
-		S.tnxt = -999.
-		S.RStrans = 'n'
+	S.tnxt = -999.
+	S.RStrans = 'n'
 
-		S.wlpri = ' '
-		S.shdpri = ' '
-		S.Iwall = 0.0
-		S.fnsw = 0
+	S.wlpri = ' '
+	S.shdpri = ' '
+	S.Iwall = 0.0
+	S.fnsw = 0
 
-		for j := 0; j < 10; j++ {
-			f := &S.direct_heat_gain[j]
-			g := &S.fnd[j]
-			*f = 0
-			*g = 0
-		}
+	for j := 0; j < 10; j++ {
+		f := &S.direct_heat_gain[j]
+		g := &S.fnd[j]
+		*f = 0
+		*g = 0
 	}
+
+	return *S
 }

@@ -18,6 +18,7 @@ package eeslism
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -27,106 +28,82 @@ import (
 
 // VENTデータセット
 func Ventdata(fi *EeTokens, dsn string, Schdl *SCHDL, Room []ROOM, Simc *SIMCONTL) {
-	var achr *ACHIR
-	var room, Rm *ROOM
-	var name1, name2, s, ss, E string
-	var val float64
-	var v, k int
+	var Rm *ROOM
+	var name1, ss, E string
+	var k int
 
 	E = fmt.Sprintf(ERRFMT, dsn)
 	for fi.IsEnd() == false {
-		name1 = fi.GetToken()
+		line := fi.GetLogicalLine()
+		if line[0] == "*" {
+			break
+		}
 
+		// 室名
+		name1 = line[0]
+
+		// 室検索
 		i, err := idroom(name1, Room, E+name1)
 		if err != nil {
 			panic(err)
 		}
-		Rm = &Room[i]
+		Rm = &Room[i] //室の参照
 
-		s = fi.GetToken()
-		st := strings.IndexByte(s, '=')
-		if st != -1 {
-			for s != "" {
-				_ss := strings.SplitN(s, "=", 2)
-				key := _ss[0]
-				valstr := _ss[1]
-				switch key {
-				case "Vent":
-					var err error
-					_, err = fmt.Sscanf(valstr, "(%f,%[^)])", &val, &ss)
+		for _, s := range line[1:] {
+			_ss := strings.SplitN(s, "=", 2)
+			key := _ss[0]
+			valstr := _ss[1]
+
+			switch key {
+			case "Vent":
+				// 換気量
+				// Vent=(基準値[kg/s],換気量設定値名)
+				regex := regexp.MustCompile(`\(([^,]+),([^,]+)\)`)
+				match := regex.FindStringSubmatch(valstr)
+				if len(match) == 3 {
+					// 基準値[kg/s]
+					Rm.Gve, err = readFloat(match[1])
 					if err != nil {
 						panic(err)
 					}
-					Rm.Gve = val
 
-					if k, err = idsch(ss, Schdl.Sch, ""); err == nil {
+					// 換気量設定値名
+					ss = match[2]
+					if k, err := idsch(ss, Schdl.Sch, ""); err == nil {
 						Rm.Vesc = &Schdl.Val[k]
 					} else {
 						Rm.Vesc = envptr(ss, Simc, 0, nil, nil, nil)
 					}
-				case "Inf":
-					var err error
-					_, err = fmt.Sscanf(valstr, "(%f,%[^)])", &val, &ss)
+				} else {
+					fmt.Println("No match found.")
+				}
+
+			case "Inf":
+				// すきま風
+				// Inf=(基準値[kg/s],隙間風量設定値名)
+				regex := regexp.MustCompile(`\(([^,]+),([^,]+)\)`)
+				match := regex.FindStringSubmatch(valstr)
+				if len(match) == 3 {
+					// 基準値[kg/s]
+					Rm.Gvi, err = readFloat(match[1])
 					if err != nil {
 						panic(err)
 					}
-					Rm.Gvi = val
 
+					// 隙間風量設定値名
+					ss = match[2]
 					if k, err = idsch(ss, Schdl.Sch, ""); err == nil {
 						Rm.Visc = &Schdl.Val[k]
 					} else {
 						Rm.Visc = envptr(ss, Simc, 0, nil, nil, nil)
 					}
-				default:
-					err := fmt.Sprintf("Room=%s  %s", Rm.Name, key)
-					Eprint("<Ventedata>", err)
+				} else {
+					fmt.Println("No match found.")
 				}
 
-				if st = strings.IndexByte(valstr, ';'); st != -1 {
-					break
-				}
-				s = fi.GetToken()
-			}
-		} else {
-			c := s[0]
-			name2 = fi.GetToken()
-			if fi.GetToken() != "v=" {
-				panic("Invalid format of ventdata")
-			}
-			s = fi.GetToken()
-			if c == ';' {
-				break
-			}
-			j, err := idroom(name2, Room, E+name2)
-			if err != nil {
-				panic(err)
-			}
-
-			if ce := strings.IndexByte(s, ';'); ce != -1 {
-				s = s[:ce]
-			}
-			v, err = idsch(s, Schdl.Sch, E+s)
-			if err != nil {
-				panic(err)
-			}
-
-			switch c {
-			case '-':
-				room = &Room[j]
-				achr = &room.achr[room.Nachr]
-				achr.rm = i
-				achr.room = &Room[i]
-				achr.sch = v
-				room.Nachr++
-
-				room = &Room[i]
-				achr = &room.achr[room.Nachr]
-				achr.rm = j
-				achr.room = &Room[j]
-				achr.sch = v
-				room.Nachr++
 			default:
-				panic(c)
+				err := fmt.Sprintf("Room=%s  %s", Rm.Name, key)
+				Eprint("<Ventedata>", err)
 			}
 		}
 	}

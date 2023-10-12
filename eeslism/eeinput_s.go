@@ -153,6 +153,14 @@ func (t *EeTokens) IsEnd() bool {
 	return t.pos >= len(t.tokens)
 }
 
+// Peek next token
+func (t *EeTokens) PeekToken() string {
+	if t.pos < len(t.tokens) {
+		return t.tokens[t.pos]
+	}
+	return ""
+}
+
 // Get next token
 func (t *EeTokens) GetToken() string {
 	if t.pos < len(t.tokens) {

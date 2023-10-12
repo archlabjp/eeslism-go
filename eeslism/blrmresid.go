@@ -37,7 +37,10 @@ func Residata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int,
 		}
 
 		errMsg := errFmt + s
-		i := idroom(s, rooms, errMsg)
+		i, err := idroom(s, rooms, errMsg)
+		if err != nil {
+			panic(err)
+		}
 		rm := rooms[i]
 
 		for {
@@ -55,13 +58,13 @@ func Residata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int,
 			case "H":
 				fmt.Sscanf(stVal, "(%f,%[^,],%[^)])", &rm.Nhm, &ss, &sss)
 
-				if k := idsch(ss, schdl.Sch, ""); k >= 0 {
+				if k, err := idsch(ss, schdl.Sch, ""); err == nil {
 					rm.Hmsch = &vall[k]
 				} else {
 					rm.Hmsch = envptr(ss, simc, 0, nil, nil, nil)
 				}
 
-				if k := idsch(sss, schdl.Sch, ""); k >= 0 {
+				if k, err := idsch(sss, schdl.Sch, ""); err == nil {
 					rm.Hmwksch = &vall[k]
 				} else {
 					rm.Hmwksch = envptr(sss, simc, 0, nil, nil, nil)
@@ -69,19 +72,19 @@ func Residata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int,
 			case "comfrt":
 				fmt.Sscanf(stVal, "(%[^,],%[^,],%[^)])", &ss, &sss, &s4)
 
-				if k := idsch(ss, schdl.Sch, ""); k >= 0 {
+				if k, err := idsch(ss, schdl.Sch, ""); err == nil {
 					rm.Metsch = &vall[k]
 				} else {
 					rm.Metsch = envptr(ss, simc, 0, nil, nil, nil)
 				}
 
-				if k := idsch(sss, schdl.Sch, ""); k >= 0 {
+				if k, err := idsch(sss, schdl.Sch, ""); err == nil {
 					rm.Closch = &vall[k]
 				} else {
 					rm.Closch = envptr(sss, simc, 0, nil, nil, nil)
 				}
 
-				if k := idsch(s4, schdl.Sch, ""); k >= 0 {
+				if k, err := idsch(s4, schdl.Sch, ""); err == nil {
 					rm.Wvsch = &vall[k]
 				} else {
 					rm.Wvsch = envptr(s4, simc, 0, nil, nil, nil)
@@ -118,7 +121,10 @@ func Appldata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCON
 		}
 
 		errMsg := errFmt + s
-		i := idroom(s, rooms, errMsg)
+		i, err := idroom(s, rooms, errMsg)
+		if err != nil {
+			panic(err)
+		}
 		rm := rooms[i]
 
 		for fi.IsEnd() == false {
@@ -136,7 +142,7 @@ func Appldata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCON
 			case "L":
 				fmt.Sscanf(stVal, "(%f,%c,%[^)])", &rm.Light, &rm.Ltyp, &ss)
 
-				if k := idsch(ss, schdl.Sch, ""); k >= 0 {
+				if k, err := idsch(ss, schdl.Sch, ""); err == nil {
 					rm.Lightsch = &vall[k]
 				} else {
 					rm.Lightsch = envptr(ss, simc, 0, nil, nil, nil)
@@ -144,7 +150,7 @@ func Appldata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCON
 			case "As":
 				fmt.Sscanf(stVal, "(%f,%f,%[^)])", &rm.Apsc, &rm.Apsr, &ss)
 
-				if k := idsch(ss, schdl.Sch, ""); k >= 0 {
+				if k, err := idsch(ss, schdl.Sch, ""); err == nil {
 					rm.Assch = &vall[k]
 				} else {
 					rm.Assch = envptr(ss, simc, 0, nil, nil, nil)
@@ -152,7 +158,7 @@ func Appldata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCON
 			case "Al":
 				fmt.Sscanf(stVal, "(%f,%[^)])", &rm.Apl, &ss)
 
-				if k := idsch(ss, schdl.Sch, ""); k >= 0 {
+				if k, err := idsch(ss, schdl.Sch, ""); err == nil {
 					rm.Alsch = &vall[k]
 				} else {
 					rm.Alsch = envptr(ss, simc, 0, nil, nil, nil)
@@ -160,7 +166,7 @@ func Appldata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCON
 			case "AE":
 				fmt.Sscanf(stVal, "(%f,%[^)])", &rm.AE, &ss)
 
-				if k := idsch(ss, schdl.Sch, ""); k >= 0 {
+				if k, err := idsch(ss, schdl.Sch, ""); err == nil {
 					rm.AEsch = &vall[k]
 				} else {
 					rm.AEsch = envptr(ss, simc, 0, nil, nil, nil)
@@ -168,7 +174,7 @@ func Appldata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCON
 			case "AG":
 				fmt.Sscanf(stVal, "(%f,%[^)])", &rm.AG, &ss)
 
-				if k := idsch(ss, schdl.Sch, ""); k >= 0 {
+				if k, err := idsch(ss, schdl.Sch, ""); err == nil {
 					rm.AGsch = &vall[k]
 				} else {
 					rm.AGsch = envptr(ss, simc, 0, nil, nil, nil)

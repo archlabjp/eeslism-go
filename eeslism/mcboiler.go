@@ -92,7 +92,7 @@ func Boidata(s string, boica *BOICA) int {
 func Boicaint(_Boica []BOICA, Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL) {
 	for i := 0; i < len(_Boica); i++ {
 		Boica := &_Boica[i]
-		if idx := idsch(Boica.Qostr, Schdl.Sch, ""); idx >= 0 {
+		if idx, err := idsch(Boica.Qostr, Schdl.Sch, ""); err == nil {
 			Boica.Qo = &Schdl.Val[idx]
 		} else {
 			Boica.Qo = envptr(Boica.Qostr, Simc, 0, nil, nil, nil)

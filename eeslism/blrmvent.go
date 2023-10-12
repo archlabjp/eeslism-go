@@ -31,13 +31,16 @@ func Ventdata(fi *EeTokens, dsn string, Schdl *SCHDL, Room []ROOM, Simc *SIMCONT
 	var room, Rm *ROOM
 	var name1, name2, s, ss, E string
 	var val float64
-	var i, j, v, k int
+	var v, k int
 
 	E = fmt.Sprintf(ERRFMT, dsn)
 	for fi.IsEnd() == false {
 		name1 = fi.GetToken()
 
-		i = idroom(name1, Room, E+name1)
+		i, err := idroom(name1, Room, E+name1)
+		if err != nil {
+			panic(err)
+		}
 		Rm = &Room[i]
 
 		s = fi.GetToken()
@@ -56,7 +59,7 @@ func Ventdata(fi *EeTokens, dsn string, Schdl *SCHDL, Room []ROOM, Simc *SIMCONT
 					}
 					Rm.Gve = val
 
-					if k = idsch(ss, Schdl.Sch, ""); k >= 0 {
+					if k, err = idsch(ss, Schdl.Sch, ""); err == nil {
 						Rm.Vesc = &Schdl.Val[k]
 					} else {
 						Rm.Vesc = envptr(ss, Simc, 0, nil, nil, nil)
@@ -69,7 +72,7 @@ func Ventdata(fi *EeTokens, dsn string, Schdl *SCHDL, Room []ROOM, Simc *SIMCONT
 					}
 					Rm.Gvi = val
 
-					if k = idsch(ss, Schdl.Sch, ""); k >= 0 {
+					if k, err = idsch(ss, Schdl.Sch, ""); err == nil {
 						Rm.Visc = &Schdl.Val[k]
 					} else {
 						Rm.Visc = envptr(ss, Simc, 0, nil, nil, nil)
@@ -94,12 +97,18 @@ func Ventdata(fi *EeTokens, dsn string, Schdl *SCHDL, Room []ROOM, Simc *SIMCONT
 			if c == ';' {
 				break
 			}
-			j = idroom(name2, Room, E+name2)
+			j, err := idroom(name2, Room, E+name2)
+			if err != nil {
+				panic(err)
+			}
 
 			if ce := strings.IndexByte(s, ';'); ce != -1 {
 				s = s[:ce]
 			}
-			v = idsch(s, Schdl.Sch, E+s)
+			v, err = idsch(s, Schdl.Sch, E+s)
+			if err != nil {
+				panic(err)
+			}
 
 			switch c {
 			case '-':

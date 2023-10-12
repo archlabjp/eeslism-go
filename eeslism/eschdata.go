@@ -21,8 +21,6 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"math"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -109,291 +107,143 @@ func Dayweek(fi io.Reader, week string, daywk []int, key int) {
 /* ------------------------------------------------------------ */
 
 /*  スケジュ－ル表の入力          */
-var __Schtable_ic int
-var __Schtable_is = -1
-var __Schtable_js int
-var __Schtable_iw = -1
-var __Schtable_j int
-var __Schtable_sc = -1
-var __Schtable_jsc int
-var __Schtable_sw = -1
-var __Schtable_jsw int
-var __Schtable_Nmod int
 
 // SCHTBデータセットの読み取り
 // SCHTBデータセット=一日の設定値、切換スケジュールおよび季節、曜日の指定
 // 入力文字列`schtba`を読み取って、 [eeslism.SCHDL]に書き込む
+// NOTE: SCHTBデータセットと %s の両方を読み取るために無理が出ている
 func Schtable(schtba string, Schdl *SCHDL) {
-	fi := strings.NewReader(schtba)
-
-	var s string
-	var ce int
 	var code byte
-	var ssn, wkd, vl, swn, N, i int
-	var Sn *SEASN
-	var Wk *WKDY
-	var Dh *DSCH
-	var Dw *DSCW
 
-	//E := fmt.Sprintf(ERRFMT, dsn)
+	tokens := NewEeTokens(schtba)
 
-	Sn = nil
-	Wk = nil
-	Dh = nil
-	Dw = nil
-
-	ssn = 0
-	wkd = 0
-	vl = 0
-	swn = 0
-
-	__Schtable_ic = 0
-
-	if __Schtable_ic == 0 {
-		Schdl.Dsch = nil
-		Schdl.Dscw = nil
-		Schdl.Seasn = nil
-		Schdl.Wkdy = nil
-
-		SchCount(fi, &ssn, &wkd, &vl, &swn)
-		ssn++
-		wkd++
-		vl++
-		swn++
-
-		N = int(math.Max(float64(1), float64(ssn)))
-		if N > 0 {
-			Schdl.Seasn = make([]SEASN, N)
-		}
-
-		if Schdl.Seasn != nil {
-			for i = 0; i < N; i++ {
-				Seasn := SEASN{
-					name: "",
-					N:    0,
-					end:  0,
-					sday: make([]int, ssn),
-					eday: make([]int, ssn),
-				}
-				Schdl.Seasn[i] = Seasn
-			}
-		}
-
-		N = int(math.Max(float64(1), float64(wkd)))
-		if N > 0 {
-			Schdl.Wkdy = make([]WKDY, N)
-		}
-
-		if Schdl.Wkdy != nil {
-			for i = 0; i < N; i++ {
-				Wkdy := WKDY{
-					name: "",
-					end:  0,
-					//wday: make([]int, 8),
-				}
-				for __Schtable_j = 0; __Schtable_j < 8; __Schtable_j++ {
-					Wkdy.wday[__Schtable_j] = 0
-				}
-				Schdl.Wkdy[i] = Wkdy
-			}
-		}
-
-		N = int(math.Max(float64(1), float64(vl)))
-		if N > 0 {
-			Schdl.Dsch = make([]DSCH, N)
-		}
-
-		if Schdl.Dsch != nil {
-			for i = 0; i < N; i++ {
-				Dsch := DSCH{
-					name:  "",
-					N:     0,
-					end:   0,
-					stime: make([]int, vl),
-					etime: make([]int, vl),
-					val:   make([]float64, vl),
-				}
-				Schdl.Dsch[i] = Dsch
-			}
-		}
-
-		N = int(math.Max(float64(1), float64(swn)))
-		if N > 0 {
-			Schdl.Dscw = make([]DSCW, N)
-		}
-
-		if Schdl.Dscw != nil {
-			for i = 0; i < N; i++ {
-				Dscw := DSCW{
-					name:  "",
-					N:     0,
-					end:   0,
-					Nmod:  0,
-					stime: make([]int, 0),
-					etime: make([]int, 0),
-					mode:  make([]rune, 0),
-					//dcode: make([]rune, swmx),
-				}
-				Schdl.Dscw[i] = Dscw
-			}
-		}
-		__Schtable_ic = 1
-	}
-
-	// Seasn := &Schdl.Seasn[0]
-	// Wkdy := &Schdl.Wkdy[0]
-	// Dsch := &Schdl.Dsch[0]
-	// Dscw := &Schdl.Dscw[0]
-
-	for {
-		_, err := fmt.Fscanf(fi, "%s", &s)
-		if err != nil || s[0] == '*' {
+	for tokens.IsEnd() == false {
+		s := tokens.GetToken()
+		if s == "*" {
 			break
 		}
+		if s == "\n" || s == ";" {
+			continue
+		}
 
-		// 季節設定
-		if s == "-ssn" || s == "SSN" {
-			for {
-				_, err := fmt.Fscanf(fi, "%s", &s)
-				if err != nil || s[0] == ';' {
-					break
-				}
-				if ce = strings.IndexRune(s, ';'); ce != -1 {
-					before := s[:ce]
-					after := s[ce+1:]
-					s = before + after
-				}
+		switch s {
+		case "-ssn", "SSN":
+			// 季節設定
 
-				if strings.IndexRune(s, '-') == -1 {
-					__Schtable_is++
-					Sn = &Schdl.Seasn[__Schtable_is]
-					Sn.name = s
-					__Schtable_js = -1
-				} else {
-					var Ms, Ds, Me, De int
-					__Schtable_js++
-					fmt.Sscanf(s, "%d/%d-%d/%d", &Ms, &Ds, &Me, &De)
-					Sn.sday[__Schtable_js] = FNNday(Ms, Ds)
-					Sn.eday[__Schtable_js] = FNNday(Me, De)
-				}
-				if ce != -1 {
-					break
-				}
+			fields := tokens.GetLogicalLine()
+			n := len(fields) - 1
+
+			Sn := SEASN{
+				name: fields[0], // 季節名
+				N:    n,
+				sday: make([]int, n),
+				eday: make([]int, n),
 			}
-			Sn.N = __Schtable_js + 1
 
-		} else if s == "-wkd" || s == "WKD" {
+			// 開始日・終了日
+			for i := 0; i < n; i++ {
+				var Ms, Ds, Me, De int
+				fmt.Sscanf(fields[i+1], "%d/%d-%d/%d", &Ms, &Ds, &Me, &De)
+				Sn.sday[i] = FNNday(Ms, Ds)
+				Sn.eday[i] = FNNday(Me, De)
+			}
+			Sn.N = n
+
+			Schdl.Seasn = append(Schdl.Seasn, Sn)
+
+			break
+		case "-wkd", "WKD":
 			// 曜日設定
-			__Schtable_j = 9
-			for {
-				_, err := fmt.Fscanf(fi, "%s", &s)
-				if err != nil || s[0] == ';' {
-					break
-				}
-				if ce = strings.IndexRune(s, ';'); ce != -1 {
-					before := s[:ce]
-					after := s[ce+1:]
-					s = before + after
-				}
 
-				if __Schtable_j == 9 {
-					__Schtable_iw++
-					Wk = &Schdl.Wkdy[__Schtable_iw]
-					Wk.name = s
-					__Schtable_j = 0
-				} else {
-					wday := Wk.wday
-					for __Schtable_j = 0; __Schtable_j < 8; __Schtable_j++ {
-						if s == DAYweek[__Schtable_j] {
-							wday[__Schtable_j] = 1
-							break
-						}
-					}
-				}
-				if ce != -1 {
-					break
-				}
+			fields := tokens.GetLogicalLine()
+			n := len(fields) - 1
+
+			Wk := WKDY{
+				name: fields[0], // 曜日名
 			}
-		} else if s == "-v" || s == "VL" {
-			// 設定値スケジュール定義
-			for {
-				_, err := fmt.Fscanf(fi, "%s", &s)
-				if err != nil || s[0] == ';' {
-					break
-				}
-				if ce = strings.IndexRune(s, ';'); ce != -1 {
-					before := s[:ce]
-					after := s[ce+1:]
-					s = before + after
-				}
 
-				if strings.IndexRune(s, '(') == -1 {
-					__Schtable_sc++
-					Dh = &Schdl.Dsch[__Schtable_sc]
-					Dh.name = s
-					__Schtable_jsc = -1
-				} else {
-					__Schtable_jsc++
-
-					// if jsc > SCDAYTMMAX {
-					// 	fmt.Printf("<Schtable> Name=%s  MAX=%d  jsc=%d\n", Dh.name, SCDAYTMMAX, jsc)
-					// }
-
-					fmt.Sscanf(s, "%d-(%f)-%d", &Dh.stime[__Schtable_jsc], &Dh.val[__Schtable_jsc], &Dh.etime[__Schtable_jsc])
-				}
-				if ce != -1 {
-					break
-				}
-			}
-			Dh.N = __Schtable_jsc + 1
-		} else if s == "-s" || s == "SW" {
-			// 切替設定スケジュール定義
-			__Schtable_Nmod = 0
-			fmt.Fscanf(fi, " %s ", &s)
-
-			__Schtable_sw++
-			Dw = &Schdl.Dscw[__Schtable_sw]
-			Dw.name = s
-			__Schtable_jsw = -1
-
-			for {
-				_, err := fmt.Fscanf(fi, "%s", &s)
-				if err != nil || s[0] == ';' {
-					break
-				}
-				if ce = strings.IndexRune(s, ';'); ce != -1 {
-					before := s[:ce]
-					after := s[ce+1:]
-					s = before + after
-				}
-
-				__Schtable_jsw++
-				fmt.Sscanf(s, "%d-(%c)-%d", &Dw.stime[__Schtable_jsw], &code, &Dw.etime[__Schtable_jsw])
-				Dw.mode[__Schtable_jsw] = rune(code)
-
-				for __Schtable_j = 0; __Schtable_j < __Schtable_Nmod; __Schtable_j++ {
-					if Dw.dcode[__Schtable_j] == rune(code) {
+			// 対応する曜日のフラグを埋める
+			wday := Wk.wday
+			for i := 0; i < n; i++ {
+				for j := 0; j < 8; j++ {
+					if fields[i+1] == DAYweek[j] {
+						wday[j] = 1
 						break
 					}
 				}
+			}
 
-				if __Schtable_j == __Schtable_Nmod {
-					Dw.dcode[__Schtable_Nmod] = rune(code)
-					__Schtable_Nmod++
-				}
+			Schdl.Wkdy = append(Schdl.Wkdy, Wk)
 
-				if ce != -1 {
+			break
+		case "-v", "VL":
+			// 設定値スケジュール定義
+			fields := tokens.GetLogicalLine()
+			n := len(fields) - 1
+
+			Dh := DSCH{
+				name:  fields[0], // 設定値名
+				N:     n,
+				stime: make([]int, n),
+				etime: make([]int, n),
+				val:   make([]float64, n),
+			}
+
+			// 開始時分, 終了時分, 設定値
+			Dh.stime = make([]int, n)
+			Dh.val = make([]float64, n)
+			Dh.etime = make([]int, n)
+			for i := 0; i < n; i++ {
+				fmt.Sscanf(fields[i+1], "%d-(%f)-%d", &Dh.stime[i], &Dh.val[i], &Dh.etime[i])
+			}
+
+			Schdl.Dsch = append(Schdl.Dsch, Dh)
+
+			break
+		case "-s", "SW":
+			// 切替設定スケジュール定義
+			fields := tokens.GetLogicalLine()
+			n := len(fields) - 1
+			nmod := 0
+
+			Dw := DSCW{
+				name:  fields[0], // 切り替え設定名
+				N:     n,
+				Nmod:  0,
+				stime: make([]int, 10),
+				etime: make([]int, 10),
+				mode:  make([]rune, 10),
+				//dcode: make([]rune, swmx),
+			}
+
+			Dw.stime = make([]int, n)
+			Dw.etime = make([]int, n)
+			Dw.mode = make([]rune, n)
+			for i := 0; i < n; i++ {
+				fmt.Sscanf(fields[i+1], "%d-(%c)-%d", &Dw.stime[i], &code, &Dw.etime[i])
+				Dw.mode[i] = rune(code)
+			}
+
+			// モード数を調べる
+			var j int
+			for j = 0; j < nmod; j++ {
+				if Dw.dcode[j] == rune(code) {
 					break
 				}
 			}
-			Dw.N = __Schtable_jsw + 1
-			Dw.Nmod = __Schtable_Nmod
+
+			if j == nmod {
+				Dw.dcode[nmod] = rune(code)
+				nmod++
+			}
+
+			Dw.Nmod = nmod
+
+			Schdl.Dscw = append(Schdl.Dscw, Dw)
+
+			break
 		}
 	}
-	Schdl.Seasn[0].end = __Schtable_is + 1
-	Schdl.Wkdy[0].end = __Schtable_iw + 1
-	Schdl.Dsch[0].end = __Schtable_sc + 1
-	Schdl.Dscw[0].end = __Schtable_sw + 1
 }
 
 /* ------------------------------------------------------------ */
@@ -407,16 +257,17 @@ func Schdata(schnma string, dsn string, daywk []int, Schdl *SCHDL) {
 	fi := strings.NewReader(schnma)
 
 	var (
-		s       string
-		dmod    rune
-		ce      *rune
-		dname   string
-		i, j, k int
-		N, d    int
-		ds, de  int
-		day     int
-		is, iw  int
-		sc, sw  int
+		s      string
+		dmod   rune
+		ce     *rune
+		dname  string
+		k      int
+		N, d   int
+		ds, de int
+		day    int
+		is, iw int
+		sc, sw int
+		err    error
 	)
 
 	const dmax = 366
@@ -425,12 +276,6 @@ func Schdata(schnma string, dsn string, daywk []int, Schdl *SCHDL) {
 	Wkdy := Schdl.Wkdy
 	Dsch := Schdl.Dsch
 	Dscw := Schdl.Dscw
-	Sch := Schdl.Sch
-	Scw := Schdl.Scw
-
-	//E = fmt.Sprintf(ERRFMT, *dsn)
-	i = Sch[0].end - 1
-	j = Scw[0].end - 1
 
 	scanner := bufio.NewScanner(fi)
 	for scanner.Scan() {
@@ -450,20 +295,12 @@ func Schdata(schnma string, dsn string, daywk []int, Schdl *SCHDL) {
 
 		s = fields[1]
 
-		if dmod == 'v' {
-			i++
-			S := Sch[i]
-			S.name = string(s)
-			for d := range S.day {
-				S.day[d] = -1
-			}
-		} else {
-			j++
-			S := Scw[j]
-			S.name = string(s)
-			for d := range S.day {
-				S.day[d] = -1
-			}
+		// 年間スケジュールの初期化
+		S := SCH{
+			name: string(s),
+		}
+		for d := range S.day {
+			S.day[d] = -1
 		}
 
 		for _, field := range fields[2:] {
@@ -497,16 +334,28 @@ func Schdata(schnma string, dsn string, daywk []int, Schdl *SCHDL) {
 			}
 
 			if sname != "" {
-				is = idssn(string(sname), Seasn, "")
+				is, err = idssn(string(sname), Seasn)
+				if err != nil {
+					panic(err)
+				}
 			}
 			if wname != "" {
-				iw = idwkd(string(wname), Wkdy, "")
+				iw, err = idwkd(string(wname), Wkdy)
+				if err != nil {
+					panic(err)
+				}
 			}
 			if dname != "" {
 				if dmod == 'v' {
-					sc = iddsc(string(dname), Dsch, "")
+					sc, err = iddsc(string(dname), Dsch)
+					if err != nil {
+						panic(err)
+					}
 				} else {
-					sw = iddsw(string(dname), Dscw, "")
+					sw, err = iddsw(string(dname), Dscw)
+					if err != nil {
+						panic(err)
+					}
 				}
 			}
 			if is >= 0 {
@@ -537,14 +386,19 @@ func Schdata(schnma string, dsn string, daywk []int, Schdl *SCHDL) {
 
 					if iw < 0 || Wkdy[iw].wday[daywk[d]] == 1 {
 						if dmod == 'v' {
-							S := Sch[i]
 							S.day[d] = sc
 						} else {
-							S := Scw[j]
 							S.day[d] = sw
 						}
 					}
 				}
+			}
+
+			// 年間スケジュールに追加
+			if dmod == 'v' {
+				Schdl.Sch = append(Schdl.Sch, S)
+			} else {
+				Schdl.Scw = append(Schdl.Scw, S)
 			}
 
 			if ce != nil {
@@ -552,117 +406,34 @@ func Schdata(schnma string, dsn string, daywk []int, Schdl *SCHDL) {
 			}
 		}
 	}
-
-	Schdl.Sch[0].end = i + 1
-	Schdl.Scw[0].end = j + 1
 }
 
 /* ------------------------------------------------------------ */
 
 /*  季節、曜日によるスケジュ－ル表の組み合わせ名へのスケジュ－ル名の追加  */
 
-var __Schname_ind, __Schname_sco, __Schname_swo int
+func Schname(schdl *SCHDL) {
+	// 年間一定のスケジュールを追加
+	for i, sc := range schdl.Dsch {
+		sch := SCH{
+			name: sc.name,
+		}
+		for d := range sch.day {
+			sch.day[d] = i
+		}
 
-func Schname(Ipath string, dsn string, schdl *SCHDL) {
-	var (
-		sw, i, j, N int
-		E           string
-		vl, sws     int
-		Dsch        = schdl.Dsch
-		Dscw        = schdl.Dscw
-	)
-
-	if fi, err := os.Open(Ipath + "schnma.ewk"); err != nil {
-		Eprint("<Schname>", "schnma.ewk")
-		os.Exit(EXIT_SCHTB)
-	} else {
-		defer fi.Close()
-
-		SchCount(fi, &i, &j, &vl, &sws)
-		vl++
-		sws++
+		schdl.Sch = append(schdl.Sch, sch)
 	}
 
-	if __Schname_ind == 0 {
-		schdl.Sch = nil
-		schdl.Scw = nil
-
-		N = int(math.Max(float64(Dsch[0].end+vl), 1))
-		schdl.Sch = make([]SCH, N)
-		for i := 0; i < N; i++ {
-			schdl.Sch[i] = SCH{
-				name: "",
-				end:  0,
-				//day:  make([]int, 366),
-			}
+	// 年間一定のスケジュールを追加
+	for j, sw := range schdl.Dscw {
+		scw := SCH{
+			name: sw.name,
+		}
+		for d := range scw.day {
+			scw.day[d] = j
 		}
 
-		N = int(math.Max(float64(Dscw[0].end+sws), 1))
-		schdl.Scw = make([]SCH, N)
-		for i := 0; i < N; i++ {
-			schdl.Scw[i] = SCH{
-				name: "",
-				end:  0,
-				//day:  make([]int, 366),
-			}
-		}
-
-		__Schname_ind = 1
-	}
-
-	i = schdl.Sch[0].end
-	N = Dsch[0].end
-
-	E = fmt.Sprintf(E, ERRFMT, dsn)
-
-	for sc := __Schname_sco; sc < N; sc++ {
-		Sch := &schdl.Sch[i]
-		i++
-		Sch.name = Dsch[sc].name
-
-		for d := range Sch.day {
-			Sch.day[d] = sc
-		}
-		__Schname_sco = sc
-		schdl.Sch[0].end = i
-
-		j = schdl.Scw[0].end
-		N = Dscw[0].end
-		for sw := __Schname_swo; sw < N; sw++ {
-			Scw := &schdl.Scw[j]
-			j++
-			Scw.name = Dscw[sw].name
-
-			for d := range Scw.day {
-				Scw.day[d] = sw
-			}
-		}
-		__Schname_swo = sw
-		schdl.Scw[0].end = j
-	}
-}
-
-/****  スケジュールの数を数える  ****/
-func SchCount(fi io.ReadSeeker, ssn, wkd, vl, sw *int) {
-	scanner := bufio.NewScanner(fi)
-	for scanner.Scan() {
-		s := scanner.Text()
-		fields := strings.Fields(s)
-		if len(fields) > 0 {
-			if fields[0] == "*" {
-				break
-			} else if fields[0] == "-ssn" || fields[0] == "SSN" {
-				(*ssn)++
-			} else if fields[0] == "-wkd" || fields[0] == "WKD" {
-				(*wkd)++
-			} else if fields[0] == "-v" || fields[0] == "VL" {
-				(*vl)++
-			} else if fields[0] == "-s" || fields[0] == "SW" {
-				(*sw)++
-			}
-		}
-	}
-	if err := scanner.Err(); err != nil {
-		fmt.Println("Error reading file:", err)
+		schdl.Scw = append(schdl.Scw, scw)
 	}
 }

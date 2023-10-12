@@ -26,10 +26,10 @@ import (
 func ctlvptr(s string, Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT, Nmpath int, Mpath []MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL, vptr *VPTR, vpath *VPTR) int {
 	var err int
 
-	if i := idsch(s, Schdl.Sch, ""); i >= 0 {
+	if i, err2 := idsch(s, Schdl.Sch, ""); err2 == nil {
 		vptr.Ptr = &Schdl.Val[i]
 		vptr.Type = VAL_CTYPE
-	} else if i := idscw(s, Schdl.Scw, ""); i >= 0 {
+	} else if i, iderr := idscw(s, Schdl.Scw, ""); iderr == nil {
 		vptr.Ptr = &Schdl.Isw[i]
 		vptr.Type = SW_CTYPE
 	} else {

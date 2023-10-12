@@ -261,16 +261,16 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 	// -------------------------------------------------------
 	var Schdl *SCHDL = new(SCHDL)
 	Schtable(schtba, Schdl)
-	Schname(Ipath, "Schname", Schdl)
-	Schdl.Nsch = Schdl.Sch[0].end
-	Schdl.Nscw = Schdl.Scw[0].end
+	Schname(Schdl)
+	Schdl.Nsch = len(Schdl.Sch)
+	Schdl.Nscw = len(Schdl.Scw)
 
 	// -------------------------------------------------------
 	//  季節、曜日によるスケジュ－ル表の組み合わせの読み取り
 	// -------------------------------------------------------
 	Schdata(schnma, "schnm", Simc.Daywk, Schdl)
-	Schdl.Nsch = Schdl.Sch[0].end
-	Schdl.Nscw = Schdl.Scw[0].end
+	Schdl.Nsch = len(Schdl.Sch)
+	Schdl.Nscw = len(Schdl.Scw)
 	if Schdl.Nsch > 0 {
 		Schdl.Val = make([]float64, Schdl.Nsch)
 	} else {
@@ -321,16 +321,16 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 		case "SCHTB":
 			// SCHDBデータセットの読み取り
 			Schtable(schtba, Schdl)
-			Schname(Ipath, "Schname", Schdl)
+			Schname(Schdl)
 
-			Schdl.Nsch = Schdl.Sch[0].end
-			Schdl.Nscw = Schdl.Scw[0].end
+			Schdl.Nsch = len(Schdl.Sch)
+			Schdl.Nscw = len(Schdl.Scw)
 		case "SCHNM":
 			// SCHNMデータセットの読み取り
 			Schdata(schnma, s, Simc.Daywk, Schdl)
 
-			Schdl.Nsch = Schdl.Sch[0].end
-			Schdl.Nscw = Schdl.Scw[0].end
+			Schdl.Nsch = len(Schdl.Sch)
+			Schdl.Nscw = len(Schdl.Scw)
 		case "EXSRF":
 			// EXSRFデータセットの読み取り
 			section := tokens.GetSection()

@@ -41,7 +41,7 @@ func Rzonedata(fi io.Reader, dsn string, Nroom int, Room []ROOM, Nrzone *int, _R
 		Rzone.Afloor = 0.0
 
 		for _, s := range fields[1:] {
-			if i := idroom(s, Room, ""); i < Nroom {
+			if i, err := idroom(s, Room, ""); err != nil {
 				Rm := &Room[i]
 				Rzone.rm = append(Rzone.rm, Rm)
 				Rzone.Nroom++

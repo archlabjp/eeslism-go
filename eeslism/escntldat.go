@@ -139,8 +139,9 @@ func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int
 						load = new(rune)
 						*load = Cload
 					} else {
-						i = idscw(s[5:], Schdl.Scw, "")
-						if i >= 0 {
+						var iderr error
+						i, iderr = idscw(s[5:], Schdl.Scw, "")
+						if iderr == nil {
 							load = &Schdl.Isw[i]
 						} else {
 							Eprint("<Contrldata>", s)

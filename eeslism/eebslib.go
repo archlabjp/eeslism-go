@@ -16,6 +16,7 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 	var vall []float64
 	var i, j, k int
 	var ex *EXSF
+	var err error
 
 	s = dsn
 	Nd := ExsfCount(section)
@@ -40,7 +41,7 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 		if strings.HasPrefix(s, "alo=") {
 			if s[4:] == "Calc" {
 				Exsf.Alotype = 'V'
-			} else if k = idsch(s[4:], Schdl.Sch, ""); k >= 0 {
+			} else if k, err = idsch(s[4:], Schdl.Sch, ""); err == nil {
 				Exsf.Alosch = &vall[k]
 				Exsf.Alotype = 'S'
 			} else {
@@ -131,7 +132,7 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 				if strings.HasPrefix(s, "alo") {
 					if s[st+1:] == "Calc" {
 						ex.Alotype = 'V'
-					} else if k = idsch(s[st+1:], Schdl.Sch, ""); k >= 0 {
+					} else if k, err = idsch(s[st+1:], Schdl.Sch, ""); err == nil {
 						ex.Alo = &vall[k]
 						ex.Alotype = 'S'
 					} else {

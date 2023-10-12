@@ -17,139 +17,148 @@
 
 package eeslism
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 /*  スケジュ－ル名からスケジュ－ル番号の検索   */
 /* --------------------------------------------*/
 
-func idssn(code string, _Seasn []SEASN, err string) int {
-	N := _Seasn[0].end
-	var j int
-	for j = 0; j < N; j++ {
+func idssn(code string, _Seasn []SEASN) (int, error) {
+	N := len(_Seasn)
+
+	for j := 0; j < N; j++ {
 		Seasn := &_Seasn[j]
 		if code == Seasn.name {
-			break
+			return j, nil
 		}
 	}
-	if j == N {
-		fmt.Println(err)
-	}
-	return j
+
+	return -1, errors.New("SEASN Not Found")
 }
 
 /* ---------------------------------------- */
 
-func idwkd(code string, Wkdy []WKDY, err string) int {
-	N := Wkdy[0].end
-	var j int
-	for j = 0; j < N; j++ {
+func idwkd(code string, Wkdy []WKDY) (int, error) {
+	N := len(Wkdy)
+
+	if N != len(Wkdy) {
+		panic("N != len(Wkdy)")
+	}
+
+	for j := 0; j < N; j++ {
 		_Wkdy := &Wkdy[j]
 		if code == _Wkdy.name {
-			break
+			return j, nil
 		}
 	}
-	if j == N {
-		fmt.Println(err)
-	}
-	return j
+
+	return -1, errors.New("WKDY Not Found")
 }
 
 /* ---------------------------------------- */
 
-func iddsc(code string, Dsch []DSCH, err string) int {
-	N := Dsch[0].end
-	var j int
-	for j = 0; j < N; j++ {
+func iddsc(code string, Dsch []DSCH) (int, error) {
+	N := len(Dsch)
+
+	for j := 0; j < N; j++ {
 		_Dsch := &Dsch[j]
 		if code == _Dsch.name {
-			break
+			return j, nil
 		}
 	}
-	if j == N {
-		fmt.Println(err)
-	}
-	return j
+
+	return -1, errors.New("DSCH Not Found")
 }
 
 /* ---------------------------------------- */
 
-func iddsw(code string, Dscw []DSCW, err string) int {
-	N := Dscw[0].end
-	var j int
-	for j = 0; j < N; j++ {
+func iddsw(code string, Dscw []DSCW) (int, error) {
+	N := len(Dscw)
+
+	for j := 0; j < N; j++ {
 		_Dscw := &Dscw[j]
 		if code == _Dscw.name {
-			break
+			return j, nil
 		}
 	}
-	if j == N {
-		fmt.Println(err)
-	}
-	return j
+
+	return -1, errors.New("DSCW Not Found")
 }
 
 /* ---------------------------------------- */
 
 /* ---------------------------------------- */
 
-func idsch(code string, Sch []SCH, err string) int {
-	N := Sch[0].end
-	var j int
-	for j = 0; j < N; j++ {
+// スケジュールcodeを Sch から検索し、インデックス番号を返す
+// ただし、検索しても見つからない場合は -1 を返す
+func idsch(code string, Sch []SCH, err string) (int, error) {
+	N := len(Sch)
+
+	if N != len(Sch) {
+		panic("N != len(Sch)")
+	}
+
+	for j := 0; j < N; j++ {
 		_Sch := &Sch[j]
 		if code == _Sch.name {
-			break
+			return j, nil
 		}
 	}
-	if j == N {
-		j = -1
-		if err != "" {
-			Eprint("<idsch>", err)
-		}
+
+	if err != "" {
+		Eprint("<idsch>", err)
 	}
-	return j
+	return -1, errors.New("Schedule Not Found")
 }
 
 /* ---------------------------------------- */
 
-func idscw(code string, Scw []SCH, err string) int {
-	N := Scw[0].end
-	var j int
-	for j = 0; j < N; j++ {
+// スケジュールcodeを Scw から検索し、インデックス番号を返す
+// ただし、検索しても見つからない場合は -1 を返す
+func idscw(code string, Scw []SCH, err string) (int, error) {
+	N := len(Scw)
+
+	if N != len(Scw) {
+		panic("N != len(Scw)")
+	}
+
+	for j := 0; j < N; j++ {
 		_Scw := &Scw[j]
 		if code == _Scw.name {
-			break
+			return j, nil
 		}
 	}
-	if j == N {
-		j = -1
-		if err != "" {
-			Eprint("<idscw>", err)
-		}
+
+	if err != "" {
+		Eprint("<idscw>", err)
 	}
-	return j
+	return -1, errors.New("Schedule Not Found")
 }
 
 /* ---------------------------------------- */
 
 // 室名 `code` に一致する部屋を 部屋の一覧 `Room` から検索し、その番号を返す
-func idroom(code string, Room []ROOM, err string) int {
+// ただし、検索しても見つからない場合はエラーを返す
+func idroom(code string, Room []ROOM, err string) (int, error) {
 	N := Room[0].end
 
-	var j int
-	for j = 0; j < N; j++ {
+	if N != len(Room) {
+		panic("N != len(Room)")
+	}
+
+	for j := 0; j < N; j++ {
 		_Room := &Room[j]
 		if code == _Room.Name {
-			break
+			return j, nil
 		}
 	}
 
-	if j == N {
-		E := fmt.Sprintf("Room=%s %s", code, err)
-		Eprint("<idroom>", E)
-	}
+	E := fmt.Sprintf("Room=%s %s", code, err)
+	Eprint("<idroom>", E)
 
-	return j
+	return N, errors.New("Room Not Found")
 }
 
 /* ---------------------------------------- */

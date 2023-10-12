@@ -197,7 +197,7 @@ func Pathdata(
 									fmt.Printf("s=%s ss=%s\n", s, ss)
 								}
 
-								if j = idsch(ss, Schdl.Sch, ""); j >= 0 {
+								if j, err = idsch(ss, Schdl.Sch, ""); err == nil {
 									Plist.Go = new(float64)
 									*Plist.Go = Schdl.Val[j]
 								} else {
@@ -232,7 +232,7 @@ func Pathdata(
 									fmt.Printf("s=%s ss=%s\n", s, ss)
 								}
 
-								if j := idsch(ss, Schdl.Sch, ""); j >= 0 {
+								if j, err := idsch(ss, Schdl.Sch, ""); err == nil {
 									Plist.Rate = new(float64)
 									*Plist.Rate = Schdl.Val[j]
 								} else {
@@ -312,7 +312,8 @@ func Pathdata(
 												stank = cmp.Eqp.(*STANK)
 												for i := 0; i < stank.Nin; i++ {
 													if stank.Pthcon[i] == co {
-														if iswc = idscw(stv, Schdl.Scw, ""); iswc >= 0 {
+														var err error
+														if iswc, err = idscw(stv, Schdl.Scw, ""); err == nil {
 															stank.Batchcon[i] = Schdl.Isw[iswc]
 														}
 													}

@@ -766,7 +766,7 @@ type ROOM struct {
 	eqpri rune //日射、室内発熱取得出力指定 'p'
 	mrk   rune // '*', 'C', '!'
 
-	VRM     float64  //室容積
+	VRM     float64  //室容積 [m3]
 	GRM     float64  //室内空気質量
 	MRM     float64  //室空気熱容量
 	Area    float64  //室内表面総面積

@@ -128,6 +128,7 @@ func ValvControl(fi *EeTokens, Ncompnt int, Compnt []COMPNT, Schdl *SCHDL, Simc 
 	var k, i int
 	var elins *ELIN
 	var Pelm *PELM
+	var err error
 
 	Vb = nil
 	s = fi.GetToken()
@@ -156,7 +157,7 @@ func ValvControl(fi *EeTokens, Ncompnt int, Compnt []COMPNT, Schdl *SCHDL, Simc 
 			s = fi.GetToken()
 			ad = fi.GetPos()
 
-			if k = idsch(s, Schdl.Sch, ""); k >= 0 {
+			if k, err = idsch(s, Schdl.Sch, ""); err == nil {
 				Valv.Xinit = &Schdl.Val[k]
 			} else {
 				Valv.Xinit = envptr(s, Simc, Ncompnt, Compnt, Wd, nil)
@@ -164,7 +165,7 @@ func ValvControl(fi *EeTokens, Ncompnt int, Compnt []COMPNT, Schdl *SCHDL, Simc 
 		} else if s == "-Tout" {
 			s = fi.GetToken()
 			ad = fi.GetPos()
-			if k = idsch(s, Schdl.Sch, ""); k >= 0 {
+			if k, err = idsch(s, Schdl.Sch, ""); err == nil {
 				Valv.Tset = &Schdl.Val[k]
 			} else {
 				Valv.Tset = envptr(s, Simc, Ncompnt, Compnt, Wd, nil)

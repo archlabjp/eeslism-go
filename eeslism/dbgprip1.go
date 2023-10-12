@@ -47,10 +47,10 @@ func dprdayweek(daywk []int) {
 
 func dprschtable(Ssn []SEASN, Wkd []WKDY, Dh []DSCH, Dw []DSCW) {
 
-	Ns := Ssn[0].end
-	Nw := Wkd[0].end
-	Nsc := Dh[0].end
-	Nsw := Dw[0].end
+	Ns := len(Ssn)
+	Nw := len(Wkd)
+	Nsc := len(Dh)
+	Nsw := len(Dw)
 
 	if DEBUG {
 		fmt.Printf("\n*** dprschtable  ***\n")
@@ -164,8 +164,8 @@ func dprschtable(Ssn []SEASN, Wkd []WKDY, Dh []DSCH, Dw []DSCW) {
 func dprschdata(Sh []SCH, Sw []SCH) {
 	const dmax = 366
 
-	Nsc := Sh[0].end
-	Nsw := Sw[0].end
+	Nsc := len(Sh)
+	Nsw := len(Sw)
 
 	if DEBUG {
 		fmt.Printf("\n*** dprschdata  ***\n")

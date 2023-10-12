@@ -60,12 +60,12 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 	var Er string
 	var sfemark rune
 	var RmnameEr string
-	var Wi, H, D float64
 
 	//stt := ""
 	//sprintf(s, "No. 1") ;
 	//HeapCheck(s) ;
 
+	// 部屋数
 	N := Roomcount(tokens)
 
 	//printf ( "Nroom=%d\n", N ) ;
@@ -76,6 +76,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 		Roominit(N, Rmvls.Room)
 	}
 
+	// 部屋を構成する壁、床、天井等の数
 	Nnxrm := Rmsrfcount(tokens)
 
 	//printf ( "Nsrf=%d\n", N ) ;
@@ -170,7 +171,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 					if ss == ";" {
 						break
 					}
-					Rm.F[ij], err = strconv.ParseFloat(ss, 64)
+					Rm.F[ij], err = readFloat(ss)
 					if err != nil {
 						panic(err)
 					}
@@ -187,74 +188,59 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 				key, value := s[:st], s[st+1:]
 
 				if key == "Vol" {
-					// 室容積 [m3]入力室が直方体の場合には間口、奥行き、高さを'*'でつなげると、
-					// EESLISM内部で室容積を計算する。
-					ast := strings.Split(value, "*")
-					if len(ast) == 1 {
-						Rm.VRM, err = strconv.ParseFloat(ast[0], 64)
-						if err != nil {
-							panic(err)
-						}
-					} else {
-						// Read Wi
-						Wi, err = strconv.ParseFloat(ast[0], 64)
-						if err != nil {
-							panic(err)
-						}
-						// Read H
-						H, err = strconv.ParseFloat(ast[1], 64)
-						if err != nil {
-							panic(err)
-						}
-						// Read D
-						D, err = strconv.ParseFloat(ast[2], 64)
-						if err != nil {
-							panic(err)
-						}
-						Rm.VRM = Wi * H * D
+					// 室容積
+					Rm.VRM, err = readRoomVol(value)
+					if err != nil {
+						panic(err)
 					}
 				} else if key == "flrsr" {
 					// 床の日射吸収比率
 					Rm.flrsr = nil
-					k = idsch(value, Schdl.Sch, "")
-					if k >= 0 {
+					k, err = idsch(value, Schdl.Sch, "")
+					if err == nil {
 						Rm.flrsr = &vall[k]
 					} else {
 						Rm.flrsr = envptr(value, Simc, 0, nil, nil, nil)
 					}
 				} else if key == "alc" {
 					// alc 室内表面熱伝達率[W/m2K]。
-					k = idsch(value, Schdl.Sch, "")
-					if k >= 0 {
+					k, err = idsch(value, Schdl.Sch, "")
+					if err == nil {
 						Rm.alc = &vall[k]
 					} else {
 						Rm.alc = envptr(s[st+1:], Simc, 0, nil, nil, nil)
 					}
 				} else if key == "Hcap" {
 					// 室内空気に付加する熱容量 [J/K]
-					Rm.Hcap, err = strconv.ParseFloat(value, 64)
+					Rm.Hcap, err = readFloat(value)
+					if err != nil {
+						panic(err)
+					}
 				} else if key == "Mxcap" {
 					// 室内空気に付加する湿気容量 [kg/(kg/Kg)]
-					Rm.Mxcap, err = strconv.ParseFloat(value, 64)
+					Rm.Mxcap, err = readFloat(value)
+					if err != nil {
+						panic(err)
+					}
 				} else if key == "MCAP" {
 					// 室内に置かれた物体の熱容量 [J/K]
-					k := idsch(value, Schdl.Sch, "")
-					if k >= 0 {
+					k, err := idsch(value, Schdl.Sch, "")
+					if err == nil {
 						Rm.MCAP = &vall[k]
 					} else {
 						Rm.MCAP = envptr(value, Simc, 0, nil, nil, nil)
 					}
 				} else if key == "CM" {
 					// 室内に置かれた物体と室内空気との間の熱コンダクタンス [W/K]
-					k = idsch(value, Schdl.Sch, "")
-					if k >= 0 {
+					k, err = idsch(value, Schdl.Sch, "")
+					if err == nil {
 						Rm.CM = &vall[k]
 					} else {
 						Rm.CM = envptr(value, Simc, 0, nil, nil, nil)
 					}
 				} else if key == "fsolm" { // 家具への日射吸収割合
-					k = idsch(value, Schdl.Sch, "")
-					if k >= 0 {
+					k, err = idsch(value, Schdl.Sch, "")
+					if err == nil {
 						Rm.fsolm = &vall[k]
 					} else {
 						Rm.fsolm = envptr(value, Simc, 0, nil, nil, nil)
@@ -275,7 +261,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 					var err error
 					st1 := strings.IndexRune(stbuf, ')')
 					st2 := strings.IndexRune(stbuf, ',')
-					Rm.mPCM, err = strconv.ParseFloat(s[st2+2:st1], 64)
+					Rm.mPCM, err = readFloat(s[st2+2 : st1])
 					if err != nil {
 						panic(err)
 					}
@@ -293,7 +279,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 					}
 				} else if key == "OTc" {
 					// 作用温度設定時の対流成分重み係数の設定
-					if k = idsch(value, Schdl.Sch, ""); k >= 0 {
+					if k, err = idsch(value, Schdl.Sch, ""); err == nil {
 						Rm.OTsetCwgt = &vall[k]
 					} else {
 						Rm.OTsetCwgt = envptr(value, Simc, 0, nil, nil, nil)
@@ -514,17 +500,20 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							panic(err)
 						}
 					} else if strings.HasPrefix(s, "sw=") {
-						Sd.fnsw = idscw(s[st+1:], Scw, "")
+						Sd.fnsw, err = idscw(s[st+1:], Scw, "")
+						if err != nil {
+							panic(err)
+						}
 					} else if strings.HasPrefix(s, "i=") {
 						Sd.Name = s[st+1:]
 					} else if strings.HasPrefix(s, "alc=") {
-						if k := idsch(s[st+1:], Schdl.Sch, ""); k >= 0 {
+						if k, err := idsch(s[st+1:], Schdl.Sch, ""); err == nil {
 							Sd.alicsch = &vall[k]
 						} else {
 							Sd.alicsch = envptr(s[st+1:], Simc, 0, nil, nil, nil)
 						}
 					} else if strings.HasPrefix(s, "alr=") {
-						if k := idsch(s[st+1:], Schdl.Sch, ""); k >= 0 {
+						if k, err := idsch(s[st+1:], Schdl.Sch, ""); err == nil {
 							Sd.alirsch = &vall[k]
 						} else {
 							Sd.alirsch = envptr(s[st+1:], Simc, 0, nil, nil, nil)
@@ -532,7 +521,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 					} else if strings.HasPrefix(s, "fsol=") {
 						Rm.Nfsolfix++
 						Sd.ffix_flg = '*'
-						if k := idsch(s[st+1:], Schdl.Sch, ""); k >= 0 {
+						if k, err := idsch(s[st+1:], Schdl.Sch, ""); err == nil {
 							Sd.fsol = &vall[k]
 						} else {
 							Sd.fsol = envptr(s[st+1:], Simc, 0, nil, nil, nil)
@@ -581,6 +570,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 
 			switch Sd.ble {
 			case 'E', 'R', 'F', 'W':
+				// 外壁, 屋根, 床(外部) or 窓の場合
 				if Sd.exs == -1 {
 					var Nexs int
 					if Exs != nil {
@@ -605,6 +595,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 					}
 				}
 			case 'i', 'c', 'f':
+				// 内壁, 天井(内部) or 床(内部)の場合
 				if Sd.nxrm == -1 && Sd.c < 0.0 {
 					nxnm++
 					Sd.nxrm = nxnm
@@ -633,18 +624,20 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 			}
 
 			if Sd.ble == 'W' {
+				// 窓の場合
 				Sd.typ = 'W'
 				Sd.wd = -1
 				Sd.tnxt = 0.0
 			} else {
+				// 窓以外の場合
 				j := Sd.wd
 				var jj int
 				if jj = Sd.exs; jj >= 0 && Exs[jj].Typ == 'E' {
-					Sd.typ = 'E'
+					Sd.typ = 'E' // 地下
 				} else if jj = Sd.exs; jj >= 0 && Exs[jj].Typ == 'e' {
-					Sd.typ = 'e'
+					Sd.typ = 'e' // 地表面
 				} else {
-					Sd.typ = 'H'
+					Sd.typ = 'H' // 一般外表面 ??
 				}
 
 				if j >= 0 {
@@ -699,7 +692,11 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 		if J := Sd.nxrm; J >= 0 {
 			if nxrmname[J] != "" {
 				err := fmt.Sprintf("%s%s", Er, nxrmname[J])
-				Sd.nxrm = idroom(nxrmname[J], Rmvls.Room, err)
+				var err2 error
+				Sd.nxrm, err2 = idroom(nxrmname[J], Rmvls.Room, err)
+				if err2 != nil {
+					panic(err2)
+				}
 				Sd.nextroom = &Rmvls.Room[Sd.nxrm]
 			}
 		}
@@ -716,6 +713,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 
 			switch Sd.ble {
 			case 'i':
+				// 内壁
 				for j := brs; j < bre; j++ {
 					Sdj := &Rmvls.Sd[j]
 					if Sdj.nxrm == Sd.rm && Sdj.ble == 'i' {
@@ -723,6 +721,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 					}
 				}
 			case 'c':
+				// 天井(内部)
 				for j := brs; j < bre; j++ {
 					Sdj := &Rmvls.Sd[j]
 					if Sdj.nxrm == Sd.rm && Sdj.ble == 'f' {
@@ -730,6 +729,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 					}
 				}
 			case 'f':
+				// 床(内部)
 				for j := brs; j < bre; j++ {
 					Sdj := &Rmvls.Sd[j]
 					if Sdj.nxrm == Sd.rm && Sdj.ble == 'c' {
@@ -785,9 +785,16 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 									nxsd.ble = 'f'
 								}
 
-								rsd.nxrm = idroom(rsd.nextroom.Name, Rmvls.Room, "")
+								var err error
+								rsd.nxrm, err = idroom(rsd.nextroom.Name, Rmvls.Room, "")
+								if err != nil {
+									panic(err)
+								}
 								rsd.nxn = i
-								nxsd.nxrm = idroom(nxsd.nextroom.Name, Rmvls.Room, "")
+								nxsd.nxrm, err = idroom(nxsd.nextroom.Name, Rmvls.Room, "")
+								if err != nil {
+									panic(err)
+								}
 								nxsd.nxn = i
 
 								break
@@ -1047,6 +1054,39 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 		Rmvls.Qrm = make([]QRM, N)
 		Rmvls.Qrmd = make([]QRM, N)
 		Rmvls.Emrk = make([]rune, N)
+	}
+}
+
+func readFloat(value string) (float64, error) {
+	return strconv.ParseFloat(value, 64)
+}
+
+func readRoomVol(value string) (float64, error) {
+	// 室容積 [m3]入力室が直方体の場合には間口、奥行き、高さを'*'でつなげると、
+	ast := strings.Split(value, "*")
+	if len(ast) == 1 {
+		return readFloat(ast[0])
+	} else {
+		// EESLISM内部で室容積を計算する。
+		// Read Wi
+		Wi, err := readFloat(ast[0])
+		if err != nil {
+			return 0.0, err
+		}
+
+		// Read H
+		H, err := readFloat(ast[1])
+		if err != nil {
+			return 0.0, err
+		}
+
+		// Read D
+		D, err := readFloat(ast[2])
+		if err != nil {
+			return 0.0, err
+		}
+
+		return Wi * H * D, nil
 	}
 }
 

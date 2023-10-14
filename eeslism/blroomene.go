@@ -26,8 +26,8 @@ import (
 /* 室温・湿度計算結果代入、室供給熱量計算
 およびパネル入口温度代入、パネル供給熱量計算 */
 
-func Roomene(Rmvls *RMVLS, Room []ROOM, Nrdpnl int, Rdpnl []RDPNL, Exsfs *EXSFS, Wd *WDAT) {
-	var i, j int
+func Roomene(Rmvls *RMVLS, Room []ROOM, Rdpnl []RDPNL, Exsfs *EXSFS, Wd *WDAT) {
+	var j int
 	var E *ELOUT
 	var ca, ro float64
 
@@ -72,7 +72,7 @@ func Roomene(Rmvls *RMVLS, Room []ROOM, Nrdpnl int, Rdpnl []RDPNL, Exsfs *EXSFS,
 		}
 	}
 
-	for i = 0; i < Nrdpnl; i++ {
+	for i := range Rdpnl {
 		var Sd *RMSRF
 		var Wall *WALL
 		Sd = Rdpnl[i].sd[0]
@@ -234,7 +234,7 @@ func PCMwlchk(counter int, Rmvls *RMVLS, Exsfs *EXSFS, Wd *WDAT, LDreset *int) {
 	}
 
 	if Rmwlcreset > 0 {
-		Roomcf(Rmvls.Nmwall, Rmvls.Mw, Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl, Wd, Exsfs)
+		Roomcf(Rmvls.Nmwall, Rmvls.Mw, Rmvls.Room, Rmvls.Rdpnl, Wd, Exsfs)
 	}
 }
 
@@ -458,16 +458,16 @@ func rmqaprint(fo io.Writer, id int, Room []ROOM) {
 
 /* 放射パネルに関する出力 */
 
-func panelprint(fo io.Writer, id int, Nrdpnl int, Rdpnl []RDPNL) {
+func panelprint(fo io.Writer, id int, Rdpnl []RDPNL) {
 	var ld int
 	var Wall *WALL
 
 	switch id {
 	case 0:
-		if Nrdpnl > 0 {
-			fmt.Fprintf(fo, "%s %d\n", RDPANEL_TYPE, Nrdpnl)
+		if len(Rdpnl) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", RDPANEL_TYPE, len(Rdpnl))
 		}
-		for i := 0; i < Nrdpnl; i++ {
+		for i := range Rdpnl {
 			Sd := Rdpnl[i].sd[0]
 			Wall = Sd.mw.wall
 			if Sd.mw.wall.WallType == WallType_P {
@@ -485,7 +485,7 @@ func panelprint(fo io.Writer, id int, Nrdpnl int, Rdpnl []RDPNL) {
 			}
 		}
 	case 1:
-		for i := 0; i < Nrdpnl; i++ {
+		for i := range Rdpnl {
 			Sd := Rdpnl[i].sd[0]
 			Wall = Sd.mw.wall
 			if Sd.mw.wall.WallType == WallType_P {
@@ -514,7 +514,7 @@ func panelprint(fo io.Writer, id int, Nrdpnl int, Rdpnl []RDPNL) {
 			}
 		}
 	default:
-		for i := 0; i < Nrdpnl; i++ {
+		for i := range Rdpnl {
 			Sd := Rdpnl[i].sd[0]
 			Wall = Sd.mw.wall
 			if Sd.mw.wall.WallType == WallType_P {

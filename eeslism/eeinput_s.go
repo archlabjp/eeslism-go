@@ -249,7 +249,7 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 
 	//Sdd := Rmvls.Sd
 	Rmvls.Nsrf = 0
-	Rmvls.Nrdpnl = 0
+	// Rmvls.Nrdpnl = 0
 	Rmvls.Nmwall = 0
 
 	var err error
@@ -422,7 +422,7 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 			}
 			Pathdata(section, "Pathdata", Simc, Wd, *Ncompnt, *Compnt, Schdl,
 				Mpath, Nmpath, Plist, Pelm, Npelm, Nplist, 0, Eqsys)
-			Roomelm(Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl)
+			Roomelm(Rmvls.Room, Rmvls.Rdpnl)
 
 			// 変数の割り当て
 			Hclelm(Eqsys.Nhcload, Eqsys.Hcload)
@@ -443,7 +443,7 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 
 			if SYSPTH_ID == 0 {
 				Pathdata(section, "Pathdata", Simc, Wd, *Ncompnt, *Compnt, Schdl, Mpath, Nmpath, Plist, Pelm, Npelm, Nplist, 1, Eqsys)
-				Roomelm(Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl)
+				Roomelm(Rmvls.Room, Rmvls.Rdpnl)
 
 				Hclelm(Eqsys.Nhcload, Eqsys.Hcload)
 				Thexelm(Eqsys.Nthex, Eqsys.Thex)
@@ -559,7 +559,7 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 		Pathdata(section, "Pathdata", Simc, Wd, *Ncompnt, *Compnt, Schdl,
 			Mpath, Nmpath, Plist, Pelm, Npelm, Nplist, 1, Eqsys)
 
-		Roomelm(Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl)
+		Roomelm(Rmvls.Room, Rmvls.Rdpnl)
 
 		Hclelm(Eqsys.Nhcload, Eqsys.Hcload)
 		Thexelm(Eqsys.Nthex, Eqsys.Thex)

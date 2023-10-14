@@ -9,7 +9,7 @@ import (
 
 var __Hcmpprint_id int
 
-func Hcmpprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time float64, Eqsys *EQSYS, Nrdpnl int, Rdpnl []RDPNL) {
+func Hcmpprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time float64, Eqsys *EQSYS, Rdpnl []RDPNL) {
 	var j int
 
 	if __Hcmpprint_id == 0 {
@@ -65,7 +65,7 @@ func Hcmpprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time floa
 	Evacprint(fo, __Hcmpprint_id, Eqsys.Nevac, Eqsys.Evac)
 
 	if SIMUL_BUILDG {
-		panelprint(fo, __Hcmpprint_id, Nrdpnl, Rdpnl)
+		panelprint(fo, __Hcmpprint_id, Rdpnl)
 	}
 
 }

@@ -29,7 +29,7 @@ func FNScol(ta, I, EffPV, Ku, ao, Eo, Fs, RN float64) float64 {
 
 // 建材一体型空気集熱器の相当外気温度を計算する
 func CalcSolarWallTe(Rmvls *RMVLS, Wd *WDAT, Exsfs *EXSFS) {
-	for i := 0; i < Rmvls.Nrdpnl; i++ {
+	for i := range Rmvls.Rdpnl {
 		rdpnl := &Rmvls.Rdpnl[i]
 		Sd := rdpnl.sd[0]
 		if Sd.mw != nil && Sd.mw.wall.WallType == WallType_C {

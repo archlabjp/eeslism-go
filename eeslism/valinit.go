@@ -234,7 +234,7 @@ func Eqsysinit(E *EQSYS) {
 /*****  RMVLS の初期化  *****/
 func Rmvlsinit(R *RMVLS) {
 	R.Twallinit = 0.0
-	R.Nrdpnl, R.Nwindow, R.Nmwall, R.Nsrf = 0, 0, 0, 0
+	R.Nwindow, R.Nmwall, R.Nsrf = 0, 0, 0
 	R.Emrk = nil
 	R.Wall = nil
 	R.Window = nil

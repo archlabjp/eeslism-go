@@ -929,22 +929,21 @@ type ROOM struct {
 
 type RMVLS struct {
 	Twallinit  float64 // 初期温度 (GDAT.RUN.Tinit)
-	Nrdpnl     int
 	Nwall      int
 	Nwindow    int
 	Nmwall     int
 	Nsrf       int
 	Npcm       int
 	Emrk       []rune
-	Wall       []WALL
-	Window     []WINDOW
-	Snbk       []SNBK
-	PCM        []PCM
-	Sd         []RMSRF
-	Mw         []MWALL
-	Room       []ROOM
-	Rdpnl      []RDPNL
-	Qrm, Qrmd  []QRM
+	Wall       []WALL   // 壁
+	Window     []WINDOW // 窓
+	Snbk       []SNBK   // 日よけ
+	PCM        []PCM    // 潜熱蓄熱材
+	Sd         []RMSRF  // 壁体
+	Mw         []MWALL  // 重量壁体
+	Room       []ROOM   // 室
+	Rdpnl      []RDPNL  // 輻射パネル
+	Qrm, Qrmd  []QRM    // 日射、室内発熱熱取得
 	Qetotal    QETOTAL
 	Trdav      []float64
 	Pcmiterate rune // PCM建材を使用し、かつ収束計算を行う場合は'y'

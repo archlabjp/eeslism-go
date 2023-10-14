@@ -21,7 +21,7 @@ package eeslism
 
 /* 室間換気、放射パネルとシステム入力要素への割り付け */
 
-func Roomelm(Room []ROOM, Nrdpnl int, _Rdpnl []RDPNL) {
+func Roomelm(Room []ROOM, _Rdpnl []RDPNL) {
 	var elin_idx = 0
 
 	for n := range Room {
@@ -67,7 +67,7 @@ func Roomelm(Room []ROOM, Nrdpnl int, _Rdpnl []RDPNL) {
 	}
 
 	elin_idx = 1
-	for n := 0; n < Nrdpnl; n++ {
+	for n := range _Rdpnl {
 		Rdpnl := &_Rdpnl[n]
 
 		for m := 0; m < Rdpnl.MC; m++ {
@@ -93,7 +93,7 @@ func Roomelm(Room []ROOM, Nrdpnl int, _Rdpnl []RDPNL) {
 
 /* 室、放射パネルのシステム方程式作成 */
 
-func Roomvar(_Room []ROOM, Nrdpnl int, _Rdpnl []RDPNL) {
+func Roomvar(_Room []ROOM, _Rdpnl []RDPNL) {
 	for i := range _Room {
 		Room := &_Room[i]
 
@@ -156,7 +156,7 @@ func Roomvar(_Room []ROOM, Nrdpnl int, _Rdpnl []RDPNL) {
 		off += Room.Nasup
 	}
 
-	for i := 0; i < Nrdpnl; i++ {
+	for i := range _Rdpnl {
 		Rdpnl := &_Rdpnl[i]
 
 		compnt := Rdpnl.cmp

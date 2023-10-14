@@ -793,7 +793,7 @@ func Entry(InFile string) {
 				}
 
 				/* 室、放射パネルのシステム方程式作成 */
-				Roomvar(Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl)
+				Roomvar(Rmvls.Room, Rmvls.Rdpnl)
 
 				if DEBUG {
 					fmt.Println("<<main>>  Roomvar")
@@ -846,7 +846,7 @@ func Entry(InFile string) {
 
 					Sysvar(Ncompnt, Compnt)
 
-					Roomene(&Rmvls, Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl, &Exsf, &Wd)
+					Roomene(&Rmvls, Rmvls.Room, Rmvls.Rdpnl, &Exsf, &Wd)
 
 					Roomload(Rmvls.Room, &LDreset)
 
@@ -978,7 +978,7 @@ func Entry(InFile string) {
 
 			if Daytm.Ddpri != 0 {
 				// 室の日集計、月集計
-				Roomday(Daytm.Mon, Daytm.Day, day, Daytm.Ttmm, Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl, Simc.Dayend)
+				Roomday(Daytm.Mon, Daytm.Day, day, Daytm.Ttmm, Rmvls.Room, Rmvls.Rdpnl, Simc.Dayend)
 				if Simc.Helmkey == 'y' {
 					Helmdy(day, Rmvls.Room, &Rmvls.Qetotal)
 				}
@@ -1025,7 +1025,7 @@ func Entry(InFile string) {
 
 	}
 	// 月－時刻別集計値の出力
-	Eeprintmt(&Simc, Flout, &Eqsys, Rmvls.Nrdpnl, Rmvls.Rdpnl)
+	Eeprintmt(&Simc, Flout, &Eqsys, Rmvls.Rdpnl)
 
 	if DEBUG {
 		fmt.Printf("メモリ領域の解放\n")

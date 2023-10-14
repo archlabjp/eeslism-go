@@ -85,7 +85,7 @@ func Compoday(Mon, Day, Nday, ttmm int, Eqsys *EQSYS, SimDayend int) {
 
 var __Compodyprt_id int
 
-func Compodyprt(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Eqsys *EQSYS, Nrdpnl int, Rdpnl []RDPNL) {
+func Compodyprt(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Eqsys *EQSYS, Rdpnl []RDPNL) {
 	if __Compodyprt_id == 0 {
 		ttldyprint(fo, mrk, Simc)
 
@@ -109,7 +109,7 @@ func Compodyprt(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Eqsys *E
 			PVdyprt(fo, __Compodyprt_id, Eqsys.Npv, Eqsys.PVcmp)
 			Desidyprt(fo, __Compodyprt_id, Eqsys.Ndesi, Eqsys.Desi)
 
-			paneldyprt(fo, __Compodyprt_id, Nrdpnl, Rdpnl)
+			paneldyprt(fo, __Compodyprt_id, Rdpnl)
 
 			if j == 0 {
 				fmt.Fprintf(fo, "*\n#\n")
@@ -136,7 +136,7 @@ func Compodyprt(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Eqsys *E
 	PVdyprt(fo, __Compodyprt_id, Eqsys.Npv, Eqsys.PVcmp)
 	Desidyprt(fo, __Compodyprt_id, Eqsys.Ndesi, Eqsys.Desi)
 
-	paneldyprt(fo, __Compodyprt_id, Nrdpnl, Rdpnl)
+	paneldyprt(fo, __Compodyprt_id, Rdpnl)
 
 }
 
@@ -144,7 +144,7 @@ func Compodyprt(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Eqsys *E
 
 var __Compomonprt_id int
 
-func Compomonprt(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Eqsys *EQSYS, Nrdpnl int, Rdpnl []RDPNL) {
+func Compomonprt(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Eqsys *EQSYS, Rdpnl []RDPNL) {
 	if __Compomonprt_id == 0 {
 		ttldyprint(fo, mrk, Simc)
 
@@ -167,7 +167,7 @@ func Compomonprt(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Eqsys *
 			Thexmonprt(fo, __Compomonprt_id, Eqsys.Nthex, Eqsys.Thex)
 			PVmonprt(fo, __Compomonprt_id, Eqsys.Npv, Eqsys.PVcmp)
 
-			panelmonprt(fo, __Compomonprt_id, Nrdpnl, Rdpnl)
+			panelmonprt(fo, __Compomonprt_id, Rdpnl)
 
 			if j == 0 {
 				fmt.Fprintf(fo, "*\n#\n")
@@ -193,14 +193,14 @@ func Compomonprt(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Eqsys *
 	Thexmonprt(fo, __Compomonprt_id, Eqsys.Nthex, Eqsys.Thex)
 	PVmonprt(fo, __Compomonprt_id, Eqsys.Npv, Eqsys.PVcmp)
 
-	panelmonprt(fo, __Compomonprt_id, Nrdpnl, Rdpnl)
+	panelmonprt(fo, __Compomonprt_id, Rdpnl)
 }
 
 /* システム要素機器の年集計結果出力 */
 
 var __Compomtprt_id int = 0
 
-func Compomtprt(fo io.Writer, mrk string, Simc *SIMCONTL, Eqsys *EQSYS, Nrdpnl int, Rdpnl []RDPNL) {
+func Compomtprt(fo io.Writer, mrk string, Simc *SIMCONTL, Eqsys *EQSYS, Rdpnl []RDPNL) {
 	if __Compomtprt_id == 0 {
 		ttlmtprint(fo, mrk, Simc)
 
@@ -215,7 +215,7 @@ func Compomtprt(fo io.Writer, mrk string, Simc *SIMCONTL, Eqsys *EQSYS, Nrdpnl i
 			pumpmtprt(fo, __Compomtprt_id, Eqsys.Npump, Eqsys.Pump, 0, 0)
 			PVmtprt(fo, __Compomtprt_id, Eqsys.Npv, Eqsys.PVcmp, 0, 0)
 			hcldmtprt(fo, __Compomtprt_id, Eqsys.Nhcload, 0, 0, Eqsys.Hcload)
-			panelmtprt(fo, __Compomtprt_id, Nrdpnl, Rdpnl, 0, 0)
+			panelmtprt(fo, __Compomtprt_id, Rdpnl, 0, 0)
 
 			if j == 0 {
 				fmt.Fprintf(fo, "*\n#\n")
@@ -234,7 +234,7 @@ func Compomtprt(fo io.Writer, mrk string, Simc *SIMCONTL, Eqsys *EQSYS, Nrdpnl i
 			pumpmtprt(fo, __Compomtprt_id, Eqsys.Npump, Eqsys.Pump, mo, tt)
 			PVmtprt(fo, __Compomtprt_id, Eqsys.Npv, Eqsys.PVcmp, mo, tt)
 			hcldmtprt(fo, __Compomtprt_id, Eqsys.Nhcload, mo, tt, Eqsys.Hcload)
-			panelmtprt(fo, __Compomtprt_id, Nrdpnl, Rdpnl, mo, tt)
+			panelmtprt(fo, __Compomtprt_id, Rdpnl, mo, tt)
 		}
 	}
 }

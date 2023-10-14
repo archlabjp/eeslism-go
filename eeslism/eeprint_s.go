@@ -28,7 +28,7 @@ func Eeprinth(Daytm *DAYTM, Simc *SIMCONTL, flout []*FLOUT, Rmvls *RMVLS, Exsfst
 				// 気象データの出力
 				Wdtprint(flo.F, title, Mon, Day, time, Wd, Exsfst)
 			case PRTCOMP: // 毎時機器の出力
-				Hcmpprint(flo.F, string(PRTCOMP), Simc, Mon, Day, time, Eqsys, Rmvls.Nrdpnl, Rmvls.Rdpnl)
+				Hcmpprint(flo.F, string(PRTCOMP), Simc, Mon, Day, time, Eqsys, Rmvls.Rdpnl)
 			case PRTPATH: // システム経路の温湿度出力
 				Pathprint(flo.F, title, Mon, Day, time, Nmpath, Mpath)
 			case PRTHRSTANK: // 蓄熱槽内温度分布の出力
@@ -105,7 +105,7 @@ func Eeprintd(Daytm *DAYTM, Simc *SIMCONTL, flout []*FLOUT, Rmvls *RMVLS, Nexs i
 				fmt.Fprintf(flo.F, "%2d %2d %3d %s\n", Mon, Day, Daytm.DayOfYear, DAYweek[Simc.Daywk[Daytm.Day]])
 			case PRTDYCOMP:
 				// システム要素機器の日集計結果出力
-				Compodyprt(flo.F, string(PRTDYCOMP), Simc, Mon, Day, Eqsys, Rmvls.Nrdpnl, Rmvls.Rdpnl)
+				Compodyprt(flo.F, string(PRTDYCOMP), Simc, Mon, Day, Eqsys, Rmvls.Rdpnl)
 			case PRTDYRM:
 				// 部屋ごとの熱集計結果出力
 				Rmdyprint(flo.F, string(PRTDYRM), Simc, Mon, Day, Rmvls.Room)
@@ -140,7 +140,7 @@ func Eeprintm(daytm *DAYTM, simc *SIMCONTL, flout []*FLOUT, rmvls *RMVLS, nexs i
 				Wdtmprint(flo.F, title, mon, day, wdm, nexs, exs, solmon)
 			case PRTMNCOMP:
 				// システム要素機器の月集計結果出力
-				Compomonprt(flo.F, string(PRTMNCOMP), simc, mon, day, eqsys, rmvls.Nrdpnl, rmvls.Rdpnl)
+				Compomonprt(flo.F, string(PRTMNCOMP), simc, mon, day, eqsys, rmvls.Rdpnl)
 			case PRTMNRM:
 				// 部屋ごとの熱集計結果出力
 				Rmmonprint(flo.F, string(PRTMNRM), simc, mon, day, rmvls.Room)
@@ -152,10 +152,10 @@ func Eeprintm(daytm *DAYTM, simc *SIMCONTL, flout []*FLOUT, rmvls *RMVLS, nexs i
 /* ----------------------------------------------------------- */
 /*  月－時刻集計値出力  */
 
-func Eeprintmt(simc *SIMCONTL, flout []*FLOUT, eqsys *EQSYS, nrdpnl int, rdpnl []RDPNL) {
+func Eeprintmt(simc *SIMCONTL, flout []*FLOUT, eqsys *EQSYS, rdpnl []RDPNL) {
 	for _, flo := range flout {
 		if flo.Idn == PRTMTCOMP {
-			Compomtprt(flo.F, string(PRTMNCOMP), simc, eqsys, nrdpnl, rdpnl)
+			Compomtprt(flo.F, string(PRTMNCOMP), simc, eqsys, rdpnl)
 		}
 	}
 }

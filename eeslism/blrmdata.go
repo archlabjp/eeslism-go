@@ -1065,7 +1065,6 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 	Rmvls.Nsrf = Nsrf
 	Rmvls.Sd[0].end = Nsrf
 	Rmvls.Trdav = make([]float64, len(Rmvls.Room))
-	Rmvls.Nrdpnl = Nrdpnl
 
 	if len(Rmvls.Room) > 0 {
 		N := len(Rmvls.Room)

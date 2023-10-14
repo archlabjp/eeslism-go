@@ -374,7 +374,7 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 /* ----------------------------------------------------------------- */
 
 // 室の係数、定数項の計算
-func Roomcf(nmwall int, mw []MWALL, rooms []ROOM, nrdpnl int, rdpnl []RDPNL, wd *WDAT, exsf *EXSFS) {
+func Roomcf(nmwall int, mw []MWALL, rooms []ROOM, rdpnl []RDPNL, wd *WDAT, exsf *EXSFS) {
 	for _, rdpnl := range rdpnl {
 		panelwp(&rdpnl)
 	}

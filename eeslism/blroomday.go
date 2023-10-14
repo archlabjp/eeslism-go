@@ -25,7 +25,7 @@ import (
 var __Roomday_oldday = -999
 var __Roomday_oldMon = -999
 
-func Roomday(Mon int, Day int, Nday int, ttmm int, Rm []ROOM, Nrdpnl int, Rdp []RDPNL, Simdayend int) {
+func Roomday(Mon int, Day int, Nday int, ttmm int, Rm []ROOM, Rdp []RDPNL, Simdayend int) {
 	Mo := Mon - 1
 	tt := ConvertHour(ttmm)
 
@@ -60,7 +60,7 @@ func Roomday(Mon int, Day int, Nday int, ttmm int, Rm []ROOM, Nrdpnl int, Rdp []
 			}
 		}
 
-		for i := 0; i < Nrdpnl; i++ {
+		for i := range Rdp {
 			Rdpnl := &Rdp[i]
 			svdyint(&Rdpnl.Tpody)
 			svdyint(&Rdpnl.Tpidy)
@@ -105,7 +105,7 @@ func Roomday(Mon int, Day int, Nday int, ttmm int, Rm []ROOM, Nrdpnl int, Rdp []
 			}
 		}
 
-		for i := 0; i < Nrdpnl; i++ {
+		for i := range Rdp {
 			Rdpnl := &Rdp[i]
 			svdyint(&Rdpnl.mTpody)
 			svdyint(&Rdpnl.mTpidy)
@@ -146,7 +146,7 @@ func Roomday(Mon int, Day int, Nday int, ttmm int, Rm []ROOM, Nrdpnl int, Rdp []
 		}
 	}
 
-	for i := 0; i < Nrdpnl; i++ {
+	for i := range Rdp {
 		Rdpnl := &Rdp[i]
 
 		svdaysum(int64(ttmm), Rdpnl.cmp.Control, Rdpnl.Tpo, &Rdpnl.Tpody)
@@ -193,7 +193,7 @@ func Roomday(Mon int, Day int, Nday int, ttmm int, Rm []ROOM, Nrdpnl int, Rdp []
 		}
 	}
 
-	for i := 0; i < Nrdpnl; i++ {
+	for i := range Rdp {
 		Rdpnl := &Rdp[i]
 
 		svmonsum(Mon, Day, ttmm, Rdpnl.cmp.Control, Rdpnl.Tpo, &Rdpnl.mTpody, Nday, Simdayend)
@@ -507,14 +507,14 @@ func Rmmonprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []ROO
 
 /* -------------------------------------------- */
 
-func paneldyprt(fo io.Writer, id, Nrdpnl int, _Rdpnl []RDPNL) {
+func paneldyprt(fo io.Writer, id int, _Rdpnl []RDPNL) {
 	switch id {
 	case 0:
-		if Nrdpnl > 0 {
-			fmt.Fprintf(fo, "%s %d\n", RDPANEL_TYPE, Nrdpnl)
+		if len(_Rdpnl) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", RDPANEL_TYPE, len(_Rdpnl))
 		}
 
-		for i := 0; i < Nrdpnl; i++ {
+		for i := range _Rdpnl {
 			Rdpnl := &_Rdpnl[i]
 			Wall := Rdpnl.sd[0].mw.wall
 
@@ -532,7 +532,7 @@ func paneldyprt(fo io.Writer, id, Nrdpnl int, _Rdpnl []RDPNL) {
 		break
 
 	case 1:
-		for i := 0; i < Nrdpnl; i++ {
+		for i := range _Rdpnl {
 			Rdpnl := &_Rdpnl[i]
 			Wall := Rdpnl.sd[0].mw.wall
 
@@ -564,7 +564,7 @@ func paneldyprt(fo io.Writer, id, Nrdpnl int, _Rdpnl []RDPNL) {
 		break
 
 	default:
-		for i := 0; i < Nrdpnl; i++ {
+		for i := range _Rdpnl {
 			Rdpnl := &_Rdpnl[i]
 			Wall := Rdpnl.sd[0].mw.wall
 
@@ -597,15 +597,15 @@ func paneldyprt(fo io.Writer, id, Nrdpnl int, _Rdpnl []RDPNL) {
 	}
 }
 
-func panelmonprt(fo io.Writer, id, Nrdpnl int, _Rdpnl []RDPNL) {
+func panelmonprt(fo io.Writer, id int, _Rdpnl []RDPNL) {
 
 	switch id {
 	case 0:
-		if Nrdpnl > 0 {
-			fmt.Fprintf(fo, "%s %d\n", RDPANEL_TYPE, Nrdpnl)
+		if len(_Rdpnl) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", RDPANEL_TYPE, len(_Rdpnl))
 		}
 
-		for i := 0; i < Nrdpnl; i++ {
+		for i := range _Rdpnl {
 			Rdpnl := &_Rdpnl[i]
 			Wall := Rdpnl.sd[0].mw.wall
 
@@ -622,7 +622,7 @@ func panelmonprt(fo io.Writer, id, Nrdpnl int, _Rdpnl []RDPNL) {
 		break
 
 	case 1:
-		for i := 0; i < Nrdpnl; i++ {
+		for i := range _Rdpnl {
 			Rdpnl := &_Rdpnl[i]
 			Wall := Rdpnl.sd[0].mw.wall
 
@@ -654,7 +654,7 @@ func panelmonprt(fo io.Writer, id, Nrdpnl int, _Rdpnl []RDPNL) {
 		break
 
 	default:
-		for i := 0; i < Nrdpnl; i++ {
+		for i := range _Rdpnl {
 			Rdpnl := &_Rdpnl[i]
 			Wall := Rdpnl.sd[0].mw.wall
 
@@ -687,23 +687,23 @@ func panelmonprt(fo io.Writer, id, Nrdpnl int, _Rdpnl []RDPNL) {
 	}
 }
 
-func panelmtprt(fo io.Writer, id int, Nrdpnl int, Rdpnl []RDPNL, Mo int, tt int) {
+func panelmtprt(fo io.Writer, id int, Rdpnl []RDPNL, Mo int, tt int) {
 	switch id {
 	case 0:
-		if Nrdpnl > 0 {
-			fmt.Fprintf(fo, "%s %d\n", RDPANEL_TYPE, Nrdpnl)
+		if len(Rdpnl) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", RDPANEL_TYPE, len(Rdpnl))
 		}
-		for i := 0; i < Nrdpnl; i++ {
+		for i := range Rdpnl {
 			Rdpnl := &Rdpnl[i]
 			fmt.Fprintf(fo, " %s 1 1\n", Rdpnl.Name)
 		}
 	case 1:
-		for i := 0; i < Nrdpnl; i++ {
+		for i := range Rdpnl {
 			Rdpnl := &Rdpnl[i]
 			fmt.Fprintf(fo, "%s_E E f \n", Rdpnl.Name)
 		}
 	default:
-		for i := 0; i < Nrdpnl; i++ {
+		for i := range Rdpnl {
 			Rdpnl := &Rdpnl[i]
 			fmt.Fprintf(fo, " %.2f \n", Rdpnl.mtPVdy[Mo-1][tt-1].D*Cff_kWh)
 		}

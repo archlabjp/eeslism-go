@@ -30,7 +30,7 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 		Room = []ROOM{}
 	}
 
-	Nrdpnl := Rmvls.Nrdpnl
+	Nrdpnl := len(Rmvls.Rdpnl)
 
 	var Rdpnl []RDPNL
 	if Nrdpnl > 0 {

@@ -538,12 +538,15 @@ func Snbkdata(section *EeTokens, dsn string, Snbk *[]SNBK) {
 	for section.IsEnd() == false {
 
 		fields := section.GetLogicalLine()
+		if fields[0] == "*" {
+			break
+		}
 
 		// 名前
 		S.Name = fields[0]
 
 		// 入力チェック用
-		code := [8]rune{'.', '.', '.', '.', '.', '.', '.', '.'}
+		code := [7]rune{'.', '.', '.', '.', '.', '.', '.'}
 
 		for _, s := range fields[1:] {
 			// キー・バリューの分離

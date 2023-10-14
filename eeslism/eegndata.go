@@ -10,7 +10,32 @@ import (
 
 /*   ファイル、計算期間、出力日の入力        */
 
-func Gdata(section *EeTokens, dsn string, File string, wfname *string, ofname *string, dtm *int, sttmm *int, dayxs *int, days *int, daye *int, Tini *float64, pday []int, wdpri *int, revpri *int, pmvpri *int, helmkey *rune, MaxIterate *int, Daytm *DAYTM, Wd *WDAT, perio *rune) {
+// FILE
+//   -skyrd
+//   -intgtsupw
+//   -w
+//   -out
+// RUN
+//   (mm/dd) => dayys   助走期間
+//   mm/dd-mm/dd => days, daye, dayxs     計算開始 計算終了
+//   Tinit => Tini   初期温度 (15[deg])
+//   dTime => dtm    計算時間間隔 [s]（指定しないとき3600 [s]となる）
+//   Stime => sttmm   計算開始時刻
+//   MaxIterate => MaxIterate
+//   RepeatDays => daye    周期定常計算の繰り返し日数の取得
+//   -periodic => perio, days, dayxs
+// PRINT
+//   mm/dd-mm/ddまたはmm/dd => pday
+//   *wd => wdpri
+//   *rev => revpri
+//   *pmv => pmvpri
+//   *helm => helmkey
+//   *log => グローバル変数 Ferr の設定
+//   *debug => グローバル変数 DEBUGの設定
+func Gdata(section *EeTokens, dsn string, File string, wfname *string,
+	ofname *string, dtm *int, sttmm *int, dayxs *int, days *int, daye *int,
+	Tini *float64, pday []int, wdpri *int, revpri *int, pmvpri *int,
+	helmkey *rune, MaxIterate *int, Daytm *DAYTM, Wd *WDAT, perio *rune) {
 	var s, ss, ce, dd string
 	var st int
 	var Ms, Ds, Mxs, Dxs, Me, De int

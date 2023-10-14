@@ -56,7 +56,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 	//var st, ce, stt string
 	var dexsname, dnxrname string
 	var Er string
-	var sfemark rune
+	var sfemark bool
 	var RmnameEr string
 
 	//stt := ""
@@ -143,13 +143,13 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 				// outfile_sf.es への室内表面温度、
 				// outfile_sfq.esへの部位別表面熱流、
 				// outfile_sfa.esへの部位別表面熱伝達率の出力指定
-				Rm.sfpri = 'p'
+				Rm.sfpri = true
 			} else if s == "*q" {
 				// outfile_rq.es、outfile_dqr.es への日射熱取得、
 				// 室内発熱、隙間風熱取得要素の出力指定
-				Rm.eqpri = 'p'
+				Rm.eqpri = true
 			} else if s == "*sfe" {
-				sfemark = 'y'
+				sfemark = true
 			} else if strings.ContainsRune(s, ':') {
 				ss := strings.Split(s, ":")
 				if ss[0][0] == '(' {
@@ -185,7 +185,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 					ij++
 				}
 			} else if s == "rsrnx" {
-				Rm.rsrnx = 'y'
+				Rm.rsrnx = true
 			} else {
 				st := strings.IndexRune(s, '=')
 				if st == -1 {
@@ -309,7 +309,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 
 		nr = -1
 
-		sfemark = ' '
+		sfemark = false
 
 		// 2行目以降のサーフェース情報を処理
 		for section.IsEnd() == false {
@@ -325,8 +325,17 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 			SdIdx++
 			Sd := Rmsrfinit()
 
-			c := rune(line[1][1])
-			Sd.ble = c
+			// 壁体名または窓名が指定されているか(省略されていないか)
+			c := rune(line[0][1])
+			if strings.HasSuffix(line[0], ":") {
+				c = rune(line[1][1])
+			}
+
+			if c != 'E' && c != 'R' && c != 'F' && c != 'i' && c != 'c' && c != 'f' && c != 'W' {
+				panic(fmt.Sprintf("Invalid ble '%s' at \"%s\"", string(c), strings.Join(line, " ")))
+			}
+
+			Sd.ble = BLEType(c)
 
 			Sd.sfepri = sfemark
 			Sd.Sname = ""
@@ -348,12 +357,12 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 					/*******************/
 
 					if s == "*p" {
-						Sd.wlpri = 'p'
+						Sd.wlpri = true
 					} else if s == "*sfe" {
-						Sd.sfepri = 'y'
+						Sd.sfepri = true
 					} else if s == "*shd" {
 						// 日よけの影面積出力
-						Sd.shdpri = 'p'
+						Sd.shdpri = true
 					} else if st = strings.Index(s, "*"); st != -1 {
 						// 面積の指定 (幅・高さ指定)
 						var X, Y float64
@@ -538,13 +547,15 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 						if err != nil {
 							panic(err)
 						}
-						Sd.PVwallFlg = 'Y'
+						Sd.PVwallFlg = true
 					} else if strings.HasPrefix(s, "Wsu=") {
+						// 集熱屋根の通気層上側の幅 [m]
 						Sd.dblWsu, err = strconv.ParseFloat(s[st+1:], 64)
 						if err != nil {
 							panic(err)
 						}
 					} else if strings.HasPrefix(s, "Wsd=") {
+						// 集熱屋根の通気層下側の幅 [m]
 						Sd.dblWsd, err = strconv.ParseFloat(s[st+1:], 64)
 						if err != nil {
 							panic(err)
@@ -612,26 +623,26 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 
 			// 窓を除く面積0より大きい壁体で、固有の壁体定義がない場合：
 			// 既定の壁体定義番号を割り当てる
-			if Sd.ble != 'W' && Sd.wd == -1 && Sd.A > 0.0 {
+			if Sd.ble != BLE_Window && Sd.wd == -1 && Sd.A > 0.0 {
 				switch Sd.ble {
-				case 'E':
-					Sd.wd = dfwl.E
-				case 'R':
-					Sd.wd = dfwl.R
-				case 'F':
-					Sd.wd = dfwl.F
-				case 'i':
-					Sd.wd = dfwl.i
-				case 'c':
-					Sd.wd = dfwl.c
-				case 'f':
-					Sd.wd = dfwl.f
+				case BLE_ExternalWall:
+					Sd.wd = dfwl.E // 外壁(壁体定義番号既定値)
+				case BLE_Roof:
+					Sd.wd = dfwl.R // 屋根(壁体定義番号既定値)
+				case BLE_Floor:
+					Sd.wd = dfwl.F // 外部に接する床(壁体定義番号既定値)
+				case BLE_InnerWall:
+					Sd.wd = dfwl.i // 内壁(壁体定義番号既定値)
+				case BLE_Ceil:
+					Sd.wd = dfwl.c // 天井(内部)(壁体定義番号既定値)
+				case BLE_InnerFloor:
+					Sd.wd = dfwl.f // 床(内部)(壁体定義番号既定値)
 				}
 			}
 
-			if Sd.ble == 'W' {
+			if Sd.ble == BLE_Window {
 				// 窓の場合
-				Sd.typ = 'W'
+				Sd.typ = RMSRFType_W
 				Sd.wd = -1
 				Sd.tnxt = 0.0
 			} else {
@@ -639,11 +650,11 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 				j := Sd.wd
 				var jj int
 				if jj = Sd.exs; jj >= 0 && Exs[jj].Typ == 'E' {
-					Sd.typ = 'E' // 地下
+					Sd.typ = RMSRFType_E // 地下
 				} else if jj = Sd.exs; jj >= 0 && Exs[jj].Typ == 'e' {
-					Sd.typ = 'e' // 地表面
+					Sd.typ = RMSRFType_e // 地表面
 				} else {
-					Sd.typ = 'H' // 一般外表面 ??
+					Sd.typ = RMSRFType_H // 壁
 				}
 
 				if j >= 0 {
@@ -717,27 +728,27 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 			bre := brs + Room.N
 
 			switch Sd.ble {
-			case 'i':
+			case BLE_InnerWall:
 				// 内壁
 				for j := brs; j < bre; j++ {
 					Sdj := &Rmvls.Sd[j]
-					if Sdj.nxrm == Sd.rm && Sdj.ble == 'i' {
+					if Sdj.nxrm == Sd.rm && Sdj.ble == BLE_InnerWall {
 						Sd.nxn = j
 					}
 				}
-			case 'c':
+			case BLE_Ceil:
 				// 天井(内部)
 				for j := brs; j < bre; j++ {
 					Sdj := &Rmvls.Sd[j]
-					if Sdj.nxrm == Sd.rm && Sdj.ble == 'f' {
+					if Sdj.nxrm == Sd.rm && Sdj.ble == BLE_InnerFloor {
 						Sd.nxn = j
 					}
 				}
-			case 'f':
+			case BLE_InnerFloor:
 				// 床(内部)
 				for j := brs; j < bre; j++ {
 					Sdj := &Rmvls.Sd[j]
-					if Sdj.nxrm == Sd.rm && Sdj.ble == 'c' {
+					if Sdj.nxrm == Sd.rm && Sdj.ble == BLE_Ceil {
 						Sd.nxn = j
 					}
 				}
@@ -750,7 +761,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 	for n := 0; n < Nsrf; n++ {
 		rsd := &Rmvls.Sd[n]
 
-		if (rsd.ble == 'i' || rsd.ble == 'c' || rsd.ble == 'f') && rsd.mwtype != 'C' {
+		if (rsd.ble == BLE_InnerWall || rsd.ble == BLE_Ceil || rsd.ble == BLE_InnerFloor) && rsd.mwtype != RMSRFMwType_C {
 			if rsd.Name != "" {
 				if rsd.wd >= 0 && rsd.A > 0.0 {
 					for i := 0; i < Nsrf; i++ {
@@ -771,9 +782,9 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 								nxsd.CAPwall = rsd.CAPwall
 
 								nxsd.wd = rsd.wd
-								nxsd.mwside = 'M'
-								rsd.mwtype = 'C'
-								nxsd.mwtype = 'C'
+								nxsd.mwside = RMSRFMwSideType_M
+								rsd.mwtype = RMSRFMwType_C
+								nxsd.mwtype = RMSRFMwType_C
 								nxsd.pcmpri = rsd.pcmpri
 								nxsd.PCMflg = rsd.PCMflg
 
@@ -782,12 +793,12 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 								rsd.nextroom = nxsd.room
 								rsd.nxsd = nxsd
 
-								if rsd.ble == 'i' {
-									nxsd.ble = 'i'
-								} else if rsd.ble == 'f' {
-									nxsd.ble = 'c'
-								} else if rsd.ble == 'c' {
-									nxsd.ble = 'f'
+								if rsd.ble == BLE_InnerWall {
+									nxsd.ble = BLE_InnerWall
+								} else if rsd.ble == BLE_InnerFloor {
+									nxsd.ble = BLE_Ceil
+								} else if rsd.ble == BLE_Ceil {
+									nxsd.ble = BLE_InnerFloor
 								}
 
 								var err error
@@ -813,7 +824,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 				}
 			}
 
-			if rsd.nxn < 0 && rsd.mwtype == 'C' {
+			if rsd.nxn < 0 && rsd.mwtype == RMSRFMwType_C {
 				err := fmt.Sprintf("%s    room=%s  xxx  (%s):  -%c\n", Er, Rmvls.Room[rsd.rm].Name, Rmvls.Room[rsd.nxrm].Name, rsd.ble)
 				Eprint("<Roomdata>", err)
 				os.Exit(1)
@@ -835,12 +846,12 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 	var Nairflow, Nrdpnl int
 	for i := 0; i < Nsrf; i++ {
 		rsd := &Rmvls.Sd[i]
-		if rsd.ble != 'W' {
+		if rsd.ble != BLE_Window {
 			w := &Rmvls.Wall[rsd.wd]
 			if w.Ip >= 0 {
 				rsd.room.Nrp++
 
-				if rsd.mwside == 'i' {
+				if rsd.mwside == RMSRFMwSideType_i {
 					Nrdpnl++
 				}
 			}
@@ -931,14 +942,15 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 		for n := 0; n < room.N; n++ {
 			rsd := &room.rsrf[n]
 
-			if rsd.mwtype == 'C' {
+			// 共用壁の場合
+			if rsd.mwtype == RMSRFMwType_C {
 				trnx := &room.trnx[trnxIdx]
 				trnx.nextroom = rsd.nextroom
 				trnx.sd = rsd
 				trnxIdx++
 			}
 
-			if rsd.ble != 'W' {
+			if rsd.ble != BLE_Window {
 				w := &Rmvls.Wall[rsd.wd]
 				if w.Ip >= 0 {
 					if rsd.mwside == 'i' {
@@ -968,7 +980,8 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 						rmpnlIdx++
 						room.Nisidermpnl++
 
-						if rsd.mwtype == 'C' {
+						// 共用壁の場合
+						if rsd.mwtype == RMSRFMwType_C {
 							rdpnl.MC = 2
 							nxsd := rsd.nxsd
 
@@ -997,7 +1010,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 		for n := 0; n < room.N; n++ {
 			rsd := &room.rsrf[n]
 
-			if rsd.ble != 'W' {
+			if rsd.ble != BLE_Window {
 				w := &Rmvls.Wall[rsd.wd]
 				if w.Ip > 0 && rsd.mwside == 'M' {
 					rsd.rpnl = rsd.nxsd.rpnl
@@ -1036,7 +1049,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 		for j := 0; j < Rm.N; j++ {
 			rsd := &Rm.rsrf[j]
 			Area += rsd.A
-			if rsd.ble == 'F' || rsd.ble == 'f' {
+			if rsd.ble == BLE_Floor || rsd.ble == BLE_InnerFloor {
 				Rm.Nflr++
 				Rm.FArea += rsd.A
 			}
@@ -1048,14 +1061,14 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 			formfaprx(Rm.N, Area, Rmvls.Sd[Rm.Brs:], Rm.F)
 		}
 	}
-	Rmvls.Nroom = Nroom
+
 	Rmvls.Nsrf = Nsrf
 	Rmvls.Sd[0].end = Nsrf
-	Rmvls.Trdav = make([]float64, Rmvls.Nroom)
+	Rmvls.Trdav = make([]float64, len(Rmvls.Room))
 	Rmvls.Nrdpnl = Nrdpnl
 
-	if Rmvls.Nroom > 0 {
-		N := Rmvls.Nroom
+	if len(Rmvls.Room) > 0 {
+		N := len(Rmvls.Room)
 		Rmvls.Qrm = make([]QRM, N)
 		Rmvls.Qrmd = make([]QRM, N)
 		Rmvls.Emrk = make([]rune, N)
@@ -1154,7 +1167,7 @@ func Balloc(N int, Sd []RMSRF, Wall []WALL, Mwall *[]MWALL, Nmwall *int) {
 				sn = len(ssd.mw.wall.ColType)
 			}
 			if sn == 2 || sn == 3 && ssd.mw.wall.ColType[2] != 'P' {
-				ssd.PVwallFlg = 'N'
+				ssd.PVwallFlg = false
 
 				// 太陽電池の容量が入力されているときにはエラーを表示する
 				if ssd.PVwall.PVcap > 0.0 {
@@ -1225,8 +1238,8 @@ func Balloc(N int, Sd []RMSRF, Wall []WALL, Mwall *[]MWALL, Nmwall *int) {
 				if PCM != nil {
 					pcmstate[m].Name = &PCM.Name
 					ssd.Npcm++
-					if ssd.wlpri == 'p' {
-						ssd.pcmpri = 'y'
+					if ssd.wlpri {
+						ssd.pcmpri = true
 					}
 				}
 			}
@@ -1268,8 +1281,8 @@ func Balloc(N int, Sd []RMSRF, Wall []WALL, Mwall *[]MWALL, Nmwall *int) {
 
 /*  壁体内部温度の初期値設定   */
 
-func Tinit(Tini float64, Nroom int, _Room []ROOM, Ns int, S []RMSRF, Nmwall int, Mw []MWALL) {
-	for i := 0; i < Nroom; i++ {
+func Tinit(Tini float64, _Room []ROOM, Ns int, S []RMSRF, Nmwall int, Mw []MWALL) {
+	for i := range _Room {
 		rm := &_Room[i]
 		rm.Tr = Tini
 		rm.Trold = Tini
@@ -1305,7 +1318,7 @@ func Tinit(Tini float64, Nroom int, _Room []ROOM, Ns int, S []RMSRF, Nmwall int,
 		}
 	}
 
-	for i := 0; i < Nroom; i++ {
+	for i := range _Room {
 		Room := &_Room[i]
 		if Room.rmqe == nil {
 			continue
@@ -1388,10 +1401,10 @@ func Roominit(N int, Room []ROOM) {
 		B.alr = nil
 		B.XA = nil
 		B.Wradx = nil
-		B.rsrnx = 'n'
+		B.rsrnx = false
 		B.fij = ' '
-		B.sfpri = ' '
-		B.eqpri = ' '
+		B.sfpri = false
+		B.eqpri = false
 		B.mrk = ' '
 		B.VRM = 0.0
 		B.GRM = 0.0
@@ -1509,7 +1522,7 @@ func Rmsrfinit() RMSRF {
 	S.pcmstate = nil
 	S.Npcm = 0
 	S.Nfn = 0
-	S.pcmpri = ' '
+	S.pcmpri = false
 	S.Rwall = -999.0
 	S.CAPwall = -999.
 	S.A = 0.0
@@ -1560,8 +1573,8 @@ func Rmsrfinit() RMSRF {
 	S.c = -1.0
 	S.A = -999.0
 	//		S.Rwall = 0.0 ;
-	S.mwside = 'i'
-	S.mwtype = 'I'
+	S.mwside = RMSRFMwSideType_i
+	S.mwtype = RMSRFMwType_I
 	S.fnmrk = [10]rune{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}
 	S.alirsch = nil
 	S.ffix_flg = '!'
@@ -1572,7 +1585,7 @@ func Rmsrfinit() RMSRF {
 	S.Iw = 0.0
 	//S.Scol = 0.0 ;
 	S.PVwall.Eff = 0.0
-	S.PVwallFlg = 'N'
+	S.PVwallFlg = false
 	S.PVwall.PVcap = -999.
 	S.Ndiv = 0
 	S.Tc = nil
@@ -1585,10 +1598,10 @@ func Rmsrfinit() RMSRF {
 	S.Tg = 20.
 
 	S.tnxt = -999.
-	S.RStrans = 'n'
+	S.RStrans = false
 
-	S.wlpri = ' '
-	S.shdpri = ' '
+	S.wlpri = false
+	S.shdpri = false
 	S.Iwall = 0.0
 	S.fnsw = 0
 

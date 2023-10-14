@@ -202,7 +202,7 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 	bp *[]BBDP, obs *[]OBS, tree *[]TREE, shadtb *[]SHADTB, poly *[]POLYGN, monten *int, gpn *int, DE *float64, Noplpmp *NOPLPMP) (*SCHDL, []*FLOUT) {
 
 	var Twallinit float64
-	var i, j int
+	var j int
 	dtm := 3600
 	var nday int
 	var Nday int
@@ -210,13 +210,18 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 	daystart := 0
 	dayend := 0
 	var Err, File string
-	wdpri := 0 // 気象データの出力フラグ
-	revpri := 0
-	pmvpri := 0
-	Nrmspri := 0
-	Nqrmpri := 0
-	Nwalpri := 0
-	Npcmpri := 0
+
+	// 出力フラグ (GDAT.PRINT)
+	// 中) 熱負荷要素の出力指定だけ変則的なことに注意
+	wdpri := 0  // 気象データの出力指定
+	revpri := 0 // 室内熱環境データの出力指定
+	pmvpri := 0 // 室内のPMVの出力指定
+
+	Nrmspri := 0 // 表面温度出力指定(室の数)
+	Nqrmpri := 0 // 日射、室内発熱取得出力指定(室の数)
+	Nwalpri := 0 // 壁体内部温度出力指定(壁体の数)
+	Npcmpri := 0 // PCMの状態値出力フラグ(壁体の数)
+	Nshdpri := 0 // 日よけの影面積出力 (壁体の数)
 
 	SYSCMP_ID := 0
 	SYSPTH_ID := 0
@@ -240,7 +245,7 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 
 	Rmvls.Nwall = 0
 	Rmvls.Nwindow = 0
-	Rmvls.Nroom = 0
+	//Rmvls.Nroom = 0
 
 	//Sdd := Rmvls.Sd
 	Rmvls.Nsrf = 0
@@ -313,13 +318,18 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 			Gdata(section, s, Simc.File, &Simc.Wfname, &Simc.Ofname, &dtm, &Simc.Sttmm,
 				&daystartx, &daystart, &dayend, &Twallinit, Simc.Dayprn,
 				&wdpri, &revpri, &pmvpri, &Simc.Helmkey, &Simc.MaxIterate, Daytm, Wd, &Simc.Perio)
+
+			// 気象データファイル名からファイル種別を判定
 			if Simc.Wfname == "" {
 				Simc.Wdtype = 'E'
 			} else {
 				Simc.Wdtype = 'H'
 			}
+
+			// 初期温度 (15[deg])
 			Rmvls.Twallinit = Twallinit
 
+			// 計算時間間隔 [s]
 			Simc.DTm = dtm
 
 			Simc.Unit = "t_C x_kg/kg r_% q_W e_W"
@@ -412,7 +422,7 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 			}
 			Pathdata(section, "Pathdata", Simc, Wd, *Ncompnt, *Compnt, Schdl,
 				Mpath, Nmpath, Plist, Pelm, Npelm, Nplist, 0, Eqsys)
-			Roomelm(Rmvls.Nroom, Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl)
+			Roomelm(Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl)
 
 			// 変数の割り当て
 			Hclelm(Eqsys.Nhcload, Eqsys.Hcload)
@@ -433,7 +443,7 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 
 			if SYSPTH_ID == 0 {
 				Pathdata(section, "Pathdata", Simc, Wd, *Ncompnt, *Compnt, Schdl, Mpath, Nmpath, Plist, Pelm, Npelm, Nplist, 1, Eqsys)
-				Roomelm(Rmvls.Nroom, Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl)
+				Roomelm(Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl)
 
 				Hclelm(Eqsys.Nhcload, Eqsys.Hcload)
 				Thexelm(Eqsys.Nthex, Eqsys.Thex)
@@ -549,7 +559,7 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 		Pathdata(section, "Pathdata", Simc, Wd, *Ncompnt, *Compnt, Schdl,
 			Mpath, Nmpath, Plist, Pelm, Npelm, Nplist, 1, Eqsys)
 
-		Roomelm(Rmvls.Nroom, Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl)
+		Roomelm(Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl)
 
 		Hclelm(Eqsys.Nhcload, Eqsys.Hcload)
 		Thexelm(Eqsys.Nthex, Eqsys.Thex)
@@ -594,29 +604,26 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 
 	for i := range Rmvls.Room {
 		Rm := &Rmvls.Room[i]
-		if Rm.sfpri == 'p' {
+		if Rm.sfpri {
 			Nrmspri++
 		}
-		if Rm.eqpri == 'p' {
+		if Rm.eqpri {
 			Nqrmpri++
 		}
 	}
 
-	var Nshdpri int
-	Nshdpri = 0
-	Nwalpri = 0
 	for i := 0; i < Rmvls.Nsrf; i++ {
 		Sd := &Rmvls.Sd[i]
-		if Sd.wlpri == 'p' {
+		if Sd.wlpri {
 			Nwalpri++
 		}
 
-		if Sd.pcmpri == 'y' {
+		if Sd.pcmpri {
 			Npcmpri++
 		}
 
 		// 日よけの影面積出力
-		if Sd.shdpri == 'p' {
+		if Sd.shdpri {
 			Nshdpri++
 		}
 	}
@@ -640,18 +647,19 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 	addFlout(PRTDYRM)    // 日別計算値(部屋ごとの熱集計結果出力)
 	addFlout(PRTMNRM)    // 月別計算値(部屋ごとの熱集計結果出力)
 
-	Helminit("Helminit", Simc.Helmkey, Rmvls.Nroom, Rmvls.Room, &Rmvls.Qetotal)
+	// 要素別熱損失・熱取得（記憶域確保）
+	Helminit("Helminit", Simc.Helmkey, Rmvls.Room, &Rmvls.Qetotal)
 
 	if Simc.Helmkey == 'y' {
 		addFlout(PRTHELM)   // 時間別計算値(要素別熱損失・熱取得)
 		addFlout(PRTDYHELM) // 日別計算値(要素別熱損失・熱取得)
 
 		Simc.Nhelmsfpri = 0
-		for i = 0; i < Rmvls.Nroom; i++ {
+		for i := range Rmvls.Room {
 			Rm := &Rmvls.Room[i]
 			for j = 0; j < Rm.N; j++ {
 				Sdd := &Rm.rsrf[j]
-				if Sdd.sfepri == 'y' {
+				if Sdd.sfepri {
 					Simc.Nhelmsfpri++
 				}
 			}

@@ -23,8 +23,7 @@ import (
 /* 室供給熱量、放射パネルについての出力 */
 var __Rmpnlprint_id int = 0
 
-func Rmpnlprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time float64,
-	Nroom int, Room []ROOM) {
+func Rmpnlprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time float64, Room []ROOM) {
 
 	if __Rmpnlprint_id == 0 {
 		ttlprint(fo, mrk, Simc)
@@ -33,7 +32,7 @@ func Rmpnlprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time flo
 			if j == 0 {
 				fmt.Fprintf(fo, "-cat\n")
 			}
-			rmqaprint(fo, __Rmpnlprint_id, Nroom, Room)
+			rmqaprint(fo, __Rmpnlprint_id, Room)
 			if j == 0 {
 				fmt.Fprintf(fo, "*\n#\n")
 			}
@@ -42,5 +41,5 @@ func Rmpnlprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time flo
 	}
 
 	fmt.Fprintf(fo, "%02d %02d %5.2f\n", mon, day, time)
-	rmqaprint(fo, __Rmpnlprint_id, Nroom, Room)
+	rmqaprint(fo, __Rmpnlprint_id, Room)
 }

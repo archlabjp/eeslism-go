@@ -29,7 +29,7 @@ import (
 func Windowschdlr(isw []rune, windows []WINDOW, N int, ds []RMSRF) {
 	for i := 0; i < N; i++ {
 		sd := &ds[i]
-		if sd.ble == 'W' {
+		if sd.ble == BLE_Window {
 			nsw := sd.Nfn
 
 			// デフォルトの窓
@@ -67,12 +67,12 @@ func Windowschdlr(isw []rune, windows []WINDOW, N int, ds []RMSRF) {
 
 /*  室内発熱の計算    */
 
-func Qischdlr(Nroom int, _Room []ROOM) {
+func Qischdlr(_Room []ROOM) {
 	Ht := [9]float64{92, 106, 119, 131, 145, 198, 226, 264, 383}
 	Hs24 := [9]float64{58, 62, 63, 64, 69, 76, 83, 99, 137}
 	d := [9]float64{3.5, 3.6, 4.0, 4.2, 4.4, 6.5, 7.0, 7.3, 6.3}
 
-	for i := 0; i < Nroom; i++ {
+	for i := range _Room {
 		Room := &_Room[i]
 
 		Room.Hc = 0.0
@@ -138,8 +138,8 @@ func Qischdlr(Nroom int, _Room []ROOM) {
 
 /*  換気量の設定     */
 
-func Vtschdlr(Nroom int, rooms []ROOM) {
-	for i := 0; i < Nroom; i++ {
+func Vtschdlr(rooms []ROOM) {
+	for i := range rooms {
 		Gvi := 0.0
 		Gve := 0.0
 

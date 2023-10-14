@@ -35,7 +35,8 @@ var (
 	DEBUG   = true
 	dayprn  = false
 	DAYweek = [8]string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "Hol"}
-	Ferr    = os.Stderr // Assuming you want to write errors to standard error
+
+	Ferr = os.Stderr // Assuming you want to write errors to standard error
 	//DISPLAY_DELAY = 0 // Assign the value of DISPLAY_DELAY here
 	SETprint = 0
 )

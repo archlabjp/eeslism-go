@@ -53,27 +53,54 @@ type PCMSTATE struct {
 	OldLamdaR float64 // 前時刻PCM熱伝導率（右側）
 }
 
+type RMSRFType rune
+
+const (
+	RMSRFType_None RMSRFType = 0
+	RMSRFType_H    RMSRFType = 'H' // 壁
+	RMSRFType_E    RMSRFType = 'E' // 地中壁
+	RMSRFType_W    RMSRFType = 'W' // 窓
+	RMSRFType_e    RMSRFType = 'e' // 地表面境界
+)
+
+type RMSRFMwType rune
+
+const (
+	RMSRFMwType_None RMSRFMwType = 0
+	RMSRFMwType_I    RMSRFMwType = 'I' // 専用壁
+	RMSRFMwType_C    RMSRFMwType = 'C' // 共同壁
+)
+
+type RMSRFMwSideType rune
+
+const (
+	RMSRFMwSideType_None RMSRFMwSideType = 0
+	RMSRFMwSideType_i    RMSRFMwSideType = 'i' // 壁体0側
+	RMSRFMwSideType_M    RMSRFMwSideType = 'M' // 壁体M側
+)
+
 // 壁体　固定デ－タ
 type RMSRF struct {
 	Name  string // 壁体名
 	Sname string //RMP名 higuchi 070918
 
-	wlpri  rune /*壁体内部温度出力指定 'p'　*/
-	shdpri rune // 日よけの影面積の出力指定 'p'
-	sfepri rune /*要素別壁体表面温度出力指定 'y' */
+	// 出力指定
+	wlpri  bool // 壁体内部温度出力指定
+	shdpri bool // 日よけの影面積の出力指定
+	sfepri bool // 要素別壁体表面温度出力指定
 
 	// 部位コ－ド
 	// 'B' | 'W' | 'E'(外壁) | 'R'(屋根)  | 'F'床（外気、地中に接する） |
 	// 'i'(内壁) | 'f'(床（隣室に接する）) | 'c'(天井)  |'d'
-	ble      rune
-	typ      rune     // 壁のとき'H', 地中壁のとき'E', 窓のとき'W', 地表面境界の時'e'
-	mwtype   rune     // 専用壁のとき'I',共用壁のとき'C'
-	mwside   rune     // 壁体 0 側のとき'i', M 側のとき'M'
-	mrk      rune     // '*' or '!'
-	ffix_flg rune     // 表面への短波長放射基本吸収比率が定義されている場合'*' 未定義の場合'!'
-	PCMflg   rune     // PCMの有無の判定フラグ　毎時係数行列を計算するかどうかを決める
-	pcmpri   rune     // PCMの状態値出力フラグ 'y'
-	fnmrk    [10]rune // 窓変更設定用窓コ－ド
+	ble      BLEType
+	typ      RMSRFType       // 壁のとき'H', 地中壁のとき'E', 窓のとき'W', 地表面境界の時'e'
+	mwtype   RMSRFMwType     // 専用壁のとき'I',共用壁のとき'C'
+	mwside   RMSRFMwSideType // 壁体 0 側のとき'i', M 側のとき'M'
+	mrk      rune            // '*' or '!'
+	ffix_flg rune            // 表面への短波長放射基本吸収比率が定義されている場合'*' 未定義の場合'!'
+	PCMflg   bool            // PCMの有無の判定フラグ　毎時係数行列を計算するかどうかを決める
+	pcmpri   bool            // PCMの状態値出力フラグ
+	fnmrk    [10]rune        // 窓変更設定用窓コ－ド
 
 	room     *ROOM
 	nextroom *ROOM
@@ -190,10 +217,10 @@ type RMSRF struct {
 	//Scol float64 // 放射熱取得量[W/m2]
 	oldTx float64 // 前時刻の集熱器と躯体の境界温度（集熱器相当外気温度計算用）
 	// 太陽電池一体型
-	Iwall          float64
-	PVwallFlg      rune // 太陽電池一体型なら'Y'
-	dblWsu, dblWsd float64
-	// 屋根一体型空気集熱器の通気層上面、下面の幅[m]
+	Iwall                                                 float64
+	PVwallFlg                                             bool    // 太陽電池一体型の場合はtrue
+	dblWsu                                                float64 // <入力値> 屋根一体型空気集熱器(集熱屋根)の通気層上側の幅 [m]
+	dblWsd                                                float64 // <入力値> 屋根一体型空気集熱器(集熱屋根)の通気層下側の幅 [m]
 	dblKsu, dblKsd, dblKc, dblfcu, dblfcd, dblKcu, dblKcd float64
 	dblb11, dblb12, dblb21, dblb22                        float64
 	dblacr, dblacc, dblao                                 float64
@@ -206,7 +233,7 @@ type RMSRF struct {
 	Npcm     int         // PCM設置レイヤー数
 
 	tnxt    float64 // 当該部位への入射日射の隣接空間への日射分配（連続空間の隣室への日射分配）
-	RStrans rune    // 室内透過日射が窓室内側への入射日射を屋外に透過する場合'y'
+	RStrans bool    // 室内透過日射が窓室内側への入射日射を屋外に透過する場合'y'
 }
 
 // 壁体各層の熱抵抗と熱容量
@@ -229,17 +256,16 @@ func NewWelm() *WELM {
 }
 
 type CHARTABLE struct {
-	filename             string    // テーブル形式ファイルのファイル名
-	PCMchar              rune      // E:エンタルピー、C:熱伝導率
-	T                    []float64 // PCM温度[℃]
-	Chara                []float64 // 特性値（エンタルピー、熱伝導率）
-	tabletype            rune      // h:見かけの比熱、e:エンタルピー
-	minTemp, maxTemp     float64   // テーブルの下限温度、上限温度
-	itablerow            int       // テーブル形式の入力行数
-	fp                   io.ReadCloser
-	lowA, lowB, upA, upB float64
-	// 上下限温度範囲外の特性値計算用線形回帰式の傾きと切片
-	minTempChng float64 // 最低温度変動幅　前時刻からの温度変化がminTempChng以下の場合はminTempChngとして特性値を計算
+	filename             string        // テーブル形式ファイルのファイル名
+	fp                   io.ReadCloser // `filename`の読み込みファイルポインタ
+	PCMchar              rune          // E:エンタルピー、C:熱伝導率
+	T                    []float64     // PCM温度[℃]
+	Chara                []float64     // 特性値（エンタルピー、熱伝導率）
+	tabletype            rune          // h:見かけの比熱、e:エンタルピー
+	minTemp, maxTemp     float64       // テーブルの下限温度、上限温度
+	itablerow            int           // テーブル形式の入力行数
+	lowA, lowB, upA, upB float64       // 上下限温度範囲外の特性値計算用線形回帰式の傾きと切片
+	minTempChng          float64       // 最低温度変動幅　前時刻からの温度変化がminTempChng以下の場合はminTempChngとして特性値を計算
 }
 
 // 潜熱蓄熱材
@@ -255,8 +281,8 @@ type PCM struct {
 	Ts           float64      // 固体から融解が始まる温度[℃]
 	Tl           float64      // 液体から凝固が始まる温度[℃]
 	Tp           float64      // 見かけの比熱のピーク温度
-	Iterate      rune         // PCM状態値を収束計算させる場合は'y'
-	IterateTemp  rune         // 収束条件に温度も加える場合は'y'（通常は比熱のみ）
+	Iterate      bool         // PCM状態値を収束計算させるかどうか
+	IterateTemp  bool         // 収束条件に温度も加えるかどうか（通常は比熱のみ）
 	DivTemp      int          // 比熱の数値積分時の温度分割数
 	Ctype        int          // 比熱
 	PCMp         PCMPARAM     // 見かけの比熱計算用パラメータ
@@ -268,14 +294,48 @@ type PCM struct {
 
 // PCM見かけの比熱計算用パラメータ
 type PCMPARAM struct {
-	T, B, bs, bl, skew, omega, a, b, c, d, e, f float64
+	T     float64
+	B     float64
+	bs    float64
+	bl    float64
+	skew  float64
+	omega float64
+	a     float64
+	b     float64
+	c     float64
+	d     float64
+	e     float64
+	f     float64
 }
+
+type BLEType rune
+
+const (
+	BLE_None         BLEType = 0
+	BLE_ExternalWall BLEType = 'E' // 外壁
+	BLE_Roof         BLEType = 'R' // 屋根
+	BLE_Floor        BLEType = 'F' // 外部に接する床
+	BLE_InnerWall    BLEType = 'i' // 内壁
+	BLE_Ceil         BLEType = 'c' // 天井(内部)
+	BLE_InnerFloor   BLEType = 'f' // 床(内部)
+	BLE_d            BLEType = 'd'
+	BLE_Window       BLEType = 'W' // 窓
+)
+
+type WALLType rune
+
+const (
+	WallType_None WALLType = 0
+	WallType_C    WALLType = 'C' // 建材一体型空気集熱器
+	WallType_P    WALLType = 'P' // 床暖房等放射パネル(通常の床暖房パネル)
+	WallType_N    WALLType = 'N' // 一般壁体
+)
 
 // 壁体　定義デ－タ
 type WALL struct {
-	ble    rune   // <入力値> 部位コ－ド = E,R,F,i,c,f,R
-	name   string // <入力値> 壁体名 最初の1文字は英字 省略時は既定値とみなす
-	PCMflg rune   // 部材構成にPCMが含まれる場合は毎時係数行列を作成するので
+	ble    BLEType // <入力値> 部位コ－ド = E,R,F,i,c,f,R
+	name   string  // <入力値> 壁体名 最初の1文字は英字 省略時は既定値とみなす
+	PCMflg bool    // 部材構成にPCMが含まれる場合は毎時係数行列を作成するので
 	// PCMが含まれるかどうかのフラグ
 
 	N  int /*材料層数≠節点数        */
@@ -318,8 +378,8 @@ type WALL struct {
 	Eb          float64 // <入力値> 集熱版の中空層側表面の放射率
 	ag          float64 // <入力値> 透過体の日射吸収率
 
-	chrRinput rune // 熱抵抗が入力されている場合は'Y', 熱貫流率が入力されている場合は'N'
-	WallType  rune // <内部判定値> 建材一体型空気集熱器の場合：'C', 床暖房等放射パネルの場合：'P', 一般壁体の場合：'N'
+	chrRinput bool     // 熱抵抗が入力されている場合は'Y', 熱貫流率が入力されている場合は'N'
+	WallType  WALLType // <内部判定値> 建材一体型空気集熱器の場合：'C', 床暖房等放射パネルの場合：'P', 一般壁体の場合：'N'
 
 	//char	PVwall ;
 	// 太陽電池一体型建材（裏面通気）：'Y'
@@ -368,9 +428,9 @@ func NewWall() *WALL {
 	Wa.air_layer_t = -999.0
 	Wa.dblEsd = 0.9
 	Wa.dblEsu = 0.9
-	Wa.chrRinput = 'N'
+	Wa.chrRinput = false
 	Wa.ColType = ""
-	Wa.WallType = 'N'
+	Wa.WallType = WallType_N //一般壁体
 	//Wa.PVwall = 'N' ;
 
 	// 太陽電池一体型空気集熱器のパラメータ初期化
@@ -385,7 +445,7 @@ func NewWall() *WALL {
 	Wa.PCMrateLyr = nil
 	Wa.L = nil
 
-	Wa.PCMflg = 'N'
+	Wa.PCMflg = false
 
 	Wa.tnxt = -999.0
 
@@ -394,12 +454,12 @@ func NewWall() *WALL {
 
 // 壁体定義番号既定値
 type DFWL struct {
-	E int // 外壁
-	R int // 屋根
-	F int // 外部に接する床
-	i int // 内壁
-	c int // 天井
-	f int // 隣室に接する床
+	E int // 外壁(壁体定義番号既定値)
+	R int // 屋根(壁体定義番号既定値)
+	F int // 外部に接する床(壁体定義番号既定値)
+	i int // 内壁(壁体定義番号既定値)
+	c int // 天井(壁体定義番号既定値)
+	f int // 隣室に接する床(壁体定義番号既定値)
 }
 
 // 重量壁体デ－タ
@@ -441,7 +501,7 @@ type WINDOW struct {
 	Ao      float64 // 開口面積 !入力されてる？!
 	W       float64 // 巾 !入力されてる？!
 	H       float64 // 高さ !入力されてる？!
-	RStrans rune    // 室内透過日射が窓室内側への入射日射を屋外に透過する場合'y'
+	RStrans bool    // 室内透過日射が窓室内側への入射日射を屋外に透過する場合はtrue
 	end     int     // 要素数(インデックス0に設定される)
 }
 
@@ -460,7 +520,7 @@ func NewWINDOW() *WINDOW {
 	W.Ao = 0.0
 	W.W = 0.0
 	W.H = 0.0
-	W.RStrans = 'n' // 室内透過日射が窓室内側への入射日射を屋外に透過しない
+	W.RStrans = false // 室内透過日射が窓室内側への入射日射を屋外に透過しない
 	W.end = 0
 	return W
 }
@@ -699,8 +759,17 @@ type RMQELM struct {
 	qelmdy QHELM
 }
 
+type RMSBType rune
+
+const (
+	RMSBType_None RMSBType = 0
+	RMSBType_E    RMSBType = 'E' // 外気に接する面
+	RMSBType_G    RMSBType = 'G' // 地面に接する面
+	RMSBType_i    RMSBType = 'i' // 内壁
+)
+
 type RMSB struct {
-	Type rune /* 'E':外気に接する面、'G':地面に接する面、'i':内壁 */
+	Type RMSBType // 'E':外気に接する面、'G':地面に接する面、'i':内壁
 	Ts   BHELM
 	Tw   []BHELM
 	Told []BHELM
@@ -762,10 +831,10 @@ type ROOM struct {
 	XA    []float64
 	Wradx []float64
 
-	rsrnx rune //隣室裏面の短波長放射考慮のとき 'y'　（床、天井のみ）
+	rsrnx bool //隣室裏面の短波長放射考慮のとき true　（床、天井のみ）
 	fij   rune //形態係数 'F':外部入力、'A':面積率
-	sfpri rune //表面温度出力指定 'p'
-	eqpri rune //日射、室内発熱取得出力指定 'p'
+	sfpri bool //表面温度出力指定
+	eqpri bool //日射、室内発熱取得出力指定
 	mrk   rune // '*', 'C', '!'
 
 	VRM     float64  //室容積 [m3]
@@ -859,8 +928,7 @@ type ROOM struct {
 --------------------------------*/
 
 type RMVLS struct {
-	Twallinit  float64
-	Nroom      int
+	Twallinit  float64 // 初期温度 (GDAT.RUN.Tinit)
 	Nrdpnl     int
 	Nwall      int
 	Nwindow    int

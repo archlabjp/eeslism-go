@@ -24,20 +24,20 @@ import (
 
 /* 要素別熱損失・熱取得（記憶域確保） */
 
-func Helminit(errkey string, helmkey rune, Nroom int, _Room []ROOM, Qetotal *QETOTAL) {
-	var i, j, Nmax, k int
+func Helminit(errkey string, helmkey rune, _Room []ROOM, Qetotal *QETOTAL) {
+	var Nmax, k int
 
 	Rm := &_Room[0]
 
 	if helmkey != 'y' {
-		for i = 0; i < Nroom; i++ {
+		for i := range _Room {
 			Room := &_Room[i]
 			Room.rmqe = nil
 		}
 		return
 	}
 
-	for i = 0; i < Nroom; i++ {
+	for i := range _Room {
 		Room := &_Room[i]
 
 		Room.rmqe = &RMQELM{}
@@ -61,7 +61,7 @@ func Helminit(errkey string, helmkey rune, Nroom int, _Room []ROOM, Qetotal *QET
 			}
 		}
 
-		for j = 0; j < Room.N; j++ {
+		for j := 0; j < Room.N; j++ {
 			Sd := &Room.rsrf[j]
 			Rs := &Room.rmqe.rmsb[j]
 
@@ -77,15 +77,15 @@ func Helminit(errkey string, helmkey rune, Nroom int, _Room []ROOM, Qetotal *QET
 			}
 
 			switch Sd.ble {
-			case 'E', 'R', 'F', 'W':
-				if Sd.typ != 'E' && Sd.typ != 'e' {
-					Rs.Type = 'E'
+			case BLE_ExternalWall, BLE_Roof, BLE_Floor, BLE_Window:
+				if Sd.typ != RMSRFType_E && Sd.typ != RMSRFType_e {
+					Rs.Type = RMSBType_E
 				} else {
-					Rs.Type = 'G'
+					Rs.Type = RMSBType_G
 				}
 				break
-			case 'i', 'f', 'c', 'd':
-				Rs.Type = 'i'
+			case BLE_InnerWall, BLE_InnerFloor, BLE_Ceil, BLE_d:
+				Rs.Type = RMSBType_i
 				break
 			}
 		}
@@ -94,7 +94,7 @@ func Helminit(errkey string, helmkey rune, Nroom int, _Room []ROOM, Qetotal *QET
 		}
 	}
 
-	for i := 0; i < Nroom; i++ {
+	for i := range _Room {
 		Room := &_Room[i]
 		if i == 0 {
 			if Nmax > 0 {
@@ -121,10 +121,10 @@ func Helminit(errkey string, helmkey rune, Nroom int, _Room []ROOM, Qetotal *QET
 // 入力値:
 //  外気温度 Ta [C]
 //  絶対湿度 xa [kg/kg]
-func Helmroom(Nroom int, Room []ROOM, Qrm []QRM, Qetotal *QETOTAL, Ta, xa float64) {
+func Helmroom(Room []ROOM, Qrm []QRM, Qetotal *QETOTAL, Ta, xa float64) {
 	qelmclear(&Qetotal.Qelm)
 
-	for i := 0; i < Nroom; i++ {
+	for i := range Room {
 		Rm := &Room[i]
 		Qr := &Qrm[i]
 		qe := &Rm.rmqe.qelm
@@ -141,7 +141,7 @@ func Helmroom(Nroom int, Room []ROOM, Qrm []QRM, Qetotal *QETOTAL, Ta, xa float6
 		qelmsum(qe, &Qetotal.Qelm)
 	}
 
-	for i := 0; i < Nroom; i++ {
+	for i := range Room {
 		Rm := &Room[i]
 		helmwall(Rm, Ta)
 	}
@@ -154,7 +154,7 @@ func Helmroom(Nroom int, Room []ROOM, Qrm []QRM, Qetotal *QETOTAL, Ta, xa float6
 var __Helmprint_id int = 0
 
 func Helmprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time float64,
-	Nroom int, Room []ROOM, Qetotal *QETOTAL) {
+	Room []ROOM, Qetotal *QETOTAL) {
 	var j int
 
 	if __Helmprint_id == 0 {
@@ -164,7 +164,7 @@ func Helmprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time floa
 			if j == 0 {
 				fmt.Fprintf(fo, "-cat\n")
 			}
-			helmrmprint(fo, __Helmprint_id, Nroom, Room, Qetotal)
+			helmrmprint(fo, __Helmprint_id, Room, Qetotal)
 			if j == 0 {
 				fmt.Fprintf(fo, "*\n#\n")
 			}
@@ -173,16 +173,17 @@ func Helmprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time floa
 	}
 
 	fmt.Fprintf(fo, "%02d %02d %5.2f\n", mon, day, time)
-	helmrmprint(fo, __Helmprint_id, Nroom, Room, Qetotal)
+	helmrmprint(fo, __Helmprint_id, Room, Qetotal)
 }
 
 /* ----------------------------------------------------- */
 
-func helmrmprint(fo io.Writer, id, Nroom int, _Room []ROOM, Qetotal *QETOTAL) {
-	var i int
+func helmrmprint(fo io.Writer, id int, _Room []ROOM, Qetotal *QETOTAL) {
 	var q *BHELM
 	var qh *QHELM
 	var name string
+
+	Nroom := len(_Room)
 
 	switch id {
 	case 0:
@@ -190,7 +191,7 @@ func helmrmprint(fo io.Writer, id, Nroom int, _Room []ROOM, Qetotal *QETOTAL) {
 			fmt.Fprintf(fo, "%s %d\n", ROOM_TYPE, Nroom+1)
 		}
 
-		for i = 0; i < Nroom; i++ {
+		for i := 0; i < Nroom; i++ {
 			Room := &_Room[i]
 			if Room.rmqe != nil {
 				fmt.Fprintf(fo, "%s 1 %d\n", Room.Name, 29)
@@ -200,7 +201,7 @@ func helmrmprint(fo io.Writer, id, Nroom int, _Room []ROOM, Qetotal *QETOTAL) {
 		break
 
 	case 1:
-		for i = 0; i < Nroom+1; i++ {
+		for i := 0; i < Nroom+1; i++ {
 			if i < Nroom {
 				name = _Room[i].Name
 			} else {
@@ -223,7 +224,7 @@ func helmrmprint(fo io.Writer, id, Nroom int, _Room []ROOM, Qetotal *QETOTAL) {
 		break
 
 	default:
-		for i = 0; i < Nroom+1; i++ {
+		for i := 0; i < Nroom+1; i++ {
 			if i < Nroom {
 				Room := &_Room[i]
 				q = &(Room.rmqe.qelm.qe)
@@ -268,8 +269,7 @@ func helmrmprint(fo io.Writer, id, Nroom int, _Room []ROOM, Qetotal *QETOTAL) {
 
 var __Helmsurfprint_id int = 0
 
-func Helmsurfprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time float64,
-	Nroom int, Room []ROOM) {
+func Helmsurfprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time float64, Room []ROOM) {
 	var j int
 
 	if __Helmsurfprint_id == 0 {
@@ -279,7 +279,7 @@ func Helmsurfprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time 
 			if j == 0 {
 				fmt.Fprintf(fo, "-cat\n")
 			}
-			helmsfprint(fo, __Helmsurfprint_id, Nroom, Room)
+			helmsfprint(fo, __Helmsurfprint_id, Room)
 			if j == 0 {
 				fmt.Fprintf(fo, "*\n#\n")
 			}
@@ -288,30 +288,24 @@ func Helmsurfprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time 
 	}
 
 	fmt.Fprintf(fo, "%02d %02d %5.2f\n", mon, day, time)
-	helmsfprint(fo, __Helmsurfprint_id, Nroom, Room)
+	helmsfprint(fo, __Helmsurfprint_id, Room)
 }
 
 /* ----------------------------------------------------- */
 
-func helmsfprint(fo io.Writer, id, Nroom int, _Room []ROOM) {
-	var i, j, Nsf int
-	var Sd *RMSRF
-	var rmsb *RMSB
-	var Ts *BHELM
-	var s string
-
+func helmsfprint(fo io.Writer, id int, _Room []ROOM) {
 	switch id {
 	case 0:
-		if Nroom > 0 {
-			fmt.Fprintf(fo, "%s %d\n", ROOM_TYPE, Nroom)
+		if len(_Room) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", ROOM_TYPE, len(_Room))
 		}
 
-		for i = 0; i < Nroom; i++ {
+		for i := range _Room {
 			Room := &_Room[i]
-			Nsf = 0
-			for j = 0; j < Room.N; j++ {
-				Sd = &Room.rsrf[j]
-				if Sd.sfepri == 'y' {
+			Nsf := 0
+			for j := 0; j < Room.N; j++ {
+				Sd := &Room.rsrf[j]
+				if Sd.sfepri {
 					Nsf++
 				}
 			}
@@ -321,11 +315,12 @@ func helmsfprint(fo io.Writer, id, Nroom int, _Room []ROOM) {
 		break
 
 	case 1:
-		for i = 0; i < Nroom; i++ {
+		for i := range _Room {
 			Room := &_Room[i]
-			for j = 0; j < Room.N; j++ {
-				Sd = &Room.rsrf[j]
-				if Sd.sfepri == 'y' {
+			for j := 0; j < Room.N; j++ {
+				Sd := &Room.rsrf[j]
+				if Sd.sfepri {
+					var s string
 					if len(Sd.Name) == 0 {
 						s = fmt.Sprintf(s, "%s-%d-%c", Room.Name, j, Sd.ble)
 					} else {
@@ -340,13 +335,13 @@ func helmsfprint(fo io.Writer, id, Nroom int, _Room []ROOM) {
 		break
 
 	default:
-		for i = 0; i < Nroom; i++ {
+		for i := range _Room {
 			Room := &_Room[i]
-			for j = 0; j < Room.N; j++ {
-				Sd = &Room.rsrf[j]
-				rmsb = &Room.rmqe.rmsb[j]
-				if Sd.sfepri == 'y' {
-					Ts = &rmsb.Ts
+			for j := 0; j < Room.N; j++ {
+				Sd := &Room.rsrf[j]
+				rmsb := &Room.rmqe.rmsb[j]
+				if Sd.sfepri {
+					Ts := &rmsb.Ts
 					fmt.Fprintf(fo, "%5.2f %5.2f %5.2f ", Ts.trs, Ts.so, Ts.sg)
 					fmt.Fprintf(fo, "%5.2f %5.2f %5.2f\n", Ts.rn, Ts.in, Ts.pnl)
 				}
@@ -363,15 +358,13 @@ func helmsfprint(fo io.Writer, id, Nroom int, _Room []ROOM) {
 
 var __Helmdy_oldday int = -1
 
-func Helmdy(day, Nroom int, Room []ROOM, Qetotal *QETOTAL) {
-	var i int
-
+func Helmdy(day int, Room []ROOM, Qetotal *QETOTAL) {
 	if day != __Helmdy_oldday {
-		helmdyint(Nroom, Room, Qetotal)
+		helmdyint(Room, Qetotal)
 		__Helmdy_oldday = day
 	}
 
-	for i = 0; i < Nroom; i++ {
+	for i := range Room {
 		rmq := Room[i].rmqe
 
 		if rmq != nil {
@@ -384,10 +377,8 @@ func Helmdy(day, Nroom int, Room []ROOM, Qetotal *QETOTAL) {
 
 /* ----------------------------------------------------- */
 
-func helmdyint(Nroom int, Room []ROOM, Qetotal *QETOTAL) {
-	var i int
-
-	for i = 0; i < Nroom; i++ {
+func helmdyint(Room []ROOM, Qetotal *QETOTAL) {
+	for i := range Room {
 		if Room[i].rmqe != nil {
 			qelmclear(&Room[i].rmqe.qelmdy)
 		}
@@ -402,7 +393,7 @@ func helmdyint(Nroom int, Room []ROOM, Qetotal *QETOTAL) {
 
 var __Helmdyprint_id int
 
-func Helmdyprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Nroom int, Room []ROOM, Qetotal *QETOTAL) {
+func Helmdyprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Room []ROOM, Qetotal *QETOTAL) {
 	var j int
 
 	if __Helmdyprint_id == 0 {
@@ -412,7 +403,7 @@ func Helmdyprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Nroom i
 			if j == 0 {
 				fmt.Fprintf(fo, "-cat\n")
 			}
-			helmrmdyprint(fo, __Helmdyprint_id, Nroom, Room, Qetotal)
+			helmrmdyprint(fo, __Helmdyprint_id, Room, Qetotal)
 			if j == 0 {
 				fmt.Fprintf(fo, "*\n#\n")
 			}
@@ -421,15 +412,17 @@ func Helmdyprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Nroom i
 	}
 
 	fmt.Fprintf(fo, "%02d %02d\n", mon, day)
-	helmrmdyprint(fo, __Helmdyprint_id, Nroom, Room, Qetotal)
+	helmrmdyprint(fo, __Helmdyprint_id, Room, Qetotal)
 }
 
 /* ----------------------------------------------------- */
 
-func helmrmdyprint(fo io.Writer, id, Nroom int, _Room []ROOM, Qetotal *QETOTAL) {
+func helmrmdyprint(fo io.Writer, id int, _Room []ROOM, Qetotal *QETOTAL) {
 	var i int
 	var q *BHELM
 	var qh *QHELM
+
+	Nroom := len(_Room)
 
 	switch id {
 	case 0:

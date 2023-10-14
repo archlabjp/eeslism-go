@@ -29,7 +29,7 @@ import (
 )
 
 func bdhpri(ofile string, rmvls RMVLS, exs *EXSFS) {
-	Nroom := rmvls.Nroom
+	Nroom := len(rmvls.Room)
 	e := exs.Exs
 
 	file := ofile + "_bdh.es"
@@ -51,7 +51,7 @@ func bdhpri(ofile string, rmvls RMVLS, exs *EXSFS) {
 
 		for j := 0; j < room.N; j++ {
 			r := room.rsrf[j]
-			if r.ble == 'E' || r.ble == 'W' || r.ble == 'R' || r.ble == 'F' {
+			if r.ble == BLE_ExternalWall || r.ble == BLE_Window || r.ble == BLE_Roof || r.ble == BLE_Floor {
 				er := e[r.exs]
 				fmt.Fprintf(fp, "\t%s", er.Name)
 			} else if r.nextroom != nil && r.nextroom.Name != "" {

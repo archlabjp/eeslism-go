@@ -104,13 +104,13 @@ func Htrcf(alc, alo *float64, alotype rune, Exs []EXSF, Tr float64, N int, alr [
 				n, Sd.mrk, alic, Sd.alic)
 		}
 
-		if math.Abs(alic-Sd.alic) >= ALITOLE || Sd.mrk == '*' || Sd.PCMflg == 'Y' {
+		if math.Abs(alic-Sd.alic) >= ALITOLE || Sd.mrk == '*' || Sd.PCMflg {
 			*RMmrk = '*'
 			Sd.mrk = '*'
 			Sd.alic = alic
 
 			switch Sd.ble {
-			case 'W', 'E', 'F', 'R':
+			case BLE_Window, BLE_ExternalWall, BLE_Floor, BLE_Roof:
 				Sd.alo = *Exs[Sd.exs].Alo
 			default:
 				Sd.alo = Alidmy
@@ -291,7 +291,7 @@ func Radshfc(N int, FArea, Aroom float64, Sd0 []RMSRF, tfsol, eqcv float64, Rmna
 		}
 
 		Sd.srg2 = Sd.srg
-		if Sd.RStrans == 'y' {
+		if Sd.RStrans {
 			Sd.srg2 = 0.0
 		}
 		if Sd.tnxt > 0.0 {

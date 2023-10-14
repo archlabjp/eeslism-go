@@ -5,8 +5,8 @@
 - [WEEK](WEEK.md)
 - [TITLE](TITLE.md)
 - [GDAT](GDAT.md)
-- [VCFILE](VCFILE.md)
 - [SCHTB](SCHTB.md)
+- [VCFILE](VCFILE.md)
 - [SCHNM](SCHNM.md)
 - [EXSRF](EXSRF.md)
 
@@ -19,7 +19,7 @@
 - [RAICH,VENT](VENT.md) 換気量
 - [RESI](RESI.md) 居住者
 - [APPL](AAPL.md) 照明・機器
-- [PCM](PCM.md) Ver7.2時点では未定義
+- [PCM](PCM.md) 潜熱蓄熱材 (Ver7.2時点では未定義)
 
 ## 設備機器データ
 
@@ -41,7 +41,7 @@
 - [POLYGON](POLYGON.md) 多角形障害物
 - [TREE](TREE.md) 樹木
 - [SHDSCHTB](SHDSCHTB.md) 落葉
-- [DIVID](DIVID.md)  Ver7.2時点では未定義
+- [DIVID](DIVID.md) (Ver7.2時点では未定義)
 
 
 # 基礎データファイル

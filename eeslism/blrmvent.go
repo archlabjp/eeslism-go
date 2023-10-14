@@ -113,8 +113,8 @@ func Ventdata(fi *EeTokens, dsn string, Schdl *SCHDL, Room []ROOM, Simc *SIMCONT
 
 /*  室間相互換気量の設定   */
 
-func Aichschdlr(val []float64, Nroom int, rooms []ROOM) {
-	for i := 0; i < Nroom; i++ {
+func Aichschdlr(val []float64, rooms []ROOM) {
+	for i := range rooms {
 		room := &rooms[i]
 
 		for j := 0; j < room.Nachr; j++ {

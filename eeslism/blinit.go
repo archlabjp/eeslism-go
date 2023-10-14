@@ -113,7 +113,7 @@ func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]WALL, Nwall
 			// For `-E` or `-R:ROOF` or ...
 
 			// 部位コードの指定
-			Wa.ble = rune(s[1])
+			Wa.ble = BLEType(s[1])
 
 			if len(s) > 2 && s[2] == ':' {
 				// 壁体名の指定(最初の1文字を必ず英字とする)
@@ -237,7 +237,7 @@ func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]WALL, Nwall
 		// (3) 層の読み取り
 		// `APR-100 APR-100/20 <P:80.3>`
 		for j = 1; j <= Nlyr; j++ {
-			if Wa.ble == 'R' || Wa.ble == 'c' {
+			if Wa.ble == BLE_Roof || Wa.ble == BLE_Ceil {
 				jj = Nlyr - j
 			} else {
 				jj = j - 1
@@ -338,7 +338,7 @@ func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]WALL, Nwall
 							Wa.kd = Wa.Kcd / Wa.Kc
 						} else {
 							// 熱抵抗が入力されている
-							Wa.chrRinput = 'Y'
+							Wa.chrRinput = true
 						}
 					} else if strings.HasPrefix(Wa.ColType, "W") {
 						// 集熱器のタイプ = W3
@@ -356,7 +356,7 @@ func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]WALL, Nwall
 					Eprint("<Walldata>", s)
 				}
 
-				if Wa.chrRinput == 'N' && (Wa.Kc < 0. || Wa.Ksu < 0. || Wa.Ksd < 0.) {
+				if Wa.chrRinput == false && (Wa.Kc < 0. || Wa.Ksu < 0. || Wa.Ksd < 0.) {
 					s = fmt.Sprintf("ble=%c name=%s 建築一体型空気集熱の熱貫流率Kc、Kdd、Kudが未定義です",
 						Wa.ble, Wa.name)
 					Eprint("<Walldata>", s)
@@ -369,7 +369,7 @@ func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]WALL, Nwall
 				}
 			} else {
 				// 壁種類 -> 床暖房等放射パネル
-				Wa.WallType = 'P'
+				Wa.WallType = WallType_P
 			}
 		}
 
@@ -435,7 +435,7 @@ func Windowdata(section *EeTokens, dsn string, Window *[]WINDOW, Nwindow *int) {
 		for _, s := range line[1:] {
 			// 室内透過日射が窓室内側への入射日射を屋外に透過する場合'y'
 			if s == "-RStrans" {
-				W.RStrans = 'y'
+				W.RStrans = true
 			} else {
 				//キー・バリューの分離
 				st := strings.IndexRune(s, '=')

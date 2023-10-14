@@ -382,7 +382,7 @@ func Entry(InFile string) {
 	dminute = int(float64(Simc.DTm) / 60.0)
 	Cff_kWh = DTM / 3600.0 / 1000.0
 
-	for rm := 0; rm < Rmvls.Nroom; rm++ {
+	for rm := range Rmvls.Room {
 		Rm := &Rmvls.Room[rm]
 		Rm.Qeqp = 0.0
 	}
@@ -405,7 +405,7 @@ func Entry(InFile string) {
 		fmt.Fprintln(Ferr, "\n<<main>> eeflopen end")
 	}
 
-	Tinit(Rmvls.Twallinit, Rmvls.Nroom, Rmvls.Room,
+	Tinit(Rmvls.Twallinit, Rmvls.Room,
 		Rmvls.Nsrf, Rmvls.Sd, Rmvls.Nmwall, Rmvls.Mw)
 
 	if DEBUG {
@@ -699,7 +699,7 @@ func Entry(InFile string) {
 			Contlschdlr(Ncontl, Contl, Nmpath, Mpath, Ncompnt, Compnt)
 
 			// Recalculate internal heat gains after setting air conditioning on/off schedule
-			Qischdlr(Rmvls.Nroom, Rmvls.Room)
+			Qischdlr(Rmvls.Room)
 
 			if DEBUG {
 				fmt.Println("<<main>> Contlschdlr")
@@ -764,7 +764,7 @@ func Entry(InFile string) {
 				elinprint(0, Ncompnt, Compnt, Elout, Elin);
 				***********/
 
-				for i := 0; i < Rmvls.Nroom; i++ {
+				for i := range Rmvls.Room {
 					Rmvls.Emrk[i] = '!'
 				}
 
@@ -787,13 +787,13 @@ func Entry(InFile string) {
 				}
 
 				/*   作用温度制御時の設定室内空気温度  */
-				Rmotset(Rmvls.Nroom, Rmvls.Room)
+				Rmotset(Rmvls.Room)
 				if DEBUG {
 					fmt.Println("<<main>> Rmotset End")
 				}
 
 				/* 室、放射パネルのシステム方程式作成 */
-				Roomvar(Rmvls.Nroom, Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl)
+				Roomvar(Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl)
 
 				if DEBUG {
 					fmt.Println("<<main>>  Roomvar")
@@ -846,12 +846,12 @@ func Entry(InFile string) {
 
 					Sysvar(Ncompnt, Compnt)
 
-					Roomene(&Rmvls, Rmvls.Nroom, Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl, &Exsf, &Wd)
+					Roomene(&Rmvls, Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl, &Exsf, &Wd)
 
-					Roomload(Rmvls.Nroom, Rmvls.Room, &LDreset)
+					Roomload(Rmvls.Room, &LDreset)
 
 					// PCM家具の収束判定
-					PCMfunchk(Rmvls.Nroom, Rmvls.Room, &Wd, &PCMfunreset)
+					PCMfunchk(Rmvls.Room, &Wd, &PCMfunreset)
 
 					// 壁体内部温度の計算と収束計算のチェック
 					if Rmvls.Pcmiterate == 'y' {
@@ -908,7 +908,7 @@ func Entry(InFile string) {
 			CalcPowerOutput(Rmvls.Nsrf, Rmvls.Sd, &Wd, &Exsf)
 
 			if Simc.Helmkey == 'y' {
-				Helmroom(Rmvls.Nroom, Rmvls.Room, Rmvls.Qrm, &Rmvls.Qetotal, Wd.T, Wd.X)
+				Helmroom(Rmvls.Room, Rmvls.Qrm, &Rmvls.Qetotal, Wd.T, Wd.X)
 			}
 
 			/*************
@@ -919,7 +919,7 @@ func Entry(InFile string) {
 			// 室の熱取得要素の計算
 			Qrmsim(Rmvls.Room, &Wd, Rmvls.Qrm)
 
-			for rm := 0; rm < Rmvls.Nroom; rm++ {
+			for rm := range Rmvls.Room {
 				Rmvls.Room[rm].Qeqp = 0.0
 			}
 
@@ -944,7 +944,7 @@ func Entry(InFile string) {
 			}
 
 			// 前時刻の室温の入れ替え、OT、MRTの計算
-			Rmsurft(Rmvls.Nroom, Rmvls.Room, Rmvls.Sd)
+			Rmsurft(Rmvls.Room, Rmvls.Sd)
 
 			if DEBUG {
 				fmt.Printf("xxxmain 3\n")
@@ -961,7 +961,7 @@ func Entry(InFile string) {
 			}
 
 			// PMV、SET*の計算
-			Rmcomfrt(Rmvls.Nroom, Rmvls.Room)
+			Rmcomfrt(Rmvls.Room)
 
 			if DEBUG {
 				fmt.Printf("xxxmain 5\n")
@@ -978,15 +978,14 @@ func Entry(InFile string) {
 
 			if Daytm.Ddpri != 0 {
 				// 室の日集計、月集計
-				Roomday(Daytm.Mon, Daytm.Day, day, Daytm.Ttmm, Rmvls.Nroom, Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl, Simc.Dayend)
+				Roomday(Daytm.Mon, Daytm.Day, day, Daytm.Ttmm, Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl, Simc.Dayend)
 				if Simc.Helmkey == 'y' {
-					Helmdy(day, Rmvls.Nroom, Rmvls.Room, &Rmvls.Qetotal)
+					Helmdy(day, Rmvls.Room, &Rmvls.Qetotal)
 				}
 
 				Compoday(Daytm.Mon, Daytm.Day, day, Daytm.Ttmm, &Eqsys, Simc.Dayend)
 				/**   if (Nqrmpri > 0)  **/
-				Qrmsum(Daytm.Day, Rmvls.Nroom, Rmvls.Room, Rmvls.Qrm,
-					Rmvls.Trdav, Rmvls.Qrmd)
+				Qrmsum(Daytm.Day, Rmvls.Room, Rmvls.Qrm, Rmvls.Trdav, Rmvls.Qrmd)
 
 				if DEBUG {
 					fmt.Printf("xxxmain 7\n")

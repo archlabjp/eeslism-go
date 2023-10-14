@@ -20,8 +20,8 @@ package eeslism
 import "fmt"
 
 /* ----------------------------------------- */
-func xprroom(Nroom int, R []*ROOM) {
-	var i, j int
+func xprroom(R []*ROOM) {
+	var j int
 	var ARN []float64
 	var RMP []float64
 	var Room *ROOM
@@ -29,7 +29,7 @@ func xprroom(Nroom int, R []*ROOM) {
 	Room = R[0]
 	if DEBUG {
 		fmt.Println("--- xprroom")
-		for i = 0; i < Nroom; i++ {
+		for i := range R {
 			Room = R[i]
 			fmt.Printf(" Room:  name=%s  MRM=%f  GRM=%f\n", Room.Name, Room.MRM, Room.GRM)
 			fmt.Printf("     RMt=%f", Room.RMt)
@@ -52,7 +52,7 @@ func xprroom(Nroom int, R []*ROOM) {
 	Room = R[0]
 	if Ferr != nil {
 		fmt.Fprintln(Ferr, "--- xprroom")
-		for i = 0; i < Nroom; i++ {
+		for i := range R {
 			Room = R[i]
 			fmt.Fprintf(Ferr, "Room:\tname=%s\tMRM=%.4g\tGRM=%.4g\n", Room.Name, Room.MRM, Room.GRM)
 			fmt.Fprintf(Ferr, "\tRMt=%.4g\n", Room.RMt)
@@ -93,12 +93,10 @@ func xprschval(Nsch int, val []float64, Nscw int, isw []rune) {
 
 /* --------------------------------------------- */
 
-func xprqin(Nroom int, Room []ROOM) {
-	var i int
+func xprqin(Room []ROOM) {
+	fmt.Printf("--- xprqin  Nroom=%d\n", len(Room))
 
-	fmt.Printf("--- xprqin  Nroom=%d\n", Nroom)
-
-	for i = 0; i < Nroom; i++ {
+	for i := range Room {
 		r := &Room[i]
 		fmt.Printf("[%d] Hc=%f Hr=%f HL=%f Lc=%f Lr=%f Ac=%f Ar=%f AL=%f\n",
 			i, r.Hc, r.Hr, r.HL, r.Lc, r.Lr, r.Ac, r.Ar, r.AL)
@@ -107,15 +105,15 @@ func xprqin(Nroom int, Room []ROOM) {
 
 /* --------------------------------------------- */
 
-func xprvent(Nroom int, R []ROOM) {
-	var i, j int
+func xprvent(R []ROOM) {
+	var j int
 	var A *ACHIR
 	var Room *ROOM
 
 	if DEBUG {
 		fmt.Println("--- xprvent")
 
-		for i = 0; i < Nroom; i++ {
+		for i := range R {
 			Room = &R[i]
 			fmt.Printf("[%d] %-10s  Gvent=%f  -- Gvr:", i, Room.Name, Room.Gvent)
 
@@ -130,7 +128,7 @@ func xprvent(Nroom int, R []ROOM) {
 	if Ferr != nil {
 		fmt.Fprintln(Ferr, "\n\n--- xprvent")
 
-		for i = 0; i < Nroom; i++ {
+		for i := range R {
 			Room = &R[i]
 			fmt.Fprintf(Ferr, "\t[%d]\t%s\tGvent=%.3g\n\t\t", i, Room.Name, Room.Gvent)
 

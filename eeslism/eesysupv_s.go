@@ -115,7 +115,7 @@ func Sysupv(Nmpath int, Mpath []MPATH, Rmvls *RMVLS) {
 		/*********************************/
 		/* 放射パネル設置室についてのパネル上流要素 */
 
-		for i := 0; i < Rmvls.Nroom; i++ {
+		for i := range Rmvls.Room {
 			room := &Rmvls.Room[i]
 			for j := 0; j < room.Nrp; j++ {
 				rmpnl := &room.rmpnl[j]

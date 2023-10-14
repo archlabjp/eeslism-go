@@ -25,13 +25,13 @@ import (
 var __Roomday_oldday = -999
 var __Roomday_oldMon = -999
 
-func Roomday(Mon int, Day int, Nday int, ttmm int, Nroom int, Rm []ROOM, Nrdpnl int, Rdp []RDPNL, Simdayend int) {
+func Roomday(Mon int, Day int, Nday int, ttmm int, Rm []ROOM, Nrdpnl int, Rdp []RDPNL, Simdayend int) {
 	Mo := Mon - 1
 	tt := ConvertHour(ttmm)
 
 	// 日集計
 	if Nday != __Roomday_oldday {
-		for i := 0; i < Nroom; i++ {
+		for i := range Rm {
 			Room := &Rm[i]
 
 			svdyint(&Room.Trdy)
@@ -76,7 +76,7 @@ func Roomday(Mon int, Day int, Nday int, ttmm int, Nroom int, Rm []ROOM, Nrdpnl 
 	// 月集計
 	if Mon != __Roomday_oldMon {
 		//printf("リセット\n") ;
-		for i := 0; i < Nroom; i++ {
+		for i := range Rm {
 			Room := &Rm[i]
 
 			svdyint(&Room.mTrdy)
@@ -119,7 +119,7 @@ func Roomday(Mon int, Day int, Nday int, ttmm int, Nroom int, Rm []ROOM, Nrdpnl 
 	}
 
 	// 日集計
-	for i := 0; i < Nroom; i++ {
+	for i := range Rm {
 		Room := &Rm[i]
 		svdaysum(int64(ttmm), ON_SW, Room.Tr, &Room.Trdy)
 		svdaysum(int64(ttmm), ON_SW, Room.xr, &Room.xrdy)
@@ -165,7 +165,7 @@ func Roomday(Mon int, Day int, Nday int, ttmm int, Nroom int, Rm []ROOM, Nrdpnl 
 
 	// 月集計
 	//printf("Mon=%d Day=%d ttmm=%d\n", Mon, Day, ttmm ) ;
-	for i := 0; i < Nroom; i++ {
+	for i := range Rm {
 		Room := &Rm[i]
 
 		svmonsum(Mon, Day, ttmm, ON_SW, Room.Tr, &Room.mTrdy, Nday, Simdayend)
@@ -218,15 +218,15 @@ func Roomday(Mon int, Day int, Nday int, ttmm int, Nroom int, Rm []ROOM, Nrdpnl 
 
 var __Rmdyprint_id int = 0
 
-func Rmdyprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day, Nroom int, Rm []ROOM) {
-	if __Rmdyprint_id == 0 && Nroom > 0 {
+func Rmdyprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []ROOM) {
+	if __Rmdyprint_id == 0 && len(Rm) > 0 {
 		__Rmdyprint_id++
 
 		ttldyprint(fo, mrk, Simc)
 		fmt.Fprintf(fo, "-cat\n")
-		fmt.Fprintf(fo, "%s %d\n", ROOM_TYPE, Nroom)
+		fmt.Fprintf(fo, "%s %d\n", ROOM_TYPE, len(Rm))
 
-		for i := 0; i < Nroom; i++ {
+		for i := range Rm {
 			Room := &Rm[i]
 
 			var Nload int
@@ -243,10 +243,10 @@ func Rmdyprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day, Nroom int, Rm
 		fmt.Fprintf(fo, "*\n#\n")
 	}
 
-	if __Rmdyprint_id == 1 && Nroom > 0 {
+	if __Rmdyprint_id == 1 && len(Rm) > 0 {
 		__Rmdyprint_id++
 
-		for i := 0; i < Nroom; i++ {
+		for i := range Rm {
 			Room := &Rm[i]
 
 			fmt.Fprintf(fo, "%s_Ht H d %s_Tr T f %s_ttn h d %s_Trn t f %s_ttm h d %s_Trm t f\n",
@@ -307,7 +307,7 @@ func Rmdyprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day, Nroom int, Rm
 
 	fmt.Fprintf(fo, "%02d %02d\n", mon, day)
 
-	for i := 0; i < Nroom; i++ {
+	for i := range Rm {
 		Room := &Rm[i]
 
 		fmt.Fprintf(fo, "%1d %4.2f %1d %4.2f %1d %4.2f ",
@@ -362,7 +362,10 @@ func Rmdyprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day, Nroom int, Rm
 // 月集計結果の出力
 var __Rmmonprint_id int
 
-func Rmmonprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day, Nroom int, Rm []ROOM) {
+func Rmmonprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []ROOM) {
+
+	Nroom := len(Rm)
+
 	if __Rmmonprint_id == 0 && Nroom > 0 {
 		__Rmmonprint_id++
 
@@ -515,14 +518,15 @@ func paneldyprt(fo io.Writer, id, Nrdpnl int, _Rdpnl []RDPNL) {
 			Rdpnl := &_Rdpnl[i]
 			Wall := Rdpnl.sd[0].mw.wall
 
-			if Wall.WallType == 'P' {
+			if Wall.WallType == WallType_P {
+				// 床暖房パネルの場合
 				fmt.Fprintf(fo, " %s 1 20\n", Rdpnl.Name)
+			} else if Rdpnl.sd[0].PVwallFlg {
+				//太陽電池一体型の場合
+				fmt.Fprintf(fo, " %s 1 36\n", Rdpnl.Name)
 			} else {
-				if Rdpnl.sd[0].PVwallFlg != 'Y' {
-					fmt.Fprintf(fo, " %s 1 28\n", Rdpnl.Name)
-				} else {
-					fmt.Fprintf(fo, " %s 1 36\n", Rdpnl.Name)
-				}
+				// その他
+				fmt.Fprintf(fo, " %s 1 28\n", Rdpnl.Name)
 			}
 		}
 		break
@@ -543,13 +547,13 @@ func paneldyprt(fo io.Writer, id, Nrdpnl int, _Rdpnl []RDPNL) {
 			fmt.Fprintf(fo, "%s_th h d %s_qh q f %s_tc h d %s_qc q f\n",
 				Rdpnl.Name, Rdpnl.Name, Rdpnl.Name, Rdpnl.Name)
 
-			if Wall.WallType == 'C' {
+			if Wall.WallType == WallType_C {
 				fmt.Fprintf(fo, "%s_ScolHh H d %s_ScolQh Q f %s_ScolHc H d %s_ScolQc Q f",
 					Rdpnl.Name, Rdpnl.Name, Rdpnl.Name, Rdpnl.Name)
 				fmt.Fprintf(fo, "%s_Scolth h d %s_Scolqh q f %s_Scoltc h d %s_Scolqc q f\n",
 					Rdpnl.Name, Rdpnl.Name, Rdpnl.Name, Rdpnl.Name)
 
-				if Rdpnl.sd[0].PVwallFlg == 'Y' {
+				if Rdpnl.sd[0].PVwallFlg {
 					fmt.Fprintf(fo, "%s_PVHt H d %s_TPV T f ", Rdpnl.Name, Rdpnl.Name)
 					fmt.Fprintf(fo, "%s_PVttn h d %s_TPVn t f %s_PVttm h d %s_TPVm t f ",
 						Rdpnl.Name, Rdpnl.Name, Rdpnl.Name, Rdpnl.Name)
@@ -575,13 +579,13 @@ func paneldyprt(fo io.Writer, id, Nrdpnl int, _Rdpnl []RDPNL) {
 			fmt.Fprintf(fo, "%1d %2.0f ", Rdpnl.Qdy.Hmxtime, Rdpnl.Qdy.Hmx)
 			fmt.Fprintf(fo, "%1d %2.0f\n", Rdpnl.Qdy.Cmxtime, Rdpnl.Qdy.Cmx)
 
-			if Wall.WallType == 'C' {
+			if Wall.WallType == WallType_C {
 				fmt.Fprintf(fo, "%1d %3.1f ", Rdpnl.Scoldy.Hhr, Rdpnl.Scoldy.H)
 				fmt.Fprintf(fo, "%1d %3.1f ", Rdpnl.Scoldy.Chr, Rdpnl.Scoldy.C)
 				fmt.Fprintf(fo, "%1d %2.0f ", Rdpnl.Scoldy.Hmxtime, Rdpnl.Scoldy.Hmx)
 				fmt.Fprintf(fo, "%1d %2.0f\n", Rdpnl.Scoldy.Cmxtime, Rdpnl.Scoldy.Cmx)
 
-				if Rdpnl.sd[0].PVwallFlg == 'Y' {
+				if Rdpnl.sd[0].PVwallFlg {
 					fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 						Rdpnl.TPVdy.Hrs, Rdpnl.TPVdy.M, Rdpnl.TPVdy.Mntime,
 						Rdpnl.TPVdy.Mn, Rdpnl.TPVdy.Mxtime, Rdpnl.TPVdy.Mx)
@@ -605,13 +609,13 @@ func panelmonprt(fo io.Writer, id, Nrdpnl int, _Rdpnl []RDPNL) {
 			Rdpnl := &_Rdpnl[i]
 			Wall := Rdpnl.sd[0].mw.wall
 
-			if Wall.WallType == 'P' {
+			if Wall.WallType == WallType_P {
 				fmt.Fprintf(fo, " %s 1 20\n", Rdpnl.Name)
 			} else {
-				if Rdpnl.sd[0].PVwallFlg != 'Y' {
-					fmt.Fprintf(fo, " %s 1 28\n", Rdpnl.Name)
-				} else {
+				if Rdpnl.sd[0].PVwallFlg {
 					fmt.Fprintf(fo, " %s 1 36\n", Rdpnl.Name)
+				} else {
+					fmt.Fprintf(fo, " %s 1 28\n", Rdpnl.Name)
 				}
 			}
 		}
@@ -633,13 +637,13 @@ func panelmonprt(fo io.Writer, id, Nrdpnl int, _Rdpnl []RDPNL) {
 			fmt.Fprintf(fo, "%s_th h d %s_qh q f %s_tc h d %s_qc q f\n",
 				Rdpnl.Name, Rdpnl.Name, Rdpnl.Name, Rdpnl.Name)
 
-			if Wall.WallType == 'C' {
+			if Wall.WallType == WallType_C {
 				fmt.Fprintf(fo, "%s_ScolHh H d %s_ScolQh Q f %s_ScolHc H d %s_ScolQc Q f",
 					Rdpnl.Name, Rdpnl.Name, Rdpnl.Name, Rdpnl.Name)
 				fmt.Fprintf(fo, "%s_Scolth h d %s_Scolqh q f %s_Scoltc h d %s_Scolqc q f\n",
 					Rdpnl.Name, Rdpnl.Name, Rdpnl.Name, Rdpnl.Name)
 
-				if Rdpnl.sd[0].PVwallFlg == 'Y' {
+				if Rdpnl.sd[0].PVwallFlg {
 					fmt.Fprintf(fo, "%s_PVHt H d %s_TPV T f ", Rdpnl.Name, Rdpnl.Name)
 					fmt.Fprintf(fo, "%s_PVttn h d %s_TPVn t f %s_PVttm h d %s_TPVm t f ",
 						Rdpnl.Name, Rdpnl.Name, Rdpnl.Name, Rdpnl.Name)
@@ -665,13 +669,13 @@ func panelmonprt(fo io.Writer, id, Nrdpnl int, _Rdpnl []RDPNL) {
 			fmt.Fprintf(fo, "%1d %2.0f ", Rdpnl.mQdy.Hmxtime, Rdpnl.mQdy.Hmx)
 			fmt.Fprintf(fo, "%1d %2.0f\n", Rdpnl.mQdy.Cmxtime, Rdpnl.mQdy.Cmx)
 
-			if Wall.WallType == 'C' {
+			if Wall.WallType == WallType_C {
 				fmt.Fprintf(fo, "%1d %3.1f ", Rdpnl.mScoldy.Hhr, Rdpnl.mScoldy.H)
 				fmt.Fprintf(fo, "%1d %3.1f ", Rdpnl.mScoldy.Chr, Rdpnl.mScoldy.C)
 				fmt.Fprintf(fo, "%1d %2.0f ", Rdpnl.mScoldy.Hmxtime, Rdpnl.mScoldy.Hmx)
 				fmt.Fprintf(fo, "%1d %2.0f\n", Rdpnl.mScoldy.Cmxtime, Rdpnl.mScoldy.Cmx)
 
-				if Rdpnl.sd[0].PVwallFlg == 'Y' {
+				if Rdpnl.sd[0].PVwallFlg {
 					fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 						Rdpnl.mTPVdy.Hrs, Rdpnl.mTPVdy.M, Rdpnl.mTPVdy.Mntime,
 						Rdpnl.mTPVdy.Mn, Rdpnl.mTPVdy.Mxtime, Rdpnl.mTPVdy.Mx)

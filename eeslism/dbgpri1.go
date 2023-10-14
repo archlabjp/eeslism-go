@@ -82,10 +82,10 @@ func xprsolrd(Nexs int, E []EXSF) {
 
 /* ---------------------------------------------------------- */
 
-func xpralph(Nroom int, _Room []ROOM, S []RMSRF) {
+func xpralph(_Room []ROOM, S []RMSRF) {
 	fmt.Println("--- xpralph")
 
-	for i := 0; i < Nroom; i++ {
+	for i := range _Room {
 		Room := &_Room[i]
 		N := Room.N
 		brs := Room.Brs
@@ -104,11 +104,11 @@ func xpralph(Nroom int, _Room []ROOM, S []RMSRF) {
 
 /* ---------------------------------------------------------- */
 
-func xprxas(Nroom int, R []ROOM, S []RMSRF) {
+func xprxas(R []ROOM, S []RMSRF) {
 	if DEBUG {
 		fmt.Printf("--- xprxas\n")
 
-		for i := 0; i < Nroom; i++ {
+		for i := range R {
 			Room := &R[i]
 			N := Room.N
 			brs := Room.Brs
@@ -138,7 +138,7 @@ func xprxas(Nroom int, R []ROOM, S []RMSRF) {
 	if Ferr != nil {
 		fmt.Fprintf(Ferr, "--- xprxas\n")
 
-		for i := 0; i < Nroom; i++ {
+		for i := range R {
 			Room := &R[i]
 			N := Room.N
 			brs := Room.Brs

@@ -40,12 +40,12 @@ func Eeschdlr(day, ttmm int, Schdl *SCHDL, Rmvls *RMVLS) {
 		}
 
 		Windowschdlr(Schdl.Isw, Rmvls.Window, Rmvls.Nsrf, Rmvls.Sd)
-		Vtschdlr(Rmvls.Nroom, Rmvls.Room)
-		Aichschdlr(Schdl.Val, Rmvls.Nroom, Rmvls.Room)
+		Vtschdlr(Rmvls.Room)
+		Aichschdlr(Schdl.Val, Rmvls.Room)
 
 		if DEBUG {
-			xprqin(Rmvls.Nroom, Rmvls.Room)
-			xprvent(Rmvls.Nroom, Rmvls.Room)
+			xprqin(Rmvls.Room)
+			xprvent(Rmvls.Room)
 		}
 	}
 }

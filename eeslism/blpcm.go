@@ -47,9 +47,9 @@ func PCMdata(fi *EeTokens, dsn string, pcm *[]PCM, Npcm *int, pcmiterate *rune) 
 			PCMa.Ts = -999.0
 			PCMa.Tp = -999.0
 
-			PCMa.Iterate = 'n' // 収束なしがデフォルト
-			//PCMa.iterateTemp = 'n';	// デフォルトは見かけの比熱だけで収束
-			PCMa.IterateTemp = 'y'
+			PCMa.Iterate = false // 収束なしがデフォルト
+			//PCMa.iterateTemp = false	// デフォルトは見かけの比熱だけで収束
+			PCMa.IterateTemp = true
 			PCMa.NWeight = 0.5 // 収束計算時の現在ステップ温度の重み係数
 			PCMa.AveTemp = 'y'
 			PCMa.DivTemp = 1
@@ -180,7 +180,7 @@ func PCMdata(fi *EeTokens, dsn string, pcm *[]PCM, Npcm *int, pcmiterate *rune) 
 				}
 			} else {
 				if s == "-iterate" {
-					PCMa.Iterate = 'y'
+					PCMa.Iterate = true
 					*pcmiterate = 'y'
 				} else if s == "-pcmnode" {
 					PCMa.AveTemp = 'n'

@@ -809,23 +809,23 @@ type PV struct {
 
 // カタログデータ（機器仕様データ一覧）
 type EQCAT struct {
-	Rfcmp    []RFCMP
-	Pfcmp    []PFCMP
-	Hccca    []HCCCA
-	Boica    []BOICA
-	Refaca   []REFACA
-	Collca   []COLLCA
-	Pipeca   []PIPECA
-	Stankca  []STANKCA
-	Hexca    []HEXCA
-	Pumpca   []PUMPCA
-	Vavca    []VAVCA
-	Stheatca []STHEATCA
-	Thexca   []THEXCA
-	PVca     []PVCA
-	OMvavca  []OMVAVCA
-	Desica   []DESICA
-	Evacca   []EVACCA
+	Hccca    []HCCCA    // 冷温水コイル
+	Boica    []BOICA    // ボイラー
+	Refaca   []REFACA   // 冷温水方式の圧縮式電動ヒートポンプ,仮想熱源
+	Rfcmp    []RFCMP    // 標準圧縮機特性 (for REFACA)
+	Pfcmp    []PFCMP    // ポンプ・ファンの部分負荷特性の近似式係数  (for REFACA)
+	Collca   []COLLCA   // 架台設置型太陽熱集熱器
+	Pipeca   []PIPECA   // 配管
+	Stankca  []STANKCA  // 蓄熱槽(熱交換型内蔵型含む)
+	Hexca    []HEXCA    // 熱交換器
+	Pumpca   []PUMPCA   // ポンプ
+	Vavca    []VAVCA    // VAVユニット
+	Stheatca []STHEATCA // 電気蓄熱式暖房器
+	Thexca   []THEXCA   // 全熱交換器
+	PVca     []PVCA     // 架台設置型太陽電池
+	OMvavca  []OMVAVCA  // OMVAV
+	Desica   []DESICA   // デシカント槽
+	Evacca   []EVACCA   // 気化冷却器
 }
 
 // 「実際に」システムを構成する機器(システム使用機器データ一覧)

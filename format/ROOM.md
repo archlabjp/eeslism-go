@@ -37,7 +37,7 @@ ROOM
 
 部位データの書式:
 ```
-[<ename>[:<rmp>[-<wname>]]] -<ble> [<name>] [alc=<schnamealc>] <xxx> [*p] [fsol=<fsol>] [PVap=<pvap>] [PVcap=<pvcap>] [Ndiv=<ndiv>] [i=<panelname>]  [ sb=sbnamedd ] [ rmp=winname ]
+[<ename>:[<rmp>[-<wname>]]] -<ble> [<name>] [alc=<schnamealc>] <xxx> [*p] [fsol=<fsol>] [PVap=<pvap>] [PVcap=<pvcap>] [Ndiv=<ndiv>] [i=<panelname>]  [ sb=sbnamedd ] [ rmp=winname ]
 ```
 - ble: E、R、F、I、c、fなど 窓の場合はW
 - name: 壁体名または窓名

@@ -21,10 +21,10 @@ package eeslism
 
 /* 室間換気、放射パネルとシステム入力要素への割り付け */
 
-func Roomelm(Nroom int, Room []ROOM, Nrdpnl int, _Rdpnl []RDPNL) {
+func Roomelm(Room []ROOM, Nrdpnl int, _Rdpnl []RDPNL) {
 	var elin_idx = 0
 
-	for n := 0; n < Nroom; n++ {
+	for n := range Room {
 
 		room := &Room[n]
 
@@ -93,8 +93,8 @@ func Roomelm(Nroom int, Room []ROOM, Nrdpnl int, _Rdpnl []RDPNL) {
 
 /* 室、放射パネルのシステム方程式作成 */
 
-func Roomvar(Nroom int, _Room []ROOM, Nrdpnl int, _Rdpnl []RDPNL) {
-	for i := 0; i < Nroom; i++ {
+func Roomvar(_Room []ROOM, Nrdpnl int, _Rdpnl []RDPNL) {
+	for i := range _Room {
 		Room := &_Room[i]
 
 		compnt := Room.cmp
@@ -166,7 +166,7 @@ func Roomvar(Nroom int, _Room []ROOM, Nrdpnl int, _Rdpnl []RDPNL) {
 		compnt.Elouts[0].Co = Rdpnl.EPC
 
 		cfin := &compnt.Elouts[0].Coeffin[0]
-		if Rdpnl.sd[0].mw.wall.WallType == 'P' {
+		if Rdpnl.sd[0].mw.wall.WallType == WallType_P {
 			// 通常の床暖房パネル
 			*cfin = Rdpnl.Epw - cG
 		} else {

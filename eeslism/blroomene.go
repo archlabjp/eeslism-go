@@ -26,15 +26,12 @@ import (
 /* 室温・湿度計算結果代入、室供給熱量計算
 およびパネル入口温度代入、パネル供給熱量計算 */
 
-func Roomene(Rmvls *RMVLS, Nroom int, Room []ROOM, Nrdpnl int, Rdpnl []RDPNL, Exsfs *EXSFS, Wd *WDAT) {
+func Roomene(Rmvls *RMVLS, Room []ROOM, Nrdpnl int, Rdpnl []RDPNL, Exsfs *EXSFS, Wd *WDAT) {
 	var i, j int
 	var E *ELOUT
-	//var A *AIRSUP
 	var ca, ro float64
 
-	//rdpnl := Rdpnl[0]
-
-	for i = 0; i < Nroom; i++ {
+	for i := range Room {
 		E = Room[i].cmp.Elouts[0]
 		Room[i].Tr = E.Sysv
 		E = Room[i].cmp.Elouts[1]
@@ -87,9 +84,9 @@ func Roomene(Rmvls *RMVLS, Nroom int, Room []ROOM, Nrdpnl int, Rdpnl []RDPNL, Ex
 			cG := Rdpnl[i].cG
 			Rdpnl[i].Q = cG * (E.Sysv - Rdpnl[i].Tpi)
 
-			if Wall.WallType == 'C' {
+			if Wall.WallType == WallType_C {
 				var Kc float64
-				if Wall.chrRinput == 'Y' {
+				if Wall.chrRinput {
 					Kc = Sd.dblKc
 				} else {
 					Kc = Wall.Kc
@@ -121,38 +118,36 @@ func Roomene(Rmvls *RMVLS, Nroom int, Room []ROOM, Nrdpnl int, Rdpnl []RDPNL, Ex
 
 // PCM内蔵壁体の収束判定
 func PCMwlchk(counter int, Rmvls *RMVLS, Exsfs *EXSFS, Wd *WDAT, LDreset *int) {
-	var i int
-	//var Rm *ROOM
 	var Rmwlcreset int
 
 	Rmwlcreset = 0
 	// 室温の仮計算
-	for i = 0; i < Rmvls.Nroom; i++ {
+	for i := range Rmvls.Room {
 		Rm := &Rmvls.Room[i]
 		Eo := Rm.cmp.Elouts[0]
 		Rm.Tr = Eo.Sysv
 	}
 
 	// 部位の表面温度の計算
-	Rmsurftd(Rmvls.Nroom, Rmvls.Room, Rmvls.Sd)
+	Rmsurftd(Rmvls.Room, Rmvls.Sd)
 
 	// 壁体内部温度の仮計算
 	RMwltd(Rmvls.Nmwall, Rmvls.Mw)
 
 	// PCM温度の収束判定
-	for i = 0; i < Rmvls.Nroom; i++ {
+	for i := range Rmvls.Room {
 		Rm := &Rmvls.Room[i]
 
 		// 部位でのループ
 		for j := 0; j < Rm.N; j++ {
 			Sd := &Rm.rsrf[j]
-			if Sd.PCMflg == 'Y' {
+			if Sd.PCMflg {
 				mw := Sd.mw
 				Wall := mw.wall
 				Told := mw.Told
 				Toldd := mw.Toldd
 				Twd := mw.Twd
-				if Sd.mwside == 'i' {
+				if Sd.mwside == RMSRFMwSideType_i {
 					for m := 0; m < mw.M; m++ {
 						pcmstate := Sd.pcmstate[m]
 						PCM := Wall.PCMLyr[m]
@@ -163,7 +158,7 @@ func PCMwlchk(counter int, Rmvls *RMVLS, Exsfs *EXSFS, Wd *WDAT, LDreset *int) {
 						PCMresetL := 0
 						nWeightR := -999.0
 						nWeightL := -999.0
-						if PCM != nil && PCM.Iterate == 'y' {
+						if PCM != nil && PCM.Iterate {
 							pcmstate.TempPCMave = (Twd[m-1] + Twd[m]) * 0.5
 							pcmstate.TempPCMNodeL = Twd[m-1]
 							pcmstate.TempPCMNodeR = Twd[m]
@@ -184,14 +179,14 @@ func PCMwlchk(counter int, Rmvls *RMVLS, Exsfs *EXSFS, Wd *WDAT, LDreset *int) {
 								pcmstate.CapmR = FNPCMstate_table(&PCM.Chartable[0], Toldn, T, PCM.DivTemp)
 							}
 							if math.Abs(pcmstate.CapmR-pcmstate.OldCapmR) > pcmstate.OldCapmR*PCM.IterateJudge ||
-								(PCM.IterateTemp == 'y' && math.Abs(Twd[m]-Toldd[m]) > 1e-2) {
+								(PCM.IterateTemp && math.Abs(Twd[m]-Toldd[m]) > 1e-2) {
 								nWeightR = PCM.NWeight
 								PCMresetR = 1
 							}
 							pcmstate.OldCapmR = pcmstate.CapmR
 						}
 
-						if PCM1 != nil && PCM1.Iterate == 'y' {
+						if PCM1 != nil && PCM1.Iterate {
 							pcmstate_p1 := Sd.pcmstate[m+1]
 							pcmstate_p1.TempPCMave = (Twd[m] + Twd[m+1]) * 0.5
 							pcmstate_p1.TempPCMNodeL = Twd[m]
@@ -213,7 +208,7 @@ func PCMwlchk(counter int, Rmvls *RMVLS, Exsfs *EXSFS, Wd *WDAT, LDreset *int) {
 								pcmstate_p1.CapmL = FNPCMstate_table(&PCM1.Chartable[0], Toldn, T, PCM1.DivTemp)
 							}
 							if math.Abs(pcmstate_p1.CapmL-pcmstate_p1.OldCapmL) > pcmstate_p1.OldCapmL*PCM1.IterateJudge ||
-								(PCM1.IterateTemp == 'y' && math.Abs(Twd[m]-Toldd[m]) > 1e-2) {
+								(PCM1.IterateTemp && math.Abs(Twd[m]-Toldd[m]) > 1e-2) {
 								nWeightL = PCM1.NWeight
 								PCMresetL = 1
 							}
@@ -239,20 +234,20 @@ func PCMwlchk(counter int, Rmvls *RMVLS, Exsfs *EXSFS, Wd *WDAT, LDreset *int) {
 	}
 
 	if Rmwlcreset > 0 {
-		Roomcf(Rmvls.Nmwall, Rmvls.Mw, Rmvls.Nroom, Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl, Wd, Exsfs)
+		Roomcf(Rmvls.Nmwall, Rmvls.Mw, Rmvls.Room, Rmvls.Nrdpnl, Rmvls.Rdpnl, Wd, Exsfs)
 	}
 }
 
 // PCM内蔵家具のPCM温度収束判定
-func PCMfunchk(Nroom int, Room []ROOM, Wd *WDAT, LDreset *int) {
+func PCMfunchk(Room []ROOM, Wd *WDAT, LDreset *int) {
 	//var intI int
 	var tempTM float64
 
-	for intI := 0; intI < Nroom; intI++ {
+	for intI := range Room {
 		if Room[intI].PCM != nil {
 			tempTM = Room[intI].TM
 			Room[intI].TM = Room[intI].FMT*Room[intI].Tr + Room[intI].FMC
-			if math.Abs(tempTM-Room[intI].TM) > 1e-2 && Room[intI].PCM.Iterate == 'y' {
+			if math.Abs(tempTM-Room[intI].TM) > 1e-2 && Room[intI].PCM.Iterate {
 				(*LDreset)++
 				if Room[intI].PCM.NWeight > 0.0 {
 					Room[intI].TM = tempTM*(1.0-Room[intI].PCM.NWeight) + Room[intI].TM*Room[intI].PCM.NWeight
@@ -283,10 +278,10 @@ func PCMfunchk(Nroom int, Room []ROOM, Wd *WDAT, LDreset *int) {
 
 /* 室負荷の計算 */
 
-func Roomload(Nroom int, Room []ROOM, LDreset *int) {
+func Roomload(Room []ROOM, LDreset *int) {
 	var reset, resetl int
 
-	for i := 0; i < Nroom; i++ {
+	for i := range Room {
 		rm := &Room[i]
 		if rm.rmld != nil {
 			rmld := rm.rmld
@@ -361,16 +356,16 @@ func Roomload(Nroom int, Room []ROOM, LDreset *int) {
 
 /* 室供給熱量の出力 */
 
-func rmqaprint(fo io.Writer, id int, Nroom int, Room []ROOM) {
+func rmqaprint(fo io.Writer, id int, Room []ROOM) {
 	var Nload, Nfnt int
 	//var rpnl *RPANEL
 
 	switch id {
 	case 0:
-		if Nroom > 0 {
-			fmt.Fprintf(fo, "%s %d\n", ROOM_TYPE, Nroom)
+		if len(Room) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", ROOM_TYPE, len(Room))
 		}
-		for i := 0; i < Nroom; i++ {
+		for i := range Room {
 			if Room[i].rmld != nil {
 				Nload = 2
 			} else {
@@ -388,7 +383,7 @@ func rmqaprint(fo io.Writer, id int, Nroom int, Room []ROOM) {
 				Nload, Room[i].Nasup*5, Room[i].Nrp)
 		}
 	case 1:
-		for i := 0; i < Nroom; i++ {
+		for i := range Room {
 			fmt.Fprintf(fo, "%s_Tr t f %s_xr x f %s_RH r f %s_Ts t f ",
 				Room[i].Name, Room[i].Name, Room[i].Name, Room[i].Name)
 
@@ -426,7 +421,7 @@ func rmqaprint(fo io.Writer, id int, Nroom int, Room []ROOM) {
 			fmt.Fprintf(fo, "\n")
 		}
 	default:
-		for i := 0; i < Nroom; i++ {
+		for i := range Room {
 			fmt.Fprintf(fo, "%.2f %5.4f %2.0f %.2f ",
 				Room[i].Tr, Room[i].xr, Room[i].RH, Room[i].Tsav)
 
@@ -475,17 +470,17 @@ func panelprint(fo io.Writer, id int, Nrdpnl int, Rdpnl []RDPNL) {
 		for i := 0; i < Nrdpnl; i++ {
 			Sd := Rdpnl[i].sd[0]
 			Wall = Sd.mw.wall
-			if Sd.mw.wall.WallType == 'P' {
+			if Sd.mw.wall.WallType == WallType_P {
 				fmt.Fprintf(fo, " %s 1 5\n", Rdpnl[i].Name)
 			} else {
 				ld = 0
-				if Wall.chrRinput == 'Y' {
+				if Wall.chrRinput {
 					ld = 5
 				}
-				if Rdpnl[i].sd[0].PVwallFlg != 'Y' {
-					fmt.Fprintf(fo, " %s 1 %d\n", Rdpnl[i].Name, Sd.Ndiv+8+ld)
-				} else {
+				if Rdpnl[i].sd[0].PVwallFlg {
 					fmt.Fprintf(fo, " %s 1 %d\n", Rdpnl[i].Name, Sd.Ndiv+11+ld)
+				} else {
+					fmt.Fprintf(fo, " %s 1 %d\n", Rdpnl[i].Name, Sd.Ndiv+8+ld)
 				}
 			}
 		}
@@ -493,11 +488,11 @@ func panelprint(fo io.Writer, id int, Nrdpnl int, Rdpnl []RDPNL) {
 		for i := 0; i < Nrdpnl; i++ {
 			Sd := Rdpnl[i].sd[0]
 			Wall = Sd.mw.wall
-			if Sd.mw.wall.WallType == 'P' {
+			if Sd.mw.wall.WallType == WallType_P {
 				fmt.Fprintf(fo, "%s_c c c %s_G m f %s_Ti t f %s_To t f %s_Q q f\n",
 					Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name)
 			} else {
-				if Sd.PVwallFlg != 'Y' {
+				if !Sd.PVwallFlg {
 					fmt.Fprintf(fo, "%s_c c c %s_G m f %s_Ti t f %s_To t f %s_Te t f %s_Tf t f %s_Q q f %s_S q f\n",
 						Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name)
 				} else {
@@ -505,7 +500,7 @@ func panelprint(fo io.Writer, id int, Nrdpnl int, Rdpnl []RDPNL) {
 						Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name,
 						Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name)
 
-					if Wall.chrRinput == 'Y' {
+					if Wall.chrRinput {
 						fmt.Fprintf(fo, "%s_Ksu q f %s_Ksd q f %s_Kc q f %s_Tsu t f %s_Tsd t f\n", Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name)
 					}
 
@@ -522,7 +517,7 @@ func panelprint(fo io.Writer, id int, Nrdpnl int, Rdpnl []RDPNL) {
 		for i := 0; i < Nrdpnl; i++ {
 			Sd := Rdpnl[i].sd[0]
 			Wall = Sd.mw.wall
-			if Sd.mw.wall.WallType == 'P' {
+			if Sd.mw.wall.WallType == WallType_P {
 				fmt.Fprintf(fo, "%c %g  %4.1f %4.1f %3.0f\n", Rdpnl[i].cmp.Elouts[0].Control,
 					Rdpnl[i].cmp.Elouts[0].G, Rdpnl[i].Tpi, Rdpnl[i].cmp.Elouts[0].Sysv, Rdpnl[i].Q)
 			} else {
@@ -536,13 +531,13 @@ func panelprint(fo io.Writer, id int, Nrdpnl int, Rdpnl []RDPNL) {
 				fmt.Fprintf(fo, "%c %g  %4.1f %4.1f %4.1f %4.1f %3.0f %3.0f  ", Eo.Control,
 					G, Rdpnl[i].Tpi, Eo.Sysv, Sd.Tcole, Sd.Tf, Rdpnl[i].Q, Sd.Iwall*Sd.A)
 
-				if Sd.PVwallFlg == 'Y' {
+				if Sd.PVwallFlg {
 					fmt.Fprintf(fo, "%4.1f %4.0f %3.0f\n", Sd.PVwall.TPV, Sd.Iwall, Sd.PVwall.Power)
 				} else {
 					fmt.Fprintf(fo, "\n")
 				}
 
-				if Wall.chrRinput == 'Y' {
+				if Wall.chrRinput {
 					fmt.Fprintf(fo, "%.3f %.3f %.3f %.1f %.1f\n", Sd.dblKsu, Sd.dblKsd, Sd.dblKc, Sd.dblTsu, Sd.dblTsd)
 				}
 

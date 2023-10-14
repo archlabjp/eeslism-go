@@ -32,7 +32,7 @@ func CalcSolarWallTe(Rmvls *RMVLS, Wd *WDAT, Exsfs *EXSFS) {
 	for i := 0; i < Rmvls.Nrdpnl; i++ {
 		rdpnl := &Rmvls.Rdpnl[i]
 		Sd := rdpnl.sd[0]
-		if Sd.mw != nil && Sd.mw.wall.WallType == 'C' {
+		if Sd.mw != nil && Sd.mw.wall.WallType == WallType_C {
 			Sd.Tcole = FNTcoleContrl(Sd, Wd, Exsfs)
 		}
 	}
@@ -60,7 +60,7 @@ func FNTcoleContrl(Sd *RMSRF, Wd *WDAT, Exsfs *EXSFS) float64 {
 		}
 
 		//熱貫流率等の計算
-		if Wall.chrRinput == 'Y' {
+		if Wall.chrRinput {
 			FNKc(Wd, Exsfs, Sd)
 			Ksu = Sd.dblKsu
 			alo = Sd.dblao
@@ -109,7 +109,7 @@ func FNBoundarySolarWall(Sd *RMSRF, ECG, ECt, CFc *float64) {
 
 	// 各種熱貫流率の設定
 	var Kc, Kcd, ku, kd float64
-	if Wall.chrRinput == 'Y' {
+	if Wall.chrRinput {
 		Kc = Sd.dblKc
 		//Kcu = Sd.dblKcu
 		Kcd = Sd.dblKcd
@@ -289,7 +289,7 @@ func FNTsuTsd(Sd *RMSRF, Wd *WDAT, Exsfs *EXSFS) {
 	Exs := &Exsfs.Exs[Sd.exs]
 	cG := Sd.rpnl.cG
 
-	if Wall.chrRinput == 'Y' {
+	if Wall.chrRinput {
 		Kc := Sd.dblKc
 		Ksu := Sd.dblKsu
 		Ksd := Sd.dblKsd

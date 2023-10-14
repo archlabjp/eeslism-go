@@ -46,17 +46,17 @@ func helmrmsrt(Room *ROOM, Ta float64) {
 		}
 
 		switch Rmsb.Type {
-		case 'E': // 外気に接する壁
+		case RMSBType_E: // 外気に接する壁
 			WSC.trs += Sd.FO * Ta
 			WSC.rn += Sd.FO * Sd.TeErn
-			if Sd.ble == 'E' {
+			if Sd.ble == BLE_ExternalWall {
 				WSC.so += Sd.FO * Sd.TeEsol
-			} else if Sd.ble == 'W' {
+			} else if Sd.ble == BLE_Window {
 				WSC.sg += Sd.FO * Sd.TeEsol
 			}
-		case 'G': // 地盤に接する壁
+		case RMSBType_G: // 地盤に接する壁
 			WSC.trs += Sd.FO * Sd.Te
-		case 'i': // 内壁
+		case RMSBType_i: // 内壁
 			WSC.trs += Sd.FO * Sd.nextroom.Trold
 		}
 
@@ -218,23 +218,23 @@ func helmq(_Room []ROOM, Ta, xa float64) {
 		qloss = Aalc * (Room.Tr - Ts.trs)
 		q.trs -= qloss
 
-		if rmsb.Type == 'E' {
-			if Sd.ble == 'E' {
+		if rmsb.Type == RMSBType_E {
+			if Sd.ble == BLE_ExternalWall {
 				qh.ew -= qloss
-			} else if Sd.ble == 'W' {
+			} else if Sd.ble == BLE_Window {
 				qh.wn -= qloss
 			}
-		} else if rmsb.Type == 'G' {
+		} else if rmsb.Type == RMSBType_G {
 			qh.gd -= qloss
-		} else if rmsb.Type == 'i' {
+		} else if rmsb.Type == RMSBType_i {
 			qh.nx -= qloss
 		}
 
-		if Sd.ble == 'c' || Sd.ble == 'R' {
+		if Sd.ble == BLE_Ceil || Sd.ble == BLE_Roof {
 			qh.c -= qloss
-		} else if Sd.ble == 'f' || Sd.ble == 'F' {
+		} else if Sd.ble == BLE_InnerFloor || Sd.ble == BLE_Floor {
 			qh.f -= qloss
-		} else if Sd.ble == 'i' || Sd.ble == 'd' {
+		} else if Sd.ble == BLE_InnerWall || Sd.ble == BLE_d {
 			qh.i -= qloss
 		}
 

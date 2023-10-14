@@ -27,10 +27,9 @@ import (
 var __Pmvprint_count = 0
 
 func Pmvprint(fpout io.Writer, title string, Room []ROOM, Mon, Day int, time float64) {
-	var Nroom, Nr int
+	var Nr int
 	if __Pmvprint_count == 0 && Room != nil {
-		Nroom = Room[0].end
-		for i := 0; i < Nroom; i++ {
+		for i := range Room {
 			Rm := &Room[i]
 			if Rm.Metsch != nil {
 				Nr++
@@ -40,7 +39,7 @@ func Pmvprint(fpout io.Writer, title string, Room []ROOM, Mon, Day int, time flo
 		fmt.Fprintf(fpout, "%s ;\n", title)
 		fmt.Fprintf(fpout, "%d ", Nr)
 
-		for i := 0; i < Nroom; i++ {
+		for i := range Room {
 			Rm := &Room[i]
 			if Rm.Metsch != nil {
 				fmt.Fprintf(fpout, "  %s ", Rm.Name)
@@ -54,7 +53,7 @@ func Pmvprint(fpout io.Writer, title string, Room []ROOM, Mon, Day int, time flo
 
 	fmt.Fprintf(fpout, "%02d %02d %5.2f ", Mon, Day, time)
 
-	for i := 0; i < Nroom; i++ {
+	for i := range Room {
 		Rm := &Room[i]
 		if Rm.Metsch != nil {
 			fmt.Fprintf(fpout, " %4.3f ", Rm.PMV)

@@ -58,7 +58,7 @@ func Rmhtrcf(exs *EXSFS, emrk []rune, rooms []ROOM, sds []RMSRF, wd *WDAT) {
 
 	if sds != nil {
 		for _, sd := range sds {
-			if sd.mwtype == 'C' && sd.mwside == 'i' {
+			if sd.mwtype == RMSRFMwType_C && sd.mwside == RMSRFMwSideType_i {
 				// 内壁の場合は裏面室の熱伝達率を入れ替える
 				nxsd := sd.nxsd
 				sd.alo = nxsd.ali
@@ -132,7 +132,7 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 			rsd := &rm.rsrf[j]
 
 			// 床の場合
-			if rsd.ble == 'F' || rsd.ble == 'f' {
+			if rsd.ble == BLE_Floor || rsd.ble == BLE_InnerFloor {
 				// どの部位も日射吸収比率が定義されていない場合
 				if rm.Nfsolfix == 0 {
 					// 床の日射吸収比率は固定
@@ -200,7 +200,7 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 			} /*---higuchi 070918 end --*/
 
 			switch Sdn.ble {
-			case 'W':
+			case BLE_Window:
 				// 通常窓の場合
 				/*--higuchi add--*/
 				Qgtn, Qga = Glasstga(Sdn.A, Sdn.tgtn, Sdn.Bn,
@@ -224,8 +224,8 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 				Q.Solw += Sdn.A * (Idre + Idf) /*--higuchi add  --*/
 				break
 
-			case 'E', 'F', 'R': // このあたりを参考に修正（相当外気温度の計算）
-				if Sdn.typ != 'E' && Sdn.typ != 'e' {
+			case BLE_ExternalWall, BLE_Floor, BLE_Roof: // このあたりを参考に修正（相当外気温度の計算）
+				if Sdn.typ != RMSRFType_E && Sdn.typ != RMSRFType_e {
 					/*---higuchi add---*/
 					Sab = Sdn.as * (Idre*(1.0-Fsdw) + Idf) / Sdn.alo
 					Rab = Sdn.Eo * RN / Sdn.alo // 長波長
@@ -255,7 +255,7 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 				}
 				break
 
-			case 'i', 'f', 'c', 'd':
+			case BLE_InnerWall, BLE_InnerFloor, BLE_Ceil, BLE_d:
 				if Sdn.nxrm < 0 {
 					Tr = Sdn.room.Trold
 					Eo = Sdn.room.cmp.Elouts[0]
@@ -310,7 +310,7 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 			}
 
 			// 透過日射が入射したときに屋外に放熱されるときには、表面吸収日射はゼロとする
-			if Sdn.RStrans == 'y' {
+			if Sdn.RStrans {
 				rm.Qgt -= Sdn.RSsold
 				Sdn.RSsol = 0.
 			}
@@ -337,10 +337,10 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 		}
 
 		// 室の透過日射熱取得を再度積算（透明間仕切りによる隣接空間からの透過日射を考慮するため）
-		if rm.rsrnx == 'y' {
+		if rm.rsrnx {
 			for nn := 0; nn < rm.N; nn++ {
 				Sdn := &Sd[rm.Brs+n]
-				if Sdn.ble == 'c' || Sdn.ble == 'f' {
+				if Sdn.ble == BLE_Ceil || Sdn.ble == BLE_InnerFloor {
 					if Sdn.nxn >= 0 {
 						Sdn.Te += Sd[Sdn.nxn].RS / Sdn.alo
 					}
@@ -362,7 +362,9 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 
 	for n := 0; n < Nsrf; n++ {
 		Sdn := &Sd[n]
-		if Sdn.mwtype == 'C' {
+
+		// 共用壁の場合
+		if Sdn.mwtype == RMSRFMwType_C {
 			Sdnx = Sdn.nxsd
 			Sdn.Te = (Sdnx.alir*Sdnx.Tmrt + Sdnx.RS) / Sdnx.ali
 		}
@@ -372,7 +374,7 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 /* ----------------------------------------------------------------- */
 
 // 室の係数、定数項の計算
-func Roomcf(nmwall int, mw []MWALL, Nroom int, rooms []ROOM, nrdpnl int, rdpnl []RDPNL, wd *WDAT, exsf *EXSFS) {
+func Roomcf(nmwall int, mw []MWALL, rooms []ROOM, nrdpnl int, rdpnl []RDPNL, wd *WDAT, exsf *EXSFS) {
 	for _, rdpnl := range rdpnl {
 		panelwp(&rdpnl)
 	}
@@ -380,7 +382,7 @@ func Roomcf(nmwall int, mw []MWALL, Nroom int, rooms []ROOM, nrdpnl int, rdpnl [
 	// 壁体係数行列の作成（壁体数RMSRF分だけループ）
 	RMwlc(nmwall, mw, exsf, wd)
 
-	for i := 0; i < Nroom; i++ {
+	for i := range rooms {
 		room := &rooms[i]
 
 		RMcf(room)
@@ -403,7 +405,7 @@ func Roomcf(nmwall int, mw []MWALL, Nroom int, rooms []ROOM, nrdpnl int, rdpnl [
 
 /* ----------------------------------------------------------------- */
 // 前時刻の室温の入れ替え、OT、MRTの計算
-func Rmsurft(nroom int, rooms []ROOM, sd []RMSRF) {
+func Rmsurft(rooms []ROOM, sd []RMSRF) {
 	if rooms == nil {
 		return
 	}
@@ -462,7 +464,7 @@ func Rmsurft(nroom int, rooms []ROOM, sd []RMSRF) {
 
 /* ----------------------------------------------------------------- */
 // PCM収束計算過程における部位表面温度の計算
-func Rmsurftd(Nroom int, _Room []ROOM, Sd []RMSRF) {
+func Rmsurftd(_Room []ROOM, Sd []RMSRF) {
 	var r float64
 
 	if _Room == nil {
@@ -477,7 +479,7 @@ func Rmsurftd(Nroom int, _Room []ROOM, Sd []RMSRF) {
 		r = *(Room.OTsetCwgt)
 	}
 
-	for i := 0; i < Nroom; i++ {
+	for i := range _Room {
 		Room := &_Room[i]
 
 		N := Room.N

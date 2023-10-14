@@ -21,7 +21,7 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 	)
 	D := 0
 
-	Nroom := Rmvls.Nroom
+	Nroom := len(Rmvls.Room)
 
 	var Room []ROOM
 	if Nroom > 0 {

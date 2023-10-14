@@ -23,10 +23,10 @@ import "math"
 
 var __Rmotset_Pint int
 
-func Rmotset(Nroom int, _Room []ROOM) {
-	Fotinit(Nroom, _Room)
+func Rmotset(_Room []ROOM) {
+	Fotinit(_Room)
 
-	for i := 0; i < Nroom; i++ {
+	for i := range _Room {
 		Room := &_Room[i]
 
 		Eo := Room.cmp.Elouts[0]
@@ -77,9 +77,9 @@ func Rmotset(Nroom int, _Room []ROOM) {
 
 var __Fotinit_init int = 'i'
 
-func Fotinit(Nroom int, _Room []ROOM) {
+func Fotinit(_Room []ROOM) {
 	if __Fotinit_init == 'i' {
-		for i := 0; i < Nroom; i++ {
+		for i := range _Room {
 			Room := &_Room[i]
 			if Room.rmld != nil {
 				Room.rmld.FOTN = nil
@@ -142,12 +142,12 @@ func Fotf(Room *ROOM) {
 
 /*   各室の温熱環境指標計算　　*/
 
-func Rmcomfrt(Nroom int, _Room []ROOM) {
+func Rmcomfrt(_Room []ROOM) {
 	met := 0.0
 	Icl := 0.0
 	v := 0.0
 
-	for i := 0; i < Nroom; i++ {
+	for i := range _Room {
 		id := 0
 		Room := &_Room[i]
 		if Room.Metsch != nil && *Room.Metsch > 0.0 {

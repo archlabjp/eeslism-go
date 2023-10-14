@@ -57,8 +57,8 @@ const (
 type SIMCONTL struct {
 	File       string        // 入力ファイル名
 	Title      string        // 題目、注釈
-	Wfname     string        // 気象データファイル名
-	Ofname     string        // 出力ファイル名
+	Wfname     string        // 気象データファイル名 (GDAT.FILE.w)
+	Ofname     string        // 出力ファイル名	(GDAT.FILE.out)
 	Unit       string        // 単位系
 	Unitdy     string        //
 	Timeid     []rune        // 時間別計算値出力識別子 ?
@@ -81,9 +81,9 @@ type SIMCONTL struct {
 	Vcfile     []VCFILE      // 境界条件、負荷入力用ファイル等々???
 	Loc        *LOCAT        // 地域データ
 	Wdpt       WDPT          // 気象データ
-	DTm        int           // 時間刻み ??
-	Sttmm      int           // 時間刻み ??
-	MaxIterate int           // 最大収束回数
+	DTm        int           // 計算時間間隔 [s] (GDAT.RUN.dTime)
+	Sttmm      int           // 計算開始時刻 (GDAT.RUN.Stime)
+	MaxIterate int           // 最大収束回数 (GDAT.RUN.MaxIterate)
 }
 
 // 出力ファイルの設定情報

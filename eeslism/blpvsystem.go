@@ -65,7 +65,7 @@ func CalcPowerOutput(Nsrf int, Sd []RMSRF, Wd *WDAT, Exsfs *EXSFS) {
 			wall := Sd[i].mw.wall
 
 			/// 太陽電池が設置されているときのみ
-			if Sd[i].PVwallFlg == 'Y' {
+			if Sd[i].PVwallFlg {
 				pvwall := &Sd[i].PVwall
 
 				pvwall.TPV = FNTPV(&Sd[i], Wd, Exsfs)

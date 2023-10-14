@@ -77,7 +77,7 @@ func Walli(Nbm int, W []BMLST, Wl *WALL, pcm []PCM, Npcm int) {
 			}
 
 			// PCMフラグ
-			Wl.PCMflg = 'Y'
+			Wl.PCMflg = true
 
 			// codeのコピー
 			Welm.Code = code // 基材のコード名のコピー
@@ -184,7 +184,7 @@ func Walli(Nbm int, W []BMLST, Wl *WALL, pcm []PCM, Npcm int) {
 
 func Wallfdc(M int, mp int, res []float64, cap []float64,
 	Wp float64, UX []float64,
-	uo *float64, um *float64, Pc *float64, WallType rune,
+	uo *float64, um *float64, Pc *float64, WallType WALLType,
 	Sd *RMSRF, Wd *WDAT,
 	Exsf *EXSFS, Wall *WALL, Told []float64, Twd []float64, _pcmstate []*PCMSTATE) {
 	var PCMf = 0
@@ -409,7 +409,7 @@ func Twall(M, mp int, UX []float64, uo, um, Pc, Ti, To, WpT float64, Told, Tw []
 
 	Toldcalc[0] += uo * Ti
 
-	if Sd.mw.wall.WallType != 'C' {
+	if Sd.mw.wall.WallType != WallType_C {
 		Toldcalc[M-1] += um * To
 	} else {
 		Toldcalc[M-1] += Sd.ColCoeff * To
@@ -427,7 +427,7 @@ func Twall(M, mp int, UX []float64, uo, um, Pc, Ti, To, WpT float64, Told, Tw []
 	}
 
 	// 建材一体型集熱器の集熱器と建材の境界温度
-	if Sd.mw.wall.WallType == 'C' {
+	if Sd.mw.wall.WallType == WallType_C {
 		Sd.oldTx = Tw[mp]
 	}
 
@@ -442,7 +442,7 @@ func Twall(M, mp int, UX []float64, uo, um, Pc, Ti, To, WpT float64, Told, Tw []
 			Tpcmold := (Ttemp[m-1] + Ttemp[m]) * 0.5
 
 			// 壁体温度が潜熱領域をまたいだかチェック
-			if PCMLyr.Iterate == 'n' && ((PCMLyr.Ts > Tpcmold && PCMLyr.Tl < Tpcm) || (PCMLyr.Tl < Tpcmold && PCMLyr.Ts > Tpcm)) {
+			if PCMLyr.Iterate == false && ((PCMLyr.Ts > Tpcmold && PCMLyr.Tl < Tpcm) || (PCMLyr.Tl < Tpcmold && PCMLyr.Ts > Tpcm)) {
 				fmt.Printf("xxxx 壁体温度が潜熱領域をまたぎました Tpcm=%.1f Tpcmold=%.1f\n", Tpcm, Tpcmold)
 			}
 		}
@@ -461,7 +461,7 @@ func Twalld(M, mp int, UX []float64, uo, um, Pc, Ti, To, WpT float64, Told, Twd 
 
 	Toldtemp[0] += uo * Ti
 
-	if Sd.mw.wall.WallType != 'C' {
+	if Sd.mw.wall.WallType != WallType_C {
 		Toldtemp[M-1] += um * To
 	} else {
 		Toldtemp[M-1] += Sd.ColCoeff * To

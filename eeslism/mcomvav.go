@@ -67,7 +67,7 @@ func CollTout(Tcin, G float64, Sd *RMSRF) float64 {
 	var Kc, ca float64
 
 	Wall := Sd.mw.wall
-	if Wall.chrRinput == 'Y' {
+	if Wall.chrRinput {
 		Kc = Sd.dblKc
 	} else {
 		Kc = Wall.Kc

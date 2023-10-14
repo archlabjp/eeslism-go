@@ -41,13 +41,13 @@ func Eeprinth(Daytm *DAYTM, Simc *SIMCONTL, flout []*FLOUT, Rmvls *RMVLS, Exsfst
 						Rmevprint(flo.F, title, Rmvls.Room, Mon, Day, time)
 					case PRTHROOM:
 						// 放射パネルの出力
-						Rmpnlprint(flo.F, string(PRTHROOM), Simc, Mon, Day, time, Rmvls.Nroom, Rmvls.Room)
+						Rmpnlprint(flo.F, string(PRTHROOM), Simc, Mon, Day, time, Rmvls.Room)
 					case PRTHELM:
 						// 要素別熱損失・熱取得
-						Helmprint(flo.F, string(PRTHELM), Simc, Mon, Day, time, Rmvls.Nroom, Rmvls.Room, &Rmvls.Qetotal)
+						Helmprint(flo.F, string(PRTHELM), Simc, Mon, Day, time, Rmvls.Room, &Rmvls.Qetotal)
 					case PRTHELMSF:
 						// 要素別熱損失・熱取得
-						Helmsurfprint(flo.F, string(PRTHELMSF), Simc, Mon, Day, time, Rmvls.Nroom, Rmvls.Room)
+						Helmsurfprint(flo.F, string(PRTHELMSF), Simc, Mon, Day, time, Rmvls.Room)
 					case PRTPMV:
 						// PMV計算
 						Pmvprint(flo.F, title, Rmvls.Room, Mon, Day, time)
@@ -108,10 +108,10 @@ func Eeprintd(Daytm *DAYTM, Simc *SIMCONTL, flout []*FLOUT, Rmvls *RMVLS, Nexs i
 				Compodyprt(flo.F, string(PRTDYCOMP), Simc, Mon, Day, Eqsys, Rmvls.Nrdpnl, Rmvls.Rdpnl)
 			case PRTDYRM:
 				// 部屋ごとの熱集計結果出力
-				Rmdyprint(flo.F, string(PRTDYRM), Simc, Mon, Day, Rmvls.Nroom, Rmvls.Room)
+				Rmdyprint(flo.F, string(PRTDYRM), Simc, Mon, Day, Rmvls.Room)
 			case PRTDYHELM:
 				// 要素別熱損失・熱取得（日積算値出力）
-				Helmdyprint(flo.F, string(PRTDYHELM), Simc, Mon, Day, Rmvls.Nroom, Rmvls.Room, &Rmvls.Qetotal)
+				Helmdyprint(flo.F, string(PRTDYHELM), Simc, Mon, Day, Rmvls.Room, &Rmvls.Qetotal)
 			case PRTDQR:
 				// 日射、室内熱取得の出力
 				Dyqrmprint(flo.F, title, Mon, Day, Rmvls.Room, Rmvls.Trdav, Rmvls.Qrmd)
@@ -143,7 +143,7 @@ func Eeprintm(daytm *DAYTM, simc *SIMCONTL, flout []*FLOUT, rmvls *RMVLS, nexs i
 				Compomonprt(flo.F, string(PRTMNCOMP), simc, mon, day, eqsys, rmvls.Nrdpnl, rmvls.Rdpnl)
 			case PRTMNRM:
 				// 部屋ごとの熱集計結果出力
-				Rmmonprint(flo.F, string(PRTMNRM), simc, mon, day, rmvls.Nroom, rmvls.Room)
+				Rmmonprint(flo.F, string(PRTMNRM), simc, mon, day, rmvls.Room)
 			}
 		}
 	}

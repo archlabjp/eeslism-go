@@ -27,18 +27,18 @@ func RMcf(Room *ROOM) {
 	for n := 0; n < N; n++ {
 		Sdn := &Room.rsrf[n]
 
-		if Sdn.mrk == '*' || Sdn.PCMflg == 'Y' {
+		if Sdn.mrk == '*' || Sdn.PCMflg {
 
 			// 壁体（窓以外の場合）
-			if Sdn.typ == 'H' || Sdn.typ == 'E' || Sdn.typ == 'e' {
+			if Sdn.typ == RMSRFType_H || Sdn.typ == RMSRFType_E || Sdn.typ == RMSRFType_e {
 				Mw := Sdn.mw
 				M := Mw.M
 				mp := Mw.mp
 
-				if Sdn.mwside == 'i' {
+				if Sdn.mwside == RMSRFMwSideType_i {
 					Sdn.FI = Mw.uo * Mw.UX[0]
 
-					if Sdn.mw.wall.WallType != 'C' {
+					if Sdn.mw.wall.WallType != WallType_C {
 						Sdn.FO = Mw.um * Mw.UX[M-1]
 					} else {
 						Sdn.FO = Sdn.ColCoeff * Mw.UX[M-1]
@@ -52,7 +52,7 @@ func RMcf(Room *ROOM) {
 				} else {
 					MM := (M - 1) * M
 
-					if Sdn.mw.wall.WallType != 'C' {
+					if Sdn.mw.wall.WallType != WallType_C {
 						Sdn.FI = Mw.um * Mw.UX[MM+M-1]
 					} else {
 						Sdn.FI = Sdn.ColCoeff * Mw.UX[MM+M-1]
@@ -205,10 +205,10 @@ func RMrc(Room *ROOM) {
 	for n := 0; n < N; n++ { // N：表面総数
 		Sdn := &Room.rsrf[n]
 		Sdn.CF = 0.0
-		if Sdn.typ == 'H' || Sdn.typ == 'E' || Sdn.typ == 'e' { // 壁の場合
+		if Sdn.typ == RMSRFType_H || Sdn.typ == RMSRFType_E || Sdn.typ == RMSRFType_e { // 壁の場合
 			Mw := Sdn.mw
 			M := Mw.M
-			if Sdn.mwside != 'M' { // 室内側
+			if Sdn.mwside != RMSRFMwSideType_M { // 室内側
 				for j := 0; j < M; j++ {
 					Sdn.CF += Mw.UX[j] * Mw.Told[j]
 				}
@@ -346,13 +346,15 @@ func RMwlt(Nmwall int, Mw []MWALL) {
 
 		// 壁体の反対側の表面温度 ?
 		var Tee float64
-		if Sd.mwtype == 'C' {
+		if Sd.mwtype == RMSRFMwType_C {
 			// 共用壁の場合
 			nxsd := Sd.nxsd
 			Tee = (nxsd.alic*nxsd.room.Tr + nxsd.alir*nxsd.Tmrt + nxsd.RS) / nxsd.ali
-		} else {
+		} else if Sd.mwtype == RMSRFMwType_I {
 			// 専用壁の場合 => 外表面の相当外気温度
 			Tee = Sd.Te
+		} else {
+			panic(Sd.mwtype)
 		}
 
 		Room := Sd.room
@@ -391,14 +393,15 @@ func RMwltd(Nmwall int, Mw []MWALL) {
 		var nxsd *RMSRF = Sd.nxsd
 		var Room *ROOM = Sd.room
 
-		if Sd.PCMflg == 'Y' {
+		if Sd.PCMflg {
 			// Tee
 			var Tee float64
-			if Sd.mwtype == 'C' {
-				Tee = (nxsd.alic*nxsd.room.Tr + nxsd.alir*nxsd.Tmrt + nxsd.RS) /
-					nxsd.ali
-			} else {
+			if Sd.mwtype == RMSRFMwType_C {
+				Tee = (nxsd.alic*nxsd.room.Tr + nxsd.alir*nxsd.Tmrt + nxsd.RS) / nxsd.ali
+			} else if Sd.mwtype == RMSRFMwType_I {
 				Tee = Sd.Te
+			} else {
+				panic(Sd.mwtype)
 			}
 
 			// Tie

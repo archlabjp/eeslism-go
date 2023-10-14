@@ -29,7 +29,7 @@ func panelwp(rdpnl *RDPNL) {
 	wall := sd.mw.wall
 
 	var Kc, Kcd float64
-	if wall.chrRinput == 'Y' {
+	if wall.chrRinput {
 		Kc = sd.dblKc
 		Kcd = sd.dblKcd
 	} else {
@@ -40,7 +40,7 @@ func panelwp(rdpnl *RDPNL) {
 	if eo.Control != OFF_SW && rdpnl.cmp.Elins[0].Upv != nil {
 		rdpnl.cG = eo.G * Spcheat(eo.Fluid)
 
-		if wall.WallType == 'P' {
+		if wall.WallType == WallType_P {
 			rdpnl.Wp = rdpnl.cG * rdpnl.effpnl / sd.A
 		} else {
 			rdpnl.Ec = 1.0 - math.Exp(-Kc*sd.A/rdpnl.cG)
@@ -53,7 +53,7 @@ func panelwp(rdpnl *RDPNL) {
 	}
 
 	// 流量が前時刻から変化していれば係数行列を作りなおす
-	if math.Abs(rdpnl.Wp-rdpnl.Wpold) >= WPTOLE || sd.PCMflg == 'Y' {
+	if math.Abs(rdpnl.Wp-rdpnl.Wpold) >= WPTOLE || sd.PCMflg {
 		rdpnl.Wpold = rdpnl.Wp
 
 		for i := 0; i < rdpnl.MC; i++ {
@@ -85,7 +85,7 @@ func Panelcf(rdpnl *RDPNL) {
 			nrp = m
 			nn = N * nrp
 
-			if Sd.mrk == '*' || Sd.PCMflg == 'Y' {
+			if Sd.mrk == '*' || Sd.PCMflg {
 				if m == 0 {
 					Mw = Sd.mw
 					mp = Mw.mp
@@ -94,9 +94,9 @@ func Panelcf(rdpnl *RDPNL) {
 					iup = mp * M
 
 					rdpnl.FIp[m] = Mw.UX[iup] * Mw.uo
-					if Mw.wall.WallType == 'P' { // 通常の床暖房パネル
+					if Mw.wall.WallType == WallType_P { // 通常の床暖房パネル
 						rdpnl.FOp[m] = Mw.UX[iup+M-1] * Mw.um
-					} else if Mw.wall.WallType == 'C' { // 屋根一体型空気集熱器
+					} else if Mw.wall.WallType == WallType_C { // 屋根一体型空気集熱器
 						rdpnl.FOp[m] = Mw.UX[iup+M-1] * Sd.ColCoeff
 					}
 					rdpnl.FPp = Mw.UX[iup+mp] * Mw.Pc * rdpnl.Wp
@@ -117,10 +117,10 @@ func Panelcf(rdpnl *RDPNL) {
 				}
 				C1 *= rdpnl.FIp[m] / Sd.ali
 
-				if wall.WallType == 'P' { // 床暖房パネル
+				if wall.WallType == WallType_P { // 床暖房パネル
 					rdpnl.EPt[m] = C1 * rdpnl.Wp * Sd.A
 				} else { // 屋根一体型空気集熱器
-					if wall.chrRinput == 'Y' { // 集熱器の特性が熱抵抗で入力されている場合
+					if wall.chrRinput { // 集熱器の特性が熱抵抗で入力されている場合
 						kd = Sd.kd
 					} else {
 						kd = wall.kd
@@ -140,10 +140,10 @@ func Panelcf(rdpnl *RDPNL) {
 							*epr += *alr * Sdd.WSRN[j]
 						}
 					}
-					if wall.WallType == 'P' {
+					if wall.WallType == WallType_P {
 						*epr *= rdpnl.FIp[m] / Sd.ali * rdpnl.Wp * Sd.A
 					} else {
-						if wall.chrRinput == 'Y' {
+						if wall.chrRinput {
 							kd = Sd.kd
 						} else {
 							kd = wall.kd
@@ -157,10 +157,10 @@ func Panelcf(rdpnl *RDPNL) {
 					*epr += rdpnl.FOp[m] * Sd.nxsd.alic / Sd.nxsd.ali;
 					***********/
 				}
-				if wall.WallType == 'P' { // 通常の床暖房パネル
+				if wall.WallType == WallType_P { // 通常の床暖房パネル
 					rdpnl.Epw = rdpnl.Wp * Sd.A * (1.0 - rdpnl.FPp)
 				} else { // 屋根一体型空気集熱器
-					if wall.chrRinput == 'Y' {
+					if wall.chrRinput {
 						kd = Sd.kd
 					} else {
 						kd = wall.kd
@@ -185,10 +185,10 @@ func Panelcf(rdpnl *RDPNL) {
 						}
 					}
 
-					if wall.WallType == 'P' {
+					if wall.WallType == WallType_P {
 						*epw = rdpnl.Wp * Sd.A * rdpnl.FIp[m] * ew / Sd.ali
 					} else {
-						if wall.chrRinput == 'Y' {
+						if wall.chrRinput {
 							kd = Sd.kd
 						} else {
 							kd = wall.kd
@@ -254,8 +254,8 @@ func Panelce(rdpnl *RDPNL) float64 {
 				}
 
 				CC = CFp
-				if Mw.wall.WallType == 'C' {
-					if Mw.wall.chrRinput == 'Y' {
+				if Mw.wall.WallType == WallType_C {
+					if Mw.wall.chrRinput {
 						kd = Sd.kd
 					} else {
 						kd = Mw.wall.kd
@@ -263,10 +263,10 @@ func Panelce(rdpnl *RDPNL) float64 {
 					CC = CFp * kd
 				}
 				if rdpnl.MC == 1 {
-					if Mw.wall.WallType == 'P' {
+					if Mw.wall.WallType == WallType_P {
 						CC += rdpnl.FOp[m] * Sd.Te
 					} else {
-						if wall.chrRinput == 'Y' {
+						if wall.chrRinput {
 							kd = Sd.kd
 							ku = Sd.ku
 						} else {
@@ -292,10 +292,10 @@ func Panelce(rdpnl *RDPNL) float64 {
 				}
 			}
 
-			if Mw.wall.WallType == 'P' {
+			if Mw.wall.WallType == WallType_P {
 				CC += rdpnl.FIp[m] * (Sd.RS + C) / Sd.ali
 			} else {
-				if wall.chrRinput == 'Y' {
+				if wall.chrRinput {
 					kd = Sd.kd
 					ku = Sd.ku
 				} else {
@@ -306,7 +306,7 @@ func Panelce(rdpnl *RDPNL) float64 {
 			}
 		}
 
-		if Mw.wall.WallType == 'P' {
+		if Mw.wall.WallType == WallType_P {
 			return (CC * rdpnl.Wp * Sd.A)
 		} else {
 			return (CC * rdpnl.cG * rdpnl.Ec)
@@ -362,7 +362,7 @@ func rdpnlldsschd(Rdpnl *RDPNL) {
 func rdpnlvptr(key []string, Rdpnl *RDPNL, vptr *VPTR) int {
 	err := 0
 
-	if Rdpnl.sd[0].mw.wall.WallType == 'C' && key[1] == "Te" {
+	if Rdpnl.sd[0].mw.wall.WallType == WallType_C && key[1] == "Te" {
 		vptr.Ptr = &Rdpnl.sd[0].Tcole
 		vptr.Type = VAL_CTYPE
 	} else {

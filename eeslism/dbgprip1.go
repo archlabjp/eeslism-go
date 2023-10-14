@@ -240,12 +240,12 @@ func dprschdata(Sh []SCH, Sw []SCH) {
 
 /* ----------------------------------------------------------------- */
 
-func dprachv(Nroom int, Room []ROOM) {
+func dprachv(Room []ROOM) {
 
 	f := func(s io.Writer) {
 		fmt.Fprintln(Ferr, "\n*** dprachv***")
 
-		for i := 0; i < Nroom; i++ {
+		for i := range Room {
 			Rm := &Room[i]
 			fmt.Fprintf(Ferr, "to rm: %-10s   from rms(sch):", Rm.Name)
 

@@ -377,7 +377,10 @@ func rmqaprint(fo io.Writer, id int, Room []ROOM) {
 				Nfnt = 4
 			}
 
-			Nset := Room[i].setpri
+			Nset := 0
+			if Room[i].setpri {
+				Nset = 1
+			}
 			fmt.Fprintf(fo, " %s 5 %d 4 %d %d %d\n", Room[i].Name,
 				4+Nload+Room[i].Nasup*5+Room[i].Nrp+Nfnt+Nset,
 				Nload, Room[i].Nasup*5, Room[i].Nrp)
@@ -387,7 +390,7 @@ func rmqaprint(fo io.Writer, id int, Room []ROOM) {
 			fmt.Fprintf(fo, "%s_Tr t f %s_xr x f %s_RH r f %s_Ts t f ",
 				Room[i].Name, Room[i].Name, Room[i].Name, Room[i].Name)
 
-			if Room[i].setpri == 1 {
+			if Room[i].setpri {
 				fmt.Fprintf(fo, "%s_SET* t f ", Room[i].Name)
 			}
 
@@ -425,7 +428,7 @@ func rmqaprint(fo io.Writer, id int, Room []ROOM) {
 			fmt.Fprintf(fo, "%.2f %5.4f %2.0f %.2f ",
 				Room[i].Tr, Room[i].xr, Room[i].RH, Room[i].Tsav)
 
-			if Room[i].setpri == 1 {
+			if Room[i].setpri {
 				fmt.Fprintf(fo, "%.2f ", Room[i].SET)
 			}
 

@@ -38,7 +38,7 @@ var (
 
 	Ferr = os.Stderr // Assuming you want to write errors to standard error
 	//DISPLAY_DELAY = 0 // Assign the value of DISPLAY_DELAY here
-	SETprint = 0
+	SETprint = false //  SET(体感温度)を出力する場合は true
 )
 
 // 月の末日かどうかをチェックする

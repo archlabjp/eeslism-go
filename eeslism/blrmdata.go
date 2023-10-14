@@ -1480,7 +1480,7 @@ func Roominit(N int, Room []ROOM) {
 		B.TM = 15.0
 		B.oldTM = 15.0
 		B.SET = -999.
-		B.setpri = 0
+		B.setpri = false
 	}
 }
 

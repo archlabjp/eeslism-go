@@ -664,8 +664,8 @@ type AIRSUP struct {
 	mQdys, mQdyl, mQdyt QDAY
 }
 
-type RMLOAD struct /* 室負荷 */
-{
+// 室負荷
+type RMLOAD struct {
 	loadt *rune
 	loadx *rune
 	tropt rune /* 室温制御方法  'o': OT制御、'a': 空気温度制御 */
@@ -687,8 +687,8 @@ type RMLOAD struct /* 室負荷 */
 	mQdys, mQdyl, mQdyt QDAY
 }
 
-type RZONE struct /* ゾーン集計 */
-{
+// ゾーン集計
+type RZONE struct {
 	name   string  // ゾーン名
 	Nroom  int     // ゾーンに属する室の数
 	rm     []*ROOM //ゾーンに属する室のポインター
@@ -806,24 +806,24 @@ type ROOM struct {
 	// --- 家具の計算用パラメータ ----
 
 	Qgt         float64 // 透過日射熱取得 [W]
-	Nachr       int
-	Ntr         int //内壁を共有する隣室数
-	Nrp         int //輻射パネル数
-	Nflr        int //床の部位数
-	Nfsolfix    int //短波長放射吸収比率が定義されている面数
+	Nachr       int     //`achr`の数
+	Ntr         int     //内壁を共有する隣室数
+	Nrp         int     //輻射パネル数
+	Nflr        int     //床の部位数
+	Nfsolfix    int     //短波長放射吸収比率が定義されている面数
 	Nisidermpnl int
 	Nasup       int
 
-	rsrf  []RMSRF
-	achr  []ACHIR
-	trnx  []TRNX
-	rmpnl []RPANEL
+	rsrf  []RMSRF  // 壁体
+	achr  []ACHIR  // 室間相互換気
+	trnx  []TRNX   // 隣室
+	rmpnl []RPANEL // 室についての輻射パネル
 	//rairflow []RAIRFLOW
-	Arsp      []AIRSUP
+	Arsp      []AIRSUP // 室への冷温風供給熱量
 	cmp       *COMPNT
-	elinasup  []*ELIN
-	elinasupx []*ELIN
-	rmld      *RMLOAD
+	elinasup  []*ELIN // 流入経路
+	elinasupx []*ELIN // 流入経路？？？
+	rmld      *RMLOAD // 室負荷
 	rmqe      *RMQELM
 
 	F     []float64
@@ -905,8 +905,8 @@ type ROOM struct {
 	Tot    float64 // 作用温度
 	hr     float64 // エンタルピー
 	PMV    float64
-	SET    float64
-	setpri int
+	SET    float64 // SET(体感温度)
+	setpri bool    // SET(体感温度)の出力フラグ
 
 	Trdy   SVDAY
 	xrdy   SVDAY

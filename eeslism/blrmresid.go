@@ -123,8 +123,8 @@ func Residata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int,
 					}
 
 					*pmvpri = 1
-					if SETprint == 1 {
-						rm.setpri = 1
+					if SETprint {
+						rm.setpri = true
 					}
 				} else {
 					fmt.Println("No match found.")

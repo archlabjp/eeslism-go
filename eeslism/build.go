@@ -358,7 +358,6 @@ type WALL struct {
 	mp          int       // <入力値> 放射暖冷房パネルの発熱面のある節点番号
 	res         []float64 // 節点間の熱抵抗 [m2K/W]
 	cap         []float64 // 節点間の熱容量 [J/m2K]
-	end         int       // 要素数(インデックス0にのみ設定)
 	welm        []WELM    // <入力値> 層構成(layer)
 	tra         float64   // <入力値> τα
 	Ko          float64   // <内部計算値> Ksu + Ksd
@@ -404,7 +403,6 @@ func NewWall() *WALL {
 	Wa.N = 0
 	Wa.M = 0
 	Wa.mp = 0
-	Wa.end = 0
 	Wa.Ip = -1
 	Wa.Ei = 0.9
 	Wa.Eo = 0.9
@@ -467,26 +465,27 @@ type DFWL struct {
 
 // 重量壁体デ－タ
 type MWALL struct {
-	sd, nxsd *RMSRF
-	wall     *WALL
-	ns       int // 壁体通し番号
-	rm       int // 室番号
-	n        int // 室壁体番号
-	nxrm     int // 隣室番号
-	nxn      int // 隣室室壁体番号
-	/* [UX]の先頭位置       */
-	UX []float64
+	sd   *RMSRF
+	nxsd *RMSRF
+	wall *WALL
+	ns   int       // 壁体通し番号
+	rm   int       // 室番号
+	n    int       // 室壁体番号
+	nxrm int       // 隣室番号
+	nxn  int       // 隣室室壁体番号
+	UX   []float64 // [UX]の先頭位置
 
-	M, mp    int
-	res, cap []float64
-	uo       float64   // 室内表面のuo
-	um       float64   // 外表面のum
-	Pc       float64   // 床パネル用係数
-	Tw       []float64 // 壁体温度
-	Told     []float64 // 以前の壁体温度
-	Twd      []float64 // 現ステップの壁体内部温度
-	Toldd    []float64 // PCM温度に関する収束計算過程における前ステップの壁体内温度
-	end      int
+	M     int
+	mp    int
+	res   []float64
+	cap   []float64
+	uo    float64   // 室内表面のuo
+	um    float64   // 外表面のum
+	Pc    float64   // 床パネル用係数
+	Tw    []float64 // 壁体温度
+	Told  []float64 // 以前の壁体温度
+	Twd   []float64 // 現ステップの壁体内部温度
+	Toldd []float64 // PCM温度に関する収束計算過程における前ステップの壁体内温度
 }
 
 // 窓およびドア定義デ－タ
@@ -505,7 +504,6 @@ type WINDOW struct {
 	W       float64 // 巾 !入力されてる？!
 	H       float64 // 高さ !入力されてる？!
 	RStrans bool    // 室内透過日射が窓室内側への入射日射を屋外に透過する場合はtrue
-	end     int     // 要素数(インデックス0に設定される)
 }
 
 func NewWINDOW() *WINDOW {
@@ -524,7 +522,6 @@ func NewWINDOW() *WINDOW {
 	W.W = 0.0
 	W.H = 0.0
 	W.RStrans = false // 室内透過日射が窓室内側への入射日射を屋外に透過しない
-	W.end = 0
 	return W
 }
 
@@ -540,7 +537,6 @@ type SNBK struct {
 	W2   float64 // 開口部の右端から壁の右端までの距離 (R=Right)
 	H1   float64 // 開口部の上端から壁の上端までの距離 (T=Top)
 	H2   float64 // 地面から開口部の下端までの高さ (B=Bottom)
-	end  int     // 要素数(インデックス0に設定)
 }
 
 // 日射、室内発熱熱取得

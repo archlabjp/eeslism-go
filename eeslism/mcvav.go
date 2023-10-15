@@ -67,7 +67,7 @@ func VAVdata(cattype EqpType, s string, vavca *VAVCA) int {
 	return id
 }
 
-func VWVint(Nvav int, VAVs []VAV, Ncompnt int, Compn []COMPNT) {
+func VWVint(Nvav int, VAVs []VAV, Compn []COMPNT) {
 	for i := 0; i < Nvav; i++ {
 		vav := &VAVs[i]
 		vav.Hcc = nil
@@ -76,16 +76,16 @@ func VWVint(Nvav int, VAVs []VAV, Ncompnt int, Compn []COMPNT) {
 
 		if vav.Cat.Type == VWV_PDT {
 			if vav.Cmp.Hccname != "" {
-				vav.Hcc = hccptr('c', vav.Cmp.Hccname, Ncompnt, Compn, &vav.Mon).(*HCC)
+				vav.Hcc = hccptr('c', vav.Cmp.Hccname, Compn, &vav.Mon).(*HCC)
 			} else if vav.Cmp.Rdpnlname != "" {
-				vav.Rdpnl = rdpnlptr(vav.Cmp.Rdpnlname, Ncompnt, Compn)
+				vav.Rdpnl = rdpnlptr(vav.Cmp.Rdpnlname, Compn)
 				if vav.Rdpnl != nil {
 					vav.Mon = 'f'
 				}
 			}
 
 			if vav.Mon == '-' {
-				vav.Hcld = hccptr('h', vav.Cmp.Hccname, Ncompnt, Compn, &vav.Mon).(*HCLOAD)
+				vav.Hcld = hccptr('h', vav.Cmp.Hccname, Compn, &vav.Mon).(*HCLOAD)
 			}
 
 			if vav.Mon == '-' {

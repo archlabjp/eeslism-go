@@ -16,12 +16,8 @@ func Tearth(Z float64, n int, nmx int, Tgro float64, DTg float64, a float64) flo
 /* -------------------------------------------------- */
 
 func Exsfter(day int, daymx int, Tgrav float64, DTgr float64, Exs []EXSF, Wd *WDAT, tt int) {
-	var i, Ne int
-
 	if Exs != nil {
-		Ne = Exs[0].End
-
-		for i = 0; i < Ne; i++ {
+		for i := range Exs {
 			_Exs := Exs[i]
 			if _Exs.Typ == 'E' {
 				_Exs.Tearth = Tearth(_Exs.Z, day, daymx, Tgrav, DTgr, _Exs.Erdff)

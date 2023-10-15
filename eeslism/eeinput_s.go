@@ -188,7 +188,7 @@ func (t *EeTokens) GetInt() int {
 
 func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 	Exsf *EXSFS, Rmvls *RMVLS, Eqcat *EQCAT, Eqsys *EQSYS,
-	Compnt *[]COMPNT, Ncompnt *int,
+	Compnt *[]COMPNT,
 	Ncmpalloc *int,
 	Elout *[]*ELOUT, Nelout *int,
 	Elin *[]*ELIN, Nelin *int,
@@ -409,18 +409,18 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 		case "SYSCMP":
 			/*****Flwindata(Flwin, Nflwin,  Wd);********/
 			section := tokens.GetSection()
-			Compodata(section, "Compodata", Rmvls, Eqcat, Compnt, Ncompnt, Eqsys, Ncmpalloc, 0)
-			Elmalloc("Elmalloc ", *Ncompnt, *Compnt, Eqcat, Eqsys, Elout, Nelout, Elin, Nelin)
+			Compodata(section, "Compodata", Rmvls, Eqcat, Compnt, Eqsys, Ncmpalloc, 0)
+			Elmalloc("Elmalloc ", *Compnt, Eqcat, Eqsys, Elout, Nelout, Elin, Nelin)
 			SYSCMP_ID++
 
 		case "SYSPTH":
 			section := tokens.GetSection()
 			if SYSCMP_ID == 0 {
-				Compodata(section, "Compodata", Rmvls, Eqcat, Compnt, Ncompnt, Eqsys, Ncmpalloc, 1)
-				Elmalloc("Elmalloc ", *Ncompnt, *Compnt, Eqcat, Eqsys, Elout, Nelout, Elin, Nelin)
+				Compodata(section, "Compodata", Rmvls, Eqcat, Compnt, Eqsys, Ncmpalloc, 1)
+				Elmalloc("Elmalloc ", *Compnt, Eqcat, Eqsys, Elout, Nelout, Elin, Nelin)
 				SYSCMP_ID++
 			}
-			Pathdata(section, "Pathdata", Simc, Wd, *Ncompnt, *Compnt, Schdl,
+			Pathdata(section, "Pathdata", Simc, Wd, *Compnt, Schdl,
 				Mpath, Nmpath, Plist, Pelm, Npelm, Nplist, 0, Eqsys)
 			Roomelm(Rmvls.Room, Rmvls.Rdpnl)
 
@@ -436,13 +436,13 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 		case "CONTL":
 			section := tokens.GetSection()
 			if SYSCMP_ID == 0 {
-				Compodata(section, "Compodata", Rmvls, Eqcat, Compnt, Ncompnt, Eqsys, Ncmpalloc, 1)
-				Elmalloc("Elmalloc ", *Ncompnt, *Compnt, Eqcat, Eqsys, Elout, Nelout, Elin, Nelin)
+				Compodata(section, "Compodata", Rmvls, Eqcat, Compnt, Eqsys, Ncmpalloc, 1)
+				Elmalloc("Elmalloc ", *Compnt, Eqcat, Eqsys, Elout, Nelout, Elin, Nelin)
 				SYSCMP_ID++
 			}
 
 			if SYSPTH_ID == 0 {
-				Pathdata(section, "Pathdata", Simc, Wd, *Ncompnt, *Compnt, Schdl, Mpath, Nmpath, Plist, Pelm, Npelm, Nplist, 1, Eqsys)
+				Pathdata(section, "Pathdata", Simc, Wd, *Compnt, Schdl, Mpath, Nmpath, Plist, Pelm, Npelm, Nplist, 1, Eqsys)
 				Roomelm(Rmvls.Room, Rmvls.Rdpnl)
 
 				Hclelm(Eqsys.Nhcload, Eqsys.Hcload)
@@ -455,7 +455,7 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 				SYSPTH_ID++
 			}
 
-			Contrldata(section, Contl, Ncontl, Ctlif, Nctlif, Ctlst, Nctlst, Simc, *Ncompnt, *Compnt, *Nmpath, *Mpath, Wd, Exsf, Schdl)
+			Contrldata(section, Contl, Ncontl, Ctlif, Nctlif, Ctlst, Nctlst, Simc, *Compnt, *Nmpath, *Mpath, Wd, Exsf, Schdl)
 
 		/*--------------higuchi add-------------------start*/
 
@@ -549,14 +549,14 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 
 	if SYSCMP_ID == 0 {
 		section := tokens.GetSection()
-		Compodata(section, "Compodata", Rmvls, Eqcat, Compnt, Ncompnt, Eqsys, Ncmpalloc, 1)
+		Compodata(section, "Compodata", Rmvls, Eqcat, Compnt, Eqsys, Ncmpalloc, 1)
 
-		Elmalloc("Elmalloc ", *Ncompnt, *Compnt, Eqcat, Eqsys, Elout, Nelout, Elin, Nelin)
+		Elmalloc("Elmalloc ", *Compnt, Eqcat, Eqsys, Elout, Nelout, Elin, Nelin)
 	}
 
 	if SYSPTH_ID == 0 {
 		section := tokens.GetSection()
-		Pathdata(section, "Pathdata", Simc, Wd, *Ncompnt, *Compnt, Schdl,
+		Pathdata(section, "Pathdata", Simc, Wd, *Compnt, Schdl,
 			Mpath, Nmpath, Plist, Pelm, Npelm, Nplist, 1, Eqsys)
 
 		Roomelm(Rmvls.Room, Rmvls.Rdpnl)

@@ -112,7 +112,7 @@ func Refadata(s string, Refaca *REFACA, Rfcmp []RFCMP) int {
 
 /*  冷凍機／ヒ－トポンプの圧縮機特性設定   */
 
-func Refaint(Nrefa int, Refa []REFA, Wd *WDAT, Ncompnt int, Compnt []COMPNT) {
+func Refaint(Nrefa int, Refa []REFA, Wd *WDAT, Compnt []COMPNT) {
 	var Cmp *RFCMP
 	var Teo, Tco, cGex, Qeo, Qco float64
 	var Qes, Qcs, Ws, ke, kc, kw, E float64
@@ -125,7 +125,7 @@ func Refaint(Nrefa int, Refa []REFA, Wd *WDAT, Ncompnt int, Compnt []COMPNT) {
 			fmt.Printf("Refcfi   awtyp=%c\n", Refa[k].Cat.awtyp)
 		}
 		if Refa[k].Cmp.Roomname != "" {
-			Refa[k].Room = roomptr(Refa[k].Cmp.Roomname, Ncompnt, Compnt)
+			Refa[k].Room = roomptr(Refa[k].Cmp.Roomname, Compnt)
 			fmt.Printf("RefaRoom=%s\n", Refa[k].Cmp.Roomname)
 		}
 

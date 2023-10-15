@@ -23,7 +23,7 @@ func Entry(InFile string) {
 
 	/* ============================ */
 
-	var Ncompnt, Nelout, Nelin int
+	var Nelout, Nelin int
 	var Ncmpalloc int
 	var Compnt []COMPNT
 	var Elout []*ELOUT
@@ -100,7 +100,7 @@ func Entry(InFile string) {
 	//Ferr = nil
 
 	Wd.EarthSurface = nil
-	Exsf.EarthSrfFlg = 'N'
+	Exsf.EarthSrfFlg = false
 	Exsf.Nexs = 0
 	Exsf.Exs = nil
 	Soldy = nil
@@ -143,7 +143,7 @@ func Entry(InFile string) {
 		EWKFile,
 		bdata, week, schtba, schnma,
 		&Simc, &Exsf, &Rmvls, &Eqcat, &Eqsys,
-		&Compnt, &Ncompnt, &Ncmpalloc,
+		&Compnt, &Ncmpalloc,
 		&Elout, &Nelout,
 		&Elin, &Nelin,
 		&Mpath, &Nmpath,
@@ -170,7 +170,7 @@ func Entry(InFile string) {
 	for i := 0; i < Rmvls.Nsrf; i++ {
 		Sd := &Rmvls.Sd[i]
 		if Sd.DynamicCode != "" {
-			ctifdecode(Sd.DynamicCode, Sd.Ctlif, &Simc, Ncompnt, Compnt, Nmpath, Mpath, &Wd, &Exsf, Schdl)
+			ctifdecode(Sd.DynamicCode, Sd.Ctlif, &Simc, Compnt, Nmpath, Mpath, &Wd, &Exsf, Schdl)
 		}
 	}
 
@@ -317,7 +317,7 @@ func Entry(InFile string) {
 		}
 
 		for i := 0; i < mpn; i++ {
-			for j := 0; j < Rmvls.Sd[0].end; j++ {
+			for j := range Rmvls.Sd {
 				if Rmvls.Sd[j].Sname == mp[i].opname {
 					mp[i].exs = Rmvls.Sd[j].exs
 					mp[i].as = Rmvls.Sd[j].as
@@ -372,7 +372,7 @@ func Entry(InFile string) {
 		}
 
 		fmt.Printf("Npelm=%d Ncmpalloc=%d Ncompnt=%d Nelout=%d Nelin=%d\n",
-			Npelm, Ncmpalloc, Ncompnt, Nelout, Nelin)
+			Npelm, Ncmpalloc, len(Compnt), Nelout, Nelin)
 	}
 
 	Soldy = make([]float64, Exsf.Nexs)
@@ -417,8 +417,8 @@ func Entry(InFile string) {
 	}
 
 	// ボイラ機器仕様の初期化
-	Boicaint(Eqcat.Boica, &Simc, Ncompnt, Compnt, &Wd, &Exsf, Schdl)
-	Mecsinit(&Eqsys, &Simc, Ncompnt, Compnt, Exsf.Nexs, Exsf.Exs, &Wd, &Rmvls)
+	Boicaint(Eqcat.Boica, &Simc, Compnt, &Wd, &Exsf, Schdl)
+	Mecsinit(&Eqsys, &Simc, Compnt, Exsf.Nexs, Exsf.Exs, &Wd, &Rmvls)
 
 	if DEBUG {
 		fmt.Println("<<main>> Mecsinit")
@@ -657,7 +657,7 @@ func Entry(InFile string) {
 
 				// 20170426 higuchi add 引数追加 dayprn,monten
 				OPIhor(fp2, fp3, lpn, mpn, mp, lp, &Wd, ullp, ulmp, gp, day, monten)
-				for i := 0; i < Rmvls.Sd[0].end; i++ {
+				for i := range Rmvls.Sd {
 					if Rmvls.Sd[i].Sname != "" {
 						for j := 0; j < mpn; j++ {
 							if Rmvls.Sd[i].Sname == mp[j].opname {
@@ -696,7 +696,7 @@ func Entry(InFile string) {
 			CalcControlStatus(&Eqsys, &Rmvls, &Wd, &Exsf)
 
 			// Update control information
-			Contlschdlr(Ncontl, Contl, Nmpath, Mpath, Ncompnt, Compnt)
+			Contlschdlr(Ncontl, Contl, Nmpath, Mpath, Compnt)
 
 			// Recalculate internal heat gains after setting air conditioning on/off schedule
 			Qischdlr(Rmvls.Room)
@@ -761,7 +761,7 @@ func Entry(InFile string) {
 				}
 
 				/*****
-				elinprint(0, Ncompnt, Compnt, Elout, Elin);
+				elinprint(0, Compnt, Elout, Elin);
 				***********/
 
 				for i := range Rmvls.Room {
@@ -797,14 +797,14 @@ func Entry(InFile string) {
 
 				if DEBUG {
 					fmt.Println("<<main>>  Roomvar")
-					eloutprint(1, Nelout, Elout, Compnt)
-					elinprint(1, Ncompnt, Compnt, Elout, Elin)
+					eloutprint(1, Elout, Compnt)
+					elinprint(1, Compnt, Elout, Elin)
 				}
 
 				if dayprn && Ferr != nil {
 					fmt.Fprintf(Ferr, "<<main>> Roomvar\n")
-					eloutfprint(1, Nelout, Elout, Compnt)
-					elinfprint(1, Ncompnt, Compnt, Elout, Elin)
+					eloutfprint(1, Elout, Compnt)
+					elinfprint(1, Compnt, Elout, Elin)
 				}
 				//eloutprint(1, Nelout, Elout, Compnt);
 
@@ -844,7 +844,7 @@ func Entry(InFile string) {
 
 					Syseqv(Nelout, Elout, &Syseq)
 
-					Sysvar(Ncompnt, Compnt)
+					Sysvar(Compnt)
 
 					Roomene(&Rmvls, Rmvls.Room, Rmvls.Rdpnl, &Exsf, &Wd)
 

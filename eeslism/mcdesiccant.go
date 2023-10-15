@@ -90,7 +90,7 @@ func Desiccantdata(s string, desica *DESICA) int {
 
 /*  管長・ダクト長、周囲温度設定 */
 
-func Desiint(NDesi int, _Desi []DESI, Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT, Wd *WDAT) {
+func Desiint(NDesi int, _Desi []DESI, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT) {
 	var Err string
 	var Desica *DESICA
 
@@ -98,9 +98,9 @@ func Desiint(NDesi int, _Desi []DESI, Simc *SIMCONTL, Ncompnt int, Compnt []COMP
 		Desi := &_Desi[i]
 
 		if Desi.Cmp.Envname != "" {
-			Desi.Tenv = envptr(Desi.Cmp.Envname, Simc, Ncompnt, Compnt, Wd, nil)
+			Desi.Tenv = envptr(Desi.Cmp.Envname, Simc, Compnt, Wd, nil)
 		} else {
-			Desi.Room = roomptr(Desi.Cmp.Roomname, Ncompnt, Compnt)
+			Desi.Room = roomptr(Desi.Cmp.Roomname, Compnt)
 		}
 
 		Desica = Desi.Cat

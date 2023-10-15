@@ -286,8 +286,7 @@ func pelmci(pflow rune, Pelm *PELM, errkey string) {
 
 /* システム要素接続データのコピー（空気系統湿度経路用） */
 
-func plistcpy(Mpath *MPATH, Mpath_prev *MPATH, Npelm *int, _Pelm []PELM, _Plist []PLIST,
-	Ncompnt int, Compnt []COMPNT) {
+func plistcpy(Mpath *MPATH, Mpath_prev *MPATH, Npelm *int, _Pelm []PELM, _Plist []PLIST, Compnt []COMPNT) {
 	var mpi *MPATH
 	var cmp *COMPNT
 	var i, j, nelm int
@@ -350,14 +349,14 @@ func plistcpy(Mpath *MPATH, Mpath_prev *MPATH, Npelm *int, _Pelm []PELM, _Plist 
 
 					// Find index
 					var k int
-					for k = 0; k < Ncompnt; k++ {
+					for k = range Compnt {
 						cmp = &Compnt[k]
 						if cmp == peli.Cmp {
 							break
 						}
 					}
 
-					for ; k < Ncompnt; k++ {
+					for ; k < len(Compnt); k++ {
 						cmp = &Compnt[k]
 						s = cmp.Name
 

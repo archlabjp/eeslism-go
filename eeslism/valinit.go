@@ -191,9 +191,8 @@ func Exsfinit(e *EXSF) {
 	e.Erdff = 0.36e-6
 	e.Alo = new(float64)
 	*e.Alo = 0.0
-	e.End = 0
 	// e.alosch = nil
-	e.Alotype = 'F'
+	e.Alotype = Alotype_Fix
 }
 
 /*****  SYSEQ の初期化  *****/

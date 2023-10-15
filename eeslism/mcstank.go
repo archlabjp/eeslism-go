@@ -215,7 +215,7 @@ func Stankmemloc(errkey string, Stank *STANK) {
 
 /* 蓄熱槽初期設定 */
 
-func Stankint(Nstank int, Stank []STANK, Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT, Wd *WDAT) {
+func Stankint(Nstank int, Stank []STANK, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT) {
 	var s, ss, Err, E string
 	var mrk rune
 	var Tso float64
@@ -273,7 +273,7 @@ func Stankint(Nstank int, Stank []STANK, Simc *SIMCONTL, Ncompnt int, Compnt []C
 			}
 		}
 
-		Stank.Tenv = envptr(Stank.Cmp.Envname, Simc, Ncompnt, Compnt, Wd, nil)
+		Stank.Tenv = envptr(Stank.Cmp.Envname, Simc, Compnt, Wd, nil)
 		stoint(Stank.Ndiv, Stank.Cat.Vol, Stank.Cat.KAside, Stank.Cat.KAtop, Stank.Cat.KAbtm,
 			Stank.Dvol, Stank.Mdt, Stank.KS, Stank.Tss, Stank.Tssold, &Stank.Jva, &Stank.Jvb)
 

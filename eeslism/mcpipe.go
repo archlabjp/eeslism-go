@@ -59,7 +59,7 @@ func Pipedata(cattype string, s string, Pipeca *PIPECA) int {
 
 /*  管長・ダクト長、周囲温度設定 */
 
-func Pipeint(Npipe int, Pipe []PIPE, Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT, Wd *WDAT) {
+func Pipeint(Npipe int, Pipe []PIPE, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT) {
 	for i := 0; i < Npipe; i++ {
 		if Pipe[i].Cmp.Ivparm != nil {
 			Pipe[i].L = *Pipe[i].Cmp.Ivparm
@@ -68,9 +68,9 @@ func Pipeint(Npipe int, Pipe []PIPE, Simc *SIMCONTL, Ncompnt int, Compnt []COMPN
 		}
 
 		if Pipe[i].Cmp.Envname != "" {
-			Pipe[i].Tenv = envptr(Pipe[i].Cmp.Envname, Simc, Ncompnt, Compnt, Wd, nil)
+			Pipe[i].Tenv = envptr(Pipe[i].Cmp.Envname, Simc, Compnt, Wd, nil)
 		} else {
-			Pipe[i].Room = roomptr(Pipe[i].Cmp.Roomname, Ncompnt, Compnt)
+			Pipe[i].Room = roomptr(Pipe[i].Cmp.Roomname, Compnt)
 		}
 
 		if Pipe[i].Cat.Ko < 0.0 {

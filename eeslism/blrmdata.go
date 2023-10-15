@@ -217,12 +217,11 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 						Sd.DynamicCode = ss
 
 						// IF文の展開
-						//ctifdecode(s, Sd->ctlif, Simc, Ncompnt, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl);
+						//ctifdecode(s, Sd->ctlif, Simc, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl);
 
 						// Read the True case window
 						s = tokens.GetToken()
-						Nwindow := Rmvls.Window[0].end
-						for j := 0; j < Nwindow; j++ {
+						for j := range Rmvls.Window {
 							W := &Rmvls.Window[j]
 							if W.Name == s {
 								Sd.ifwin = W
@@ -232,7 +231,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							}
 						}
 
-						if j == Nwindow {
+						if j == len(Rmvls.Window) {
 							err := fmt.Sprintf("Room=%s <window> %s", Rm.Name, s)
 							Eprint("<Roomdata>", err)
 							os.Exit(1)
@@ -312,8 +311,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 								stt = s
 							}
 
-							Nwindow := Rmvls.Window[0].end
-							for j := 0; j < Nwindow; j++ {
+							for j := range Rmvls.Window {
 								W := &Rmvls.Window[j]
 								if W.Name == stt {
 									Sd.window = W
@@ -325,14 +323,13 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 								}
 							}
 
-							if j == Nwindow {
+							if j == len(Rmvls.Window) {
 								err := fmt.Sprintf("Room=%s <window> %s", Rm.Name, stt)
 								Eprint("<Roomdata>", err)
 								os.Exit(1)
 							}
 						} else {
-							Nwall := Rmvls.Wall[0].end
-							for j := 0; j < Nwall; j++ {
+							for j := range Rmvls.Wall {
 								w := &Rmvls.Wall[j]
 
 								if DEBUG {
@@ -352,7 +349,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 								}
 							}
 
-							if j == Nwall {
+							if j == len(Rmvls.Wall) {
 								err := fmt.Sprintf("Room=%s <wall> ble=%c %s Undefined in <WALL>", Rm.Name, Sd.ble, s)
 								Eprint("<Roomdata>", err)
 								os.Exit(1)
@@ -379,7 +376,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							if err == nil {
 								Rm.flrsr = &vall[k]
 							} else {
-								Rm.flrsr = envptr(value, Simc, 0, nil, nil, nil)
+								Rm.flrsr = envptr(value, Simc, nil, nil, nil)
 							}
 						} else if key == "alc" {
 							// alc 室内表面熱伝達率[W/m2K]。
@@ -387,7 +384,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							if err == nil {
 								Rm.alc = &vall[k]
 							} else {
-								Rm.alc = envptr(s[st+1:], Simc, 0, nil, nil, nil)
+								Rm.alc = envptr(s[st+1:], Simc, nil, nil, nil)
 							}
 						} else if key == "Hcap" {
 							// 室内空気に付加する熱容量 [J/K]
@@ -407,7 +404,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							if err == nil {
 								Rm.MCAP = &vall[k]
 							} else {
-								Rm.MCAP = envptr(value, Simc, 0, nil, nil, nil)
+								Rm.MCAP = envptr(value, Simc, nil, nil, nil)
 							}
 						} else if key == "CM" {
 							// 室内に置かれた物体と室内空気との間の熱コンダクタンス [W/K]
@@ -415,14 +412,14 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							if err == nil {
 								Rm.CM = &vall[k]
 							} else {
-								Rm.CM = envptr(value, Simc, 0, nil, nil, nil)
+								Rm.CM = envptr(value, Simc, nil, nil, nil)
 							}
 						} else if key == "fsolm" { // 家具への日射吸収割合
 							k, err = idsch(value, Schdl.Sch, "")
 							if err == nil {
 								Rm.fsolm = &vall[k]
 							} else {
-								Rm.fsolm = envptr(value, Simc, 0, nil, nil, nil)
+								Rm.fsolm = envptr(value, Simc, nil, nil, nil)
 							}
 						} else if key == "PCMFurn" {
 							// PCM内臓家具の場合　(PCMname,mPCM)
@@ -461,7 +458,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							if k, err = idsch(value, Schdl.Sch, ""); err == nil {
 								Rm.OTsetCwgt = &vall[k]
 							} else {
-								Rm.OTsetCwgt = envptr(value, Simc, 0, nil, nil, nil)
+								Rm.OTsetCwgt = envptr(value, Simc, nil, nil, nil)
 							}
 						} else {
 							Err := fmt.Sprintf("Room=%s s=%s", Rm.Name, s)
@@ -478,8 +475,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							}
 						} else if strings.HasPrefix(s, "e=") {
 							// 外表面の検索
-							Nexs := Exs[0].End
-							for j := 0; j < Nexs; j++ {
+							for j := range Exs {
 								e := &Exs[j]
 								if e.Name == s[st+1:] {
 									Sd.exs = j
@@ -487,15 +483,14 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 								}
 							}
 							// 見つからない場合
-							if j == Nexs {
+							if j == len(Exs) {
 								err := fmt.Sprintf("Room=%s <exsrf> %s\n", Rm.Name, s)
 								Eprint("<Roomdata>", err)
 								os.Exit(1)
 							}
 						} else if strings.HasPrefix(s, "sb=") {
 							// 日よけの検索
-							Nsnbk := Rmvls.Snbk[0].end
-							for j := 0; j < Nsnbk; j++ {
+							for j := range Rmvls.Snbk {
 								S := &Rmvls.Snbk[j]
 								if S.Name == s[st+1:] {
 									Sd.sb = j
@@ -503,7 +498,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 								}
 							}
 							// 見つからない場合
-							if j == Nsnbk {
+							if j == len(Rmvls.Snbk) {
 								err := fmt.Sprintf("Room=%s <Snbrk> %s\n", Rm.Name, s)
 								Eprint("<Roomdata>", err)
 								os.Exit(1)
@@ -531,13 +526,13 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							if k, err := idsch(s[st+1:], Schdl.Sch, ""); err == nil {
 								Sd.alicsch = &vall[k]
 							} else {
-								Sd.alicsch = envptr(s[st+1:], Simc, 0, nil, nil, nil)
+								Sd.alicsch = envptr(s[st+1:], Simc, nil, nil, nil)
 							}
 						} else if strings.HasPrefix(s, "alr=") {
 							if k, err := idsch(s[st+1:], Schdl.Sch, ""); err == nil {
 								Sd.alirsch = &vall[k]
 							} else {
-								Sd.alirsch = envptr(s[st+1:], Simc, 0, nil, nil, nil)
+								Sd.alirsch = envptr(s[st+1:], Simc, nil, nil, nil)
 							}
 						} else if strings.HasPrefix(s, "fsol=") {
 							Rm.Nfsolfix++
@@ -545,7 +540,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							if k, err := idsch(s[st+1:], Schdl.Sch, ""); err == nil {
 								Sd.fsol = &vall[k]
 							} else {
-								Sd.fsol = envptr(s[st+1:], Simc, 0, nil, nil, nil)
+								Sd.fsol = envptr(s[st+1:], Simc, nil, nil, nil)
 							}
 						} else if strings.HasPrefix(s, "rmp=") {
 							// RMP名
@@ -604,7 +599,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 				if Sd.exs == -1 {
 					var Nexs int
 					if Exs != nil {
-						Nexs = Exs[0].End
+						Nexs = len(Exs)
 					} else {
 						fmt.Println("EXSRFが未定義です。")
 						Nexs = 0
@@ -713,7 +708,6 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 
 	n++
 	Nsrf := n
-	Rmvls.Sd[0].end = n
 
 	//printf ( "Nsrf=%d\n", Nsrf ) ;
 	//Room = Rmvls.Room
@@ -1072,7 +1066,6 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 	}
 
 	Rmvls.Nsrf = Nsrf
-	Rmvls.Sd[0].end = Nsrf
 	Rmvls.Trdav = make([]float64, len(Rmvls.Room))
 
 	if len(Rmvls.Room) > 0 {
@@ -1144,7 +1137,6 @@ func Balloc(N int, Sd []RMSRF, Wall []WALL, Mwall *[]MWALL, Nmwall *int) {
 				nxn:  0,
 				M:    0,
 				mp:   0,
-				end:  0,
 				UX:   nil,
 				res:  nil,
 				cap:  nil,
@@ -1260,7 +1252,6 @@ func Balloc(N int, Sd []RMSRF, Wall []WALL, Mwall *[]MWALL, Nmwall *int) {
 		}
 	}
 	*Nmwall = mw
-	(*Mwall)[0].end = mw
 
 	for n := 0; n < N; n++ {
 		ssd := &Sd[n]

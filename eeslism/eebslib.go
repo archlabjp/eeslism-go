@@ -31,7 +31,7 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 		exs = make([]EXSF, 0, Nd+1)
 
 		s = fmt.Sprintf("%f", ALO)
-		Exsf.Alosch = envptr(s, Simc, 0, nil, nil, nil)
+		Exsf.Alosch = envptr(s, Simc, nil, nil, nil)
 		Exsf.Alotype = 'F' // 固定値
 	}
 
@@ -45,7 +45,7 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 				Exsf.Alosch = &vall[k]
 				Exsf.Alotype = 'S'
 			} else {
-				Exsf.Alosch = envptr(s[4:], Simc, 0, nil, nil, nil)
+				Exsf.Alosch = envptr(s[4:], Simc, nil, nil, nil)
 				if Exsf.Alosch != nil {
 					Exsf.Alotype = 'S'
 				}
@@ -76,7 +76,7 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 		if s == "Hor" {
 			ex.Wb = 0.0
 		} else if s == "EarthSf" {
-			Exsf.EarthSrfFlg = 'Y'
+			Exsf.EarthSrfFlg = true
 			ex.Typ = 'e'
 		} else {
 			ex.Wb = 90.0
@@ -129,18 +129,23 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 				}
 			} else {
 				st := strings.IndexRune(s, '=')
+
 				if strings.HasPrefix(s, "alo") {
+					// *** 外表面熱伝達率 alo ***
 					if s[st+1:] == "Calc" {
-						ex.Alotype = 'V'
-					} else if k, err = idsch(s[st+1:], Schdl.Sch, ""); err == nil {
-						ex.Alo = &vall[k]
-						ex.Alotype = 'S'
+						// 風速から計算
+						ex.Alotype = Alotype_V
 					} else {
-						ex.Alo = envptr(s[st+1:], Simc, 0, nil, nil, nil)
-						ex.Alotype = 'S'
+						// スケジュール
+						ex.Alotype = Alotype_Schedule
+						if k, err = idsch(s[st+1:], Schdl.Sch, ""); err == nil {
+							ex.Alo = &vall[k]
+						} else {
+							ex.Alo = envptr(s[st+1:], Simc, nil, nil, nil)
+						}
 					}
 				} else {
-					dt, _ = strconv.ParseFloat(s[st+1:], 64)
+					dt, _ = readFloat(s[st+1:])
 					switch s[0] {
 					case 't':
 						ex.Wb = dt
@@ -159,19 +164,17 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 		}
 
 		exs = append(exs, *ex)
-		ex.End = i
 	}
 
 	// 外表面熱伝達率の設定
 	if Nd > 0 {
 		s = strconv.FormatFloat(ALO, 'f', -1, 64)
-		Exsf.Alosch = envptr(s, Simc, 0, nil, nil, nil)
-		Exsf.Alotype = 'F' // 固定値
+		Exsf.Alosch = envptr(s, Simc, nil, nil, nil)
+		Exsf.Alotype = Alotype_Fix // 固定値
 		Exsf.Exs = exs
 	}
 
 	Exsf.Nexs = i
-	Exsf.Exs[0].End = i
 
 	for i = 0; i < Exsf.Nexs; i++ {
 		ex = &Exsf.Exs[i]

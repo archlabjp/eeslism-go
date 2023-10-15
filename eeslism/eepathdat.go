@@ -12,7 +12,6 @@ func Pathdata(
 	errkey string,
 	Simc *SIMCONTL,
 	Wd *WDAT,
-	Ncompnt int,
 	Compnt []COMPNT,
 	Schdl *SCHDL,
 	M *[]MPATH,
@@ -48,7 +47,7 @@ func Pathdata(
 
 	if DEBUG {
 		fmt.Printf("\n")
-		for i := 0; i < Ncompnt; i++ {
+		for i := range Compnt {
 			C = &Compnt[i]
 			fmt.Printf("name=%s Nin=%d  Nout=%d\n", C.Name, C.Nin, C.Nout)
 		}
@@ -201,7 +200,7 @@ func Pathdata(
 									Plist.Go = new(float64)
 									*Plist.Go = Schdl.Val[j]
 								} else {
-									Plist.Go = envptr(ss, Simc, Ncompnt, Compnt, Wd, nil)
+									Plist.Go = envptr(ss, Simc, Compnt, Wd, nil)
 								}
 
 								if DEBUG {
@@ -236,7 +235,7 @@ func Pathdata(
 									Plist.Rate = new(float64)
 									*Plist.Rate = Schdl.Val[j]
 								} else {
-									Plist.Rate = envptr(ss, Simc, Ncompnt, Compnt, Wd, nil)
+									Plist.Rate = envptr(ss, Simc, Compnt, Wd, nil)
 								}
 
 								if DEBUG {
@@ -273,7 +272,7 @@ func Pathdata(
 								}
 								err := 1
 
-								for i := 0; i < Ncompnt; i++ {
+								for i := range Compnt {
 									cmp := &Compnt[i]
 									C = cmp
 									if cmp.Name == elm {
@@ -412,7 +411,7 @@ func Pathdata(
 				Np = *Npelm
 
 				// 空気系統用の絶対湿度経路へのコピー
-				plistcpy(&(*M)[Mpath_idx], &(*M)[Mpath_idx-1], Npelm, (*Plm)[pelmIdx:], (*Plst)[plistIdx:], Ncompnt, Compnt)
+				plistcpy(&(*M)[Mpath_idx], &(*M)[Mpath_idx-1], Npelm, (*Plm)[pelmIdx:], (*Plst)[plistIdx:], Compnt)
 
 				pelmIdx += *Npelm - Np
 				Pelm = &(*Plm)[pelmIdx]
@@ -612,7 +611,7 @@ func Pathdata(
 
 	if DEBUG {
 		fmt.Printf("\n")
-		for i = 0; i < Ncompnt; i++ {
+		for i = range Compnt {
 			C := &Compnt[i]
 			fmt.Printf("name=%s Nin=%d  Nout=%d\n", C.Name, C.Nin, C.Nout)
 		}
@@ -734,10 +733,10 @@ func Pelmcount(fi *EeTokens) int {
 
 /***********************************************************************/
 
-func Elcount(N int, C []COMPNT) (int, int) {
+func Elcount(C []COMPNT) (int, int) {
 	var Nelout, Nelin int = 0, 0
 
-	for i := 0; i < N; i++ {
+	for i := range C {
 		e := C[i].Eqptype
 		Nelout += C[i].Nout
 		Nelin += C[i].Nin

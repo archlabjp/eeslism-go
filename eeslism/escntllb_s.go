@@ -23,7 +23,7 @@ import (
 
 /*  システム変数名、内部変数名、スケジュール名のポインター  */
 
-func ctlvptr(s string, Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT, Nmpath int, Mpath []MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL, vptr *VPTR, vpath *VPTR) int {
+func ctlvptr(s string, Simc *SIMCONTL, Compnt []COMPNT, Nmpath int, Mpath []MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL, vptr *VPTR, vpath *VPTR) int {
 	var err int
 
 	if i, err2 := idsch(s, Schdl.Sch, ""); err2 == nil {
@@ -33,7 +33,7 @@ func ctlvptr(s string, Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT, Nmpath int,
 		vptr.Ptr = &Schdl.Isw[i]
 		vptr.Type = SW_CTYPE
 	} else {
-		err = kynameptr(s, Simc, Ncompnt, Compnt, Nmpath, Mpath, Wd, Exsf, vptr, vpath)
+		err = kynameptr(s, Simc, Compnt, Nmpath, Mpath, Wd, Exsf, vptr, vpath)
 	}
 
 	Errprint(err, "<ctlvptr>", s)
@@ -57,7 +57,7 @@ func strkey(s string) ([]string, int) {
 
 /*  経路名、システム変数名、内部変数名のポインター  */
 
-func kynameptr(s string, Simc *SIMCONTL, Ncompnt int, _Compnt []COMPNT,
+func kynameptr(s string, Simc *SIMCONTL, _Compnt []COMPNT,
 	Nmpath int, Mpath []MPATH, Wd *WDAT, Exsf *EXSFS, vptr *VPTR, vpath *VPTR) int {
 	var err int
 
@@ -125,7 +125,7 @@ func kynameptr(s string, Simc *SIMCONTL, Ncompnt int, _Compnt []COMPNT,
 		}
 
 		if err != 0 {
-			for i := 0; i < Ncompnt; i++ {
+			for i := range _Compnt {
 				Compnt := &_Compnt[i]
 				if key[0] == Compnt.Name {
 					err = compntvptr(nk, key, Compnt, vptr)
@@ -227,8 +227,8 @@ func pathvptr(nk int, key []string, Nmpath int, Mpath []MPATH, vptr *VPTR, vpath
 	return err
 }
 
-func Compntptr(name string, N int, Compnt []COMPNT) *COMPNT {
-	for i := 0; i < N; i++ {
+func Compntptr(name string, Compnt []COMPNT) *COMPNT {
+	for i := range Compnt {
 		if name == Compnt[i].Name {
 			return &Compnt[i]
 		}
@@ -283,7 +283,7 @@ func compntvptr(nk int, key []string, Compnt *COMPNT, vptr *VPTR) int {
 
 /* 負荷計算を行うシステム要素の設定システム変数のポインター */
 
-func loadptr(loadcmp *COMPNT, load *rune, s string, Ncompnt int, _Compnt []COMPNT, vptr *VPTR) int {
+func loadptr(loadcmp *COMPNT, load *rune, s string, _Compnt []COMPNT, vptr *VPTR) int {
 	var Room *ROOM
 	var key []string
 	var idmrk byte = ' '
@@ -293,7 +293,7 @@ func loadptr(loadcmp *COMPNT, load *rune, s string, Ncompnt int, _Compnt []COMPN
 	nk := len(key)
 
 	if nk != 0 {
-		for i := 0; i < Ncompnt; i++ {
+		for i := range _Compnt {
 			Compnt := &_Compnt[i]
 			if key[0] == Compnt.Name {
 				switch Compnt.Eqptype {

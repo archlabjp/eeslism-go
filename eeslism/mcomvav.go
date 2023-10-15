@@ -155,13 +155,9 @@ func OMflowcalc(OMvav *OMVAV, Wd *WDAT) float64 {
 	return G
 }
 
-func OMvavControl(OMvav *OMVAV, Compnt []COMPNT, Ncompnt int) {
+func OMvavControl(OMvav *OMVAV, Compnt []COMPNT) {
 	colname := strings.Split(OMvav.Cmp.Omparm, "-")
 	OMvav.Nrdpnl = len(colname)
-
-	if len(Compnt) != Ncompnt {
-		panic("OMvavControl: len(Compnt) != Ncompnt")
-	}
 
 	for j, name := range colname {
 		for i := 0; i < len(Compnt); i++ {

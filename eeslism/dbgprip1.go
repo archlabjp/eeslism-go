@@ -169,7 +169,7 @@ func dprschdata(Sh []SCH, Sw []SCH) {
 
 	if DEBUG {
 		fmt.Printf("\n*** dprschdata  ***\n")
-		fmt.Printf("\n== Sch.end=%d   Scw.end=%d\n", Nsc, Nsw)
+		fmt.Printf("\n== len(Sch)=%d   len(Scw)=%d\n", Nsc, Nsw)
 
 		for i := 0; i < Nsc; i++ {
 			Sch := &Sh[i]
@@ -204,7 +204,7 @@ func dprschdata(Sh []SCH, Sw []SCH) {
 
 	if Ferr != nil {
 		fmt.Fprintf(Ferr, "\n*** dprschdata  ***\n")
-		fmt.Fprintf(Ferr, "\n== Sch.end=%d   Scw.end=%d\n", Nsc, Nsw)
+		fmt.Fprintf(Ferr, "\n== len(Sch)=%d   len(Scw)=%d\n", Nsc, Nsw)
 
 		for i := 0; i < Nsc; i++ {
 			Sch := &Sh[i]
@@ -275,7 +275,7 @@ func dprexsf(E []EXSF) {
 
 	if DEBUG {
 		fmt.Println("\n*** dprexsf ***")
-		for i := 0; i < E[0].End; i++ {
+		for i := range E {
 			Exs := &E[i]
 			fmt.Printf("%2d  %-11s  typ=%c Wa=%6.2f Wb=%5.2f Rg=%4.2f  z=%5.2f edf=%6.2e\n",
 				i, Exs.Name, Exs.Typ, Exs.Wa, Exs.Wb, Exs.Rg, Exs.Z, Exs.Erdff)
@@ -286,7 +286,7 @@ func dprexsf(E []EXSF) {
 		fmt.Fprintln(Ferr, "\n*** dprexsf ***")
 		fmt.Fprintln(Ferr, "\tNo.\tName\ttyp\tWa\tWb\tRg\tz\tedf")
 
-		for i := 0; i < E[0].End; i++ {
+		for i := range E {
 			Exs := &E[i]
 			fmt.Fprintf(Ferr, "\t%d\t%s\t%c\t%.4g\t%.4g\t%.2g\t%.2g\t%.2g\n",
 				i, Exs.Name, Exs.Typ, Exs.Wa, Exs.Wb, Exs.Rg, Exs.Z, Exs.Erdff)
@@ -300,7 +300,7 @@ func dprwwdata(Wa []WALL, Wi []WINDOW) {
 	if DEBUG {
 		fmt.Printf("\n*** dprwwdata ***\nWALLdata\n")
 
-		for i := 0; i < Wa[0].end; i++ {
+		for i := range Wa {
 			Wall := &Wa[i]
 			fmt.Printf("\nWall i=%d %s R=%5.3f IP=%d Ei=%4.2f Eo=%4.2f as=%4.2f\n", i, Wall.name, Wall.Rwall, Wall.Ip, Wall.Ei, Wall.Eo, Wall.as)
 
@@ -312,7 +312,7 @@ func dprwwdata(Wa []WALL, Wi []WINDOW) {
 
 		fmt.Printf("\nWINDOWdata\n")
 
-		for i := 0; i < Wi[0].end; i++ {
+		for i := range Wi {
 			Window := &Wi[i]
 			fmt.Printf("windows  %s\n", Window.Name)
 			fmt.Printf(" R=%f t=%f B=%f  Ei=%f Eo=%f\n", Window.Rwall, Window.tgtn, Window.Bn, Window.Ei, Window.Eo)
@@ -322,7 +322,7 @@ func dprwwdata(Wa []WALL, Wi []WINDOW) {
 	if Ferr != nil {
 		fmt.Fprintf(Ferr, "\n*** dprwwdata ***\nWALLdata\n")
 
-		for i := 0; i < Wa[0].end; i++ {
+		for i := range Wa {
 			Wall := &Wa[i]
 			fmt.Fprintf(Ferr, "\nWall[%d]\t%s\tR=%.3g\tIP=%d\tEi=%.2g\tEo=%.2g\tas=%.2g\n", i, Wall.name, Wall.Rwall, Wall.Ip, Wall.Ei, Wall.Eo, Wall.as)
 
@@ -336,7 +336,7 @@ func dprwwdata(Wa []WALL, Wi []WINDOW) {
 
 		fmt.Fprintf(Ferr, "\nWINDOWdata\n")
 
-		for i := 0; i < Wi[0].end; i++ {
+		for i := range Wi {
 			Window := &Wi[i]
 			fmt.Fprintf(Ferr, "windows[%d]\t%s\n", i, Window.Name)
 			fmt.Fprintf(Ferr, "\tR=%.3g\tt=%.2g\tB=%.2g\tEi=%.2g\tEo=%.2g\n", Window.Rwall,
@@ -412,8 +412,7 @@ func dprballoc(M []MWALL, S []RMSRF) {
 	if DEBUG {
 		fmt.Println("\n*** dprballoc ***")
 
-		N := M[0].end
-		for mw := 0; mw < N; mw++ {
+		for mw := range M {
 			Mw := &M[mw]
 			id := S[Mw.ns].wd
 			fmt.Printf(" %2d n=%2d  rm=%2d  nxrm=%2d wd=%2d wall=%s M=%2d A=%.2f\n",
@@ -424,8 +423,7 @@ func dprballoc(M []MWALL, S []RMSRF) {
 		fmt.Fprintln(Ferr, "\n*** dprballoc ***")
 		fmt.Fprintln(Ferr, "\tNo.\tn\trm\tnxrm\twd\twall\tM\tA")
 
-		N := M[0].end
-		for mw := 0; mw < N; mw++ {
+		for mw := range M {
 			Mw := &M[mw]
 			id := S[Mw.ns].wd
 			fmt.Fprintf(Ferr, "\t%d\t%d\t%d\t%d\t%d\t%s\t%d\t%.2g\n",

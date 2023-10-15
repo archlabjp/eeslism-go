@@ -52,7 +52,7 @@ var __Weatherdt_decl, __Weatherdt_E, __Weatherdt_tas, __Weatherdt_timedg float64
 var __Weatherdt_dt [7][25]float64
 var __Weatherdt_dtL [7][25]float64
 
-func Weatherdt(Simc *SIMCONTL, Daytm *DAYTM, Loc *LOCAT, Wd *WDAT, Exs []EXSF, EarthSrfFlg rune) {
+func Weatherdt(Simc *SIMCONTL, Daytm *DAYTM, Loc *LOCAT, Wd *WDAT, Exs []EXSF, EarthSrfFlg bool) {
 	var tt, Mon, Day int
 
 	tt = Daytm.Tt
@@ -84,7 +84,7 @@ func Weatherdt(Simc *SIMCONTL, Daytm *DAYTM, Loc *LOCAT, Wd *WDAT, Exs []EXSF, E
 				Intgtsup(1, Loc.Twsup[:])
 			}
 
-			if EarthSrfFlg == 'Y' {
+			if EarthSrfFlg {
 				Wd.EarthSurface = make([]float64, 366*25)
 				EarthSrfTempInit(Simc, Loc, Wd)
 			}

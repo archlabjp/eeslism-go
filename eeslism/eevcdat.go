@@ -193,13 +193,13 @@ func flindat(Flin *FLIN) {
 
 /* 境界条件・負荷仮想機器の要素機器データのポインター設定 */
 
-func Flinint(Nflin int, Flin []FLIN, Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT, Wd *WDAT) {
+func Flinint(Nflin int, Flin []FLIN, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT) {
 	for i := 0; i < Nflin; i++ {
 		// fmt.Printf("<<Flinint>>  i=%d  namet=%s\n", i, Flin[i].namet)
 
-		Flin[i].Vart = envptr(Flin[i].Namet, Simc, Ncompnt, Compnt, Wd, nil)
+		Flin[i].Vart = envptr(Flin[i].Namet, Simc, Compnt, Wd, nil)
 		if Flin[i].Awtype == 'A' {
-			Flin[i].Varx = envptr(Flin[i].Namex, Simc, Ncompnt, Compnt, Wd, nil)
+			Flin[i].Varx = envptr(Flin[i].Namex, Simc, Compnt, Wd, nil)
 		}
 	}
 }

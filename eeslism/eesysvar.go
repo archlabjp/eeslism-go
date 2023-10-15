@@ -1,7 +1,7 @@
 package eeslism
 
-func Sysvar(Ncompnt int, Compnt []COMPNT) {
-	for m := 0; m < Ncompnt; m++ {
+func Sysvar(Compnt []COMPNT) {
+	for m := range Compnt {
 		for i := 0; i < Compnt[m].Nin; i++ {
 			I := Compnt[m].Elins[i]
 			I.Sysvin = 0.0

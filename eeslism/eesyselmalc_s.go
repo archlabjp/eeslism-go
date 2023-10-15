@@ -6,7 +6,6 @@ const idmrkc = "txW"
 
 func Elmalloc(
 	errkey string,
-	Ncompnt int,
 	_Compnt []COMPNT,
 	Eqcat *EQCAT,
 	Eqsys *EQSYS,
@@ -37,7 +36,7 @@ func Elmalloc(
 	var Desi *DESI
 	var Evac *EVAC
 
-	var i, ii, m, mm, neqp, ncat int
+	var i, ii, mm, neqp, ncat int
 	icv := 0
 	var name string
 
@@ -48,7 +47,7 @@ func Elmalloc(
 	var idxe, idxo []ELIOType
 
 	cmp = _Compnt
-	Nout, Nin := Elcount(Ncompnt, _Compnt)
+	Nout, Nin := Elcount(_Compnt)
 
 	if Nout > 0 {
 		*Elo = make([]*ELOUT, Nout)
@@ -69,7 +68,7 @@ func Elmalloc(
 	Flin = Eqsys.Flin
 	Hcload = Eqsys.Hcload
 
-	for m = 0; m < Ncompnt; m++ {
+	for m := range _Compnt {
 		Compnt := &_Compnt[m]
 
 		if Compnt.Eqptype != PV_TYPE {
@@ -662,7 +661,7 @@ func Elmalloc(
 			OMvav.Cat = &Eqcat.OMvavca[ncat]
 
 			if OMvav.Cmp.Omparm != "" {
-				OMvavControl(OMvav, cmp, Ncompnt)
+				OMvavControl(OMvav, cmp)
 			}
 
 			NOMvav++

@@ -1,10 +1,30 @@
 package eeslism
 
+// 外表面熱伝達率の設定方法
+type AloType rune
+
+const (
+	Alotype_None     AloType = 0
+	Alotype_V        AloType = 'V' // 外表面熱伝達率の設定方法: 風速から計算
+	Alotype_Fix      AloType = 'F' // 外表面熱伝達率の設定方法: 23.0固定
+	Alotype_Schedule AloType = 'S' // 外表面熱伝達率の設定方法: スケジュール
+)
+
+// 外表面種別
+type EXSFType rune
+
+const (
+	EXSFType_None EXSFType = 0
+	EXSFType_S    EXSFType = 'S' // 外表面種別: 一般外表面
+	EXSFType_E    EXSFType = 'E' // 外表面種別: 地下
+	EXSFType_e    EXSFType = 'e' // 外表面種別: 地表面
+)
+
 // 外表面方位デ－タ
 type EXSF struct {
 	Name    string
-	Alotype rune // 外表面熱伝達率の設定方法 V:風速から計算、F:23.0固定、S:スケジュール
-	Typ     rune // 一般外表面'S',地下'E', 地表面'e'
+	Alotype AloType  // 外表面熱伝達率の設定方法 V:風速から計算、F:23.0固定、S:スケジュール
+	Typ     EXSFType // 一般外表面'S',地下'E', 地表面'e'
 
 	// --- 事前計算する日射関連のパラメータ群 ---
 
@@ -20,7 +40,7 @@ type EXSF struct {
 	CbCa  float64  // 傾斜角Wbのcos ×  方位角Wbのsin
 	Cwa   float64  // 方位角Waのcos
 	Swa   float64  // 方位角Wbのsin
-	Alo   *float64 // 外表面総合熱伝達率 [-]
+	Alo   *float64 // 外表面総合熱伝達率 [-] (Alotype が Sの場合のみ)
 	Z     float64  // 地中深さ
 	Erdff float64  // 土の熱拡散率 [m2/s]
 
@@ -36,8 +56,6 @@ type EXSF struct {
 	Iw     float64 // 全日射    [W/m2]
 	Rn     float64 // 夜間輻射  [W/m2]
 	Tearth float64 // 地中温度
-
-	End int // 要素数(インデックス0のみに設定)
 }
 
 // 外表面方位デ－タ
@@ -45,10 +63,11 @@ type EXSFS struct {
 	Nexs int
 	Exs  []EXSF // 外表面方位デ－タ
 
-	// 外表面熱伝達率
-	Alotype rune     // 外表面熱伝達率の設定方法 'V':風速から計算、'F':23.0固定、'S':スケジュール
-	Alosch  *float64 // 外表面熱伝達率
+	// ---- 外表面熱伝達率 ----
+
+	Alotype AloType  // 外表面熱伝達率の設定方法 'V':風速から計算、'F':23.0固定、'S':スケジュール
+	Alosch  *float64 // 外表面熱伝達率 [-]  (Alotype が Sの場合のみ)
 
 	// 地表面境界
-	EarthSrfFlg rune // 地表面境界がある場合'Y'
+	EarthSrfFlg bool // 地表面境界がある場合はtrue
 }

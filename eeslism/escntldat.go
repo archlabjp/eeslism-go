@@ -31,7 +31,7 @@ import (
 
 func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int,
 	Cs *[]CTLST, Nctlst *int,
-	Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT,
+	Simc *SIMCONTL, Compnt []COMPNT,
 	Nmpath int, Mpath []MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL) {
 	//loadcmp, cmp := (*COMPNT)(nil), (*COMPNT)(nil)
 	// varcontl, Contl, ctl := (*CONTL)(nil), (*CONTL)(nil), (*CONTL)(nil)
@@ -109,7 +109,7 @@ func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int
 				Contl.Type = 'c'
 				Contl.Cif = Ctlif
 				s = strings.Trim(fi.GetToken(), "()")
-				ctifdecode(s, Ctlif, Simc, Ncompnt, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl)
+				ctifdecode(s, Ctlif, Simc, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl)
 				ctlifIdx++
 				*Nctlif = ctlifIdx
 			} else if s == "AND" {
@@ -121,7 +121,7 @@ func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int
 					Contl.AndAndCif = Ctlif
 				}
 				s = strings.Trim(fi.GetToken(), "()")
-				ctifdecode(s, Ctlif, Simc, Ncompnt, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl)
+				ctifdecode(s, Ctlif, Simc, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl)
 				ctlifIdx++
 				*Nctlif = ctlifIdx
 			} else if s == "OR" {
@@ -129,7 +129,7 @@ func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int
 				Contl.Type = 'c'
 				Contl.OrCif = Ctlif
 				s = strings.Trim(fi.GetToken(), "()")
-				ctifdecode(s, Ctlif, Simc, Ncompnt, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl)
+				ctifdecode(s, Ctlif, Simc, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl)
 				ctlifIdx++
 				*Nctlif = ctlifIdx
 			} else if strings.HasPrefix(s, "LOAD") {
@@ -155,7 +155,7 @@ func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int
 				}
 			} else if s == "-e" {
 				s = fi.GetToken()
-				for i = 0; i < Ncompnt; i++ {
+				for i = range Compnt {
 					cmp := &Compnt[i]
 					if s == cmp.Name {
 						loadcmp = cmp
@@ -166,11 +166,11 @@ func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int
 				key, value := ss[0], ss[1]
 				var err int
 				if load != nil {
-					err = loadptr(loadcmp, load, key, Ncompnt, Compnt, &vptr)
+					err = loadptr(loadcmp, load, key, Compnt, &vptr)
 					load = nil
 				} else {
 					vpath.Type = 0
-					err = ctlvptr(key, Simc, Ncompnt, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl, &vptr, &vpath)
+					err = ctlvptr(key, Simc, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl, &vptr, &vpath)
 				}
 				if err == 0 {
 					Ctlst := &(*Cs)[ctlstIdx]
@@ -182,7 +182,7 @@ func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int
 					} else {
 						Ctlst.Lft.S = vptr.Ptr.(*string)
 					}
-					err = ctlrgtptr(value, &Ctlst.Rgt, Simc, Ncompnt, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl, Ctlst.Type)
+					err = ctlrgtptr(value, &Ctlst.Rgt, Simc, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl, Ctlst.Type)
 				}
 
 				Err := fmt.Sprintf("%s = %s", s[:st], s[st+1:])
@@ -190,7 +190,7 @@ func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int
 			} else if s == "TVALV" {
 				ctlstIdx--
 				contlIdx--
-				ValvControl(fi, Ncompnt, Compnt, Schdl, Simc, Wd, &vptr)
+				ValvControl(fi, Compnt, Schdl, Simc, Wd, &vptr)
 			} else {
 				Eprint("<Contrldata>", s)
 			}
@@ -245,7 +245,7 @@ func ContrlCount(fi *EeTokens) (Nif, N int) {
 
 /*  制御条件式 (lft1 - lft2 ? rgt ) に関するポインター */
 
-func ctifdecode(_s string, ctlif *CTLIF, Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT,
+func ctifdecode(_s string, ctlif *CTLIF, Simc *SIMCONTL, Compnt []COMPNT,
 	Nmpath int, Mpath []MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL) {
 	var lft, op, rgt string // 左変数, 演算子, 右変数
 	var err int
@@ -260,7 +260,7 @@ func ctifdecode(_s string, ctlif *CTLIF, Simc *SIMCONTL, Ncompnt int, Compnt []C
 	}
 
 	// 演算対象の変数 その1を設定
-	ctlvptr(lft, Simc, Ncompnt, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl, &vptr, &vpath)
+	ctlvptr(lft, Simc, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl, &vptr, &vpath)
 
 	ctlif.Type = vptr.Type // 演算の種類を設定
 	ctlif.Nlft = 1
@@ -272,7 +272,7 @@ func ctifdecode(_s string, ctlif *CTLIF, Simc *SIMCONTL, Ncompnt int, Compnt []C
 
 	// 演算対象の変数 その2を設定
 	if st != -1 {
-		ctlvptr(lft[st:], Simc, Ncompnt, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl, &vptr, &vpath)
+		ctlvptr(lft[st:], Simc, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl, &vptr, &vpath)
 
 		if vptr.Type == VAL_CTYPE && ctlif.Type == vptr.Type {
 			ctlif.Nlft = 2
@@ -302,14 +302,14 @@ func ctifdecode(_s string, ctlif *CTLIF, Simc *SIMCONTL, Ncompnt int, Compnt []C
 
 	Errprint(err, "<ctifdecode>", _s)
 
-	ctlrgtptr(rgt, &ctlif.Rgt, Simc, Ncompnt, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl, ctlif.Type)
+	ctlrgtptr(rgt, &ctlif.Rgt, Simc, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl, ctlif.Type)
 }
 
 /* ------------------------------------------------------ */
 
 /*  条件式、設定式の右辺（定数、またはスケジュール設定値のポインター） */
 
-func ctlrgtptr(s string, rgt *CTLTYP, Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT, Nmpath int, Mpath []MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL, _type VPtrType) int {
+func ctlrgtptr(s string, rgt *CTLTYP, Simc *SIMCONTL, Compnt []COMPNT, Nmpath int, Mpath []MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL, _type VPtrType) int {
 	var vptr VPTR
 	var err int
 
@@ -338,7 +338,7 @@ func ctlrgtptr(s string, rgt *CTLTYP, Simc *SIMCONTL, Ncompnt int, Compnt []COMP
 				rgt.S = new(string)
 				*rgt.S = s[1:2]
 			} else {
-				err = ctlvptr(s, Simc, Ncompnt, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl, &vptr, nil)
+				err = ctlvptr(s, Simc, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl, &vptr, nil)
 				if _type == vptr.Type {
 					if _type == VAL_CTYPE {
 						rgt.V = vptr.Ptr.(*float64)

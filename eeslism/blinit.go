@@ -381,7 +381,6 @@ func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]WALL, Nwall
 	}
 
 	*Nwall = i
-	(*Wall)[0].end = i
 }
 
 /* ------------------------------------------------ */
@@ -486,7 +485,6 @@ func Windowdata(section *EeTokens, dsn string, Window *[]WINDOW, Nwindow *int) {
 	}
 
 	*Nwindow = i
-	(*Window)[0].end = i
 }
 
 /* --------------------------------------------------- */
@@ -527,7 +525,6 @@ func Snbkdata(section *EeTokens, dsn string, Snbk *[]SNBK) {
 			S.W2 = 0.0
 			S.H1 = 0.0
 			S.H2 = 0.0
-			S.end = 0
 			S.Type = 0
 			S.Ksi = 0
 		}
@@ -681,8 +678,6 @@ func Snbkdata(section *EeTokens, dsn string, Snbk *[]SNBK) {
 
 		S = &(*Snbk)[i]
 	}
-
-	(*Snbk)[0].end = N
 }
 
 /************************************************************/

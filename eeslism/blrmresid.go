@@ -79,7 +79,7 @@ func Residata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int,
 					if k, err := idsch(ss, schdl.Sch, ""); err == nil {
 						rm.Hmsch = &vall[k]
 					} else {
-						rm.Hmsch = envptr(ss, simc, 0, nil, nil, nil)
+						rm.Hmsch = envptr(ss, simc, nil, nil, nil)
 					}
 
 					// 作業強度設定値名
@@ -87,7 +87,7 @@ func Residata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int,
 					if k, err := idsch(sss, schdl.Sch, ""); err == nil {
 						rm.Hmwksch = &vall[k]
 					} else {
-						rm.Hmwksch = envptr(sss, simc, 0, nil, nil, nil)
+						rm.Hmwksch = envptr(sss, simc, nil, nil, nil)
 					}
 				} else {
 					fmt.Println("No match found.")
@@ -103,7 +103,7 @@ func Residata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int,
 					if k, err := idsch(ss, schdl.Sch, ""); err == nil {
 						rm.Metsch = &vall[k]
 					} else {
-						rm.Metsch = envptr(ss, simc, 0, nil, nil, nil)
+						rm.Metsch = envptr(ss, simc, nil, nil, nil)
 					}
 
 					// 着衣量(Clo値)設定値名
@@ -111,7 +111,7 @@ func Residata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int,
 					if k, err := idsch(sss, schdl.Sch, ""); err == nil {
 						rm.Closch = &vall[k]
 					} else {
-						rm.Closch = envptr(sss, simc, 0, nil, nil, nil)
+						rm.Closch = envptr(sss, simc, nil, nil, nil)
 					}
 
 					// 室内風速設定値名
@@ -119,7 +119,7 @@ func Residata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int,
 					if k, err := idsch(s4, schdl.Sch, ""); err == nil {
 						rm.Wvsch = &vall[k]
 					} else {
-						rm.Wvsch = envptr(s4, simc, 0, nil, nil, nil)
+						rm.Wvsch = envptr(s4, simc, nil, nil, nil)
 					}
 
 					*pmvpri = 1
@@ -197,7 +197,7 @@ func Appldata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCON
 					if k, err := idsch(ss, schdl.Sch, ""); err == nil {
 						rm.Lightsch = &vall[k]
 					} else {
-						rm.Lightsch = envptr(ss, simc, 0, nil, nil, nil)
+						rm.Lightsch = envptr(ss, simc, nil, nil, nil)
 					}
 				} else {
 					fmt.Println("No match found.")
@@ -226,7 +226,7 @@ func Appldata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCON
 					if k, err := idsch(ss, schdl.Sch, ""); err == nil {
 						rm.Assch = &vall[k]
 					} else {
-						rm.Assch = envptr(ss, simc, 0, nil, nil, nil)
+						rm.Assch = envptr(ss, simc, nil, nil, nil)
 					}
 				} else {
 					fmt.Println("No match found.")
@@ -249,7 +249,7 @@ func Appldata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCON
 					if k, err := idsch(ss, schdl.Sch, ""); err == nil {
 						rm.Alsch = &vall[k]
 					} else {
-						rm.Alsch = envptr(ss, simc, 0, nil, nil, nil)
+						rm.Alsch = envptr(ss, simc, nil, nil, nil)
 					}
 				} else {
 					fmt.Println("No match found.")
@@ -272,7 +272,7 @@ func Appldata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCON
 					if k, err := idsch(ss, schdl.Sch, ""); err == nil {
 						rm.AEsch = &vall[k]
 					} else {
-						rm.AEsch = envptr(ss, simc, 0, nil, nil, nil)
+						rm.AEsch = envptr(ss, simc, nil, nil, nil)
 					}
 				} else {
 					fmt.Println("No match found.")
@@ -295,7 +295,7 @@ func Appldata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCON
 					if k, err := idsch(ss, schdl.Sch, ""); err == nil {
 						rm.AGsch = &vall[k]
 					} else {
-						rm.AGsch = envptr(ss, simc, 0, nil, nil, nil)
+						rm.AGsch = envptr(ss, simc, nil, nil, nil)
 					}
 				} else {
 					fmt.Println("No match found.")

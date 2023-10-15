@@ -21,8 +21,7 @@ import (
 	"io"
 )
 
-func Contlschdlr(Ncontl int, _Contl []CONTL, Nmpath int, Mpath []MPATH,
-	Ncompnt int, _Compnt []COMPNT) {
+func Contlschdlr(Ncontl int, _Contl []CONTL, Nmpath int, Mpath []MPATH, _Compnt []COMPNT) {
 
 	// 全ての経路、機器を停止で初期化
 	for i := 0; i < Nmpath; i++ {
@@ -32,7 +31,7 @@ func Contlschdlr(Ncontl int, _Contl []CONTL, Nmpath int, Mpath []MPATH,
 	}
 
 	// 機器の制御情報を「停止」で初期化
-	for i := 0; i < Ncompnt; i++ {
+	for i := range _Compnt {
 		Compnt := &_Compnt[i]
 		Compnt.Control = OFF_SW
 
@@ -97,7 +96,7 @@ func Contlschdlr(Ncontl int, _Contl []CONTL, Nmpath int, Mpath []MPATH,
 		}
 	}
 
-	for i := 0; i < Ncompnt; i++ {
+	for i := range _Compnt {
 		Compnt := &_Compnt[i]
 
 		switch Compnt.Eqptype {

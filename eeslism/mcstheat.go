@@ -71,13 +71,13 @@ func Stheatdata(s string, stheatca *STHEATCA) int {
 
 /*  管長・ダクト長、周囲温度設定 */
 
-func Stheatint(Nstheat int, _stheat []STHEAT, Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT, Wd *WDAT, Npcm int, _PCM []PCM) {
+func Stheatint(Nstheat int, _stheat []STHEAT, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT, Npcm int, _PCM []PCM) {
 	for i := 0; i < Nstheat; i++ {
 		stheat := &_stheat[i]
 		if stheat.Cmp.Envname != "" {
-			stheat.Tenv = envptr(stheat.Cmp.Envname, Simc, Ncompnt, Compnt, Wd, nil)
+			stheat.Tenv = envptr(stheat.Cmp.Envname, Simc, Compnt, Wd, nil)
 		} else {
-			stheat.Room = roomptr(stheat.Cmp.Roomname, Ncompnt, Compnt)
+			stheat.Room = roomptr(stheat.Cmp.Roomname, Compnt)
 		}
 
 		if stheat.Cat.PCMName != "" {

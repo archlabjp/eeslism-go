@@ -8,7 +8,7 @@ import (
 
 /*  システム要素周囲条件（温度など）のポインター  */
 
-func envptr(s string, Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT, Wd *WDAT, Exsf *EXSFS) *float64 {
+func envptr(s string, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT, Exsf *EXSFS) *float64 {
 	var err int
 	var vptr VPTR
 	var pdmy VPTR
@@ -20,7 +20,7 @@ func envptr(s string, Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT, Wd *WDAT, Ex
 		val = new(float64)
 		*val = num
 	} else {
-		err = kynameptr(s, Simc, Ncompnt, Compnt, 0, dmy, Wd, Exsf, &vptr, &pdmy)
+		err = kynameptr(s, Simc, Compnt, 0, dmy, Wd, Exsf, &vptr, &pdmy)
 		if err == 0 && vptr.Type == VAL_CTYPE {
 			val = vptr.Ptr.(*float64)
 		} else {
@@ -35,10 +35,10 @@ func envptr(s string, Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT, Wd *WDAT, Ex
 	return val
 }
 
-func roomptr(s string, Ncompnt int, Compnt []COMPNT) *ROOM {
+func roomptr(s string, Compnt []COMPNT) *ROOM {
 	var rm *ROOM
 
-	for i := 0; i < Ncompnt; i++ {
+	for i := range Compnt {
 		if s != "" && Compnt[i].Name != "" && strings.Compare(s, Compnt[i].Name) == 0 {
 			rm, _ = Compnt[i].Eqp.(*ROOM)
 			break
@@ -54,13 +54,13 @@ func isStrDigit(s string) bool {
 }
 
 /*********** Satoh Create  2001/5/3 ********************/
-func hccptr(c byte, s string, Ncompnt int, Compnt []COMPNT, m *rune) interface{} {
+func hccptr(c byte, s string, Compnt []COMPNT, m *rune) interface{} {
 	var i int
 	var h interface{}
 
 	h = nil
 
-	for i = 0; i < Ncompnt; i++ {
+	for i = range Compnt {
 		if s != "" && s == Compnt[i].Name {
 			if c == 'c' && Compnt[i].Eqptype == HCCOIL_TYPE {
 				h = Compnt[i].Eqp.(*HCC)
@@ -80,13 +80,13 @@ func hccptr(c byte, s string, Ncompnt int, Compnt []COMPNT, m *rune) interface{}
 /*********** Satoh Create  2003/5/17 ********************/
 /* 放射パネルの検索 */
 
-func rdpnlptr(s string, Ncompnt int, Compnt []COMPNT) *RDPNL {
+func rdpnlptr(s string, Compnt []COMPNT) *RDPNL {
 	var i int
 	var h *RDPNL
 
 	h = nil
 
-	for i = 0; i < Ncompnt; i++ {
+	for i = range Compnt {
 		if s == Compnt[i].Name {
 			if Compnt[i].Eqptype == RDPANEL_TYPE {
 				h = Compnt[i].Eqp.(*RDPNL)

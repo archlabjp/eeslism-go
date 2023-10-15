@@ -9,7 +9,7 @@ import (
 
 /*   システム要素の入力 */
 func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
-	Cmp *[]COMPNT, Ncompnt *int, Eqsys *EQSYS, Ncmpalloc *int, ID int) {
+	Cmp *[]COMPNT, Eqsys *EQSYS, Ncmpalloc *int, ID int) {
 	var (
 		//cmp    *[]COMPNT
 		Compnt []COMPNT
@@ -480,7 +480,6 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 			comp_num++
 		}
 	}
-	*Ncompnt = Ncmp
 
 	//fmt.Printf("<<Compodata>> Ncompnt = %d\n", *Ncompnt)
 

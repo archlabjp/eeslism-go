@@ -89,13 +89,13 @@ func Boidata(s string, boica *BOICA) int {
 	return id
 }
 
-func Boicaint(_Boica []BOICA, Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL) {
+func Boicaint(_Boica []BOICA, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL) {
 	for i := 0; i < len(_Boica); i++ {
 		Boica := &_Boica[i]
 		if idx, err := idsch(Boica.Qostr, Schdl.Sch, ""); err == nil {
 			Boica.Qo = &Schdl.Val[idx]
 		} else {
-			Boica.Qo = envptr(Boica.Qostr, Simc, 0, nil, nil, nil)
+			Boica.Qo = envptr(Boica.Qostr, Simc, nil, nil, nil)
 		}
 	}
 }

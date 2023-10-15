@@ -18,30 +18,30 @@
 package eeslism
 
 // システム使用機器の初期設定
-func Mecsinit(Eqsys *EQSYS, Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT, Nexsf int, Exsf []EXSF, Wd *WDAT, Rmvls *RMVLS) {
+func Mecsinit(Eqsys *EQSYS, Simc *SIMCONTL, Compnt []COMPNT, Nexsf int, Exsf []EXSF, Wd *WDAT, Rmvls *RMVLS) {
 	// ヒートポンプ
-	Refaint(Eqsys.Nrefa, Eqsys.Refa, Wd, Ncompnt, Compnt)
+	Refaint(Eqsys.Nrefa, Eqsys.Refa, Wd, Compnt)
 
 	// 太陽熱集熱器
 	Collint(Eqsys.Ncoll, Eqsys.Coll, Nexsf, Exsf, Wd)
 
 	// 配管・ダクト
-	Pipeint(Eqsys.Npipe, Eqsys.Pipe, Simc, Ncompnt, Compnt, Wd)
+	Pipeint(Eqsys.Npipe, Eqsys.Pipe, Simc, Compnt, Wd)
 
 	// 蓄熱槽
-	Stankint(Eqsys.Nstank, Eqsys.Stank, Simc, Ncompnt, Compnt, Wd)
+	Stankint(Eqsys.Nstank, Eqsys.Stank, Simc, Compnt, Wd)
 
 	// 定流量ポンプ、変流量ポンプおよび太陽電池駆動ポンプ
 	Pumpint(Eqsys.Npump, Eqsys.Pump, Nexsf, Exsf)
 
 	// 電気蓄熱暖房器
-	Stheatint(Eqsys.Nstheat, Eqsys.Stheat, Simc, Ncompnt, Compnt, Wd, Rmvls.Npcm, Rmvls.PCM)
+	Stheatint(Eqsys.Nstheat, Eqsys.Stheat, Simc, Compnt, Wd, Rmvls.Npcm, Rmvls.PCM)
 
 	// 境界条件設定用仮想機器
-	Flinint(Eqsys.Nflin, Eqsys.Flin, Simc, Ncompnt, Compnt, Wd)
+	Flinint(Eqsys.Nflin, Eqsys.Flin, Simc, Compnt, Wd)
 
 	// VAVユニット
-	VWVint(Eqsys.Nvav, Eqsys.Vav, Ncompnt, Compnt)
+	VWVint(Eqsys.Nvav, Eqsys.Vav, Compnt)
 
 	// 全熱交換器
 	Thexint(Eqsys.Nthex, Eqsys.Thex)
@@ -50,7 +50,7 @@ func Mecsinit(Eqsys *EQSYS, Simc *SIMCONTL, Ncompnt int, Compnt []COMPNT, Nexsf 
 	PVint(Eqsys.Npv, Eqsys.PVcmp, Nexsf, Exsf, Wd)
 
 	// デシカント槽
-	Desiint(Eqsys.Ndesi, Eqsys.Desi, Simc, Ncompnt, Compnt, Wd)
+	Desiint(Eqsys.Ndesi, Eqsys.Desi, Simc, Compnt, Wd)
 
 	// 気化冷却器
 	Evacint(Eqsys.Nevac, Eqsys.Evac)

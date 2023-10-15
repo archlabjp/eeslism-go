@@ -72,7 +72,7 @@ func Ventdata(fi *EeTokens, dsn string, Schdl *SCHDL, Room []ROOM, Simc *SIMCONT
 					if k, err := idsch(ss, Schdl.Sch, ""); err == nil {
 						Rm.Vesc = &Schdl.Val[k]
 					} else {
-						Rm.Vesc = envptr(ss, Simc, 0, nil, nil, nil)
+						Rm.Vesc = envptr(ss, Simc, nil, nil, nil)
 					}
 				} else {
 					fmt.Println("No match found.")
@@ -95,7 +95,7 @@ func Ventdata(fi *EeTokens, dsn string, Schdl *SCHDL, Room []ROOM, Simc *SIMCONT
 					if k, err = idsch(ss, Schdl.Sch, ""); err == nil {
 						Rm.Visc = &Schdl.Val[k]
 					} else {
-						Rm.Visc = envptr(ss, Simc, 0, nil, nil, nil)
+						Rm.Visc = envptr(ss, Simc, nil, nil, nil)
 					}
 				} else {
 					fmt.Println("No match found.")

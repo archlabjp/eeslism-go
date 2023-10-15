@@ -88,6 +88,9 @@ func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int
 	load = nil
 	for fi.IsEnd() == false {
 		s := fi.GetToken()
+		if s == "\n" {
+			continue
+		}
 		if len(s) == 0 || s[0] == '*' {
 			break
 		}
@@ -159,14 +162,15 @@ func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int
 					}
 				}
 			} else if st := strings.IndexRune(s, '='); st != -1 {
-				s = s[:st]
+				ss := strings.SplitN(s, "=", 2)
+				key, value := ss[0], ss[1]
 				var err int
 				if load != nil {
-					err = loadptr(loadcmp, load, s, Ncompnt, Compnt, &vptr)
+					err = loadptr(loadcmp, load, key, Ncompnt, Compnt, &vptr)
 					load = nil
 				} else {
 					vpath.Type = 0
-					err = ctlvptr(s, Simc, Ncompnt, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl, &vptr, &vpath)
+					err = ctlvptr(key, Simc, Ncompnt, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl, &vptr, &vpath)
 				}
 				if err == 0 {
 					Ctlst := &(*Cs)[ctlstIdx]
@@ -178,7 +182,7 @@ func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int
 					} else {
 						Ctlst.Lft.S = vptr.Ptr.(*string)
 					}
-					err = ctlrgtptr(s[st+1:], &Ctlst.Rgt, Simc, Ncompnt, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl, Ctlst.Type)
+					err = ctlrgtptr(value, &Ctlst.Rgt, Simc, Ncompnt, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl, Ctlst.Type)
 				}
 
 				Err := fmt.Sprintf("%s = %s", s[:st], s[st+1:])
@@ -220,7 +224,11 @@ func ContrlCount(fi *EeTokens) (Nif, N int) {
 		switch s {
 		case "if", "AND", "OR":
 			N1++
-		case "=", "TVALV":
+		case "TVALV":
+			N2++
+		}
+
+		if strings.Contains(s, "=") {
 			N2++
 		}
 	}

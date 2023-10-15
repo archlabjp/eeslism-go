@@ -308,7 +308,7 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 		switch s {
 		case "TITLE":
 			line := tokens.GetLogicalLine()
-			Simc.Title = line[0]
+			Simc.Title = strings.Join(line, " ")
 			fmt.Printf("%s\n", Simc.Title)
 		case "GDAT":
 			section := tokens.GetSection()

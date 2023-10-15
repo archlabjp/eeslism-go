@@ -75,9 +75,7 @@ func Rmrdshfc(_Room []ROOM, Sd []RMSRF) {
 		return
 	}
 
-	N := _Room[0].end
-
-	for i := 0; i < N; i++ {
+	for i := range _Room {
 		Room := &_Room[i]
 		brs := Room.Brs
 		sd := Sd[brs:]
@@ -97,7 +95,7 @@ func Rmhtrsmcf(Nsrf int, _Sd []RMSRF) {
 /* ----------------------------------------------------------------- */
 // 透過日射、相当外気温度の計算
 func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK, Qrm []QRM, nday, mt int) {
-	var n, nn, ed, Nrm int
+	var n, nn int
 	var Fsdw float64
 	var Idre float64 // 直逹日射  [W/m2]
 	var Idf float64  // 拡散日射  [W/m2]
@@ -105,7 +103,6 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 	var Qgtn, Qga, Sab, Rab float64
 	var Sdn, Sdnx *RMSRF
 	var rm *ROOM
-	var e *EXSF
 	var S *SNBK
 	var Tr float64
 	var Eo *ELOUT
@@ -114,10 +111,8 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 		return
 	}
 
-	Nrm = Room[0].end
-
 	// 部位ごとの日射吸収比率のスケジュール対応（比率入力部位の日射入射比率初期化）
-	for i := 0; i < Nrm; i++ {
+	for i := range Room {
 		rm = &Room[i]
 
 		// 室内部位の日射吸収比率の計算
@@ -150,7 +145,7 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 	}
 	// 室内部位の日射吸収比率の計算（毎計算ステップへ変更）2017/12/25
 	Rmrdshfc(Room, Sd)
-	for i := 0; i < Nrm; i++ {
+	for i := range Room {
 		Q := &Qrm[i]
 		rm := &Room[i]
 
@@ -167,8 +162,12 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 		for nn := 0; nn < rm.N; nn++ {
 			Sdn = &Sd[n]
 
-			ed = Sdn.exs
-			e = &Exs[ed]
+			if Sdn.ble == BLE_InnerWall {
+				continue
+			}
+
+			e := &Exs[Sdn.exs]
+
 			Sdn.RSsol = 0.0
 			Sdn.RSsold = 0.
 			Fsdw = 0.0
@@ -288,9 +287,8 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 		}
 	} // 室ループ終了
 
-	Nrm = Room[0].end
 	// 透過日射の室内部位の最終計算（隣接室への日射分配、透過日射のうちガラスから屋外に放熱される分も考慮）
-	for i := 0; i < Nrm; i++ {
+	for i := range Room {
 		rm := &Room[i]
 
 		// 透過間仕切りなど、隣接空間への透過日射分配の計算
@@ -319,8 +317,7 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 		}
 	}
 
-	Nrm = Room[0].end
-	for i := 0; i < Nrm; i++ {
+	for i := range Room {
 		rm := &Room[i]
 		Q := &Qrm[i]
 
@@ -498,10 +495,6 @@ func Rmsurftd(_Room []ROOM, Sd []RMSRF) {
 
 // 室の熱取得要素の計算
 func Qrmsim(Room []ROOM, Wd *WDAT, Qrm []QRM) {
-	if Room[0].end != len(Room) {
-		panic("Room[0].end != len(Room)")
-	}
-
 	for i := range Room {
 		Q := &Qrm[i]
 		rm := &Room[i]

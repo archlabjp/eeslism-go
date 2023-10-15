@@ -84,10 +84,11 @@ type RMSRF struct {
 	Name  string // 壁体名
 	Sname string //RMP名 higuchi 070918
 
-	// 出力指定
-	wlpri  bool // 壁体内部温度出力指定
-	shdpri bool // 日よけの影面積の出力指定
-	sfepri bool // 要素別壁体表面温度出力指定
+	// ---- 出力指定 ---- //
+
+	wlpri  bool // 壁体内部温度出力指定 (ROOM *p)
+	shdpri bool // 日よけの影面積の出力指定 (ROOM *shd)
+	sfepri bool // 要素別壁体表面温度出力指定 (ROOM *sfe)
 
 	// 部位コ－ド
 	// 'B' | 'W' | 'E'(外壁) | 'R'(屋根)  | 'F'床（外気、地中に接する） |
@@ -141,8 +142,9 @@ type RMSRF struct {
 	tgtn float64 // 日射総合透過率 [-]
 	Bn   float64 // 吸収日射取得率 [-]
 
-	/*壁体、窓熱抵抗　　　　 */
-	fsol *float64 // 短波長放射の基本吸収比率
+	// ---- 壁体、窓熱抵抗 ----
+
+	fsol *float64 // 部位室内表面の日射吸収比率 [-]
 
 	/*窓透過日射の吸収比率     */
 	srg     float64 // 1次入射比率（隣接室への透過やガラスから屋外への放熱は無視）
@@ -209,8 +211,9 @@ type RMSRF struct {
 	mSQi           QDAY
 	mTsdy          SVDAY
 
-	// 集熱器一体型壁体用計算結果
-	Ndiv     int // 流れ方向温度分布の分割数
+	// ---- 集熱器一体型壁体用計算結果 ----
+
+	Ndiv     int //  空気式集熱器のときの流れ方向（入口から出口）の分割数
 	ColCoeff float64
 	// 建材一体型集熱器計算時の後退差分要素URM
 	Tc []float64
@@ -914,7 +917,6 @@ type ROOM struct {
 	Tsavdy SVDAY
 
 	mTrdy, mxrdy, mRHdy, mTsavdy SVDAY
-	end                          int //要素数(インデックス0に設定)
 	VAVcontrl                    *VAV
 	OTsetCwgt                    *float64 // 作用温度設定時の対流成分重み係数
 	// デフォルトは0.5

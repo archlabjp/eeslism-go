@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"unicode"
@@ -114,6 +115,10 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 
 		/*****************************/
 
+		if DEBUG {
+			fmt.Printf("%s\n", s)
+		}
+
 		//err = Er + s
 
 		i++
@@ -121,182 +126,6 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 		Rm := &Rmvls.Room[RmIdx]
 
 		Rm.Name = s
-
-		for section.IsEnd() == false {
-			pos := section.GetPos()
-			s := section.GetToken()
-			if s == "\n" {
-				continue
-			}
-			if strings.ContainsRune(s, ':') {
-				// 壁体の宣言に入っているので、1つ読み戻す
-				section.RestorePos(pos)
-				break
-			}
-
-			if DEBUG {
-				fmt.Printf("Roomdata  s=%s\n", s)
-			}
-
-			var err error
-			if s == "*s" {
-				// outfile_sf.es への室内表面温度、
-				// outfile_sfq.esへの部位別表面熱流、
-				// outfile_sfa.esへの部位別表面熱伝達率の出力指定
-				Rm.sfpri = true
-			} else if s == "*q" {
-				// outfile_rq.es、outfile_dqr.es への日射熱取得、
-				// 室内発熱、隙間風熱取得要素の出力指定
-				Rm.eqpri = true
-			} else if s == "*sfe" {
-				sfemark = true
-			} else if strings.ContainsRune(s, ':') {
-				ss := strings.Split(s, ":")
-				if ss[0][0] == '(' {
-					dnxrname = strings.TrimSuffix(ss[0], ")")
-				} else {
-					dexsname = ss[0]
-				}
-			} else if s == "Fij" {
-				// 形態係数の入力 （予め計算済みの形態係数を使用する場合）
-				Rm.fij = 'F'
-
-				// 室内の表面数 N
-				N2, err = strconv.Atoi(section.GetToken())
-				if err != nil {
-					panic(err)
-				}
-				Rm.F = make([]float64, N2*N2)
-
-				ij = 0
-				for {
-					var ss string
-					ss = section.GetToken()
-					if err != nil {
-						panic(err)
-					}
-					if ss == ";" {
-						break
-					}
-					Rm.F[ij], err = readFloat(ss)
-					if err != nil {
-						panic(err)
-					}
-					ij++
-				}
-			} else if s == "rsrnx" {
-				Rm.rsrnx = true
-			} else {
-				st := strings.IndexRune(s, '=')
-				if st == -1 {
-					panic("Roomdata: invalid data")
-				}
-
-				key, value := s[:st], s[st+1:]
-
-				if key == "Vol" {
-					// 室容積
-					Rm.VRM, err = readRoomVol(value)
-					if err != nil {
-						panic(err)
-					}
-				} else if key == "flrsr" {
-					// 床の日射吸収比率
-					Rm.flrsr = nil
-					k, err = idsch(value, Schdl.Sch, "")
-					if err == nil {
-						Rm.flrsr = &vall[k]
-					} else {
-						Rm.flrsr = envptr(value, Simc, 0, nil, nil, nil)
-					}
-				} else if key == "alc" {
-					// alc 室内表面熱伝達率[W/m2K]。
-					k, err = idsch(value, Schdl.Sch, "")
-					if err == nil {
-						Rm.alc = &vall[k]
-					} else {
-						Rm.alc = envptr(s[st+1:], Simc, 0, nil, nil, nil)
-					}
-				} else if key == "Hcap" {
-					// 室内空気に付加する熱容量 [J/K]
-					Rm.Hcap, err = readFloat(value)
-					if err != nil {
-						panic(err)
-					}
-				} else if key == "Mxcap" {
-					// 室内空気に付加する湿気容量 [kg/(kg/Kg)]
-					Rm.Mxcap, err = readFloat(value)
-					if err != nil {
-						panic(err)
-					}
-				} else if key == "MCAP" {
-					// 室内に置かれた物体の熱容量 [J/K]
-					k, err := idsch(value, Schdl.Sch, "")
-					if err == nil {
-						Rm.MCAP = &vall[k]
-					} else {
-						Rm.MCAP = envptr(value, Simc, 0, nil, nil, nil)
-					}
-				} else if key == "CM" {
-					// 室内に置かれた物体と室内空気との間の熱コンダクタンス [W/K]
-					k, err = idsch(value, Schdl.Sch, "")
-					if err == nil {
-						Rm.CM = &vall[k]
-					} else {
-						Rm.CM = envptr(value, Simc, 0, nil, nil, nil)
-					}
-				} else if key == "fsolm" { // 家具への日射吸収割合
-					k, err = idsch(value, Schdl.Sch, "")
-					if err == nil {
-						Rm.fsolm = &vall[k]
-					} else {
-						Rm.fsolm = envptr(value, Simc, 0, nil, nil, nil)
-					}
-				} else if key == "PCMFurn" {
-					// PCM内臓家具の場合　(PCMname,mPCM)
-					var PCMname, stbuf string
-					s1 := s[:st]
-					s2 := s[st+2:]
-					PCMname = s2
-					stbuf = PCMname
-
-					st := strings.IndexRune(PCMname, ',')
-					s1 = PCMname[:st]
-					s2 = PCMname[st+1:]
-					Rm.PCMfurnname = s1
-
-					var err error
-					st1 := strings.IndexRune(stbuf, ')')
-					st2 := strings.IndexRune(stbuf, ',')
-					Rm.mPCM, err = readFloat(s[st2+2 : st1])
-					if err != nil {
-						panic(err)
-					}
-
-					for kk := 0; kk < Rmvls.Npcm; kk++ {
-						PCM := &Rmvls.PCM[kk]
-						if Rm.PCMfurnname == PCM.Name {
-							Rm.PCM = PCM
-						}
-					}
-					if Rm.PCM == nil {
-						Er = fmt.Sprintf("Roomname=%s %sが見つかりません", Rm.Name, Rm.PCMfurnname)
-						Eprint(Er, "<Roomdata>")
-						os.Exit(1)
-					}
-				} else if key == "OTc" {
-					// 作用温度設定時の対流成分重み係数の設定
-					if k, err = idsch(value, Schdl.Sch, ""); err == nil {
-						Rm.OTsetCwgt = &vall[k]
-					} else {
-						Rm.OTsetCwgt = envptr(value, Simc, 0, nil, nil, nil)
-					}
-				} else {
-					Err := fmt.Sprintf("Room=%s s=%s", Rm.Name, s)
-					Eprint("<Roomdata>", Err)
-				}
-			}
-		}
 
 		// Check duplication of room names
 		for l = 0; l < i-1; l++ {
@@ -309,40 +138,27 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 
 		nr = -1
 
-		sfemark = false
-
-		// 2行目以降のサーフェース情報を処理
+		// 室のデータの読み取り
+		compnameStart := false
 		for section.IsEnd() == false {
-
-			line := section.GetLogicalLine()
-			if line[0] == "*" {
+			s := section.PeekToken()
+			if s == "\n" {
+				section.GetToken()
+				continue
+			}
+			if s == "*" {
 				break
 			}
+
+			line := section.GetLogicalLine()
 
 			n++
 			nr++
 
 			SdIdx++
 			Sd := Rmsrfinit()
-
-			// 壁体名または窓名が指定されているか(省略されていないか)
-			c := rune(line[0][1])
-			if strings.HasSuffix(line[0], ":") {
-				c = rune(line[1][1])
-			}
-
-			if c != 'E' && c != 'R' && c != 'F' && c != 'i' && c != 'c' && c != 'f' && c != 'W' {
-				panic(fmt.Sprintf("Invalid ble '%s' at \"%s\"", string(c), strings.Join(line, " ")))
-			}
-
-			Sd.ble = BLEType(c)
-
-			Sd.sfepri = sfemark
-			Sd.Sname = ""
-
-			dexsname = strings.TrimRight(line[0], ":")
-
 			var err error
+
 			for _, s := range line {
 				if DEBUG {
 					fmt.Printf("Roomdata1  s=%s\n", s)
@@ -356,10 +172,27 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 					}
 					/*******************/
 
-					if s == "*p" {
-						Sd.wlpri = true
+					if s == "*s" {
+						// outfile_sf.es への室内表面温度、
+						// outfile_sfq.esへの部位別表面熱流、
+						// outfile_sfa.esへの部位別表面熱伝達率の出力指定
+						Rm.sfpri = true
+					} else if s == "*q" {
+						// outfile_rq.es、outfile_dqr.es への日射熱取得、
+						// 室内発熱、隙間風熱取得要素の出力指定
+						Rm.eqpri = true
 					} else if s == "*sfe" {
-						Sd.sfepri = true
+						// 要素別壁体表面温度出力指定
+						if !compnameStart {
+							// 部屋の内表面に全体に反映させる
+							sfemark = true
+						} else {
+							// 個別内表面にのみ反映させる
+							Sd.sfepri = true
+						}
+					} else if s == "*p" {
+						// 壁体内部温度出力指定
+						Sd.wlpri = true
 					} else if s == "*shd" {
 						// 日よけの影面積出力
 						Sd.shdpri = true
@@ -383,6 +216,9 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 						ss = strings.Trim(tokens.GetToken(), "()")
 						Sd.DynamicCode = ss
 
+						// IF文の展開
+						//ctifdecode(s, Sd->ctlif, Simc, Ncompnt, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl);
+
 						// Read the True case window
 						s = tokens.GetToken()
 						Nwindow := Rmvls.Window[0].end
@@ -401,7 +237,65 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							Eprint("<Roomdata>", err)
 							os.Exit(1)
 						}
-					} else {
+					} else if strings.ContainsRune(s, ':') {
+						ss := strings.Split(s, ":")
+
+						regexPattern := `\(([^)]*)\)`
+
+						// 正規表現をコンパイルします。
+						r, err := regexp.Compile(regexPattern)
+						if err != nil {
+							fmt.Printf("Error compiling regex: %v\n", err)
+							return
+						}
+
+						// 文字列からマッチする部分を検索し、結果を取得します。
+						match := r.FindStringSubmatch(ss[0])
+
+						// マッチした内容が存在し、サブマッチ（ここではカッコ内）が存在する場合、それを表示します。
+						if len(match) > 1 {
+							dnxrname = match[1]
+						} else {
+							dexsname = ss[0]
+						}
+						compnameStart = true
+					} else if s == "Fij" {
+						// 形態係数の入力 （予め計算済みの形態係数を使用する場合）
+						Rm.fij = 'F'
+
+						// 室内の表面数 N
+						N2, err = strconv.Atoi(section.GetToken())
+						if err != nil {
+							panic(err)
+						}
+						Rm.F = make([]float64, N2*N2)
+
+						ij = 0
+						for {
+							var ss string
+							ss = section.GetToken()
+							if err != nil {
+								panic(err)
+							}
+							if ss == ";" {
+								break
+							}
+							Rm.F[ij], err = readFloat(ss)
+							if err != nil {
+								panic(err)
+							}
+							ij++
+						}
+					} else if s == "rsrnx" {
+						Rm.rsrnx = true
+					} else if s[0] == '-' {
+						c := s[1]
+						if c != 'E' && c != 'R' && c != 'F' && c != 'i' && c != 'c' && c != 'f' && c != 'W' {
+							panic(fmt.Sprintf("Invalid ble '%s' at \"%s\"", string(c), strings.Join(line, " ")))
+						}
+						Sd.ble = BLEType(c)
+					} else if compnameStart {
+						c := Sd.ble
 						if DEBUG {
 							fmt.Printf("Roomdata3  s=%s  c=%c\n", s, c)
 						}
@@ -467,118 +361,238 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 						}
 					}
 				} else {
-					//printf ( "st=%s  Sd.name=%s\n", st, Sd.name ) ;
+					key, value := s[:st], s[st+1:]
 
-					if strings.HasPrefix(s, "A=") {
-						Sd.A, err = strconv.ParseFloat(s[2:], 64)
-						if err != nil {
-							panic(err)
-						}
-					} else if strings.HasPrefix(s, "e=") {
-						// 外表面の検索
-						Nexs := Exs[0].End
-						for j := 0; j < Nexs; j++ {
-							e := &Exs[j]
-							if e.Name == s[st+1:] {
-								Sd.exs = j
-								break
+					if !compnameStart {
+						// -- 室への設定 --
+
+						if key == "Vol" {
+							// 室容積
+							Rm.VRM, err = readRoomVol(value)
+							if err != nil {
+								panic(err)
 							}
-						}
-						// 見つからない場合
-						if j == Nexs {
-							err := fmt.Sprintf("Room=%s <exsrf> %s\n", Rm.Name, s)
-							Eprint("<Roomdata>", err)
-							os.Exit(1)
-						}
-					} else if strings.HasPrefix(s, "sb=") {
-						// 日よけの検索
-						Nsnbk := Rmvls.Snbk[0].end
-						for j := 0; j < Nsnbk; j++ {
-							S := &Rmvls.Snbk[j]
-							if S.Name == s[st+1:] {
-								Sd.sb = j
-								break
+						} else if key == "flrsr" {
+							// 床の日射吸収比率
+							Rm.flrsr = nil
+							k, err = idsch(value, Schdl.Sch, "")
+							if err == nil {
+								Rm.flrsr = &vall[k]
+							} else {
+								Rm.flrsr = envptr(value, Simc, 0, nil, nil, nil)
 							}
-						}
-						// 見つからない場合
-						if j == Nsnbk {
-							err := fmt.Sprintf("Room=%s <Snbrk> %s\n", Rm.Name, s)
-							Eprint("<Roomdata>", err)
-							os.Exit(1)
-						}
-					} else if strings.HasPrefix(s, "r=") {
-						Sd.nxrmname = s[st+1:] // 隣室名
-					} else if strings.HasPrefix(s, "c=") {
-						Sd.c, err = strconv.ParseFloat(s[st+1:], 64)
-						if err != nil {
-							panic(err)
-						}
-					} else if strings.HasPrefix(s, "sw=") {
-						Sd.fnsw, err = idscw(s[st+1:], Scw, "")
-						if err != nil {
-							panic(err)
-						}
-					} else if strings.HasPrefix(s, "i=") {
-						Sd.Name = s[st+1:]
-					} else if strings.HasPrefix(s, "alc=") {
-						if k, err := idsch(s[st+1:], Schdl.Sch, ""); err == nil {
-							Sd.alicsch = &vall[k]
+						} else if key == "alc" {
+							// alc 室内表面熱伝達率[W/m2K]。
+							k, err = idsch(value, Schdl.Sch, "")
+							if err == nil {
+								Rm.alc = &vall[k]
+							} else {
+								Rm.alc = envptr(s[st+1:], Simc, 0, nil, nil, nil)
+							}
+						} else if key == "Hcap" {
+							// 室内空気に付加する熱容量 [J/K]
+							Rm.Hcap, err = readFloat(value)
+							if err != nil {
+								panic(err)
+							}
+						} else if key == "Mxcap" {
+							// 室内空気に付加する湿気容量 [kg/(kg/Kg)]
+							Rm.Mxcap, err = readFloat(value)
+							if err != nil {
+								panic(err)
+							}
+						} else if key == "MCAP" {
+							// 室内に置かれた物体の熱容量 [J/K]
+							k, err := idsch(value, Schdl.Sch, "")
+							if err == nil {
+								Rm.MCAP = &vall[k]
+							} else {
+								Rm.MCAP = envptr(value, Simc, 0, nil, nil, nil)
+							}
+						} else if key == "CM" {
+							// 室内に置かれた物体と室内空気との間の熱コンダクタンス [W/K]
+							k, err = idsch(value, Schdl.Sch, "")
+							if err == nil {
+								Rm.CM = &vall[k]
+							} else {
+								Rm.CM = envptr(value, Simc, 0, nil, nil, nil)
+							}
+						} else if key == "fsolm" { // 家具への日射吸収割合
+							k, err = idsch(value, Schdl.Sch, "")
+							if err == nil {
+								Rm.fsolm = &vall[k]
+							} else {
+								Rm.fsolm = envptr(value, Simc, 0, nil, nil, nil)
+							}
+						} else if key == "PCMFurn" {
+							// PCM内臓家具の場合　(PCMname,mPCM)
+							var PCMname, stbuf string
+							s1 := s[:st]
+							s2 := s[st+2:]
+							PCMname = s2
+							stbuf = PCMname
+
+							st := strings.IndexRune(PCMname, ',')
+							s1 = PCMname[:st]
+							s2 = PCMname[st+1:]
+							Rm.PCMfurnname = s1
+
+							var err error
+							st1 := strings.IndexRune(stbuf, ')')
+							st2 := strings.IndexRune(stbuf, ',')
+							Rm.mPCM, err = readFloat(s[st2+2 : st1])
+							if err != nil {
+								panic(err)
+							}
+
+							for kk := 0; kk < Rmvls.Npcm; kk++ {
+								PCM := &Rmvls.PCM[kk]
+								if Rm.PCMfurnname == PCM.Name {
+									Rm.PCM = PCM
+								}
+							}
+							if Rm.PCM == nil {
+								Er = fmt.Sprintf("Roomname=%s %sが見つかりません", Rm.Name, Rm.PCMfurnname)
+								Eprint(Er, "<Roomdata>")
+								os.Exit(1)
+							}
+						} else if key == "OTc" {
+							// 作用温度設定時の対流成分重み係数の設定
+							if k, err = idsch(value, Schdl.Sch, ""); err == nil {
+								Rm.OTsetCwgt = &vall[k]
+							} else {
+								Rm.OTsetCwgt = envptr(value, Simc, 0, nil, nil, nil)
+							}
 						} else {
-							Sd.alicsch = envptr(s[st+1:], Simc, 0, nil, nil, nil)
-						}
-					} else if strings.HasPrefix(s, "alr=") {
-						if k, err := idsch(s[st+1:], Schdl.Sch, ""); err == nil {
-							Sd.alirsch = &vall[k]
-						} else {
-							Sd.alirsch = envptr(s[st+1:], Simc, 0, nil, nil, nil)
-						}
-					} else if strings.HasPrefix(s, "fsol=") {
-						Rm.Nfsolfix++
-						Sd.ffix_flg = '*'
-						if k, err := idsch(s[st+1:], Schdl.Sch, ""); err == nil {
-							Sd.fsol = &vall[k]
-						} else {
-							Sd.fsol = envptr(s[st+1:], Simc, 0, nil, nil, nil)
-						}
-					} else if strings.HasPrefix(s, "rmp=") {
-						Sd.Sname = s[4:]
-					} else if strings.HasPrefix(s, "PVcap=") {
-						Sd.PVwall.PVcap, err = strconv.ParseFloat(s[st+1:], 64)
-						if err != nil {
-							panic(err)
-						}
-						Sd.PVwallFlg = true
-					} else if strings.HasPrefix(s, "Wsu=") {
-						// 集熱屋根の通気層上側の幅 [m]
-						Sd.dblWsu, err = strconv.ParseFloat(s[st+1:], 64)
-						if err != nil {
-							panic(err)
-						}
-					} else if strings.HasPrefix(s, "Wsd=") {
-						// 集熱屋根の通気層下側の幅 [m]
-						Sd.dblWsd, err = strconv.ParseFloat(s[st+1:], 64)
-						if err != nil {
-							panic(err)
-						}
-					} else if strings.HasPrefix(s, "Ndiv=") {
-						Sd.Ndiv, err = strconv.Atoi(s[st+1:])
-						if err != nil {
-							panic(err)
-						}
-						Sd.Tc = make([]float64, Sd.Ndiv)
-					} else if strings.HasPrefix(s, "tnxt=") {
-						Sd.tnxt, err = strconv.ParseFloat(s[st+1:], 64)
-						if err != nil {
-							panic(err)
+							Err := fmt.Sprintf("Room=%s s=%s", Rm.Name, s)
+							Eprint("<Roomdata>", Err)
 						}
 					} else {
-						err := fmt.Sprintf("Room=%s ble=%c s=%s\n", Rm.Name, Sd.ble, s)
-						Eprint("<Roomdata>", err)
-						os.Exit(1)
-					}
+						// -- 部位設定 --
+						//printf ( "st=%s  Sd.name=%s\n", st, Sd.name ) ;
 
+						if strings.HasPrefix(s, "A=") {
+							Sd.A, err = readFloat(s[2:])
+							if err != nil {
+								panic(err)
+							}
+						} else if strings.HasPrefix(s, "e=") {
+							// 外表面の検索
+							Nexs := Exs[0].End
+							for j := 0; j < Nexs; j++ {
+								e := &Exs[j]
+								if e.Name == s[st+1:] {
+									Sd.exs = j
+									break
+								}
+							}
+							// 見つからない場合
+							if j == Nexs {
+								err := fmt.Sprintf("Room=%s <exsrf> %s\n", Rm.Name, s)
+								Eprint("<Roomdata>", err)
+								os.Exit(1)
+							}
+						} else if strings.HasPrefix(s, "sb=") {
+							// 日よけの検索
+							Nsnbk := Rmvls.Snbk[0].end
+							for j := 0; j < Nsnbk; j++ {
+								S := &Rmvls.Snbk[j]
+								if S.Name == s[st+1:] {
+									Sd.sb = j
+									break
+								}
+							}
+							// 見つからない場合
+							if j == Nsnbk {
+								err := fmt.Sprintf("Room=%s <Snbrk> %s\n", Rm.Name, s)
+								Eprint("<Roomdata>", err)
+								os.Exit(1)
+							}
+						} else if strings.HasPrefix(s, "r=") {
+							// 隣室名
+							Sd.nxrmname = s[st+1:]
+						} else if strings.HasPrefix(s, "c=") {
+							// 隣室温度係数
+							Sd.c, err = strconv.ParseFloat(s[st+1:], 64)
+							if err != nil {
+								panic(err)
+							}
+						} else if strings.HasPrefix(s, "sw=") {
+							// 窓変更設定番号
+							Sd.fnsw, err = idscw(s[st+1:], Scw, "")
+							if err != nil {
+								panic(err)
+							}
+						} else if strings.HasPrefix(s, "i=") {
+							// 壁体名
+							// 放射暖冷房パネル、部位一体型集熱器のときにSYSPTHでの要素名で使用する。
+							Sd.Name = s[st+1:]
+						} else if strings.HasPrefix(s, "alc=") {
+							if k, err := idsch(s[st+1:], Schdl.Sch, ""); err == nil {
+								Sd.alicsch = &vall[k]
+							} else {
+								Sd.alicsch = envptr(s[st+1:], Simc, 0, nil, nil, nil)
+							}
+						} else if strings.HasPrefix(s, "alr=") {
+							if k, err := idsch(s[st+1:], Schdl.Sch, ""); err == nil {
+								Sd.alirsch = &vall[k]
+							} else {
+								Sd.alirsch = envptr(s[st+1:], Simc, 0, nil, nil, nil)
+							}
+						} else if strings.HasPrefix(s, "fsol=") {
+							Rm.Nfsolfix++
+							Sd.ffix_flg = '*'
+							if k, err := idsch(s[st+1:], Schdl.Sch, ""); err == nil {
+								Sd.fsol = &vall[k]
+							} else {
+								Sd.fsol = envptr(s[st+1:], Simc, 0, nil, nil, nil)
+							}
+						} else if strings.HasPrefix(s, "rmp=") {
+							// RMP名
+							Sd.Sname = s[4:]
+						} else if strings.HasPrefix(s, "PVcap=") {
+							// 空気式集熱器で太陽電池(PV)付のときのアレイの定格発電量[W]
+							Sd.PVwall.PVcap, err = readFloat(s[st+1:])
+							if err != nil {
+								panic(err)
+							}
+							Sd.PVwallFlg = true
+						} else if strings.HasPrefix(s, "Wsu=") {
+							// 集熱屋根の通気層上側の幅 [m]
+							Sd.dblWsu, err = readFloat(s[st+1:])
+							if err != nil {
+								panic(err)
+							}
+						} else if strings.HasPrefix(s, "Wsd=") {
+							// 集熱屋根の通気層下側の幅 [m]
+							Sd.dblWsd, err = readFloat(s[st+1:])
+							if err != nil {
+								panic(err)
+							}
+						} else if strings.HasPrefix(s, "Ndiv=") {
+							// 空気式集熱器のときの流れ方向（入口から出口）の分割数
+							Sd.Ndiv, err = strconv.Atoi(s[st+1:])
+							if err != nil {
+								panic(err)
+							}
+							Sd.Tc = make([]float64, Sd.Ndiv)
+						} else if strings.HasPrefix(s, "tnxt=") {
+							// 当該部位への入射日射の隣接空間への日射分配（連続空間の隣室への日射分
+							Sd.tnxt, err = readFloat(s[st+1:])
+							if err != nil {
+								panic(err)
+							}
+						} else {
+							err := fmt.Sprintf("Room=%s ble=%c s=%s\n", Rm.Name, Sd.ble, s)
+							Eprint("<Roomdata>", err)
+							os.Exit(1)
+						}
+					}
 				}
 			}
+
+			Sd.sfepri = sfemark
+			Sd.Sname = ""
 
 			Sd.rm = i
 			Sd.room = Rm
@@ -696,7 +710,6 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 	}
 	i++
 	Nroom := i
-	Rmvls.Room[0].end = i
 
 	n++
 	Nsrf := n
@@ -932,9 +945,8 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 	}
 
 	rdpnlIdx := 0
-	roomIdx := 0
 	for i := 0; i < Nroom; i++ {
-		room := &Rmvls.Room[roomIdx]
+		room := &Rmvls.Room[i]
 		room.Nisidermpnl = 0
 
 		trnxIdx := 0
@@ -1027,20 +1039,17 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 
 	for i := 0; i < Nroom; i++ {
 		Rm := &Rmvls.Room[i]
-		if Nroom > 0 {
-			if Rm.achr = make([]ACHIR, Nroom); Rm.achr == nil {
-				Ercalloc(Nroom, "<Roomdata>  Room.achr alloc")
-			}
+
+		// 室間相互換気
+		Rm.achr = make([]ACHIR, 0, Nroom)
+		for sk := range Rm.achr {
+			Ac := &Rm.achr[sk]
+			Ac.rm = 0
+			Ac.sch = 0
+			Ac.room = nil
 		}
-		if Rm.achr != nil {
-			for sk := 0; sk < Nroom; sk++ {
-				Ac := &Rm.achr[sk]
-				Ac.rm = 0
-				Ac.sch = 0
-				Ac.room = nil
-			}
-		}
-		Rm.Nachr = 0
+		Rm.Nachr = len(Rm.achr)
+
 		Rm.Arsp = nil
 		Rm.rmld = nil
 		Area := 0.0
@@ -1455,7 +1464,6 @@ func Roominit(N int, Room []ROOM) {
 		B.Tsav = 0.0
 		B.Tot = 0.0
 		B.PMV = 0.0
-		B.end = 0
 		B.AEsch = nil
 		B.AGsch = nil
 		B.AE = 0.0

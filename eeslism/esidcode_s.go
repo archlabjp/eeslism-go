@@ -141,15 +141,9 @@ func idscw(code string, Scw []SCH, err string) (int, error) {
 
 // 室名 `code` に一致する部屋を 部屋の一覧 `Room` から検索し、その番号を返す
 // ただし、検索しても見つからない場合はエラーを返す
-func idroom(code string, Room []ROOM, err string) (int, error) {
-	N := Room[0].end
-
-	if N != len(Room) {
-		panic("N != len(Room)")
-	}
-
-	for j := 0; j < N; j++ {
-		_Room := &Room[j]
+func idroom(code string, rooms []ROOM, err string) (int, error) {
+	for j := range rooms {
+		_Room := &rooms[j]
 		if code == _Room.Name {
 			return j, nil
 		}
@@ -158,7 +152,7 @@ func idroom(code string, Room []ROOM, err string) (int, error) {
 	E := fmt.Sprintf("Room=%s %s", code, err)
 	Eprint("<idroom>", E)
 
-	return N, errors.New("Room Not Found")
+	return -1, errors.New("Room Not Found")
 }
 
 /* ---------------------------------------- */

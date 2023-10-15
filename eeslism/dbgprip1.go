@@ -351,7 +351,7 @@ func dprroomdata(R []ROOM, S []RMSRF) {
 	if DEBUG {
 		fmt.Printf("\n*** dprroomdata ***\n")
 
-		for i := 0; i < R[0].end; i++ {
+		for i := range R {
 			Room := &R[i]
 
 			fmt.Printf("\n==room=(%d)    %s   N=%d  Ntr=%d Nrp=%d  V=%8.1f   MRM=%10.4e\n",
@@ -380,7 +380,7 @@ func dprroomdata(R []ROOM, S []RMSRF) {
 	if Ferr != nil {
 		fmt.Fprintf(Ferr, "\n*** dprroomdata ***\n")
 
-		for i := 0; i < R[0].end; i++ {
+		for i := range R {
 			Room := &R[i]
 
 			fmt.Fprintf(Ferr, "\n==room=(%d)\t%s\tN=%d\tNtr=%d\tNrp=%d\tV=%.3g\tMRM=%.2g\n",

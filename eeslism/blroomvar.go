@@ -22,13 +22,12 @@ package eeslism
 /* 室間換気、放射パネルとシステム入力要素への割り付け */
 
 func Roomelm(Room []ROOM, _Rdpnl []RDPNL) {
-	var elin_idx = 0
 
 	for n := range Room {
 
 		room := &Room[n]
-
 		compnt := room.cmp
+		var elin_idx = 0
 
 		for i := 0; i < room.Nachr; i++ {
 			var elin *ELIN = compnt.Elins[elin_idx]
@@ -66,9 +65,9 @@ func Roomelm(Room []ROOM, _Rdpnl []RDPNL) {
 		}
 	}
 
-	elin_idx = 1
 	for n := range _Rdpnl {
 		Rdpnl := &_Rdpnl[n]
+		elin_idx := 1
 
 		for m := 0; m < Rdpnl.MC; m++ {
 			room := Rdpnl.rm[m]

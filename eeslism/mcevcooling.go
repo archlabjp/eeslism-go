@@ -91,8 +91,8 @@ func Evacdata(s string, Evacca *EVACCA) int {
 
 /* ------------------------------------------------------ */
 // 初期設定（入力漏れのチェック、変数用メモリの確保）
-func Evacint(Nevac int, Evac []EVAC) {
-	for i := 0; i < Nevac; i++ {
+func Evacint(Evac []EVAC) {
+	for i := range Evac {
 		evac := &Evac[i]
 		cat := evac.Cat
 
@@ -184,8 +184,8 @@ func FNXs(T float64) float64 {
 }
 
 /*  気化冷却器出口空気温湿度に関する変数割当  */
-func Evacelm(Nevac int, Evac []EVAC) {
-	for i := 0; i < Nevac; i++ {
+func Evacelm(Evac []EVAC) {
+	for i := range Evac {
 		EoTdry := Evac[i].Cmp.Elouts[0] // Tdryoutの出口温度計算用
 		Eoxdry := Evac[i].Cmp.Elouts[1] // xdryoutの出口温度計算用
 		EoTwet := Evac[i].Cmp.Elouts[2] // Twetoutの出口温度計算用
@@ -275,8 +275,8 @@ func EvacNu(AR, Re float64) float64 {
 }
 
 // 要素方程式の係数計算
-func Evaccfv(Nevac int, Evac []EVAC) {
-	for i := 0; i < Nevac; i++ {
+func Evaccfv(Evac []EVAC) {
+	for i := range Evac {
 		EvpFlg := make([]float64, Evac[i].Cat.N)
 		if Evac[i].Cmp.Control != OFF_SW {
 			EoTdry := Evac[i].Cmp.Elouts[0] // Tdryoutの出口温度計算用
@@ -416,8 +416,8 @@ func Evaccfv(Nevac int, Evac []EVAC) {
 }
 
 // 内部温度、熱量の計算
-func Evacene(Nevac int, Evac []EVAC, Evacreset *int) {
-	for i := 0; i < Nevac; i++ {
+func Evacene(Evac []EVAC, Evacreset *int) {
+	for i := range Evac {
 		Evac := &Evac[i]
 		cat := Evac.Cat
 		if Evac.Cmp.Control != OFF_SW {
@@ -533,25 +533,25 @@ func Evacene(Nevac int, Evac []EVAC, Evacreset *int) {
 }
 
 // カウンタのリセット
-func Evaccountreset(Nevac int, Evac []EVAC) {
-	for i := 0; i < Nevac; i++ {
+func Evaccountreset(Evac []EVAC) {
+	for i := range Evac {
 		Evac[i].Count = 0
 	}
 }
 
 // 代表日の計算結果出力
-func Evacprint(fo io.Writer, id int, Nevac int, Evac []EVAC) {
+func Evacprint(fo io.Writer, id int, Evac []EVAC) {
 	switch id {
 	case 0:
-		if Nevac > 0 {
-			fmt.Fprintf(fo, "%s %d\n", EVAC_TYPE, Nevac)
+		if len(Evac) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", EVAC_TYPE, len(Evac))
 		}
-		for i := 0; i < Nevac; i++ {
+		for i := range Evac {
 			fmt.Fprintf(fo, " %s 1 %d\n", Evac[i].Name, 18+8*Evac[i].Cat.N)
 		}
 
 	case 1:
-		for i := 0; i < Nevac; i++ {
+		for i := range Evac {
 			Evac := &Evac[i]
 			// Wet側出力
 			fmt.Fprintf(fo, "%s_cw c c %s_Gw m f %s_Twi t f %s_Two t f %s_xwi x f %s_xwo x f\n",
@@ -571,7 +571,7 @@ func Evacprint(fo io.Writer, id int, Nevac int, Evac []EVAC) {
 		}
 
 	default:
-		for i := 0; i < Nevac; i++ {
+		for i := range Evac {
 			Evac := &Evac[i]
 			// Wet側出力
 			elo := Evac.Cmp.Elouts[2]

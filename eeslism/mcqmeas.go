@@ -26,8 +26,8 @@ import (
 
 // 出入り口温湿度の割り当て
 
-func Qmeaselm(Nqmeas int, Qmeas []QMEAS) {
-	for i := 0; i < Nqmeas; i++ {
+func Qmeaselm(Qmeas []QMEAS) {
+	for i := range Qmeas {
 		qmeas := &Qmeas[i]
 		PlistTh := qmeas.PlistTh
 		N := qmeas.Nelmh
@@ -105,8 +105,8 @@ func Qmeaselm(Nqmeas int, Qmeas []QMEAS) {
 	}
 }
 
-func Qmeasene(Nqmeas int, Qmeas []QMEAS) {
-	for i := 0; i < Nqmeas; i++ {
+func Qmeasene(Qmeas []QMEAS) {
+	for i := range Qmeas {
 		qmeas := &Qmeas[i]
 		PG := qmeas.PlistG
 		Ph := qmeas.PlistTh
@@ -130,15 +130,15 @@ func Qmeasene(Nqmeas int, Qmeas []QMEAS) {
 	}
 }
 
-func Qmeasprint(fo io.Writer, id int, Nqmeas int, Qmeas []QMEAS) {
-	for i := 0; i < Nqmeas; i++ {
+func Qmeasprint(fo io.Writer, id int, Qmeas []QMEAS) {
+	for i := range Qmeas {
 		qmeas := &Qmeas[i]
 		el := qmeas.Cmp.Elouts[0]
 
 		switch id {
 		case 0:
-			if Nqmeas > 0 {
-				fmt.Fprintf(fo, "%s %d\n", QMEAS_TYPE, Nqmeas)
+			if len(Qmeas) > 0 {
+				fmt.Fprintf(fo, "%s %d\n", QMEAS_TYPE, len(Qmeas))
 			}
 			if qmeas.Plistxc != nil && qmeas.Plistxh != nil {
 				fmt.Fprintf(fo, " %s 1 9\n", qmeas.Name)
@@ -171,8 +171,8 @@ func Qmeasprint(fo io.Writer, id int, Nqmeas int, Qmeas []QMEAS) {
 	}
 }
 
-func Qmeasdyint(Nqmeas int, Qmeas []QMEAS) {
-	for i := 0; i < Nqmeas; i++ {
+func Qmeasdyint(Qmeas []QMEAS) {
+	for i := range Qmeas {
 		svdyint(&Qmeas[i].Tcdy)
 		svdyint(&Qmeas[i].Thdy)
 		svdyint(&Qmeas[i].xcdy)
@@ -184,8 +184,8 @@ func Qmeasdyint(Nqmeas int, Qmeas []QMEAS) {
 	}
 }
 
-func Qmeasmonint(Nqmeas int, Qmeas []QMEAS) {
-	for i := 0; i < Nqmeas; i++ {
+func Qmeasmonint(Qmeas []QMEAS) {
+	for i := range Qmeas {
 		svdyint(&Qmeas[i].mTcdy)
 		svdyint(&Qmeas[i].mThdy)
 		svdyint(&Qmeas[i].mxcdy)
@@ -197,8 +197,8 @@ func Qmeasmonint(Nqmeas int, Qmeas []QMEAS) {
 	}
 }
 
-func Qmeasday(Mon, Day, ttmm, Nqmeas int, Qmeas []QMEAS, Nday, SimDayend int) {
-	for i := 0; i < Nqmeas; i++ {
+func Qmeasday(Mon, Day, ttmm int, Qmeas []QMEAS, Nday, SimDayend int) {
+	for i := range Qmeas {
 		// 日次集計
 		svdaysum(int64(ttmm), Qmeas[i].PlistG.Control, *Qmeas[i].Th, &Qmeas[i].Thdy) // 温度
 		svdaysum(int64(ttmm), Qmeas[i].PlistG.Control, *Qmeas[i].Tc, &Qmeas[i].Tcdy) // 温度
@@ -233,12 +233,12 @@ func Qmeasday(Mon, Day, ttmm, Nqmeas int, Qmeas []QMEAS, Nday, SimDayend int) {
 	}
 }
 
-func Qmeasdyprt(fo io.Writer, id, Nqmeas int, Qmeas []QMEAS) {
-	for i := 0; i < Nqmeas; i++ {
+func Qmeasdyprt(fo io.Writer, id int, Qmeas []QMEAS) {
+	for i := range Qmeas {
 		switch id {
 		case 0:
-			if Nqmeas > 0 {
-				fmt.Fprintf(fo, "%s %d\n", QMEAS_TYPE, Nqmeas)
+			if len(Qmeas) > 0 {
+				fmt.Fprintf(fo, "%s %d\n", QMEAS_TYPE, len(Qmeas))
 			}
 			if Qmeas[i].Plistxc != nil && Qmeas[i].Plistxh != nil {
 				fmt.Fprintf(fo, " %s 1 24\n", Qmeas[i].Name)
@@ -281,12 +281,12 @@ func Qmeasdyprt(fo io.Writer, id, Nqmeas int, Qmeas []QMEAS) {
 	}
 }
 
-func Qmeasmonprt(fo io.Writer, id, Nqmeas int, Qmeas []QMEAS) {
-	for i := 0; i < Nqmeas; i++ {
+func Qmeasmonprt(fo io.Writer, id int, Qmeas []QMEAS) {
+	for i := range Qmeas {
 		switch id {
 		case 0:
-			if Nqmeas > 0 {
-				fmt.Fprintf(fo, "%s %d\n", QMEAS_TYPE, Nqmeas)
+			if len(Qmeas) > 0 {
+				fmt.Fprintf(fo, "%s %d\n", QMEAS_TYPE, len(Qmeas))
 			}
 			if Qmeas[i].Plistxc != nil && Qmeas[i].Plistxh != nil {
 				fmt.Fprintf(fo, " %s 1 24\n", Qmeas[i].Name)

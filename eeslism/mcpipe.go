@@ -59,8 +59,8 @@ func Pipedata(cattype string, s string, Pipeca *PIPECA) int {
 
 /*  管長・ダクト長、周囲温度設定 */
 
-func Pipeint(Npipe int, Pipe []PIPE, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT) {
-	for i := 0; i < Npipe; i++ {
+func Pipeint(Pipe []PIPE, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT) {
+	for i := range Pipe {
 		if Pipe[i].Cmp.Ivparm != nil {
 			Pipe[i].L = *Pipe[i].Cmp.Ivparm
 		} else {
@@ -89,8 +89,8 @@ func Pipeint(Npipe int, Pipe []PIPE, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT) 
 
 /*  特性式の係数  */
 
-func Pipecfv(Npipe int, Pipe []PIPE) {
-	for i := 0; i < Npipe; i++ {
+func Pipecfv(Pipe []PIPE) {
+	for i := range Pipe {
 		Te := 0.0
 		if Pipe[i].Cmp.Control != OFF_SW {
 			if Pipe[i].Cmp.Envname != "" {
@@ -126,8 +126,8 @@ func Pipecfv(Npipe int, Pipe []PIPE) {
 
 /* 取得熱量の計算 */
 
-func Pipeene(Npipe int, Pipe []PIPE) {
-	for i := 0; i < Npipe; i++ {
+func Pipeene(Pipe []PIPE) {
+	for i := range Pipe {
 		Pipe[i].Tin = Pipe[i].Cmp.Elins[0].Sysvin
 
 		if Pipe[i].Cmp.Control != OFF_SW {
@@ -212,22 +212,22 @@ func pipeldsschd(Pipe *PIPE) {
 
 /* --------------------------- */
 
-func pipeprint(fo io.Writer, id int, Npipe int, Pipe []PIPE) {
+func pipeprint(fo io.Writer, id int, Pipe []PIPE) {
 	switch id {
 	case 0:
-		if Npipe > 0 {
-			fmt.Fprintf(fo, "%s %d\n", PIPEDUCT_TYPE, Npipe)
+		if len(Pipe) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", PIPEDUCT_TYPE, len(Pipe))
 		}
-		for i := 0; i < Npipe; i++ {
+		for i := range Pipe {
 			fmt.Fprintf(fo, " %s 1 5\n", Pipe[i].Name)
 		}
 	case 1:
-		for i := 0; i < Npipe; i++ {
+		for i := range Pipe {
 			fmt.Fprintf(fo, "%s_c c c %s_G m f %s_Ti t f %s_To t f %s_Q q f\n",
 				Pipe[i].Name, Pipe[i].Name, Pipe[i].Name, Pipe[i].Name, Pipe[i].Name)
 		}
 	default:
-		for i := 0; i < Npipe; i++ {
+		for i := range Pipe {
 			fmt.Fprintf(fo, "%c %6.4g %4.1f %4.1f %.2f\n",
 				Pipe[i].Cmp.Elouts[0].Control, Pipe[i].Cmp.Elouts[0].G,
 				Pipe[i].Tin, Pipe[i].Cmp.Elouts[0].Sysv, Pipe[i].Q)
@@ -239,22 +239,22 @@ func pipeprint(fo io.Writer, id int, Npipe int, Pipe []PIPE) {
 
 /* 日積算値に関する処理 */
 
-func pipedyint(Npipe int, Pipe []PIPE) {
-	for i := 0; i < Npipe; i++ {
+func pipedyint(Pipe []PIPE) {
+	for i := range Pipe {
 		svdyint(&Pipe[i].Tidy)
 		qdyint(&Pipe[i].Qdy)
 	}
 }
 
-func pipemonint(Npipe int, Pipe []PIPE) {
-	for i := 0; i < Npipe; i++ {
+func pipemonint(Pipe []PIPE) {
+	for i := range Pipe {
 		svdyint(&Pipe[i].MTidy)
 		qdyint(&Pipe[i].MQdy)
 	}
 }
 
-func pipeday(Mon int, Day int, ttmm int, Npipe int, Pipe []PIPE, Nday int, SimDayend int) {
-	for i := 0; i < Npipe; i++ {
+func pipeday(Mon int, Day int, ttmm int, Pipe []PIPE, Nday int, SimDayend int) {
+	for i := range Pipe {
 		// 日集計
 		svdaysum(int64(ttmm), Pipe[i].Cmp.Elouts[0].Control, Pipe[i].Tin, &Pipe[i].Tidy)
 		qdaysum(int64(ttmm), Pipe[i].Cmp.Elouts[0].Control, Pipe[i].Q, &Pipe[i].Qdy)
@@ -265,18 +265,18 @@ func pipeday(Mon int, Day int, ttmm int, Npipe int, Pipe []PIPE, Nday int, SimDa
 	}
 }
 
-func pipedyprt(fo io.Writer, id int, Npipe int, Pipe []PIPE) {
+func pipedyprt(fo io.Writer, id int, Pipe []PIPE) {
 	switch id {
 	case 0:
-		if Npipe > 0 {
-			fmt.Fprintf(fo, "%s %d\n", PIPEDUCT_TYPE, Npipe)
+		if len(Pipe) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", PIPEDUCT_TYPE, len(Pipe))
 		}
-		for i := 0; i < Npipe; i++ {
+		for i := range Pipe {
 			fmt.Fprintf(fo, " %s 1 14\n", Pipe[i].Name)
 		}
 
 	case 1:
-		for i := 0; i < Npipe; i++ {
+		for i := range Pipe {
 			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", Pipe[i].Name, Pipe[i].Name)
 			fmt.Fprintf(fo, "%s_ttn h d %s_Tn t f %s_ttm h d %s_Tm t f\n", Pipe[i].Name, Pipe[i].Name, Pipe[i].Name, Pipe[i].Name)
 			fmt.Fprintf(fo, "%s_Hh H d %s_Qh Q f %s_Hc H d %s_Qc Q f\n", Pipe[i].Name, Pipe[i].Name, Pipe[i].Name, Pipe[i].Name)
@@ -284,7 +284,7 @@ func pipedyprt(fo io.Writer, id int, Npipe int, Pipe []PIPE) {
 		}
 
 	default:
-		for i := 0; i < Npipe; i++ {
+		for i := range Pipe {
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				Pipe[i].Tidy.Hrs, Pipe[i].Tidy.M, Pipe[i].Tidy.Mntime,
 				Pipe[i].Tidy.Mn, Pipe[i].Tidy.Mxtime, Pipe[i].Tidy.Mx)
@@ -296,18 +296,18 @@ func pipedyprt(fo io.Writer, id int, Npipe int, Pipe []PIPE) {
 	}
 }
 
-func pipemonprt(fo io.Writer, id int, Npipe int, Pipe []PIPE) {
+func pipemonprt(fo io.Writer, id int, Pipe []PIPE) {
 	switch id {
 	case 0:
-		if Npipe > 0 {
-			fmt.Fprintf(fo, "%s %d\n", PIPEDUCT_TYPE, Npipe)
+		if len(Pipe) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", PIPEDUCT_TYPE, len(Pipe))
 		}
-		for i := 0; i < Npipe; i++ {
+		for i := range Pipe {
 			fmt.Fprintf(fo, " %s 1 14\n", Pipe[i].Name)
 		}
 
 	case 1:
-		for i := 0; i < Npipe; i++ {
+		for i := range Pipe {
 			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", Pipe[i].Name, Pipe[i].Name)
 			fmt.Fprintf(fo, "%s_ttn h d %s_Tn t f %s_ttm h d %s_Tm t f\n", Pipe[i].Name, Pipe[i].Name, Pipe[i].Name, Pipe[i].Name)
 			fmt.Fprintf(fo, "%s_Hh H d %s_Qh Q f %s_Hc H d %s_Qc Q f\n", Pipe[i].Name, Pipe[i].Name, Pipe[i].Name, Pipe[i].Name)
@@ -315,7 +315,7 @@ func pipemonprt(fo io.Writer, id int, Npipe int, Pipe []PIPE) {
 		}
 
 	default:
-		for i := 0; i < Npipe; i++ {
+		for i := range Pipe {
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				Pipe[i].MTidy.Hrs, Pipe[i].MTidy.M, Pipe[i].MTidy.Mntime,
 				Pipe[i].MTidy.Mn, Pipe[i].MTidy.Mxtime, Pipe[i].MTidy.Mx)

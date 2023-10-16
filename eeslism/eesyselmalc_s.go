@@ -91,7 +91,7 @@ func Elmalloc(
 				Elout := (*Elo)[eloIdx]
 				Elout.Cmp = Compnt
 				Elout.Id = ELIOType(id[i])
-				Elout.Fluid = rune(id[i])
+				Elout.Fluid = FliudType(id[i])
 				if i == 0 {
 					Elout.Ni = room.Nachr + room.Ntr + room.Nrp + room.Nasup
 				} else if i == 1 {
@@ -410,6 +410,7 @@ func Elmalloc(
 				elinIdx++
 			}
 		} else if c == FLIN_TYPE {
+			// 流入境界条件
 			Compnt.Eqp = &Flin[flinIdx]
 			Flin[flinIdx].Cmp = Compnt
 			Flin[flinIdx].Name = name

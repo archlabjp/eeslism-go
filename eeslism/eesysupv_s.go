@@ -79,7 +79,7 @@ func Sysupv(Nmpath int, Mpath []MPATH, Rmvls *RMVLS) {
 								plist.Plmvb = pelm
 							}
 						}
-					} else if plist.Batch == 'y' && j == 0 {
+					} else if plist.Batch && j == 0 {
 						up = pelm.Out
 					} else {
 						if DEBUG {

@@ -1,7 +1,7 @@
 package eeslism
 
 type QMEAS struct {
-	Fluid   rune
+	Fluid   FliudType // 流体種別
 	Id      int
 	Name    string
 	Cmp     *COMPNT
@@ -10,9 +10,11 @@ type QMEAS struct {
 	G       *float64
 	Xh      *float64
 	Xc      *float64
-	PlistG  *PLIST
-	PlistTh *PLIST
-	PlistTc *PLIST
+	PlistG  *PLIST // 接続している末端経路への参照 for `G`
+	PlistTh *PLIST // 接続している末端経路への参照 for `H`
+	Nelmh   int    // 接続している末端経路への参照時のインデックス番号 for `H`
+	PlistTc *PLIST // 接続している末端経路への参照 for `C`
+	Nelmc   int    // 接続している末端経路への参照時のインデックス番号 for `C`
 	Plistxh *PLIST
 	Plistxc *PLIST
 	Qs      float64
@@ -34,13 +36,31 @@ type QMEAS struct {
 	mQdyt   QDAY
 	// Pelmh  *PELM
 	// Pelmc  *PELM
-	idh rune
-	idc rune
+	// idh rune
+	// idc rune
 	// cmph  *COMPNT
 	// cmpc  *COMPNT
-	Nelmh int
-	Nelmc int
 	// Plist  *PLIST
+}
+
+func NewQMEAS() QMEAS {
+	return QMEAS{
+		Name:    "",
+		Cmp:     nil,
+		Th:      nil,
+		Tc:      nil,
+		G:       nil,
+		PlistG:  nil,
+		PlistTc: nil,
+		PlistTh: nil,
+		Plistxc: nil,
+		Plistxh: nil,
+		Xc:      nil,
+		Xh:      nil,
+		Id:      0,
+		Nelmc:   -999,
+		Nelmh:   -999,
+	}
 }
 
 type ACS struct {
@@ -291,7 +311,7 @@ type OMVAV struct {
 	Cat    *OMVAVCA
 	Omwall *RMSRF // 制御対象とする集熱屋根
 	Cmp    *COMPNT
-	Plist  *PLIST
+	Plist  *PLIST // 接続している末端経路への参照
 	G      float64
 	Rdpnl  [4]*RDPNL
 	Nrdpnl int
@@ -833,28 +853,13 @@ type EQSYS struct {
 	Ncnvrg int
 	Cnvrg  []*COMPNT
 
-	Nhcc int
-	Hcc  []HCC
-
-	Nboi int
-	Boi  []BOI
-
-	Nrefa int
+	Hcc   []HCC
+	Boi   []BOI
 	Refa  []REFA
-
-	Ncoll int
 	Coll  []COLL
-
-	Npipe int
 	Pipe  []PIPE
-
-	Nstank int
-	Stank  []STANK
-
-	Nhex int
-	Hex  []HEX
-
-	Npump int
+	Stank []STANK
+	Hex   []HEX
 	Pump  []PUMP
 
 	Nflin int
@@ -866,36 +871,15 @@ type EQSYS struct {
 	Ngload int
 	Gload  []GLOAD
 
-	// VAVユニット
-	Nvav int
-	Vav  []VAV
-
-	// 電気蓄熱式暖房器
-	Nstheat int
-	Stheat  []STHEAT
-
-	// 全熱交換器
-	Nthex int
-	Thex  []THEX
+	Vav    []VAV    // VAVユニット
+	Stheat []STHEAT // 電気蓄熱式暖房器
+	Thex   []THEX   // 全熱交換器
 
 	Nvalv int
-	Valv  []VALV
-
-	Nqmeas int
-	Qmeas  []QMEAS
-
-	// 太陽電池
-	Npv   int
-	PVcmp []PV
-
-	Nomvav int
-	OMvav  []OMVAV
-
-	// デシカント槽
-	Ndesi int
-	Desi  []DESI
-
-	// 気化冷却器
-	Nevac int
-	Evac  []EVAC
+	Valv  []VALV  // VAV
+	Qmeas []QMEAS // カロリーメータ
+	PVcmp []PV    // 太陽電池
+	OMvav []OMVAV //OMVAV
+	Desi  []DESI  // デシカント槽
+	Evac  []EVAC  // 気化冷却器
 }

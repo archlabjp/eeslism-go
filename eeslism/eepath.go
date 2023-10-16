@@ -56,24 +56,24 @@ const (
 
 	PV_TYPE = "PV"
 
-	DIVERG_TYPE   = "B"
-	CONVRG_TYPE   = "C"
-	DIVGAIR_TYPE  = "BA"
-	CVRGAIR_TYPE  = "CA"
+	DIVERG_TYPE   = "B"  // 通過流体が水の分岐要素
+	CONVRG_TYPE   = "C"  // 通過流体が水の合流要素
+	DIVGAIR_TYPE  = "BA" // 通過流体が空気の分岐要素
+	CVRGAIR_TYPE  = "CA" // 通過流体が空気の合流要素
 	DIVERGCA_TYPE = "_B"
 	CONVRGCA_TYPE = "_C"
 
-	FLIN_TYPE  = "FLI"
+	FLIN_TYPE  = "FLI" // 流入境界条件(システム経路への流入条件)
 	GLOAD_TYPE = "GLD"
 
-	HCLOAD_TYPE  = "HCLD"
-	HCLOADW_TYPE = "HCLDW"
-	RMAC_TYPE    = "RMAC"
+	HCLOAD_TYPE  = "HCLD"  // 仮想空調機コイル(直膨コイル)
+	HCLOADW_TYPE = "HCLDW" // 仮想空調機コイル(冷・温水コイル)
+	RMAC_TYPE    = "RMAC"  // ルームエアコン
 	RMACD_TYPE   = "RMACD"
 
-	QMEAS_TYPE = "QMEAS"
-	VALV_TYPE  = "V"
-	TVALV_TYPE = "VT"
+	QMEAS_TYPE = "QMEAS" // カロリーメータ
+	VALV_TYPE  = "V"     // 弁およびダンパー
+	TVALV_TYPE = "VT"    // 温調弁（水系統のみ）
 
 	OMVAV_TYPE = "OMVAV"
 	OAVAV_TYPE = "OAVAV"
@@ -87,11 +87,14 @@ const (
 
 type ControlSWType rune
 
+// 通過する流体の種類（a:空気（温度）、x:空気（湿度）、W:水））
+type FliudType rune
+
 const (
-	AIR_FLD   = 'A'
-	AIRa_FLD  = 'a'
-	AIRx_FLD  = 'x'
-	WATER_FLD = 'W'
+	AIR_FLD   FliudType = 'A' // 空気??
+	AIRa_FLD  FliudType = 'a' // 空気（温度）
+	AIRx_FLD  FliudType = 'x' // 空気（湿度）
+	WATER_FLD FliudType = 'W' // 水
 
 	HEATING_SYS = 'a'
 	HVAC_SYS    = 'A'
@@ -103,7 +106,7 @@ const (
 
 	DIVERG_LPTP = 'b'
 	CONVRG_LPTP = 'c'
-	IN_LPTP     = 'i'
+	IN_LPTP     = 'i' // 流入境界条件
 	OUT_LPTP    = 'o'
 
 	OFF_SW   ControlSWType = 'x'
@@ -170,7 +173,7 @@ type COMPNT struct {
 type ELOUT struct {
 	Id      ELIOType      // 出口の識別番号（熱交換器の'C'、'H'や全熱交換器の'E'、'O'など）
 	Pelmoid rune          // 終端の割り当てが完了していれば '-', そうでなければ 'x'
-	Fluid   rune          // 通過する流体の種類（a:空気（温度）、x:空気（湿度）、W:水））
+	Fluid   FliudType     // 通過する流体の種類（a:空気（温度）、x:空気（湿度）、W:水））
 	Control ControlSWType // 経路の制御
 	Sysld   rune          // 負荷を計算する場合は'y'、成り行きの場合は'n'
 	G       float64       // 流量
@@ -190,10 +193,12 @@ type ELOUT struct {
 	Emonitr *ELOUT
 }
 
+// 経路識別子
 type ELIOType rune
 
 const (
 	ELIO_None  ELIOType = 0
+	ELIO_G     ELIOType = 'G'
 	ELIO_C     ELIOType = 'C'
 	ELIO_H     ELIOType = 'H'
 	ELIO_D     ELIOType = 'D' // Tdry
@@ -222,6 +227,7 @@ type ELIN struct {
 	Lpath  *PLIST // 機器入口が属する末端経路
 }
 
+// 末端経路の要素
 type PELM struct {
 	Co  ELIOType // SYSPTHに記載の機器の出口の識別番号（熱交換器の'C'、'H'や全熱交換器の'E'、'O'など）
 	Ci  ELIOType // SYSPTHに記載の機器の入口の識別番号（熱交換器の'C'、'H'や全熱交換器の'E'、'O'など）
@@ -231,13 +237,14 @@ type PELM struct {
 	In  *ELIN  // 機器の入口
 }
 
+// 末端経路(主経路・または部分経路)
 type PLIST struct {
 	UnknownFlow int           // 末端経路が流量未知なら1、既知なら0
 	Name        string        // 末端経路の名前
 	Type        rune          // 貫流経路か循環経路かの判定
 	Control     ControlSWType // 経路の制御情報
-	Batch       rune          // バッチ運転を行う蓄熱槽のあるとき'y'、無いとき 'n'
-	Org         rune          // 入力された経路のとき'y'、複写された経路（空気系統の湿度経路）のとき'n'
+	Batch       bool          // バッチ運転を行う蓄熱槽のあるときtrue
+	Org         bool          // 入力された経路のときtrue、複写された経路（空気系統の湿度経路）のとき false
 	Plistname   string        // 末端経路の名前
 	Nelm        int           // 末端経路内の機器の数
 	Lvc         int
@@ -249,23 +256,23 @@ type PLIST struct {
 	Gcalc       float64  // 温調弁によって計算された流量を記憶する変数
 	G           float64  // 流量
 	Rate        *float64 // 流量分配比
-	Pelm        []*PELM  // 末端経路内の機器
-	Plmvb       *PELM
+	Pelm        []*PELM  // 末端経路内の機器（バルブ、カロリーメータを除く)　OMVAVも除くべき？
+	Plmvb       *PELM    // ??
 	Lpair       *PLIST
 	Plistt      *PLIST // 空気系当時の温度系統
 	Plistx      *PLIST // 空気系当時の湿度系統
-	Valv        *VALV
+	Valv        *VALV  // 弁・ダンパーへの参照 (V,VT用)
 	Mpath       *MPATH
 	Upplist     *PLIST
 	Dnplist     *PLIST
-	OMvav       *OMVAV
+	OMvav       *OMVAV // OMVAVへの参照 (OMVAV用)
 }
 
 type MPATH struct {
 	Name    string        // 経路名称
 	Sys     byte          // 系統番号
 	Type    byte          // 貫流経路か循環経路かの判定
-	Fluid   rune          // 流体
+	Fluid   FliudType     // 流体種別
 	Control ControlSWType // 経路の制御情報
 	Nlpath  int           // 末端経路数
 	NGv     int           // ガス導管数
@@ -297,6 +304,6 @@ type VALV struct {
 	Tset     *float64
 	Tout     *float64
 	MGo      *float64
-	Plist    *PLIST
+	Plist    *PLIST // 接続している末端経路への参照
 	MonPlist *PLIST
 }

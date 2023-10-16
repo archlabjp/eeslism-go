@@ -27,7 +27,7 @@ func Pathdata(
 	var mpi *MPATH
 	var C *COMPNT
 	var stank *STANK
-	var Plist *PLIST
+	var Plist *PLIST // システム経路データ
 	var Pelm *PELM
 	var Qmeas *QMEAS
 	var s, ss, sss string
@@ -154,20 +154,23 @@ func Pathdata(
 					ss = f.GetToken()
 
 					if s[1:] == "sys" {
+						// システムの分類（A：空調・暖房システム、D：給湯システム）
 						Mpath.Sys = ss[0]
 					} else if s[1:] == "f" {
-						Mpath.Fluid = rune(ss[0])
+						// 循環、通過流体の種類（水系統、空気系統の別）
+						//（W：水系統、A：空気系統で温・湿度とも計算、a：空気系統で温度のみ計算。
+						Mpath.Fluid = FliudType(ss[0])
 					} else {
 						Errprint(1, errkey, s)
 					}
-				} else if s[0] == '>' {
+				} else if s == ">" {
 					sss = fmt.Sprintf("Path%d", iPlist)
 					Plist.Plistname = sss
 					Plist.Pelm = []*PELM{Pelm}
 
 					for f.IsEnd() == false {
 						s = f.GetToken()
-						if s[0] == '>' {
+						if s == ">" {
 							break
 						}
 
@@ -243,8 +246,8 @@ func Pathdata(
 								}
 							}
 						} else {
-							// 末端経路名称
-							if s[:5] == "name=" {
+							if strings.HasPrefix(s, "name=") {
+								// 末端経路名称
 								_, err := fmt.Sscanf(s, "%*[^=]=%s", &ss)
 								if err != nil {
 									panic(err)
@@ -253,18 +256,24 @@ func Pathdata(
 							} else {
 								var idx int
 								if idx = strings.IndexRune(s, '/'); idx >= 0 {
+									// ex: `xxx/LD`
 									s = s[idx+1:]
 								}
 								if idx = strings.IndexRune(s, ':'); idx >= 0 {
+									// ex: `LD:xxx`
 									Plist.Name = s
 									s = s[:idx]
 									elm = s
 								} else {
 									if idx = strings.IndexRune(s, '['); idx >= 0 {
+										// ex: `LD[r]`
+										// rは経路識別子
+										// 2流体式熱交換器や蓄熱槽のように構成要素が複数の経路にまたがる場合の書式
 										co, ci = ELIOType(s[idx+1]), ELIOType(s[idx+1])
 										s = s[:idx]
 										elm = s
 									} else {
+										// ex: `LD`
 										elm = s
 										co = ELIOType(0)
 										ci = ELIOType(0)
@@ -272,18 +281,22 @@ func Pathdata(
 								}
 								err := 1
 
+								// SYSCMPで定義したシステム要素名のはず
 								for i := range Compnt {
 									cmp := &Compnt[i]
 									C = cmp
 									if cmp.Name == elm {
 										err = 0
 										if cmp.Eqptype == FLIN_TYPE && Plist.Pelm[0] == Pelm {
+											// 流入境界条件
 											Plist.Type = IN_LPTP
 										} else if cmp.Eqptype == VALV_TYPE || cmp.Eqptype == TVALV_TYPE {
+											// バルブ
 											Plist.Nvalv++
 											Plist.Valv = cmp.Eqp.(*VALV)
 											Plist.Valv.Plist = Plist
 										} else if cmp.Eqptype == OMVAV_TYPE {
+											// OMバルブ
 											// Satoh OMVAV 2010/12/16
 											Plist.NOMVAV++
 											Plist.OMvav = cmp.Eqp.(*OMVAV)
@@ -294,20 +307,20 @@ func Pathdata(
 										} else if cmp.Eqptype == QMEAS_TYPE {
 											/*---- Satoh Debug QMEAS  2003/6/2 ----*/
 											Qmeas = cmp.Eqp.(*QMEAS)
-											if co == 'G' {
+											if co == ELIO_G {
 												Qmeas.G = &Plist.G
 												Qmeas.PlistG = Plist
 												Qmeas.Fluid = Mpath.Fluid
-											} else if co == 'H' {
+											} else if co == ELIO_H {
 												Qmeas.PlistTh = Plist
 												Qmeas.Nelmh = id
-											} else if co == 'C' {
+											} else if co == ELIO_C {
 												Qmeas.PlistTc = Plist
 												Qmeas.Nelmc = id
 											}
 										} else if cmp.Eqptype == STANK_TYPE {
 											if stv != "" {
-												Plist.Batch = 'y'
+												Plist.Batch = true
 												stank = cmp.Eqp.(*STANK)
 												for i := 0; i < stank.Nin; i++ {
 													if stank.Pthcon[i] == co {
@@ -320,6 +333,8 @@ func Pathdata(
 											}
 										}
 
+										// バルブ、カロリーメータは末端経路ごとに1つまでのようだ
+										// その他の要素は複数存在しても良い。
 										if cmp.Eqptype != VALV_TYPE && cmp.Eqptype != TVALV_TYPE &&
 											cmp.Eqptype != QMEAS_TYPE && cmp.Eqptype != OMVAV_TYPE {
 											(*Npelm)++
@@ -474,6 +489,7 @@ func Pathdata(
 				etyp = Pelm.Cmp.Eqptype
 
 				if m == 0 && etyp == FLIN_TYPE {
+					// 流入境界条件
 					idci = 0
 				}
 

@@ -22,20 +22,20 @@ import "fmt"
 /*  システム使用機器についての検討用出力  */
 
 func mecsxprint(Eqsys *EQSYS) {
-	hccxprint(Eqsys.Nhcc, Eqsys.Hcc)
-	boixprint(Eqsys.Nboi, Eqsys.Boi)
-	collxprint(Eqsys.Ncoll, Eqsys.Coll)
-	refaxprint(Eqsys.Nrefa, Eqsys.Refa)
-	pipexprint(Eqsys.Npipe, Eqsys.Pipe)
+	hccxprint(Eqsys.Hcc)
+	boixprint(Eqsys.Boi)
+	collxprint(Eqsys.Coll)
+	refaxprint(Eqsys.Refa)
+	pipexprint(Eqsys.Pipe)
 }
 
 /* --------------------------- */
 
-func boixprint(Nboi int, Boi []BOI) {
-	if Nboi > 0 {
-		fmt.Printf("%s N=%d\n", BOILER_TYPE, Nboi)
+func boixprint(Boi []BOI) {
+	if len(Boi) > 0 {
+		fmt.Printf("%s N=%d\n", BOILER_TYPE, len(Boi))
 
-		for i := 0; i < Nboi; i++ {
+		for i := range Boi {
 			b := &Boi[i]
 			fmt.Printf("[%d] %-10s Do=%5.3f  D1=%5.3f Tin=%5.2f Tout=%5.2f Q=%4.0f E=%4.0f\n",
 				i, b.Name, b.Do, b.D1, b.Tin,
@@ -46,11 +46,11 @@ func boixprint(Nboi int, Boi []BOI) {
 
 /* ------------------------------------------ */
 
-func hccxprint(Nhcc int, Hcc []HCC) {
-	if Nhcc > 0 {
-		fmt.Printf("%s N=%d\n", HCCOIL_TYPE, Nhcc)
+func hccxprint(Hcc []HCC) {
+	if len(Hcc) > 0 {
+		fmt.Printf("%s N=%d\n", HCCOIL_TYPE, len(Hcc))
 
-		for i := 0; i < Nhcc; i++ {
+		for i := range Hcc {
 			h := &Hcc[i]
 			fmt.Printf("[%d] %-10s et=%5.3f eh=%5.3f\n", i, h.Name, h.et, h.eh)
 			E := h.Et
@@ -71,13 +71,13 @@ func hccxprint(Nhcc int, Hcc []HCC) {
 
 /* --------------------------- */
 
-func pipexprint(Npipe int, Pipe []PIPE) {
+func pipexprint(Pipe []PIPE) {
 	var Te float64
 
-	if Npipe > 0 {
-		fmt.Printf("%s N=%d\n", PIPEDUCT_TYPE, Npipe)
+	if len(Pipe) > 0 {
+		fmt.Printf("%s N=%d\n", PIPEDUCT_TYPE, len(Pipe))
 
-		for i := 0; i < Npipe; i++ {
+		for i := range Pipe {
 			p := &Pipe[i]
 
 			if p.Cmp.Envname != "" {
@@ -95,11 +95,11 @@ func pipexprint(Npipe int, Pipe []PIPE) {
 
 /* ------------------------------------------------------------- */
 
-func refaxprint(Nrefa int, Refa []REFA) {
-	if Nrefa > 0 {
-		fmt.Printf("%s N=%d\n", REFACOMP_TYPE, Nrefa)
+func refaxprint(Refa []REFA) {
+	if len(Refa) > 0 {
+		fmt.Printf("%s N=%d\n", REFACOMP_TYPE, len(Refa))
 
-		for i := 0; i < Nrefa; i++ {
+		for i := range Refa {
 			r := &Refa[i]
 			fmt.Printf("[%d] %-10s Do=%6.3f D1=%6.3f Tin=%5.2f Tout=%5.2f Ta=%4.1f\n",
 				i, r.Name, r.Do, r.D1, r.Tin,
@@ -112,11 +112,11 @@ func refaxprint(Nrefa int, Refa []REFA) {
 
 /* ------------------------------------------------------------- */
 
-func collxprint(Ncoll int, Colls []COLL) {
-	if Ncoll > 0 {
-		fmt.Printf("%s N=%d\n", COLLECTOR_TYPE, Ncoll)
+func collxprint(Colls []COLL) {
+	if len(Colls) > 0 {
+		fmt.Printf("%s N=%d\n", COLLECTOR_TYPE, len(Colls))
 
-		for i := 0; i < Ncoll; i++ {
+		for i := range Colls {
 			Coll := &Colls[i]
 			fmt.Printf("[%d] %-10s Do=%6.3f  D1=%6.3f Tin=%5.2f Tout=%5.2f Q=%4.0f Sol=%4.0f Te=%5.1f\n",
 				i, Coll.Name, Coll.Do, Coll.D1, Coll.Tin,

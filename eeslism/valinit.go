@@ -127,8 +127,8 @@ func Plistinit(N int, PlList []PLIST) {
 		Pl := &PlList[i]
 		Pl.Name = ""
 		Pl.Type, Pl.Control = ' ', ' '
-		Pl.Batch = 'n'
-		Pl.Org = 'y'
+		Pl.Batch = false
+		Pl.Org = true
 		Pl.Plmvb, Pl.Pelm = nil, nil
 		Pl.Lpair = nil
 		Pl.Go = nil
@@ -202,12 +202,10 @@ func Syseqinit(S *SYSEQ) {
 
 /*****  EQSYS の初期化  *****/
 func Eqsysinit(E *EQSYS) {
-	E.Ncnvrg, E.Nhcc, E.Nboi, E.Nrefa, E.Ncoll = 0, 0, 0, 0, 0
-	E.Npipe, E.Nstank, E.Nhex, E.Npump, E.Nflin = 0, 0, 0, 0, 0
-	E.Nhcload, E.Ngload, E.Nvav, E.Nstheat, E.Ndesi, E.Nevac = 0, 0, 0, 0, 0, 0
-	E.Nthex, E.Nvalv, E.Nqmeas = 0, 0, 0
-	E.Npv = 0
-	E.Nomvav = 0
+	E.Ncnvrg = 0
+	E.Nflin = 0
+	E.Nhcload, E.Ngload = 0, 0
+	E.Nvalv = 0
 
 	E.Cnvrg = nil
 	E.Hcc = nil

@@ -11,7 +11,7 @@ import (
 
 /*  システム要素出力端割当  */
 
-func pelmco(pflow rune, Pelm *PELM, errkey string) {
+func pelmco(pflow FliudType, Pelm *PELM, errkey string) {
 	var Nout int
 	err := 0
 	var cmp *COMPNT
@@ -117,7 +117,7 @@ func pelmco(pflow rune, Pelm *PELM, errkey string) {
 
 /*  システム要素入力端割当  */
 
-func pelmci(pflow rune, Pelm *PELM, errkey string) {
+func pelmci(pflow FliudType, Pelm *PELM, errkey string) {
 	var Nin int
 	err := 0
 	var N int
@@ -315,7 +315,7 @@ func plistcpy(Mpath *MPATH, Mpath_prev *MPATH, Npelm *int, _Pelm []PELM, _Plist 
 
 		nelm = 0
 		Plist.Pelm = nil
-		Plist.Org = 'n'
+		Plist.Org = false
 		Plist.Type = pli.Type
 		Plist.Go = pli.Go
 		Plist.Nvav = pli.Nvav

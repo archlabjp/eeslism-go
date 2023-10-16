@@ -58,8 +58,8 @@ func Hccdata(s string, Hccca *HCCCA) int {
 }
 
 /* ------------------------------------------ */
-func Hccdwint(Nhcc int, _Hcc []HCC) {
-	for i := 0; i < Nhcc; i++ {
+func Hccdwint(_Hcc []HCC) {
+	for i := range _Hcc {
 		Hcc := &_Hcc[i] // Get the address of the current element
 		// 乾きコイルと湿りコイルの判定
 		if Hcc.Cat.eh > 1.0e-10 {
@@ -87,8 +87,8 @@ func Hccdwint(Nhcc int, _Hcc []HCC) {
 /* ------------------------------------------ */
 /*  特性式の係数  */
 
-func Hcccfv(Nhcc int, Hcc []HCC) {
-	for i := 0; i < Nhcc; i++ {
+func Hcccfv(Hcc []HCC) {
+	for i := range Hcc {
 		hcc := &Hcc[i] // Get the address of the current element
 
 		hcc.Ga = 0.0
@@ -167,8 +167,8 @@ func Hcccfv(Nhcc int, Hcc []HCC) {
 
 /* 供給熱量の計算 */
 
-func Hccdwreset(Nhcc int, Hcc []HCC, DWreset *int) {
-	for i := 0; i < Nhcc; i++ {
+func Hccdwreset(Hcc []HCC, DWreset *int) {
+	for i := range Hcc {
 		hcc := &Hcc[i] // Get the address of the current element
 
 		xain := hcc.Cmp.Elins[1].Sysvin
@@ -187,7 +187,7 @@ func Hccdwreset(Nhcc int, Hcc []HCC, DWreset *int) {
 
 			if reset != 0 {
 				(*DWreset)++
-				Hcccfv(1, Hcc)
+				Hcccfv(Hcc[i : i+1])
 			}
 		}
 	}
@@ -197,8 +197,8 @@ func Hccdwreset(Nhcc int, Hcc []HCC, DWreset *int) {
 
 /* 供給熱量の計算 */
 
-func Hccene(Nhcc int, Hcc []HCC) {
-	for i := 0; i < Nhcc; i++ {
+func Hccene(Hcc []HCC) {
+	for i := range Hcc {
 		hcc := &Hcc[i] // Get the address of the current element
 
 		hcc.Tain = hcc.Cmp.Elins[0].Sysvin
@@ -226,17 +226,17 @@ func Hccene(Nhcc int, Hcc []HCC) {
 
 /* ------------------------------------------ */
 
-func hccprint(fo io.Writer, id int, Nhcc int, Hcc []HCC) {
+func hccprint(fo io.Writer, id int, Hcc []HCC) {
 	switch id {
 	case 0:
-		if Nhcc > 0 {
-			fmt.Fprintf(fo, "%s %d\n", HCCOIL_TYPE, Nhcc)
+		if len(Hcc) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", HCCOIL_TYPE, len(Hcc))
 		}
-		for i := 0; i < Nhcc; i++ {
+		for i := range Hcc {
 			fmt.Fprintf(fo, " %s 1 16\n", Hcc[i].Name)
 		}
 	case 1:
-		for i := 0; i < Nhcc; i++ {
+		for i := range Hcc {
 			fmt.Fprintf(fo, "%s_ca c c %s_Ga m f %s_Ti t f %s_To t f %s_Qs q f\n",
 				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
 			fmt.Fprintf(fo, "%s_cx c c %s_xi x f %s_xo x f %s_Ql q f\n",
@@ -247,7 +247,7 @@ func hccprint(fo io.Writer, id int, Nhcc int, Hcc []HCC) {
 				Hcc[i].Name, Hcc[i].Name)
 		}
 	default:
-		for i := 0; i < Nhcc; i++ {
+		for i := range Hcc {
 			el := Hcc[i].Cmp.Elouts[0] // Get the address of the first element
 			fmt.Fprintf(fo, "%c %6.4g %4.1f %4.1f %2.0f ",
 				el.Control, Hcc[i].Ga, Hcc[i].Tain, el.Sysv, Hcc[i].Qs)
@@ -268,8 +268,8 @@ func hccprint(fo io.Writer, id int, Nhcc int, Hcc []HCC) {
 
 /* 日積算値に関する処理 */
 
-func hccdyint(Nhcc int, Hcc []HCC) {
-	for i := 0; i < Nhcc; i++ {
+func hccdyint(Hcc []HCC) {
+	for i := range Hcc {
 		svdyint(&Hcc[i].Taidy)
 		svdyint(&Hcc[i].xaidy)
 		svdyint(&Hcc[i].Twidy)
@@ -279,8 +279,8 @@ func hccdyint(Nhcc int, Hcc []HCC) {
 	}
 }
 
-func hccmonint(Nhcc int, Hcc []HCC) {
-	for i := 0; i < Nhcc; i++ {
+func hccmonint(Hcc []HCC) {
+	for i := range Hcc {
 		svdyint(&Hcc[i].mTaidy)
 		svdyint(&Hcc[i].mxaidy)
 		svdyint(&Hcc[i].mTwidy)
@@ -290,8 +290,8 @@ func hccmonint(Nhcc int, Hcc []HCC) {
 	}
 }
 
-func hccday(Mon, Day, ttmm, Nhcc int, Hcc []HCC, Nday, SimDayend int) {
-	for i := 0; i < Nhcc; i++ {
+func hccday(Mon, Day, ttmm int, Hcc []HCC, Nday, SimDayend int) {
+	for i := range Hcc {
 		// 日集計
 		svdaysum(int64(ttmm), Hcc[i].Cmp.Control, Hcc[i].Tain, &Hcc[i].Taidy)
 		svdaysum(int64(ttmm), Hcc[i].Cmp.Control, Hcc[i].Xain, &Hcc[i].xaidy)
@@ -310,17 +310,17 @@ func hccday(Mon, Day, ttmm, Nhcc int, Hcc []HCC, Nday, SimDayend int) {
 	}
 }
 
-func hccdyprt(fo io.Writer, id, Nhcc int, Hcc []HCC) {
+func hccdyprt(fo io.Writer, id int, Hcc []HCC) {
 	switch id {
 	case 0:
-		if Nhcc > 0 {
-			fmt.Fprintf(fo, "%s %d\n", HCCOIL_TYPE, Nhcc)
+		if len(Hcc) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", HCCOIL_TYPE, len(Hcc))
 		}
-		for i := 0; i < Nhcc; i++ {
+		for i := range Hcc {
 			fmt.Fprintf(fo, "%s 4 42 14 14 14\n", Hcc[i].Name)
 		}
 	case 1:
-		for i := 0; i < Nhcc; i++ {
+		for i := range Hcc {
 			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", Hcc[i].Name, Hcc[i].Name)
 			fmt.Fprintf(fo, "%s_ttn h d %s_Tn t f %s_ttm h d %s_Tm t f\n",
 				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
@@ -346,7 +346,7 @@ func hccdyprt(fo io.Writer, id, Nhcc int, Hcc []HCC) {
 				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
 		}
 	default:
-		for i := 0; i < Nhcc; i++ {
+		for i := range Hcc {
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				Hcc[i].Taidy.Hrs, Hcc[i].Taidy.M,
 				Hcc[i].Taidy.Mntime, Hcc[i].Taidy.Mn,
@@ -377,17 +377,17 @@ func hccdyprt(fo io.Writer, id, Nhcc int, Hcc []HCC) {
 	}
 }
 
-func hccmonprt(fo io.Writer, id int, Nhcc int, Hcc []HCC) {
+func hccmonprt(fo io.Writer, id int, Hcc []HCC) {
 	switch id {
 	case 0:
-		if Nhcc > 0 {
-			fmt.Fprintf(fo, "%s %d\n", HCCOIL_TYPE, Nhcc)
+		if len(Hcc) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", HCCOIL_TYPE, len(Hcc))
 		}
-		for i := 0; i < Nhcc; i++ {
+		for i := range Hcc {
 			fmt.Fprintf(fo, "%s 4 42 14 14 14\n", Hcc[i].Name)
 		}
 	case 1:
-		for i := 0; i < Nhcc; i++ {
+		for i := range Hcc {
 			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", Hcc[i].Name, Hcc[i].Name)
 			fmt.Fprintf(fo, "%s_ttn h d %s_Tn t f %s_ttm h d %s_Tm t f\n",
 				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
@@ -413,7 +413,7 @@ func hccmonprt(fo io.Writer, id int, Nhcc int, Hcc []HCC) {
 				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
 		}
 	default:
-		for i := 0; i < Nhcc; i++ {
+		for i := range Hcc {
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				Hcc[i].mTaidy.Hrs, Hcc[i].mTaidy.M,
 				Hcc[i].mTaidy.Mntime, Hcc[i].mTaidy.Mn,

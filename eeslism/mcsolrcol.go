@@ -77,8 +77,8 @@ func Colldata(typeStr EqpType, s string, Collca *COLLCA) int {
 
 /*  初期設定 */
 
-func Collint(Ncoll int, Coll []COLL, Nexsf int, Exs []EXSF, Wd *WDAT) {
-	for i := 0; i < Ncoll; i++ {
+func Collint(Coll []COLL, Nexsf int, Exs []EXSF, Wd *WDAT) {
+	for i := range Coll {
 		Coll[i].Ta = &Wd.T
 		Coll[i].sol = nil
 		for j := 0; j < Nexsf; j++ {
@@ -114,12 +114,9 @@ func Collint(Ncoll int, Coll []COLL, Nexsf int, Exs []EXSF, Wd *WDAT) {
 }
 
 // 集熱器の相当外気温度を計算する（制御用）
-func CalcCollTe(Ncoll int, Coll []COLL) {
-	var tgaKo float64
-	var i int
-
-	for i = 0; i < Ncoll; i++ {
-		tgaKo = Coll[i].Cat.b0 / Coll[i].Cat.b1
+func CalcCollTe(Coll []COLL) {
+	for i := range Coll {
+		tgaKo := Coll[i].Cat.b0 / Coll[i].Cat.b1
 		Coll[i].Te = scolte(tgaKo, Coll[i].sol.Cinc, Coll[i].sol.Idre, Coll[i].sol.Idf, *Coll[i].Ta)
 	}
 }
@@ -128,11 +125,10 @@ func CalcCollTe(Ncoll int, Coll []COLL) {
 
 /*  特性式の係数   */
 
-func Collcfv(Ncoll int, Coll []COLL) {
+func Collcfv(Coll []COLL) {
 	var cG, Kcw float64
-	var i int
 
-	for i = 0; i < Ncoll; i++ {
+	for i := range Coll {
 		// 制御用の相当外気温度（現在時刻）は計算済みなのでここでは計算しない
 		if Coll[i].Cmp.Control != OFF_SW {
 			Eo := Coll[i].Cmp.Elouts[0]
@@ -160,10 +156,8 @@ func Collcfv(Ncoll int, Coll []COLL) {
 
 /*  集熱量の計算 */
 
-func Collene(Ncoll int, Coll []COLL) {
-	var i int
-
-	for i = 0; i < Ncoll; i++ {
+func Collene(Coll []COLL) {
+	for i := range Coll {
 		Coll[i].Tin = Coll[i].Cmp.Elins[0].Sysvin
 
 		if Coll[i].Cmp.Control != OFF_SW {
@@ -215,22 +209,22 @@ func collvptr(key []string, Coll *COLL, vptr *VPTR) int {
 
 /* ------------------------------------------------------------- */
 
-func collprint(fo io.Writer, id int, Ncoll int, Coll []COLL) {
+func collprint(fo io.Writer, id int, Coll []COLL) {
 	switch id {
 	case 0:
-		if Ncoll > 0 {
-			fmt.Fprintf(fo, "%s %d\n", COLLECTOR_TYPE, Ncoll)
+		if len(Coll) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", COLLECTOR_TYPE, len(Coll))
 		}
-		for i := 0; i < Ncoll; i++ {
+		for i := range Coll {
 			fmt.Fprintf(fo, " %s 1 7\n", Coll[i].Name)
 		}
 	case 1:
-		for i := 0; i < Ncoll; i++ {
+		for i := range Coll {
 			fmt.Fprintf(fo, "%s_c c c %s_Ti t f %s_To t f %s_Te t f %s_Tcb t f %s_Q q f %s_S e f\n",
 				Coll[i].Name, Coll[i].Name, Coll[i].Name, Coll[i].Name, Coll[i].Name, Coll[i].Name, Coll[i].Name)
 		}
 	default:
-		for i := 0; i < Ncoll; i++ {
+		for i := range Coll {
 			fmt.Fprintf(fo, "%c %4.1f %4.1f %4.1f %4.1f %3.0f %3.0f\n",
 				Coll[i].Cmp.Elouts[0].Control,
 				Coll[i].Tin, Coll[i].Cmp.Elouts[0].Sysv, Coll[i].Te, Coll[i].Tcb, Coll[i].Q, Coll[i].Sol)
@@ -242,26 +236,26 @@ func collprint(fo io.Writer, id int, Ncoll int, Coll []COLL) {
 
 /* 日積算値に関する処理 */
 
-func colldyint(Ncoll int, Coll []COLL) {
-	for i := 0; i < Ncoll; i++ {
+func colldyint(Coll []COLL) {
+	for i := range Coll {
 		svdyint(&Coll[i].Tidy) // 温度の日次積分
 		qdyint(&Coll[i].Qdy)   // 熱量の日次積分
 		edyint(&Coll[i].Soldy) // 経済性指標の日次積分
 	}
 }
 
-func collmonint(Ncoll int, Coll []COLL) {
-	for i := 0; i < Ncoll; i++ {
+func collmonint(Coll []COLL) {
+	for i := range Coll {
 		svdyint(&Coll[i].mTidy) // 温度の月次積分
 		qdyint(&Coll[i].mQdy)   // 熱量の月次積分
 		edyint(&Coll[i].mSoldy) // 経済性指標の月次積分
 	}
 }
 
-func collday(Mon, Day, ttmm, Ncoll int, Coll []COLL, Nday, SimDayend int) {
+func collday(Mon, Day, ttmm int, Coll []COLL, Nday, SimDayend int) {
 	var sw ControlSWType
 
-	for i := 0; i < Ncoll; i++ {
+	for i := range Coll {
 		// 日次集計
 		svdaysum(int64(ttmm), Coll[i].Cmp.Control, Coll[i].Tin, &Coll[i].Tidy) // 温度の日次集計
 		qdaysum(int64(ttmm), Coll[i].Cmp.Control, Coll[i].Q, &Coll[i].Qdy)     // 熱量の日次集計
@@ -286,17 +280,17 @@ func collday(Mon, Day, ttmm, Ncoll int, Coll []COLL, Nday, SimDayend int) {
 	}
 }
 
-func colldyprt(fo io.Writer, id, Ncoll int, Coll []COLL) {
+func colldyprt(fo io.Writer, id int, Coll []COLL) {
 	switch id {
 	case 0:
-		if Ncoll > 0 {
-			fmt.Fprintf(fo, "%s %d\n", COLLECTOR_TYPE, Ncoll)
+		if len(Coll) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", COLLECTOR_TYPE, len(Coll))
 		}
-		for i := 0; i < Ncoll; i++ {
+		for i := range Coll {
 			fmt.Fprintf(fo, " %s 1 18\n", Coll[i].Name)
 		}
 	case 1:
-		for i := 0; i < Ncoll; i++ {
+		for i := range Coll {
 			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", Coll[i].Name, Coll[i].Name)
 			fmt.Fprintf(fo, "%s_ttn h d %s_Tn t f %s_ttm h d %s_Tm t f\n", Coll[i].Name, Coll[i].Name, Coll[i].Name, Coll[i].Name)
 			fmt.Fprintf(fo, "%s_Hh H d %s_Qh Q f %s_Hc H d %s_Qc Q f\n", Coll[i].Name, Coll[i].Name, Coll[i].Name, Coll[i].Name)
@@ -304,7 +298,7 @@ func colldyprt(fo io.Writer, id, Ncoll int, Coll []COLL) {
 			fmt.Fprintf(fo, "%s_He H d %s_S E f %s_te h d %s_Sm e f\n\n", Coll[i].Name, Coll[i].Name, Coll[i].Name, Coll[i].Name)
 		}
 	default:
-		for i := 0; i < Ncoll; i++ {
+		for i := range Coll {
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				Coll[i].Tidy.Hrs, Coll[i].Tidy.M, Coll[i].Tidy.Mntime, Coll[i].Tidy.Mn,
 				Coll[i].Tidy.Mxtime, Coll[i].Tidy.Mx)
@@ -318,17 +312,17 @@ func colldyprt(fo io.Writer, id, Ncoll int, Coll []COLL) {
 	}
 }
 
-func collmonprt(fo io.Writer, id, Ncoll int, Coll []COLL) {
+func collmonprt(fo io.Writer, id int, Coll []COLL) {
 	switch id {
 	case 0:
-		if Ncoll > 0 {
-			fmt.Fprintf(fo, "%s %d\n", COLLECTOR_TYPE, Ncoll)
+		if len(Coll) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", COLLECTOR_TYPE, len(Coll))
 		}
-		for i := 0; i < Ncoll; i++ {
+		for i := range Coll {
 			fmt.Fprintf(fo, " %s 1 18\n", Coll[i].Name)
 		}
 	case 1:
-		for i := 0; i < Ncoll; i++ {
+		for i := range Coll {
 			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", Coll[i].Name, Coll[i].Name)
 			fmt.Fprintf(fo, "%s_ttn h d %s_Tn t f %s_ttm h d %s_Tm t f\n", Coll[i].Name, Coll[i].Name, Coll[i].Name, Coll[i].Name)
 			fmt.Fprintf(fo, "%s_Hh H d %s_Qh Q f %s_Hc H d %s_Qc Q f\n", Coll[i].Name, Coll[i].Name, Coll[i].Name, Coll[i].Name)
@@ -336,7 +330,7 @@ func collmonprt(fo io.Writer, id, Ncoll int, Coll []COLL) {
 			fmt.Fprintf(fo, "%s_He H d %s_S E f %s_te h d %s_Sm e f\n\n", Coll[i].Name, Coll[i].Name, Coll[i].Name, Coll[i].Name)
 		}
 	default:
-		for i := 0; i < Ncoll; i++ {
+		for i := range Coll {
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				Coll[i].mTidy.Hrs, Coll[i].mTidy.M, Coll[i].mTidy.Mntime,
 				Coll[i].mTidy.Mn, Coll[i].mTidy.Mxtime, Coll[i].mTidy.Mx)

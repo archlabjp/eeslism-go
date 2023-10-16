@@ -303,18 +303,24 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 
 						switch s {
 						case CONVRG_TYPE, CVRGAIR_TYPE:
+							// 合流要素
 							Eqsys.Ncnvrg++
 							Compnt[comp_num].Nout = 1
 						case DIVERG_TYPE, DIVGAIR_TYPE:
+							// 分岐要素
 							Compnt[comp_num].Nin = 1
 						case FLIN_TYPE:
+							// 流入境界条件
 							Eqsys.Nflin++
 						case HCLOAD_TYPE, HCLOADW_TYPE, RMAC_TYPE, RMACD_TYPE:
+							// 空調負荷
 							Eqsys.Nhcload++
 						case VALV_TYPE, TVALV_TYPE:
+							// 弁・ダンパー
 							Eqsys.Nvalv++
 						case QMEAS_TYPE:
-							Eqsys.Nqmeas++
+							// カロリーメータ
+							//Eqsys.Nqmeas++
 						default:
 							if s != DIVERG_TYPE && s != DIVGAIR_TYPE {
 								Eprint(errkey, s)
@@ -488,235 +494,7 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 		Eqsys.Valv = make([]VALV, N)
 		Valv := Eqsys.Valv
 		for i := 0; i < N; i++ {
-			Valv[i].Name = ""
-			Valv[i].Cmp = nil
-			Valv[i].Cmb = nil
-			Valv[i].Org = 'n'
-			Valv[i].X = -999.0
-			Valv[i].Xinit = nil
-			Valv[i].Tin = nil
-			Valv[i].Tset = nil
-			Valv[i].Mon = nil
-			Valv[i].Plist = nil
-			Valv[i].MGo = nil
-			Valv[i].Tout = nil
-			Valv[i].MonPlist = nil
-			//Valv[i].OMfan = nil
-			//Valv[i].OMfanName = nil
-		}
-	}
-
-	N = Eqsys.Nqmeas
-	if N > 0 {
-		Eqsys.Qmeas = make([]QMEAS, N)
-		for i := 0; i < N; i++ {
-			q := &Eqsys.Qmeas[i]
-			q.Name = ""
-			q.Cmp = nil
-			q.Th = nil
-			q.Tc = nil
-			q.G = nil
-			q.PlistG = nil
-			q.PlistTc = nil
-			q.PlistTh = nil
-			q.Plistxc = nil
-			q.Plistxh = nil
-			q.Xc = nil
-			q.Xh = nil
-			q.Id = 0
-			q.Nelmc = -999
-			q.Nelmh = -999
-		}
-	}
-
-	N = Eqsys.Nhcc
-	Eqsys.Hcc = nil
-	if N > 0 {
-		Eqsys.Hcc = make([]HCC, N)
-		for i := 0; i < N; i++ {
-			hcc := &Eqsys.Hcc[i]
-			hcc.Name = ""
-			hcc.Cmp = nil
-			hcc.Cat = nil
-			hcc.Twin = 5.0
-			hcc.Xain = FNXtr(25.0, 50.0)
-		}
-	}
-
-	N = Eqsys.Nboi
-	Eqsys.Boi = nil
-	if N > 0 {
-		Eqsys.Boi = make([]BOI, N)
-
-		for i := 0; i < N; i++ {
-			Boi := &Eqsys.Boi[i]
-			Boi.Name = ""
-			Boi.Cmp = nil
-			Boi.Cat = nil
-			Boi.Load = nil
-			Boi.Mode = 'M'
-			MtEdayinit(&Boi.MtEdy)
-			MtEdayinit(&Boi.MtPhdy)
-		}
-	}
-
-	N = Eqsys.Ncoll
-	Eqsys.Coll = nil
-	if N > 0 {
-		Eqsys.Coll = make([]COLL, N)
-		for i := 0; i < N; i++ {
-			Coll := &Eqsys.Coll[i]
-			Coll.Name = ""
-			Coll.Cmp = nil
-			Coll.Cat = nil
-			Coll.sol = nil
-			Coll.Te = 0.0
-			Coll.Tcb = 0.0
-			//Coll.Fd = 0.9
-		}
-	}
-
-	N = Eqsys.Npv
-	Eqsys.PVcmp = nil
-	if N > 0 {
-		Eqsys.PVcmp = make([]PV, N)
-		for i := 0; i < N; i++ {
-			PV := &Eqsys.PVcmp[i]
-			PV.PVcap = -999.
-			PV.Area = -999.
-			PV.Name = ""
-			PV.Cmp = nil
-			PV.Cat = nil
-			PV.Sol = nil
-			PV.Ta = nil
-			PV.V = nil
-			PV.I = nil
-			MtEdayinit(&PV.mtEdy)
-		}
-	}
-
-	// Satoh OMVAV  2010/12/16
-	N = Eqsys.Nomvav
-	Eqsys.OMvav = nil
-
-	if N > 0 {
-		Eqsys.OMvav = make([]OMVAV, N)
-		for i := 0; i < N; i++ {
-			OMvav := &Eqsys.OMvav[i]
-			OMvav.Name = ""
-			OMvav.Cmp = nil
-			OMvav.Cat = nil
-			OMvav.Omwall = nil
-			OMvav.Plist = nil
-			OMvav.Nrdpnl = 0
-
-			for j := 0; j < 4; j++ {
-				OMvav.Rdpnl[j] = nil
-			}
-		}
-	}
-
-	N = Eqsys.Nrefa
-	Eqsys.Refa = nil
-	if N > 0 {
-		Eqsys.Refa = make([]REFA, N)
-		for i := 0; i < N; i++ {
-			Rf := &Eqsys.Refa[i]
-			Rf.Name = ""
-			Rf.Cmp = nil
-			Rf.Cat = nil
-			Rf.Load = nil
-			Rf.Room = nil
-			Rf.Do = 0.0
-			Rf.D1 = 0.0
-			Rf.Tin = 0.0
-			Rf.Te = 0.0
-			Rf.Tc = 0.0
-			MtEdayinit(&Rf.mtEdy)
-			MtEdayinit(&Rf.mtPhdy)
-		}
-	}
-
-	N = Eqsys.Npipe
-	Eqsys.Pipe = nil
-	if N > 0 {
-		Eqsys.Pipe = make([]PIPE, N)
-		for i := 0; i < N; i++ {
-			Pi := &Eqsys.Pipe[i]
-			Pi.Name = ""
-			Pi.Cmp = nil
-			Pi.Cat = nil
-			Pi.Loadt = nil
-			Pi.Loadx = nil
-			Pi.Room = nil
-		}
-	}
-
-	N = Eqsys.Nstank
-	Eqsys.Stank = nil
-	if N > 0 {
-		Eqsys.Stank = make([]STANK, N)
-		for i := 0; i < N; i++ {
-			St := &Eqsys.Stank[i]
-			St.Name = ""
-			St.Cmp = nil
-			St.Cat = nil
-			St.Jin = nil
-			St.Jout = nil
-			St.Batchcon = nil
-			St.Ihex = nil
-			St.Batchcon = nil
-			St.B = nil
-			St.R = nil
-			St.Fg = nil
-			St.D = nil
-			St.Tss = nil
-			St.DtankF = nil
-			St.Tssold = nil
-			St.Dvol = nil
-			St.Mdt = nil
-			St.KS = nil
-			St.Ihxeff = nil
-			St.KA = nil
-			St.KAinput = nil
-			St.CGwin = nil
-			St.EGwin = nil
-			St.Twin = nil
-			St.Q = nil
-			St.Tenv = nil
-			St.Stkdy = nil
-			St.Mstkdy = nil
-			St.MQlossdy = 0.0
-			St.MQstody = 0.0
-			St.Ncalcihex = 0
-		}
-	}
-
-	N = Eqsys.Nhex
-	Eqsys.Hex = nil
-	if N > 0 {
-		Eqsys.Hex = make([]HEX, N)
-		for i := 0; i < N; i++ {
-			Hx := &Eqsys.Hex[i]
-			Hx.Name = ""
-			Hx.Cmp = nil
-			Hx.Cat = nil
-			Hx.Id = 0
-		}
-	}
-
-	N = Eqsys.Npump
-	Eqsys.Pump = nil
-	if N > 0 {
-		Eqsys.Pump = make([]PUMP, N)
-
-		for i := 0; i < N; i++ {
-			Pp := &Eqsys.Pump[i]
-			Pp.Name = ""
-			Pp.Cmp = nil
-			Pp.Cat = nil
-			Pp.Sol = nil
-			MtEdayinit(&Pp.MtEdy)
+			Valv[i] = NewVALV()
 		}
 	}
 
@@ -733,13 +511,7 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 	if N > 0 {
 		Eqsys.Flin = make([]FLIN, N)
 		for i := 0; i < N; i++ {
-			Fl := &Eqsys.Flin[i]
-			Fl.Name = ""
-			Fl.Namet = ""
-			Fl.Namex = ""
-			Fl.Vart = nil
-			Fl.Varx = nil
-			Fl.Cmp = nil
+			Eqsys.Flin[i] = NewFLIN()
 		}
 	}
 
@@ -748,109 +520,274 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 	if N > 0 {
 		Eqsys.Hcload = make([]HCLOAD, N)
 		for i := 0; i < N; i++ {
-			Hl := &Eqsys.Hcload[i]
-			Hl.Name = ""
-			Hl.Loadt = nil
-			Hl.Loadx = nil
-			Hl.Cmp = nil
-			Hl.RMACFlg = 'N'
-			MtEdayinit(&Hl.mtEdy)
-			Hl.Ga = 0.0
-			Hl.Gw = 0.0
-			Hl.RHout = 50.0
+			Eqsys.Hcload[i] = NewHCLOAD()
 		}
 	}
 
-	/*---- Satoh Debug VAV  2000/10/30 ----*/
-	N = Eqsys.Nvav
-	Eqsys.Vav = nil
-	if N > 0 {
-		Eqsys.Vav = make([]VAV, N)
-		for i := 0; i < N; i++ {
-			V := &Eqsys.Vav[0]
-			V.Name = ""
-			V.Cat = nil
-			V.Hcc = nil
-			V.Hcld = nil
-			V.Cmp = nil
-		}
-	}
-
-	N = Eqsys.Nstheat
-	Eqsys.Stheat = nil
-	if N > 0 {
-		Eqsys.Stheat = make([]STHEAT, N)
-		for i := 0; i < N; i++ {
-			Sh := &Eqsys.Stheat[i]
-			Sh.Name = ""
-			Sh.Cat = nil
-			Sh.Cmp = nil
-			Sh.Room = nil
-			Sh.Pcm = nil
-			MtEdayinit(&Sh.MtEdy)
-		}
-	}
-
-	// Satoh追加　デシカント槽 2013/10/23
-	N = Eqsys.Ndesi
-	Eqsys.Desi = nil
-	if N > 0 {
-		Eqsys.Desi = make([]DESI, N)
-		for i := 0; i < N; i++ {
-			Desi := &Eqsys.Desi[i]
-			Desi.Name = ""
-			Desi.Cat = nil
-			Desi.Cmp = nil
-			Desi.Room = nil
-			Desi.Tenv = nil
-		}
-	}
-
-	// Satoh追加　気化冷却器 2013/10/26
-	N = Eqsys.Nevac
-	Eqsys.Evac = nil
-	if N > 0 {
-		Eqsys.Evac = make([]EVAC, N)
-		for i := 0; i < N; i++ {
-			Evac := &Eqsys.Evac[i]
-			Evac.Name = ""
-			Evac.Cat = nil
-			Evac.Cmp = nil
-			Evac.M = nil
-			Evac.Kx = nil
-			Evac.Tdry = nil
-			Evac.Twet = nil
-			Evac.Xdry = nil
-			Evac.Xwet = nil
-			Evac.Ts = nil
-			Evac.Xs = nil
-			Evac.RHdry = nil
-			Evac.RHwet = nil
-			Evac.UXC = nil
-			Evac.UX = nil
-			//Evac.UXdry = nil
-			//Evac.UXwet = nil
-		}
-	}
-
-	N = Eqsys.Nthex
-	Eqsys.Thex = nil
-	if N > 0 {
-		Eqsys.Thex = make([]THEX, N)
-		for i := 0; i < N; i++ {
-			thex := &Eqsys.Thex[i]
-			thex.Name = ""
-			thex.Cmp = nil
-			thex.Cat = nil
-			thex.Type = ' '
-			thex.CGe = 0.0
-			thex.Ge = 0.0
-			thex.Go = 0.0
-			thex.ET = -999.0
-			thex.EH = -999.0
-		}
-	}
 	//printf("<<Compodata>> end\n");
+}
+
+func NewVALV() VALV {
+	return VALV{
+		Name:     "",
+		Cmp:      nil,
+		Cmb:      nil,
+		Org:      'n',
+		X:        -999.0,
+		Xinit:    nil,
+		Tin:      nil,
+		Tset:     nil,
+		Mon:      nil,
+		Plist:    nil,
+		MGo:      nil,
+		Tout:     nil,
+		MonPlist: nil,
+		//OMfan : nil,
+		//OMfanName : nil,
+	}
+}
+
+func NewHCC() HCC {
+	return HCC{
+		Name: "",
+		Cmp:  nil,
+		Cat:  nil,
+		Twin: 5.0,
+		Xain: FNXtr(25.0, 50.0),
+	}
+}
+
+func NewBOI() BOI {
+	Boi := BOI{
+		Name: "",
+		Cmp:  nil,
+		Cat:  nil,
+		Load: nil,
+		Mode: 'M',
+	}
+	MtEdayinit(&Boi.MtEdy)
+	MtEdayinit(&Boi.MtPhdy)
+	return Boi
+}
+
+func NewCOLL() COLL {
+	return COLL{
+		Name: "",
+		Cmp:  nil,
+		Cat:  nil,
+		sol:  nil,
+		Te:   0.0,
+		Tcb:  0.0,
+	}
+}
+
+func NewPV() PV {
+	PV := PV{
+		PVcap: -999.,
+		Area:  -999.,
+		Name:  "",
+		Cmp:   nil,
+		Cat:   nil,
+		Sol:   nil,
+		Ta:    nil,
+		V:     nil,
+		I:     nil,
+	}
+	MtEdayinit(&PV.mtEdy)
+	return PV
+}
+
+func NewOMVAV() OMVAV {
+	OMvav := OMVAV{
+		Name:   "",
+		Cmp:    nil,
+		Cat:    nil,
+		Omwall: nil,
+		Plist:  nil,
+		Nrdpnl: 0,
+	}
+	for j := 0; j < 4; j++ {
+		OMvav.Rdpnl[j] = nil
+	}
+	return OMvav
+}
+
+func NewREFA() REFA {
+	Rf := REFA{
+		Name: "",
+		Cmp:  nil,
+		Cat:  nil,
+		Load: nil,
+		Room: nil,
+		Do:   0.0,
+		D1:   0.0,
+		Tin:  0.0,
+		Te:   0.0,
+		Tc:   0.0,
+	}
+	MtEdayinit(&Rf.mtEdy)
+	MtEdayinit(&Rf.mtPhdy)
+	return Rf
+}
+
+func NewPIPE() PIPE {
+	return PIPE{
+		Name:  "",
+		Cmp:   nil,
+		Cat:   nil,
+		Loadt: nil,
+		Loadx: nil,
+		Room:  nil,
+	}
+}
+
+func NewSTANK() STANK {
+	return STANK{
+		Name:      "",
+		Cmp:       nil,
+		Cat:       nil,
+		Jin:       nil,
+		Jout:      nil,
+		Batchcon:  nil,
+		Ihex:      nil,
+		B:         nil,
+		R:         nil,
+		Fg:        nil,
+		D:         nil,
+		Tss:       nil,
+		DtankF:    nil,
+		Tssold:    nil,
+		Dvol:      nil,
+		Mdt:       nil,
+		KS:        nil,
+		Ihxeff:    nil,
+		KA:        nil,
+		KAinput:   nil,
+		CGwin:     nil,
+		EGwin:     nil,
+		Twin:      nil,
+		Q:         nil,
+		Tenv:      nil,
+		Stkdy:     nil,
+		Mstkdy:    nil,
+		MQlossdy:  0.0,
+		MQstody:   0.0,
+		Ncalcihex: 0,
+	}
+}
+
+func NewHEX() HEX {
+	return HEX{
+		Name: "",
+		Cmp:  nil,
+		Cat:  nil,
+		Id:   0,
+	}
+}
+
+func NewPUMP() PUMP {
+	Pp := PUMP{
+		Name: "",
+		Cmp:  nil,
+		Cat:  nil,
+		Sol:  nil,
+	}
+	MtEdayinit(&Pp.MtEdy)
+	return Pp
+}
+
+func NewFLIN() FLIN {
+	return FLIN{
+		Name:  "",
+		Namet: "",
+		Namex: "",
+		Vart:  nil,
+		Varx:  nil,
+		Cmp:   nil,
+	}
+}
+
+func NewHCLOAD() HCLOAD {
+	Hl := HCLOAD{
+		Name:    "",
+		Loadt:   nil,
+		Loadx:   nil,
+		Cmp:     nil,
+		RMACFlg: 'N',
+	}
+	MtEdayinit(&Hl.mtEdy)
+	Hl.Ga = 0.0
+	Hl.Gw = 0.0
+	Hl.RHout = 50.0
+	return Hl
+}
+
+func NewVAV() VAV {
+	return VAV{
+		Name: "",
+		Cat:  nil,
+		Hcc:  nil,
+		Hcld: nil,
+		Cmp:  nil,
+	}
+}
+
+func NewSTHEAT() STHEAT {
+	st := STHEAT{
+		Name: "",
+		Cat:  nil,
+		Cmp:  nil,
+		Room: nil,
+		Pcm:  nil,
+	}
+	MtEdayinit(&st.MtEdy)
+	return st
+}
+
+func NewDESI() DESI {
+	return DESI{
+		Name: "",
+		Cat:  nil,
+		Cmp:  nil,
+		Room: nil,
+		Tenv: nil,
+	}
+}
+
+func NewEVAC() EVAC {
+	return EVAC{
+		Name:  "",
+		Cat:   nil,
+		Cmp:   nil,
+		M:     nil,
+		Kx:    nil,
+		Tdry:  nil,
+		Twet:  nil,
+		Xdry:  nil,
+		Xwet:  nil,
+		Ts:    nil,
+		Xs:    nil,
+		RHdry: nil,
+		RHwet: nil,
+		UXC:   nil,
+		UX:    nil,
+		//UXdry: nil,
+		//UXwet: nil,
+	}
+}
+
+func NewTHEX() THEX {
+	return THEX{
+		Name: "",
+		Cmp:  nil,
+		Cat:  nil,
+		Type: ' ',
+		CGe:  0.0,
+		Ge:   0.0,
+		Go:   0.0,
+		ET:   -999.0,
+		EH:   -999.0,
+	}
 }
 
 func Compntcount(fi *EeTokens) int {

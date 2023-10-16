@@ -71,8 +71,8 @@ func Stheatdata(s string, stheatca *STHEATCA) int {
 
 /*  管長・ダクト長、周囲温度設定 */
 
-func Stheatint(Nstheat int, _stheat []STHEAT, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT, Npcm int, _PCM []PCM) {
-	for i := 0; i < Nstheat; i++ {
+func Stheatint(_stheat []STHEAT, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT, Npcm int, _PCM []PCM) {
+	for i := range _stheat {
 		stheat := &_stheat[i]
 		if stheat.Cmp.Envname != "" {
 			stheat.Tenv = envptr(stheat.Cmp.Envname, Simc, Compnt, Wd, nil)
@@ -128,14 +128,13 @@ func Stheatint(Nstheat int, _stheat []STHEAT, Simc *SIMCONTL, Compnt []COMPNT, W
 
 /*  特性式の係数  */
 
-func Stheatcfv(Nstheat int, _stheat []STHEAT) {
+func Stheatcfv(_stheat []STHEAT) {
 	var Eo *ELOUT
 	var Te, eff, cG, KA, Tsold, d float64
-	var i int
 	var pcm *PCM
 
 	EoIdx := 0
-	for i = 0; i < Nstheat; i++ {
+	for i := range _stheat {
 		stheat := &_stheat[i]
 		if stheat.Cmp.Envname != "" {
 			Te = *(stheat.Tenv)
@@ -195,13 +194,12 @@ func Stheatcfv(Nstheat int, _stheat []STHEAT) {
 
 /* 取得熱量の計算 */
 
-func Stheatene(Nstheat int, _stheat []STHEAT) {
-	var i int
+func Stheatene(_stheat []STHEAT) {
 	var elo *ELOUT
 	var cat *STHEATCA
 	var Te float64
 
-	for i = 0; i < Nstheat; i++ {
+	for i := range _stheat {
 		stheat := &_stheat[i]
 		elo = stheat.Cmp.Elouts[0]
 		stheat.Tin = elo.Elins[0].Sysvin
@@ -254,17 +252,17 @@ func stheatvptr(key []string, Stheat *STHEAT, vptr *VPTR, vpath *VPTR) int {
 
 /* ---------------------------*/
 
-func stheatprint(fo io.Writer, id int, Nstheat int, stheat []STHEAT) {
+func stheatprint(fo io.Writer, id int, stheat []STHEAT) {
 	switch id {
 	case 0:
-		if Nstheat > 0 {
-			fmt.Fprintf(fo, "%s %d\n", STHEAT_TYPE, Nstheat)
+		if len(stheat) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", STHEAT_TYPE, len(stheat))
 		}
-		for i := 0; i < Nstheat; i++ {
+		for i := range stheat {
 			fmt.Fprintf(fo, " %s 1 11\n", stheat[i].Name)
 		}
 	case 1:
-		for i := 0; i < Nstheat; i++ {
+		for i := range stheat {
 			fmt.Fprintf(fo, "%s_c c c %s_G m f %s_Ts t f %s_Ti t f %s_To t f %s_Q q f %s_Qsto q f ",
 				stheat[i].Name, stheat[i].Name, stheat[i].Name, stheat[i].Name, stheat[i].Name, stheat[i].Name, stheat[i].Name)
 			fmt.Fprintf(fo, "%s_Qls q f %s_Ec c c %s_E e f ",
@@ -272,7 +270,7 @@ func stheatprint(fo io.Writer, id int, Nstheat int, stheat []STHEAT) {
 			fmt.Fprintf(fo, "%s_Hcap q f\n", stheat[i].Name)
 		}
 	default:
-		for i := 0; i < Nstheat; i++ {
+		for i := range stheat {
 			fmt.Fprintf(fo, "%c %6.4g %4.1f %4.1f %4.1f %2.0f %.4g ",
 				stheat[i].Cmp.Elouts[0].Control, stheat[i].Cmp.Elouts[0].G,
 				stheat[i].Ts,
@@ -289,8 +287,8 @@ func stheatprint(fo io.Writer, id int, Nstheat int, stheat []STHEAT) {
 /* 日積算値に関する処理 */
 
 /*******************/
-func stheatdyint(Nstheat int, stheat []STHEAT) {
-	for i := 0; i < Nstheat; i++ {
+func stheatdyint(stheat []STHEAT) {
+	for i := range stheat {
 		stheat[i].Qlossdy = 0.0
 		stheat[i].Qstody = 0.0
 
@@ -302,8 +300,8 @@ func stheatdyint(Nstheat int, stheat []STHEAT) {
 	}
 }
 
-func stheatmonint(Nstheat int, stheat []STHEAT) {
-	for i := 0; i < Nstheat; i++ {
+func stheatmonint(stheat []STHEAT) {
+	for i := range stheat {
 		stheat[i].MQlossdy = 0.0
 		stheat[i].MQstody = 0.0
 
@@ -315,11 +313,11 @@ func stheatmonint(Nstheat int, stheat []STHEAT) {
 	}
 }
 
-func stheatday(Mon, Day, ttmm, Nstheat int, stheat []STHEAT, Nday, SimDayend int) {
+func stheatday(Mon, Day, ttmm int, stheat []STHEAT, Nday, SimDayend int) {
 	Mo := Mon - 1
 	tt := ConvertHour(ttmm)
 
-	for i := 0; i < Nstheat; i++ {
+	for i := range stheat {
 		// 日集計
 		stheat[i].Qlossdy += stheat[i].Qls
 		stheat[i].Qstody += stheat[i].Qsto
@@ -343,17 +341,17 @@ func stheatday(Mon, Day, ttmm, Nstheat int, stheat []STHEAT, Nday, SimDayend int
 	}
 }
 
-func stheatdyprt(fo io.Writer, id, Nstheat int, stheat []STHEAT) {
+func stheatdyprt(fo io.Writer, id int, stheat []STHEAT) {
 	switch id {
 	case 0:
-		if Nstheat > 0 {
-			fmt.Fprintf(fo, "%s %d\n", STHEAT_TYPE, Nstheat)
+		if len(stheat) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", STHEAT_TYPE, len(stheat))
 		}
-		for i := 0; i < Nstheat; i++ {
+		for i := range stheat {
 			fmt.Fprintf(fo, " %s 1 32\n", stheat[i].Name)
 		}
 	case 1:
-		for i := 0; i < Nstheat; i++ {
+		for i := range stheat {
 			fmt.Fprintf(fo, "%s_Ht H d %s_Ti T f ", stheat[i].Name, stheat[i].Name)
 			fmt.Fprintf(fo, "%s_ttn h d %s_Tin t f %s_ttm h d %s_Tim t f\n",
 				stheat[i].Name, stheat[i].Name, stheat[i].Name, stheat[i].Name)
@@ -373,7 +371,7 @@ func stheatdyprt(fo io.Writer, id, Nstheat int, stheat []STHEAT) {
 				stheat[i].Name, stheat[i].Name)
 		}
 	default:
-		for i := 0; i < Nstheat; i++ {
+		for i := range stheat {
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				stheat[i].Tidy.Hrs, stheat[i].Tidy.M,
 				stheat[i].Tidy.Mntime, stheat[i].Tidy.Mn,
@@ -398,17 +396,17 @@ func stheatdyprt(fo io.Writer, id, Nstheat int, stheat []STHEAT) {
 	}
 }
 
-func stheatmonprt(fo io.Writer, id, Nstheat int, stheat []STHEAT) {
+func stheatmonprt(fo io.Writer, id int, stheat []STHEAT) {
 	switch id {
 	case 0:
-		if Nstheat > 0 {
-			fmt.Fprintf(fo, "%s %d\n", STHEAT_TYPE, Nstheat)
+		if len(stheat) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", STHEAT_TYPE, len(stheat))
 		}
-		for i := 0; i < Nstheat; i++ {
+		for i := range stheat {
 			fmt.Fprintf(fo, " %s 1 32\n", stheat[i].Name)
 		}
 	case 1:
-		for i := 0; i < Nstheat; i++ {
+		for i := range stheat {
 			fmt.Fprintf(fo, "%s_Ht H d %s_Ti T f ", stheat[i].Name, stheat[i].Name)
 			fmt.Fprintf(fo, "%s_ttn h d %s_Tin t f %s_ttm h d %s_Tim t f\n",
 				stheat[i].Name, stheat[i].Name, stheat[i].Name, stheat[i].Name)
@@ -428,7 +426,7 @@ func stheatmonprt(fo io.Writer, id, Nstheat int, stheat []STHEAT) {
 				stheat[i].Name, stheat[i].Name)
 		}
 	default:
-		for i := 0; i < Nstheat; i++ {
+		for i := range stheat {
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				stheat[i].MTidy.Hrs, stheat[i].MTidy.M,
 				stheat[i].MTidy.Mntime, stheat[i].MTidy.Mn,
@@ -453,21 +451,21 @@ func stheatmonprt(fo io.Writer, id, Nstheat int, stheat []STHEAT) {
 	}
 }
 
-func stheatmtprt(fo io.Writer, id, Nstheat int, stheat []STHEAT, Mo, tt int) {
+func stheatmtprt(fo io.Writer, id int, stheat []STHEAT, Mo, tt int) {
 	switch id {
 	case 0:
-		if Nstheat > 0 {
-			fmt.Fprintf(fo, "%s %d\n", STHEAT_TYPE, Nstheat)
+		if len(stheat) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", STHEAT_TYPE, len(stheat))
 		}
-		for i := 0; i < Nstheat; i++ {
+		for i := range stheat {
 			fmt.Fprintf(fo, " %s 1 1\n", stheat[i].Name)
 		}
 	case 1:
-		for i := 0; i < Nstheat; i++ {
+		for i := range stheat {
 			fmt.Fprintf(fo, "%s_E E f \n", stheat[i].Name)
 		}
 	default:
-		for i := 0; i < Nstheat; i++ {
+		for i := range stheat {
 			fmt.Fprintf(fo, " %.2f\n", stheat[i].MtEdy[Mo-1][tt-1].D*Cff_kWh)
 		}
 	}

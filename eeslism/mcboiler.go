@@ -104,15 +104,15 @@ func Boicaint(_Boica []BOICA, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT, Exsf *E
 
 /*  特性式の係数  */
 
-func Boicfv(Nboi int, Boi []BOI) {
+func Boicfv(Boi []BOI) {
 	var Eo *ELOUT
 	var cG, Qocat, Temp float64
 
-	if Nboi != len(Boi) {
-		panic("Nboi != len(Boi)")
+	if len(Boi) != len(Boi) {
+		panic("len(Boi) != len(Boi)")
 	}
 
-	for i := 0; i < Nboi; i++ {
+	for i := range Boi {
 		if Boi[i].Cmp.Control != OFF_SW {
 			Temp = math.Abs(*Boi[i].Cat.Qo - (-999.9))
 			if math.Abs(Temp) < 1e-3 {
@@ -170,8 +170,8 @@ func Boicfv(Nboi int, Boi []BOI) {
 
 /*  供給熱量、エネルギーの計算 */
 
-func Boiene(Nboi int, Boi []BOI, BOIreset *int) {
-	for i := 0; i < Nboi; i++ {
+func Boiene(Boi []BOI, BOIreset *int) {
+	for i := range Boi {
 		boi := &Boi[i]
 		boi.Tin = boi.Cmp.Elins[0].Sysvin
 		Qmin := boi.Cat.Qmin
@@ -229,7 +229,7 @@ func Boiene(Nboi int, Boi []BOI, BOIreset *int) {
 			}
 
 			if reset == 1 {
-				Boicfv(1, Boi[i:i+1])
+				Boicfv(Boi[i : i+1])
 				(*BOIreset)++
 			}
 
@@ -281,14 +281,14 @@ func boildschd(Boi *BOI) {
 
 /* --------------------------- */
 
-func boiprint(fo io.Writer, id int, Nboi int, Boi []BOI) {
-	for i := 0; i < Nboi; i++ {
+func boiprint(fo io.Writer, id int, Boi []BOI) {
+	for i := range Boi {
 		boi := &Boi[i]
 
 		switch id {
 		case 0:
-			if Nboi > 0 {
-				fmt.Fprintf(fo, "%s  %d\n", BOILER_TYPE, Nboi)
+			if len(Boi) > 0 {
+				fmt.Fprintf(fo, "%s  %d\n", BOILER_TYPE, len(Boi))
 			}
 			fmt.Fprintf(fo, " %s 1 7\n", boi.Name)
 		case 1:
@@ -306,8 +306,8 @@ func boiprint(fo io.Writer, id int, Nboi int, Boi []BOI) {
 
 /* 日積算値に関する処理 */
 
-func boidyint(Nboi int, Boi []BOI) {
-	for i := 0; i < Nboi; i++ {
+func boidyint(Boi []BOI) {
+	for i := range Boi {
 		boi := &Boi[i]
 		// 日集計のリセット
 		svdyint(&boi.Tidy)
@@ -321,8 +321,8 @@ func boidyint(Nboi int, Boi []BOI) {
 
 /* 月積算値に関する処理 */
 
-func boimonint(Nboi int, Boi []BOI) {
-	for i := 0; i < Nboi; i++ {
+func boimonint(Boi []BOI) {
+	for i := range Boi {
 		boi := &Boi[i]
 		// 日集計のリセット
 		svdyint(&boi.mTidy)
@@ -332,12 +332,12 @@ func boimonint(Nboi int, Boi []BOI) {
 	}
 }
 
-func boiday(Mon, Day, ttmm, Nboi int, Boi []BOI, Nday, SimDayend int) {
-	var i, Mo, tt int
+func boiday(Mon, Day, ttmm int, Boi []BOI, Nday, SimDayend int) {
+	var Mo, tt int
 
 	Mo = Mon - 1
 	tt = ConvertHour(ttmm)
-	for i = 0; i < Nboi; i++ {
+	for i := range Boi {
 		Boi := &Boi[i]
 		// 日集計
 		svdaysum(int64(ttmm), Boi.Cmp.Control, Boi.Tin, &Boi.Tidy)
@@ -357,19 +357,17 @@ func boiday(Mon, Day, ttmm, Nboi int, Boi []BOI, Nday, SimDayend int) {
 	}
 }
 
-func boidyprt(fo io.Writer, id int, Nboi int, Boi []BOI) {
-	var i int
-
+func boidyprt(fo io.Writer, id int, Boi []BOI) {
 	switch id {
 	case 0:
-		if Nboi > 0 {
-			fmt.Fprintf(fo, "%s  %d\n", BOILER_TYPE, Nboi)
+		if len(Boi) > 0 {
+			fmt.Fprintf(fo, "%s  %d\n", BOILER_TYPE, len(Boi))
 		}
-		for i = 0; i < Nboi; i++ {
+		for i := range Boi {
 			fmt.Fprintf(fo, " %s 1 22\n", Boi[i].Name)
 		}
 	case 1:
-		for i = 0; i < Nboi; i++ {
+		for i := range Boi {
 			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", Boi[i].Name, Boi[i].Name)
 			fmt.Fprintf(fo, "%s_ttn h d %s_Tn t f %s_ttm h d %s_Tm t f\n",
 				Boi[i].Name, Boi[i].Name, Boi[i].Name, Boi[i].Name)
@@ -383,7 +381,7 @@ func boidyprt(fo io.Writer, id int, Nboi int, Boi []BOI) {
 				Boi[i].Name, Boi[i].Name, Boi[i].Name, Boi[i].Name)
 		}
 	default:
-		for i = 0; i < Nboi; i++ {
+		for i := range Boi {
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				Boi[i].Tidy.Hrs, Boi[i].Tidy.M,
 				Boi[i].Tidy.Mntime, Boi[i].Tidy.Mn,
@@ -403,19 +401,17 @@ func boidyprt(fo io.Writer, id int, Nboi int, Boi []BOI) {
 	}
 }
 
-func boimonprt(fo io.Writer, id int, Nboi int, Boi []BOI) {
-	var i int
-
+func boimonprt(fo io.Writer, id int, Boi []BOI) {
 	switch id {
 	case 0:
-		if Nboi > 0 {
-			fmt.Fprintf(fo, "%s  %d\n", BOILER_TYPE, Nboi)
+		if len(Boi) > 0 {
+			fmt.Fprintf(fo, "%s  %d\n", BOILER_TYPE, len(Boi))
 		}
-		for i = 0; i < Nboi; i++ {
+		for i := range Boi {
 			fmt.Fprintf(fo, " %s 1 22\n", Boi[i].Name)
 		}
 	case 1:
-		for i = 0; i < Nboi; i++ {
+		for i := range Boi {
 			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", Boi[i].Name, Boi[i].Name)
 			fmt.Fprintf(fo, "%s_ttn h d %s_Tn t f %s_ttm h d %s_Tm t f\n",
 				Boi[i].Name, Boi[i].Name, Boi[i].Name, Boi[i].Name)
@@ -429,7 +425,7 @@ func boimonprt(fo io.Writer, id int, Nboi int, Boi []BOI) {
 				Boi[i].Name, Boi[i].Name, Boi[i].Name, Boi[i].Name)
 		}
 	default:
-		for i = 0; i < Nboi; i++ {
+		for i := range Boi {
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				Boi[i].mTidy.Hrs, Boi[i].mTidy.M,
 				Boi[i].mTidy.Mntime, Boi[i].mTidy.Mn,
@@ -449,23 +445,21 @@ func boimonprt(fo io.Writer, id int, Nboi int, Boi []BOI) {
 	}
 }
 
-func boimtprt(fo io.Writer, id int, Nboi int, Boi []BOI, Mo int, tt int) {
-	var i int
-
+func boimtprt(fo io.Writer, id int, Boi []BOI, Mo int, tt int) {
 	switch id {
 	case 0:
-		if Nboi > 0 {
-			fmt.Fprintf(fo, "%s %d\n", BOILER_TYPE, Nboi)
+		if len(Boi) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", BOILER_TYPE, len(Boi))
 		}
-		for i = 0; i < Nboi; i++ {
+		for i := range Boi {
 			fmt.Fprintf(fo, " %s 1 2\n", Boi[i].Name)
 		}
 	case 1:
-		for i = 0; i < Nboi; i++ {
+		for i := range Boi {
 			fmt.Fprintf(fo, "%s_E E f %s_Ph E f \n", Boi[i].Name, Boi[i].Name)
 		}
 	default:
-		for i = 0; i < Nboi; i++ {
+		for i := range Boi {
 			fmt.Fprintf(fo, " %.2f %.2f\n",
 				Boi[i].MtEdy[Mo-1][tt-1].D*Cff_kWh, Boi[i].MtPhdy[Mo-1][tt-1].D*Cff_kWh)
 		}

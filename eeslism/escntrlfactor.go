@@ -17,6 +17,6 @@ package eeslism
 
 func CalcControlStatus(Eqsys *EQSYS, Rmvls *RMVLS, Wd *WDAT, Exsfs *EXSFS) {
 	// 集熱器の相当外気温度を計算する
-	CalcCollTe(Eqsys.Ncoll, Eqsys.Coll)
+	CalcCollTe(Eqsys.Coll)
 	CalcSolarWallTe(Rmvls, Wd, Exsfs)
 }

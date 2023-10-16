@@ -67,8 +67,8 @@ func VAVdata(cattype EqpType, s string, vavca *VAVCA) int {
 	return id
 }
 
-func VWVint(Nvav int, VAVs []VAV, Compn []COMPNT) {
-	for i := 0; i < Nvav; i++ {
+func VWVint(VAVs []VAV, Compn []COMPNT) {
+	for i := range VAVs {
 		vav := &VAVs[i]
 		vav.Hcc = nil
 		vav.Hcld = nil
@@ -99,8 +99,8 @@ func VWVint(Nvav int, VAVs []VAV, Compn []COMPNT) {
 /*  特性式の係数  */
 /*---- Satoh Debug VAV  2000/11/8 ----*/
 /*********************/
-func VAVcfv(Nvav int, vav []VAV) {
-	for i := 0; i < Nvav; i++ {
+func VAVcfv(vav []VAV) {
+	for i := range vav {
 		v := &vav[i]
 		Eo := v.Cmp.Elouts
 
@@ -142,12 +142,12 @@ func VAVcfv(Nvav int, vav []VAV) {
 /* VAVコントローラ再熱部分の計算 */
 /*---- Satoh Debug VAV  2000/11/27 ----*/
 /*******************/
-func VAVene(Nvav int, vav []VAV, VAVrest *int) {
-	var i, rest int
+func VAVene(vav []VAV, VAVrest *int) {
+	var rest int
 	var elo *ELOUT
 	var Tr, Go, dTset float64
 
-	for i = 0; i < Nvav; i++ {
+	for i := range vav {
 		rest = 0
 
 		elo = vav[i].Cmp.Elouts[0]
@@ -218,15 +218,15 @@ func VAVene(Nvav int, vav []VAV, VAVrest *int) {
 	}
 }
 
-func VAVcountreset(Nvav int, VAVs []VAV) {
-	for i := 0; i < Nvav; i++ {
+func VAVcountreset(VAVs []VAV) {
+	for i := range VAVs {
 		v := &VAVs[i]
 		v.Count = 0
 	}
 }
 
-func VAVcountinc(Nvav int, VAVs []VAV) {
-	for i := 0; i < Nvav; i++ {
+func VAVcountinc(VAVs []VAV) {
+	for i := range VAVs {
 		v := &VAVs[i]
 		v.Count++
 	}
@@ -266,23 +266,23 @@ func chvavswreset(Qload float64, chmode rune, vav *VAV) int {
 	}
 }
 
-func vavprint(fo io.Writer, id, Nvav int, VAVs []VAV) {
+func vavprint(fo io.Writer, id int, VAVs []VAV) {
 	switch id {
 	case 0:
-		if Nvav > 0 {
-			fmt.Fprintf(fo, "%s %d\n", VAV_TYPE, Nvav)
+		if len(VAVs) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", VAV_TYPE, len(VAVs))
 		}
-		for i := 0; i < Nvav; i++ {
+		for i := range VAVs {
 			vav := &VAVs[i]
 			fmt.Fprintf(fo, " %s 1 2\n", vav.Name)
 		}
 	case 1:
-		for i := 0; i < Nvav; i++ {
+		for i := range VAVs {
 			vav := &VAVs[i]
 			fmt.Fprintf(fo, "%s_c c c %s_G m f\n", vav.Name, vav.Name)
 		}
 	default:
-		for i := 0; i < Nvav; i++ {
+		for i := range VAVs {
 			vav := &VAVs[i]
 			fmt.Fprintf(fo, "%c %6.4g\n", vav.Cmp.Elouts[0].Control, vav.Cmp.Elouts[0].G)
 		}

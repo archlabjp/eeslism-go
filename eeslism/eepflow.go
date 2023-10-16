@@ -125,7 +125,7 @@ func Pflow(Nmpath int, _Mpath []MPATH, Wd *WDAT) {
 					Plist.G = G
 				} else if Plist.Rate != nil {
 					Plist.G = *Mpath.G0 * *Plist.Rate
-				} else if Plist.Batch != 'y' {
+				} else if !Plist.Batch {
 					if Plist.Go != nil {
 						Go = *Plist.Go
 					} else {

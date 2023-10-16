@@ -215,14 +215,14 @@ func Stankmemloc(errkey string, Stank *STANK) {
 
 /* 蓄熱槽初期設定 */
 
-func Stankint(Nstank int, Stank []STANK, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT) {
+func Stankint(Stank []STANK, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT) {
 	var s, ss, Err, E string
 	var mrk rune
 	var Tso float64
 
 	E = "Stankint"
 
-	for i := 0; i < Nstank; i++ {
+	for i := range Stank {
 		Stank := &Stank[i]
 
 		// 内蔵熱交換器の熱伝達率計算用温度の初期化
@@ -300,8 +300,8 @@ func Stankint(Nstank int, Stank []STANK, Simc *SIMCONTL, Compnt []COMPNT, Wd *WD
 
 /* 蓄熱槽特性式係数 */
 
-func Stankcfv(Nstank int, Stank []STANK) {
-	for i := 0; i < Nstank; i++ {
+func Stankcfv(Stank []STANK) {
+	for i := range Stank {
 		Stank := &Stank[i]
 
 		for j := 0; j < Stank.Nin; j++ {
@@ -311,7 +311,7 @@ func Stankcfv(Nstank int, Stank []STANK) {
 			ihxeff := &Stank.Ihxeff[j]
 			ihex := &Stank.Ihex[j]
 
-			if elin.Lpath.Batch == 'y' {
+			if elin.Lpath.Batch {
 				*cGwin = 0.0
 			} else {
 				*cGwin = Spcheat('W') * elin.Lpath.G
@@ -397,8 +397,8 @@ func stankvptr(key []string, Stank *STANK, vptr *VPTR) int {
 
 /* 槽内水温、水温分布逆転の検討 */
 
-func Stanktss(Nstank int, Stank []STANK, TKreset *int) {
-	for i := 0; i < Nstank; i++ {
+func Stanktss(Stank []STANK, TKreset *int) {
+	for i := range Stank {
 
 		for j := 0; j < Stank[i].Nin; j++ {
 			eli := Stank[i].Cmp.Elins[j]
@@ -421,8 +421,8 @@ func Stanktss(Nstank int, Stank []STANK, TKreset *int) {
 
 /* 供給熱量、損失熱量計算、水温前時間値の置換 */
 
-func Stankene(Nstank int, Stank []STANK) {
-	for i := 0; i < Nstank; i++ {
+func Stankene(Stank []STANK) {
+	for i := range Stank {
 		// バッチモードチェック（各層が空かどうかをチェック）
 		for k := 0; k < Stank[i].Ndiv; k++ {
 			if Stank[i].DtankF[k] == TANK_EMPTY {
@@ -485,14 +485,14 @@ func Stankene(Nstank int, Stank []STANK) {
 /* ------------------------------------------------------- */
 
 // 代表日の出力
-func stankcmpprt(fo io.Writer, id int, Nstank int, Stank []STANK) {
+func stankcmpprt(fo io.Writer, id int, Stank []STANK) {
 	switch id {
 	case 0:
-		if Nstank > 0 {
-			fmt.Fprintf(fo, "%s %d\n", STANK_TYPE, Nstank)
+		if len(Stank) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", STANK_TYPE, len(Stank))
 		}
 
-		for m := 0; m < Nstank; m++ {
+		for m := range Stank {
 			stank := &Stank[m]
 			fmt.Fprintf(fo, "%s:%d", stank.Name, stank.Nin)
 			for i := 0; i < stank.Nin; i++ {
@@ -502,7 +502,7 @@ func stankcmpprt(fo io.Writer, id int, Nstank int, Stank []STANK) {
 			fmt.Fprintf(fo, " 1 %d\n", stank.Nin*5+2+stank.Ndiv+stank.Ncalcihex)
 		}
 	case 1:
-		for m := 0; m < Nstank; m++ {
+		for m := range Stank {
 			stank := &Stank[m]
 			for i := 0; i < stank.Nin; i++ {
 				c := stank.Cmp.Idi[i]
@@ -520,7 +520,7 @@ func stankcmpprt(fo io.Writer, id int, Nstank int, Stank []STANK) {
 			fmt.Fprintln(fo)
 		}
 	default:
-		for m := 0; m < Nstank; m++ {
+		for m := range Stank {
 			stank := &Stank[m]
 			Tss := &stank.Tss[0]
 			for i := 0; i < stank.Nin; i++ {
@@ -551,14 +551,14 @@ func stankcmpprt(fo io.Writer, id int, Nstank int, Stank []STANK) {
 }
 
 /* ------------------------------------------------------- */
-func stankivprt(fo io.Writer, id int, Nstank int, Stank []STANK) {
-	if id == 0 && Nstank > 0 {
-		for m := 0; m < Nstank; m++ {
+func stankivprt(fo io.Writer, id int, Stank []STANK) {
+	if id == 0 && len(Stank) > 0 {
+		for m := range Stank {
 			stank := &Stank[m]
 			fmt.Fprintf(fo, "m=%d  %s  %d\n", m, stank.Name, stank.Ndiv)
 		}
 	} else {
-		for m := 0; m < Nstank; m++ {
+		for m := range Stank {
 			stank := &Stank[m]
 			fmt.Fprintf(fo, "m=%d  ", m)
 
@@ -574,8 +574,8 @@ func stankivprt(fo io.Writer, id int, Nstank int, Stank []STANK) {
 
 /* 日積算値に関する処理 */
 
-func stankdyint(Nstank int, Stank []STANK) {
-	for i := 0; i < Nstank; i++ {
+func stankdyint(Stank []STANK) {
+	for i := range Stank {
 		stank := &Stank[i]
 		stank.Qlossdy = 0.0
 		stank.Qstody = 0.0
@@ -589,8 +589,8 @@ func stankdyint(Nstank int, Stank []STANK) {
 	}
 }
 
-func stankmonint(Nstank int, Stank []STANK) {
-	for i := 0; i < Nstank; i++ {
+func stankmonint(Stank []STANK) {
+	for i := range Stank {
 		stank := &Stank[i]
 		stank.MQlossdy = 0.0
 		stank.MQstody = 0.0
@@ -605,8 +605,8 @@ func stankmonint(Nstank int, Stank []STANK) {
 }
 
 // 日集計、月集計
-func stankday(Mon, Day, ttmm, Nstank int, Stank []STANK, Nday, SimDayend int) {
-	for i := 0; i < Nstank; i++ {
+func stankday(Mon, Day, ttmm int, Stank []STANK, Nday, SimDayend int) {
+	for i := range Stank {
 		stank := &Stank[i]
 
 		// 日集計
@@ -645,14 +645,14 @@ func stankday(Mon, Day, ttmm, Nstank int, Stank []STANK, Nday, SimDayend int) {
 }
 
 // 日集計の出力
-func stankdyprt(fo io.Writer, id, Nstank int, Stank []STANK) {
+func stankdyprt(fo io.Writer, id int, Stank []STANK) {
 	switch id {
 	case 0:
-		if Nstank > 0 {
-			fmt.Fprintf(fo, "%s %d\n", STANK_TYPE, Nstank)
+		if len(Stank) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", STANK_TYPE, len(Stank))
 		}
 
-		for m := 0; m < Nstank; m++ {
+		for m := range Stank {
 			stank := &Stank[m]
 			fmt.Fprintf(fo, "%s:%d", stank.Name, stank.Nin)
 
@@ -664,7 +664,7 @@ func stankdyprt(fo io.Writer, id, Nstank int, Stank []STANK) {
 		}
 
 	case 1:
-		for m := 0; m < Nstank; m++ {
+		for m := range Stank {
 			stank := &Stank[m]
 			fmt.Fprintf(fo, "%s_Ts t f \n", stank.Name)
 
@@ -706,14 +706,14 @@ func stankdyprt(fo io.Writer, id, Nstank int, Stank []STANK) {
 }
 
 // 月集計の出力
-func stankmonprt(fo io.Writer, id, Nstank int, Stank []STANK) {
+func stankmonprt(fo io.Writer, id int, Stank []STANK) {
 	switch id {
 	case 0:
-		if Nstank > 0 {
-			fmt.Fprintf(fo, "%s %d\n", STANK_TYPE, Nstank)
+		if len(Stank) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", STANK_TYPE, len(Stank))
 		}
 
-		for m := 0; m < Nstank; m++ {
+		for m := range Stank {
 			stank := &Stank[m]
 			fmt.Fprintf(fo, "%s:%d", stank.Name, stank.Nin)
 
@@ -725,7 +725,7 @@ func stankmonprt(fo io.Writer, id, Nstank int, Stank []STANK) {
 		}
 
 	case 1:
-		for m := 0; m < Nstank; m++ {
+		for m := range Stank {
 			stank := &Stank[m]
 			fmt.Fprintf(fo, "%s_Ts t f \n", stank.Name)
 

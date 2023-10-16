@@ -709,9 +709,9 @@ func Entry(InFile string) {
 			eloutprint(0, Nelout, Elout, Compnt);
 			*****/
 
-			VAVcountreset(Eqsys.Nvav, Eqsys.Vav)
+			VAVcountreset(Eqsys.Vav)
 			Valvcountreset(Eqsys.Nvalv, Eqsys.Valv)
-			Evaccountreset(Eqsys.Nevac, Eqsys.Evac)
+			Evaccountreset(Eqsys.Evac)
 
 			/*---- Satoh Debug VAV  2000/12/6 ----*/
 			/* VAV 計算繰り返しループの開始地点 */
@@ -726,7 +726,7 @@ func Entry(InFile string) {
 				VAVreset := 0
 				Valvreset := 0
 
-				Pumpflow(Eqsys.Npump, Eqsys.Pump)
+				Pumpflow(Eqsys.Pump)
 
 				if DEBUG {
 					fmt.Println("<<main>> Pumpflow")
@@ -838,7 +838,7 @@ func Entry(InFile string) {
 					nday, mt, tt, mm, TKreset );
 					****************************/
 
-					Stankcfv(Eqsys.Nstank, Eqsys.Stank)
+					Stankcfv(Eqsys.Stank)
 
 					Hcldcfv(Eqsys.Nhcload, Eqsys.Hcload)
 
@@ -858,17 +858,17 @@ func Entry(InFile string) {
 						PCMwlchk(i, &Rmvls, &Exsf, &Wd, &LDreset)
 					}
 
-					Boiene(Eqsys.Nboi, Eqsys.Boi, &BOIreset)
+					Boiene(Eqsys.Boi, &BOIreset)
 
-					Refaene(Eqsys.Nrefa, Eqsys.Refa, &LDreset)
+					Refaene(Eqsys.Refa, &LDreset)
 
 					Hcldene(Eqsys.Nhcload, Eqsys.Hcload, &LDreset, &Wd)
 
-					Hccdwreset(Eqsys.Nhcc, Eqsys.Hcc, &DWreset)
+					Hccdwreset(Eqsys.Hcc, &DWreset)
 
-					Stanktss(Eqsys.Nstank, Eqsys.Stank, &TKreset)
+					Stanktss(Eqsys.Stank, &TKreset)
 
-					Evacene(Eqsys.Nevac, Eqsys.Evac, &Evacreset)
+					Evacene(Eqsys.Evac, &Evacreset)
 
 					if BOIreset+LDreset+DWreset+TKreset+Evacreset+PCMfunreset == 0 {
 						break
@@ -880,10 +880,10 @@ func Entry(InFile string) {
 				}
 
 				//fmt.Printf("Loop=%d\n", i)
-				Hccene(Eqsys.Nhcc, Eqsys.Hcc)
+				Hccene(Eqsys.Hcc)
 				// 風量の計算は最初だけ
 				//if i == 0 {
-				VAVene(Eqsys.Nvav, Eqsys.Vav, &VAVreset)
+				VAVene(Eqsys.Vav, &VAVreset)
 				//}
 				Valvene(Eqsys.Nvalv, Eqsys.Valv, &Valvreset)
 
@@ -892,11 +892,11 @@ func Entry(InFile string) {
 				if VAVreset == 0 && Valvreset == 0 {
 					break
 				}
-				VAVcountinc(Eqsys.Nvav, Eqsys.Vav)
+				VAVcountinc(Eqsys.Vav)
 				Valvcountinc(Eqsys.Nvalv, Eqsys.Valv)
 
 				// 風量が変わったら電気蓄熱暖房器の係数を再計算
-				Stheatcfv(Eqsys.Nstheat, Eqsys.Stheat)
+				Stheatcfv(Eqsys.Stheat)
 
 				/*****************/
 

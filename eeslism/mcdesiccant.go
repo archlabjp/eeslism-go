@@ -28,8 +28,8 @@ import (
 /* ------------------------------------------ */
 
 // 要素方程式の変数のためのメモリの割り当て
-func Desielm(Ndesi int, Desi []DESI) {
-	for i := 0; i < Ndesi; i++ {
+func Desielm(Desi []DESI) {
+	for i := range Desi {
 		desi := &Desi[i]
 		Eot := desi.Cmp.Elouts[0] // 空気温度出口
 		Eox := desi.Cmp.Elouts[1] // 空気湿度出口
@@ -90,11 +90,11 @@ func Desiccantdata(s string, desica *DESICA) int {
 
 /*  管長・ダクト長、周囲温度設定 */
 
-func Desiint(NDesi int, _Desi []DESI, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT) {
+func Desiint(_Desi []DESI, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT) {
 	var Err string
 	var Desica *DESICA
 
-	for i := 0; i < NDesi; i++ {
+	for i := range _Desi {
 		Desi := &_Desi[i]
 
 		if Desi.Cmp.Envname != "" {
@@ -153,7 +153,7 @@ func Desiint(NDesi int, _Desi []DESI, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT)
 
 /*  特性式の係数  */
 
-func Desicfv(NDesi int, Desi []DESI) {
+func Desicfv(Desi []DESI) {
 	var Eo *ELOUT
 	var h, i, j float64
 	var Te, hsa, hsad, hAsa, hdAsa float64
@@ -162,7 +162,7 @@ func Desicfv(NDesi int, Desi []DESI) {
 
 	N := 5
 	N2 := N * N
-	for inti := 0; inti < NDesi; inti++ {
+	for inti := range Desi {
 		Desi := &Desi[inti]
 		Desica = Desi.Cat
 
@@ -261,13 +261,13 @@ func Desicfv(NDesi int, Desi []DESI) {
 //
 ///* 取得熱量の計算 */
 //
-func Desiene(NDesi int, _Desi []DESI) {
+func Desiene(_Desi []DESI) {
 	Sin := make([]float64, 5)
 	S := make([]float64, 5)
 
 	N := 5
 	//N2 := N * N
-	for i := 0; i < NDesi; i++ {
+	for i := range _Desi {
 		Desi := &_Desi[i]
 		matinit(Sin, N)
 		matinit(S, N)
@@ -343,25 +343,25 @@ func Desivptr(key []string, Desi *DESI, vptr *VPTR) int {
 
 ///* ---------------------------*/
 //
-func Desiprint(fo io.Writer, id int, Ndesi int, _Desi []DESI) {
+func Desiprint(fo io.Writer, id int, _Desi []DESI) {
 	switch id {
 	case 0:
-		if Ndesi > 0 {
-			fmt.Fprintf(fo, "%s %d\n", DESI_TYPE, Ndesi)
+		if len(_Desi) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", DESI_TYPE, len(_Desi))
 		}
-		for i := 0; i < Ndesi; i++ {
+		for i := range _Desi {
 			Desi := &_Desi[i]
 			fmt.Fprintf(fo, " %s 1 14\n", Desi.Name)
 		}
 	case 1:
-		for i := 0; i < Ndesi; i++ {
+		for i := range _Desi {
 			Desi := &_Desi[i]
 			fmt.Fprintf(fo, "%s_c c c %s_G m f %s_Ts t f %s_Ti t f %s_To t f %s_Qs q f ", Desi.Name, Desi.Name, Desi.Name, Desi.Name, Desi.Name, Desi.Name)
 			fmt.Fprintf(fo, "%s_xs x f %s_RHs r f %s_xi x f %s_xo x f %s_Ql q f %s_Qt q f ", Desi.Name, Desi.Name, Desi.Name, Desi.Name, Desi.Name, Desi.Name)
 			fmt.Fprintf(fo, "%s_Qls q f %s_P m f\n", Desi.Name, Desi.Name)
 		}
 	default:
-		for i := 0; i < Ndesi; i++ {
+		for i := range _Desi {
 			Desi := &_Desi[i]
 			fmt.Fprintf(fo, "%c %6.4g %4.1f %4.1f %4.1f %2.0f  ", Desi.Cmp.Elouts[0].Control, Desi.Cmp.Elouts[0].G, Desi.Tsold, Desi.Tain, Desi.Taout, Desi.Qs)
 			fmt.Fprintf(fo, "%.3f %.0f %.3f %.3f %2.0f %2.0f  ", Desi.Xsold, Desi.RHold, Desi.Xain, Desi.Xaout, Desi.Ql, Desi.Qt)
@@ -375,8 +375,8 @@ func Desiprint(fo io.Writer, id int, Ndesi int, _Desi []DESI) {
 ///* 日積算値に関する処理 */
 //
 ///*******************/
-func Desidyint(Ndesi int, _Desi []DESI) {
-	for i := 0; i < Ndesi; i++ {
+func Desidyint(_Desi []DESI) {
+	for i := range _Desi {
 		Desi := &_Desi[i]
 		svdyint(&Desi.Tidy)
 		svdyint(&Desi.Tsdy)
@@ -391,11 +391,11 @@ func Desidyint(Ndesi int, _Desi []DESI) {
 	}
 }
 
-func Desiday(Mon, Day, ttmm, Ndesi int, _Desi []DESI, Nday, SimDayend int) {
+func Desiday(Mon, Day, ttmm int, _Desi []DESI, Nday, SimDayend int) {
 	// Mo := Mon - 1
 	// tt := ConvertHour(ttmm)
 
-	for i := 0; i < Ndesi; i++ {
+	for i := range _Desi {
 		Desi := &_Desi[i]
 		// 日集計
 		svdaysum(int64(ttmm), Desi.Cmp.Control, Desi.Tain, &Desi.Tidy)
@@ -411,18 +411,18 @@ func Desiday(Mon, Day, ttmm, Ndesi int, _Desi []DESI, Nday, SimDayend int) {
 	}
 }
 
-func Desidyprt(fo io.Writer, id, Ndesi int, _Desi []DESI) {
+func Desidyprt(fo io.Writer, id int, _Desi []DESI) {
 	switch id {
 	case 0:
-		if Ndesi > 0 {
-			fmt.Fprintf(fo, "%s %d\n", DESI_TYPE, Ndesi)
+		if len(_Desi) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", DESI_TYPE, len(_Desi))
 		}
-		for i := 0; i < Ndesi; i++ {
+		for i := range _Desi {
 			Desi := &_Desi[i]
 			fmt.Fprintf(fo, " %s 1 68\n", Desi.Name)
 		}
 	case 1:
-		for i := 0; i < Ndesi; i++ {
+		for i := range _Desi {
 			Desi := &_Desi[i]
 
 			fmt.Fprintf(fo, "%s_Ht H d %s_Ti T f ", Desi.Name, Desi.Name)
@@ -456,7 +456,7 @@ func Desidyprt(fo io.Writer, id, Ndesi int, _Desi []DESI) {
 			fmt.Fprintf(fo, "%s_tlsh h d %s_qlsh q f %s_tlsc h d %s_qlsc q f\n", Desi.Name, Desi.Name, Desi.Name, Desi.Name)
 		}
 	default:
-		for i := 0; i < Ndesi; i++ {
+		for i := range _Desi {
 			Desi := &_Desi[i]
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ", Desi.Tidy.Hrs, Desi.Tidy.M, Desi.Tidy.Mntime, Desi.Tidy.Mn, Desi.Tidy.Mxtime, Desi.Tidy.Mx)
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ", Desi.Tody.Hrs, Desi.Tody.M, Desi.Tody.Mntime, Desi.Tody.Mn, Desi.Tody.Mxtime, Desi.Tody.Mx)

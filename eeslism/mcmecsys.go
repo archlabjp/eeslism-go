@@ -20,40 +20,40 @@ package eeslism
 // システム使用機器の初期設定
 func Mecsinit(Eqsys *EQSYS, Simc *SIMCONTL, Compnt []COMPNT, Nexsf int, Exsf []EXSF, Wd *WDAT, Rmvls *RMVLS) {
 	// ヒートポンプ
-	Refaint(Eqsys.Nrefa, Eqsys.Refa, Wd, Compnt)
+	Refaint(Eqsys.Refa, Wd, Compnt)
 
 	// 太陽熱集熱器
-	Collint(Eqsys.Ncoll, Eqsys.Coll, Nexsf, Exsf, Wd)
+	Collint(Eqsys.Coll, Nexsf, Exsf, Wd)
 
 	// 配管・ダクト
-	Pipeint(Eqsys.Npipe, Eqsys.Pipe, Simc, Compnt, Wd)
+	Pipeint(Eqsys.Pipe, Simc, Compnt, Wd)
 
 	// 蓄熱槽
-	Stankint(Eqsys.Nstank, Eqsys.Stank, Simc, Compnt, Wd)
+	Stankint(Eqsys.Stank, Simc, Compnt, Wd)
 
 	// 定流量ポンプ、変流量ポンプおよび太陽電池駆動ポンプ
-	Pumpint(Eqsys.Npump, Eqsys.Pump, Nexsf, Exsf)
+	Pumpint(Eqsys.Pump, Nexsf, Exsf)
 
 	// 電気蓄熱暖房器
-	Stheatint(Eqsys.Nstheat, Eqsys.Stheat, Simc, Compnt, Wd, Rmvls.Npcm, Rmvls.PCM)
+	Stheatint(Eqsys.Stheat, Simc, Compnt, Wd, Rmvls.Npcm, Rmvls.PCM)
 
 	// 境界条件設定用仮想機器
 	Flinint(Eqsys.Nflin, Eqsys.Flin, Simc, Compnt, Wd)
 
 	// VAVユニット
-	VWVint(Eqsys.Nvav, Eqsys.Vav, Compnt)
+	VWVint(Eqsys.Vav, Compnt)
 
 	// 全熱交換器
-	Thexint(Eqsys.Nthex, Eqsys.Thex)
+	Thexint(Eqsys.Thex)
 
 	// 太陽電池
-	PVint(Eqsys.Npv, Eqsys.PVcmp, Nexsf, Exsf, Wd)
+	PVint(Eqsys.PVcmp, Nexsf, Exsf, Wd)
 
 	// デシカント槽
-	Desiint(Eqsys.Ndesi, Eqsys.Desi, Simc, Compnt, Wd)
+	Desiint(Eqsys.Desi, Simc, Compnt, Wd)
 
 	// 気化冷却器
-	Evacint(Eqsys.Nevac, Eqsys.Evac)
+	Evacint(Eqsys.Evac)
 }
 
 // システム使用機器特性式係数の計算
@@ -61,77 +61,78 @@ func Mecscf(Eqsys *EQSYS) {
 	Cnvrgcfv(Eqsys.Ncnvrg, Eqsys.Cnvrg)
 
 	// 冷温水コイル
-	Hccdwint(Eqsys.Nhcc, Eqsys.Hcc)
-	Hcccfv(Eqsys.Nhcc, Eqsys.Hcc)
+	Hccdwint(Eqsys.Hcc)
+	Hcccfv(Eqsys.Hcc)
 
 	// ボイラー
-	Boicfv(Eqsys.Nboi, Eqsys.Boi)
+	Boicfv(Eqsys.Boi)
 
 	// 太陽熱集熱器
-	Collcfv(Eqsys.Ncoll, Eqsys.Coll)
+	Collcfv(Eqsys.Coll)
 
 	// ヒートポンプ
-	Refacfv(Eqsys.Nrefa, Eqsys.Refa)
+	Refacfv(Eqsys.Refa)
 
 	// 配管
-	Pipecfv(Eqsys.Npipe, Eqsys.Pipe)
+	Pipecfv(Eqsys.Pipe)
 
 	// 熱交換器
-	Hexcfv(Eqsys.Nhex, Eqsys.Hex)
+	Hexcfv(Eqsys.Hex)
 
 	// 定流量ポンプ、変流量ポンプおよび太陽電池駆動ポンプ
-	Pumpcfv(Eqsys.Npump, Eqsys.Pump)
+	Pumpcfv(Eqsys.Pump)
 
 	// VAVユニット
-	VAVcfv(Eqsys.Nvav, Eqsys.Vav)
+	VAVcfv(Eqsys.Vav)
 
 	// 蓄熱槽
-	Stheatcfv(Eqsys.Nstheat, Eqsys.Stheat)
+	Stheatcfv(Eqsys.Stheat)
 
 	// 全熱交換器
-	Thexcfv(Eqsys.Nthex, Eqsys.Thex)
+	Thexcfv(Eqsys.Thex)
 
 	// デシカント槽
-	Desicfv(Eqsys.Ndesi, Eqsys.Desi)
+	Desicfv(Eqsys.Desi)
 
 	// 気化冷却器
-	Evaccfv(Eqsys.Nevac, Eqsys.Evac)
+	Evaccfv(Eqsys.Evac)
 }
 
 // システム使用機器の供給熱量、エネルギーの計算
 func Mecsene(Eqsys *EQSYS) {
 	// 冷温水コイル
-	Hccene(Eqsys.Nhcc, Eqsys.Hcc)
+	Hccene(Eqsys.Hcc)
 
 	// 太陽熱集熱器
-	Collene(Eqsys.Ncoll, Eqsys.Coll)
+	Collene(Eqsys.Coll)
 
 	// ヒートポンプ
-	Refaene2(Eqsys.Nrefa, Eqsys.Refa)
+	Refaene2(Eqsys.Refa)
 
 	// 配管
-	Pipeene(Eqsys.Npipe, Eqsys.Pipe)
+	Pipeene(Eqsys.Pipe)
 
 	// 熱交換器
-	Hexene(Eqsys.Nhex, Eqsys.Hex)
+	Hexene(Eqsys.Hex)
 
 	// 蓄熱槽
-	Stankene(Eqsys.Nstank, Eqsys.Stank)
+	Stankene(Eqsys.Stank)
 
 	// ポンプ
-	Pumpene(Eqsys.Npump, Eqsys.Pump)
+	Pumpene(Eqsys.Pump)
 
 	// 電気蓄熱暖房器
-	Stheatene(Eqsys.Nstheat, Eqsys.Stheat)
+	Stheatene(Eqsys.Stheat)
 
 	// デシカント槽
-	Desiene(Eqsys.Ndesi, Eqsys.Desi)
+	Desiene(Eqsys.Desi)
 
 	// 全熱交換器
-	Thexene(Eqsys.Nthex, Eqsys.Thex)
+	Thexene(Eqsys.Thex)
 
-	Qmeasene(Eqsys.Nqmeas, Eqsys.Qmeas)
+	// カロリーメータ
+	Qmeasene(Eqsys.Qmeas)
 
 	// 太陽電池
-	PVene(Eqsys.Npv, Eqsys.PVcmp)
+	PVene(Eqsys.PVcmp)
 }

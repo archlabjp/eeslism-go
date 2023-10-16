@@ -61,8 +61,8 @@ func Hexdata(s string, Hexca *HEXCA) int {
 
 /*  特性式の係数  */
 
-func Hexcfv(Nhex int, Hex []HEX) {
-	for i := 0; i < Nhex; i++ {
+func Hexcfv(Hex []HEX) {
+	for i := range Hex {
 		hex := &Hex[i]
 
 		// 計算準備
@@ -118,8 +118,8 @@ func Hexcfv(Nhex int, Hex []HEX) {
 
 /* 交換熱量の計算 */
 
-func Hexene(Nhex int, Hex []HEX) {
-	for i := 0; i < Nhex; i++ {
+func Hexene(Hex []HEX) {
+	for i := range Hex {
 		hex := &Hex[i]
 
 		ei := hex.Cmp.Elins[0]
@@ -141,24 +141,24 @@ func Hexene(Nhex int, Hex []HEX) {
 
 /* --------------------------- */
 
-func hexprint(fo io.Writer, id int, Nhex int, Hex []HEX) {
+func hexprint(fo io.Writer, id int, Hex []HEX) {
 	switch id {
 	case 0:
-		if Nhex > 0 {
-			fmt.Fprintf(fo, "%s %d\n", HEXCHANGR_TYPE, Nhex)
+		if len(Hex) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", HEXCHANGR_TYPE, len(Hex))
 		}
-		for i := 0; i < Nhex; i++ {
+		for i := range Hex {
 			fmt.Fprintf(fo, " %s 1 9\n", Hex[i].Name)
 		}
 	case 1:
-		for i := 0; i < Nhex; i++ {
+		for i := range Hex {
 			fmt.Fprintf(fo, "%s_c c c %s:c_G m f %s:c_Ti t f %s:c_To t f %s:c_Q q f\n",
 				Hex[i].Name, Hex[i].Name, Hex[i].Name, Hex[i].Name, Hex[i].Name)
 			fmt.Fprintf(fo, "%s:h_G m f %s:h_Ti t f %s:h_To t f %s:h_Q q f\n",
 				Hex[i].Name, Hex[i].Name, Hex[i].Name, Hex[i].Name)
 		}
 	default:
-		for i := 0; i < Nhex; i++ {
+		for i := range Hex {
 			Eo := Hex[i].Cmp.Elouts[0]
 			fmt.Fprintf(fo, "%c %6.4g %4.1f %4.1f %2.0f", Hex[i].Cmp.Control, Eo.G, Hex[i].Tcin, Eo.Sysv, Hex[i].Qci)
 			Eo = Hex[i].Cmp.Elouts[1]
@@ -169,8 +169,8 @@ func hexprint(fo io.Writer, id int, Nhex int, Hex []HEX) {
 
 /* 日積算値に関する処理 */
 
-func hexdyint(Nhex int, Hex []HEX) {
-	for i := 0; i < Nhex; i++ {
+func hexdyint(Hex []HEX) {
+	for i := range Hex {
 		svdyint(&Hex[i].Tcidy)
 		svdyint(&Hex[i].Thidy)
 		qdyint(&Hex[i].Qcidy)
@@ -178,8 +178,8 @@ func hexdyint(Nhex int, Hex []HEX) {
 	}
 }
 
-func hexmonint(Nhex int, Hex []HEX) {
-	for i := 0; i < Nhex; i++ {
+func hexmonint(Hex []HEX) {
+	for i := range Hex {
 		svdyint(&Hex[i].MTcidy)
 		svdyint(&Hex[i].MThidy)
 		qdyint(&Hex[i].MQcidy)
@@ -187,8 +187,8 @@ func hexmonint(Nhex int, Hex []HEX) {
 	}
 }
 
-func hexday(Mon, Day, ttmm, Nhex int, Hex []HEX, Nday, SimDayend int) {
-	for i := 0; i < Nhex; i++ {
+func hexday(Mon, Day, ttmm int, Hex []HEX, Nday, SimDayend int) {
+	for i := range Hex {
 		// 日集計
 		svdaysum(int64(ttmm), Hex[i].Cmp.Control, Hex[i].Tcin, &Hex[i].Tcidy)
 		svdaysum(int64(ttmm), Hex[i].Cmp.Control, Hex[i].Thin, &Hex[i].Thidy)
@@ -203,19 +203,19 @@ func hexday(Mon, Day, ttmm, Nhex int, Hex []HEX, Nday, SimDayend int) {
 	}
 }
 
-func hexdyprt(fo io.Writer, id, Nhex int, Hex []HEX) {
+func hexdyprt(fo io.Writer, id int, Hex []HEX) {
 	var c byte
 
 	switch id {
 	case 0:
-		if Nhex > 0 {
-			fmt.Fprintf(fo, "%s %d\n", HEXCHANGR_TYPE, Nhex)
+		if len(Hex) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", HEXCHANGR_TYPE, len(Hex))
 		}
-		for i := 0; i < Nhex; i++ {
+		for i := range Hex {
 			fmt.Fprintf(fo, " %s 1 28\n", Hex[i].Name)
 		}
 	case 1:
-		for i := 0; i < Nhex; i++ {
+		for i := range Hex {
 			for j := 0; j < 2; j++ {
 				if j == 0 {
 					c = 'c'
@@ -232,7 +232,7 @@ func hexdyprt(fo io.Writer, id, Nhex int, Hex []HEX) {
 			}
 		}
 	default:
-		for i := 0; i < Nhex; i++ {
+		for i := range Hex {
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				Hex[i].Tcidy.Hrs, Hex[i].Tcidy.M,
 				Hex[i].Tcidy.Mntime, Hex[i].Tcidy.Mn,
@@ -253,19 +253,19 @@ func hexdyprt(fo io.Writer, id, Nhex int, Hex []HEX) {
 	}
 }
 
-func hexmonprt(fo io.Writer, id, Nhex int, Hex []HEX) {
+func hexmonprt(fo io.Writer, id int, Hex []HEX) {
 	var c byte
 
 	switch id {
 	case 0:
-		if Nhex > 0 {
-			fmt.Fprintf(fo, "%s %d\n", HEXCHANGR_TYPE, Nhex)
+		if len(Hex) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", HEXCHANGR_TYPE, len(Hex))
 		}
-		for i := 0; i < Nhex; i++ {
+		for i := range Hex {
 			fmt.Fprintf(fo, " %s 1 28\n", Hex[i].Name)
 		}
 	case 1:
-		for i := 0; i < Nhex; i++ {
+		for i := range Hex {
 			for j := 0; j < 2; j++ {
 				if j == 0 {
 					c = 'c'
@@ -282,7 +282,7 @@ func hexmonprt(fo io.Writer, id, Nhex int, Hex []HEX) {
 			}
 		}
 	default:
-		for i := 0; i < Nhex; i++ {
+		for i := range Hex {
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				Hex[i].MTcidy.Hrs, Hex[i].MTcidy.M,
 				Hex[i].MTcidy.Mntime, Hex[i].MTcidy.Mn,

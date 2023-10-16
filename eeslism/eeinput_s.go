@@ -426,11 +426,11 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 
 			// 変数の割り当て
 			Hclelm(Eqsys.Nhcload, Eqsys.Hcload)
-			Thexelm(Eqsys.Nthex, Eqsys.Thex)
-			Desielm(Eqsys.Ndesi, Eqsys.Desi)
-			Evacelm(Eqsys.Nevac, Eqsys.Evac)
+			Thexelm(Eqsys.Thex)
+			Desielm(Eqsys.Desi)
+			Evacelm(Eqsys.Evac)
 
-			Qmeaselm(Eqsys.Nqmeas, Eqsys.Qmeas)
+			Qmeaselm(Eqsys.Qmeas)
 			SYSPTH_ID++
 
 		case "CONTL":
@@ -446,11 +446,11 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 				Roomelm(Rmvls.Room, Rmvls.Rdpnl)
 
 				Hclelm(Eqsys.Nhcload, Eqsys.Hcload)
-				Thexelm(Eqsys.Nthex, Eqsys.Thex)
-				Desielm(Eqsys.Ndesi, Eqsys.Desi)
-				Evacelm(Eqsys.Nevac, Eqsys.Evac)
+				Thexelm(Eqsys.Thex)
+				Desielm(Eqsys.Desi)
+				Evacelm(Eqsys.Evac)
 
-				Qmeaselm(Eqsys.Nqmeas, Eqsys.Qmeas)
+				Qmeaselm(Eqsys.Qmeas)
 
 				SYSPTH_ID++
 			}
@@ -562,9 +562,9 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 		Roomelm(Rmvls.Room, Rmvls.Rdpnl)
 
 		Hclelm(Eqsys.Nhcload, Eqsys.Hcload)
-		Thexelm(Eqsys.Nthex, Eqsys.Thex)
+		Thexelm(Eqsys.Thex)
 
-		Qmeaselm(Eqsys.Nqmeas, Eqsys.Qmeas)
+		Qmeaselm(Eqsys.Qmeas)
 	}
 
 	//----------------------------------------------------

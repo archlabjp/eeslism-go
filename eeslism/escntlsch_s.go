@@ -151,7 +151,7 @@ func Contlschdlr(Ncontl int, _Contl []CONTL, Nmpath int, Mpath []MPATH, _Compnt 
 		Mp := &Mpath[m]
 		for i := 0; i < Mp.Nlpath; i++ {
 			Pli := &Mp.Plist[i]
-			if Pli.Batch == 'y' {
+			if Pli.Batch {
 				lpathschbat(Pli)
 			}
 		}
@@ -220,7 +220,7 @@ func mpathschd(control ControlSWType, Nlpath int, Plist []PLIST) {
 /* --------------------------------------------------- */
 
 func lpathscdd(control ControlSWType, plist *PLIST) {
-	if plist.Org == 'y' {
+	if plist.Org {
 		lpathschd(control, plist.Nelm, plist.Pelm)
 
 		if plist.Lpair != nil {

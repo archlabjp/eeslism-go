@@ -105,10 +105,10 @@ func PVcadata(s string, PVca *PVCA) int {
 
 /*  初期設定 */
 
-func PVint(Npv int, PV []PV, Nexsf int, Exs []EXSF, Wd *WDAT) {
+func PVint(PV []PV, Nexsf int, Exs []EXSF, Wd *WDAT) {
 	Err := ""
 
-	for i := 0; i < Npv; i++ {
+	for i := range PV {
 		PV[i].Ta = &Wd.T
 		PV[i].V = &Wd.Wv
 
@@ -175,8 +175,8 @@ func PVint(Npv int, PV []PV, Nexsf int, Exs []EXSF, Wd *WDAT) {
 
 /*  集熱量の計算 */
 
-func PVene(Npv int, PV []PV) {
-	for i := 0; i < Npv; i++ {
+func PVene(PV []PV) {
+	for i := range PV {
 		// 太陽電池アレイの計算（JIS C 8907:2005　P21による）
 		PV[i].TPV = *PV[i].Ta + (PV[i].Cat.A/(PV[i].Cat.B*math.Pow(*PV[i].V, 0.8)+1.0)+2.0)**PV[i].I/1000.0 - 2.0
 		PV[i].KPT = FNKPT(PV[i].TPV, PV[i].Cat.apmax)
@@ -198,26 +198,26 @@ func PVene(Npv int, PV []PV) {
 
 /* ------------------------------------------------------------- */
 
-func PVprint(fo io.Writer, id int, Npv int, PV []PV) {
+func PVprint(fo io.Writer, id int, PV []PV) {
 	switch id {
 	case 0:
-		if Npv > 0 {
-			fmt.Fprintf(fo, "%s %d\n", PV_TYPE, Npv)
+		if len(PV) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", PV_TYPE, len(PV))
 		}
-		for i := 0; i < Npv; i++ {
+		for i := range PV {
 			fmt.Fprintf(fo, " %s 1 4\n", PV[i].Name)
 		}
 		break
 
 	case 1:
-		for i := 0; i < Npv; i++ {
+		for i := range PV {
 			fmt.Fprintf(fo, " %s_TPV t f %s_I e f %s_P e f %s_Eff r f \n",
 				PV[i].Name, PV[i].Name, PV[i].Name, PV[i].Name)
 		}
 		break
 
 	default:
-		for i := 0; i < Npv; i++ {
+		for i := range PV {
 			fmt.Fprintf(fo, " %4.1f %4.0f %3.0f %.3f\n",
 				PV[i].TPV, PV[i].Iarea, PV[i].Power, PV[i].Eff)
 		}
@@ -229,25 +229,25 @@ func PVprint(fo io.Writer, id int, Npv int, PV []PV) {
 
 /* 日積算値に関する処理 */
 
-func PVdyint(Npv int, PV []PV) {
-	for i := 0; i < Npv; i++ {
+func PVdyint(PV []PV) {
+	for i := range PV {
 		qdyint(&PV[i].Edy)
 		edyint(&PV[i].Soldy)
 	}
 }
 
-func PVmonint(Npv int, PV []PV) {
-	for i := 0; i < Npv; i++ {
+func PVmonint(PV []PV) {
+	for i := range PV {
 		qdyint(&PV[i].mEdy)
 		edyint(&PV[i].mSoldy)
 	}
 }
 
-func PVday(Mon int, Day int, ttmm int, Npv int, PV []PV, Nday int, SimDayend int) {
+func PVday(Mon int, Day int, ttmm int, PV []PV, Nday int, SimDayend int) {
 	Mo := Mon - 1
 	tt := ConvertHour(ttmm)
 
-	for i := 0; i < Npv; i++ {
+	for i := range PV {
 		var sw ControlSWType
 		if PV[i].Power > 0.0 {
 			sw = ON_SW
@@ -286,23 +286,23 @@ func PVday(Mon int, Day int, ttmm int, Npv int, PV []PV, Nday int, SimDayend int
 	}
 }
 
-func PVdyprt(fo io.Writer, id int, Npv int, PV []PV) {
+func PVdyprt(fo io.Writer, id int, PV []PV) {
 	switch id {
 	case 0:
-		if Npv > 0 {
-			fmt.Fprintf(fo, "%s %d\n", PV_TYPE, Npv)
+		if len(PV) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", PV_TYPE, len(PV))
 		}
-		for i := 0; i < Npv; i++ {
+		for i := range PV {
 			fmt.Fprintf(fo, " %s 1 8\n", PV[i].Name)
 		}
 	case 1:
-		for i := 0; i < Npv; i++ {
+		for i := range PV {
 			fmt.Fprintf(fo, "%s_Hh H d %s_E E f\n", PV[i].Name, PV[i].Name)
 			fmt.Fprintf(fo, "%s_th h d %s_Em e f\n", PV[i].Name, PV[i].Name)
 			fmt.Fprintf(fo, "%s_He H d %s_S E f %s_te h d %s_Sm e f\n\n", PV[i].Name, PV[i].Name, PV[i].Name, PV[i].Name)
 		}
 	default:
-		for i := 0; i < Npv; i++ {
+		for i := range PV {
 			fmt.Fprintf(fo, "%1d %3.1f ", PV[i].Edy.Hhr, PV[i].Edy.H)
 			fmt.Fprintf(fo, "%1d %2.0f\n", PV[i].Edy.Hmxtime, PV[i].Edy.Hmx)
 
@@ -312,23 +312,23 @@ func PVdyprt(fo io.Writer, id int, Npv int, PV []PV) {
 	}
 }
 
-func PVmonprt(fo io.Writer, id int, Npv int, PV []PV) {
+func PVmonprt(fo io.Writer, id int, PV []PV) {
 	switch id {
 	case 0:
-		if Npv > 0 {
-			fmt.Fprintf(fo, "%s %d\n", PV_TYPE, Npv)
+		if len(PV) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", PV_TYPE, len(PV))
 		}
-		for i := 0; i < Npv; i++ {
+		for i := range PV {
 			fmt.Fprintf(fo, " %s 1 8\n", PV[i].Name)
 		}
 	case 1:
-		for i := 0; i < Npv; i++ {
+		for i := range PV {
 			fmt.Fprintf(fo, "%s_Hh H d %s_E E f\n", PV[i].Name, PV[i].Name)
 			fmt.Fprintf(fo, "%s_th h d %s_Em e f\n", PV[i].Name, PV[i].Name)
 			fmt.Fprintf(fo, "%s_He H d %s_S E f %s_te h d %s_Sm e f\n\n", PV[i].Name, PV[i].Name, PV[i].Name, PV[i].Name)
 		}
 	default:
-		for i := 0; i < Npv; i++ {
+		for i := range PV {
 			fmt.Fprintf(fo, "%1d %3.1f ", PV[i].mEdy.Hhr, PV[i].mEdy.H)
 			fmt.Fprintf(fo, "%1d %2.0f\n", PV[i].mEdy.Hmxtime, PV[i].mEdy.Hmx)
 
@@ -338,21 +338,21 @@ func PVmonprt(fo io.Writer, id int, Npv int, PV []PV) {
 	}
 }
 
-func PVmtprt(fo io.Writer, id int, Npv int, PV []PV, Mo int, tt int) {
+func PVmtprt(fo io.Writer, id int, PV []PV, Mo int, tt int) {
 	switch id {
 	case 0:
-		if Npv > 0 {
-			fmt.Fprintf(fo, "%s %d\n", PV_TYPE, Npv)
+		if len(PV) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", PV_TYPE, len(PV))
 		}
-		for i := 0; i < Npv; i++ {
+		for i := range PV {
 			fmt.Fprintf(fo, " %s 1 1\n", PV[i].Name)
 		}
 	case 1:
-		for i := 0; i < Npv; i++ {
+		for i := range PV {
 			fmt.Fprintf(fo, "%s_E E f\n", PV[i].Name)
 		}
 	default:
-		for i := 0; i < Npv; i++ {
+		for i := range PV {
 			fmt.Fprintf(fo, " %.2f\n", PV[i].mtEdy[Mo-1][tt-1].D*Cff_kWh)
 		}
 	}

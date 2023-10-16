@@ -112,13 +112,13 @@ func Refadata(s string, Refaca *REFACA, Rfcmp []RFCMP) int {
 
 /*  冷凍機／ヒ－トポンプの圧縮機特性設定   */
 
-func Refaint(Nrefa int, Refa []REFA, Wd *WDAT, Compnt []COMPNT) {
+func Refaint(Refa []REFA, Wd *WDAT, Compnt []COMPNT) {
 	var Cmp *RFCMP
 	var Teo, Tco, cGex, Qeo, Qco float64
 	var Qes, Qcs, Ws, ke, kc, kw, E float64
 	var i int
 
-	for k := 0; k < Nrefa; k++ {
+	for k := range Refa {
 		Refa[k].Ta = &Wd.T
 
 		if Refa[k].Cat.awtyp != 'a' {
@@ -182,13 +182,13 @@ func Refaint(Nrefa int, Refa []REFA, Wd *WDAT, Compnt []COMPNT) {
 
 /*  冷凍機／ヒ－トポンプのシステム方程式の係数  */
 
-func Refacfv(Nrefa int, Refa []REFA) {
+func Refacfv(Refa []REFA) {
 	var Eo *ELOUT
 	var cG float64
 	var err int
 	var s string
 
-	for i := 0; i < Nrefa; i++ {
+	for i := range Refa {
 		if Refa[i].Cmp.Control != OFF_SW {
 			Eo = Refa[i].Cmp.Elouts[0]
 
@@ -257,12 +257,12 @@ func refacoeff(Refa *REFA, err *int) {
 
 /*   冷却熱量/加熱量、エネルギーの計算 */
 
-func Refaene(Nrefa int, Refa []REFA, LDreset *int) {
+func Refaene(Refa []REFA, LDreset *int) {
 	var err, reset int
 	var Emax float64
 	var Eo *ELOUT
 
-	for i := 0; i < Nrefa; i++ {
+	for i := range Refa {
 		Refa[i].Tin = Refa[i].Cmp.Elins[0].Sysvin
 		Eo = Refa[i].Cmp.Elouts[0]
 		Refa[i].E = 0.0
@@ -297,7 +297,7 @@ func Refaene(Nrefa int, Refa []REFA, LDreset *int) {
 								reset = maxcapreset(Refa[i].Q, Refa[i].Qmax, Refa[i].Chmode, Eo)
 							}
 							if reset != 0 {
-								Refacfv(1, Refa[i:i+1])
+								Refacfv(Refa[i : i+1])
 								(*LDreset)++
 							}
 						}
@@ -314,8 +314,8 @@ func Refaene(Nrefa int, Refa []REFA, LDreset *int) {
 	}
 }
 
-func Refaene2(Nrefa int, Refa []REFA) {
-	for i := 0; i < Nrefa; i++ {
+func Refaene2(Refa []REFA) {
+	for i := range Refa {
 		if Refa[i].Room != nil {
 			Refa[i].Room.Qeqp += (Refa[i].Q * Refa[i].Cmp.Eqpeff)
 		}
@@ -376,24 +376,24 @@ func refaldschd(Refa *REFA) {
 
 /* --------------------------- */
 
-func refaprint(fo io.Writer, id, Nrefa int, Refa []REFA) {
+func refaprint(fo io.Writer, id int, Refa []REFA) {
 	switch id {
 	case 0:
-		if Nrefa > 0 {
-			fmt.Fprintf(fo, "%s %d\n", REFACOMP_TYPE, Nrefa)
+		if len(Refa) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", REFACOMP_TYPE, len(Refa))
 		}
-		for i := 0; i < Nrefa; i++ {
+		for i := range Refa {
 			fmt.Fprintf(fo, " %s 1 7\n", Refa[i].Name)
 		}
 	case 1:
-		for i := 0; i < Nrefa; i++ {
+		for i := range Refa {
 			fmt.Fprintf(fo, "%s_c c c %s_G m f %s_Ti t f %s_To t f ",
 				Refa[i].Name, Refa[i].Name, Refa[i].Name, Refa[i].Name)
 			fmt.Fprintf(fo, "%s_Q q f  %s_E e f %s_P e f\n",
 				Refa[i].Name, Refa[i].Name, Refa[i].Name)
 		}
 	default:
-		for i := 0; i < Nrefa; i++ {
+		for i := range Refa {
 			fmt.Fprintf(fo, "%c %6.4g %4.1f %4.1f %3.0f %3.0f %2.0f\n",
 				Refa[i].Cmp.Elouts[0].Control, Refa[i].Cmp.Elouts[0].G, Refa[i].Tin,
 				Refa[i].Cmp.Elouts[0].Sysv, Refa[i].Q, Refa[i].E, Refa[i].Ph)
@@ -405,8 +405,8 @@ func refaprint(fo io.Writer, id, Nrefa int, Refa []REFA) {
 
 /* 日積算値に関する処理 */
 
-func refadyint(Nrefa int, Refa []REFA) {
-	for i := 0; i < Nrefa; i++ {
+func refadyint(Refa []REFA) {
+	for i := range Refa {
 		svdyint(&Refa[i].Tidy)
 		qdyint(&Refa[i].Qdy)
 		edyint(&Refa[i].Edy)
@@ -414,8 +414,8 @@ func refadyint(Nrefa int, Refa []REFA) {
 	}
 }
 
-func refamonint(Nrefa int, Refa []REFA) {
-	for i := 0; i < Nrefa; i++ {
+func refamonint(Refa []REFA) {
+	for i := range Refa {
 		svdyint(&Refa[i].mTidy)
 		qdyint(&Refa[i].mQdy)
 		edyint(&Refa[i].mEdy)
@@ -423,10 +423,10 @@ func refamonint(Nrefa int, Refa []REFA) {
 	}
 }
 
-func refaday(Mon int, Day int, ttmm int, Nrefa int, Refa []REFA, Nday int, SimDayend int) {
+func refaday(Mon int, Day int, ttmm int, Refa []REFA, Nday int, SimDayend int) {
 	Mo := Mon - 1
 	tt := ConvertHour(ttmm)
-	for i := 0; i < Nrefa; i++ {
+	for i := range Refa {
 		Refa := &Refa[i]
 
 		// 日集計
@@ -447,18 +447,18 @@ func refaday(Mon int, Day int, ttmm int, Nrefa int, Refa []REFA, Nday int, SimDa
 	}
 }
 
-func refadyprt(fo io.Writer, id int, Nrefa int, Refa []REFA) {
+func refadyprt(fo io.Writer, id int, Refa []REFA) {
 	switch id {
 	case 0:
-		if Nrefa > 0 {
-			fmt.Fprintf(fo, "%s %d\n", REFACOMP_TYPE, Nrefa)
+		if len(Refa) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", REFACOMP_TYPE, len(Refa))
 		}
-		for i := 0; i < Nrefa; i++ {
+		for i := range Refa {
 			refa := &Refa[i]
 			fmt.Fprintf(fo, " %s 1 22\n", refa.Name)
 		}
 	case 1:
-		for i := 0; i < Nrefa; i++ {
+		for i := range Refa {
 			refa := &Refa[i]
 			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", refa.Name, refa.Name)
 			fmt.Fprintf(fo, "%s_ttn h d %s_Tn t f %s_ttm h d %s_Tm t f\n",
@@ -473,7 +473,7 @@ func refadyprt(fo io.Writer, id int, Nrefa int, Refa []REFA) {
 				refa.Name, refa.Name, refa.Name, refa.Name)
 		}
 	default:
-		for i := 0; i < Nrefa; i++ {
+		for i := range Refa {
 			refa := &Refa[i]
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				refa.Tidy.Hrs, refa.Tidy.M,
@@ -494,18 +494,18 @@ func refadyprt(fo io.Writer, id int, Nrefa int, Refa []REFA) {
 	}
 }
 
-func refamonprt(fo io.Writer, id int, Nrefa int, Refa []REFA) {
+func refamonprt(fo io.Writer, id int, Refa []REFA) {
 	switch id {
 	case 0:
-		if Nrefa > 0 {
-			fmt.Fprintf(fo, "%s %d\n", REFACOMP_TYPE, Nrefa)
+		if len(Refa) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", REFACOMP_TYPE, len(Refa))
 		}
-		for i := 0; i < Nrefa; i++ {
+		for i := range Refa {
 			refa := &Refa[i]
 			fmt.Fprintf(fo, " %s 1 22\n", refa.Name)
 		}
 	case 1:
-		for i := 0; i < Nrefa; i++ {
+		for i := range Refa {
 			refa := &Refa[i]
 			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", refa.Name, refa.Name)
 			fmt.Fprintf(fo, "%s_ttn h d %s_Tn t f %s_ttm h d %s_Tm t f\n",
@@ -520,7 +520,7 @@ func refamonprt(fo io.Writer, id int, Nrefa int, Refa []REFA) {
 				refa.Name, refa.Name, refa.Name, refa.Name)
 		}
 	default:
-		for i := 0; i < Nrefa; i++ {
+		for i := range Refa {
 			refa := &Refa[i]
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				refa.mTidy.Hrs, refa.mTidy.M,
@@ -541,23 +541,23 @@ func refamonprt(fo io.Writer, id int, Nrefa int, Refa []REFA) {
 	}
 }
 
-func refamtprt(fo io.Writer, id int, Nrefa int, Refa []REFA, Mo int, tt int) {
+func refamtprt(fo io.Writer, id int, Refa []REFA, Mo int, tt int) {
 	switch id {
 	case 0:
-		if Nrefa > 0 {
-			fmt.Fprintf(fo, "%s %d\n", REFACOMP_TYPE, Nrefa)
+		if len(Refa) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", REFACOMP_TYPE, len(Refa))
 		}
-		for i := 0; i < Nrefa; i++ {
+		for i := range Refa {
 			refa := &Refa[i]
 			fmt.Fprintf(fo, " %s 1 2\n", refa.Name)
 		}
 	case 1:
-		for i := 0; i < Nrefa; i++ {
+		for i := range Refa {
 			refa := &Refa[i]
 			fmt.Fprintf(fo, "%s_E E f %s_Ph E f \n", refa.Name, refa.Name)
 		}
 	default:
-		for i := 0; i < Nrefa; i++ {
+		for i := range Refa {
 			refa := &Refa[i]
 			fmt.Fprintf(fo, " %.2f %.2f\n", refa.mtEdy[Mo-1][tt-1].D*Cff_kWh, refa.mtPhdy[Mo-1][tt-1].D*Cff_kWh)
 		}

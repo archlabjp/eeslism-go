@@ -29,8 +29,8 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		if catname == Hccca.name {
 			C.Eqptype = HCCOIL_TYPE
 			C.Ncat = i
-			C.Neqp = Esys.Nhcc
-			Esys.Nhcc++
+			C.Neqp = len(Esys.Hcc)
+			Esys.Hcc = append(Esys.Hcc, NewHCC())
 			C.Nout = 3
 			C.Nin = 3
 			C.Idi = []ELIOType{ELIO_t, ELIO_x, ELIO_W} // txW
@@ -45,8 +45,8 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		if catname == Boica.name {
 			C.Eqptype = BOILER_TYPE
 			C.Ncat = i
-			C.Neqp = Esys.Nboi
-			Esys.Nboi++
+			C.Neqp = len(Esys.Boi)
+			Esys.Boi = append(Esys.Boi, NewBOI())
 			C.Nout = 1
 			C.Nin = 1
 			return true
@@ -58,8 +58,8 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		if catname == Collca.name {
 			C.Eqptype = COLLECTOR_TYPE
 			C.Ncat = i
-			C.Neqp = Esys.Ncoll
-			Esys.Ncoll++
+			C.Neqp = len(Esys.Coll)
+			Esys.Coll = append(Esys.Coll, NewCOLL())
 			C.Ac = Collca.Ac
 
 			if Collca.Type == COLLECTOR_PDT {
@@ -79,8 +79,8 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		if catname == PVca.Name {
 			C.Eqptype = PV_TYPE
 			C.Ncat = i
-			C.Neqp = Esys.Npv
-			Esys.Npv++
+			C.Neqp = len(Esys.PVcmp)
+			Esys.PVcmp = append(Esys.PVcmp, NewPV())
 			C.PVcap = PVca.PVcap
 			C.Nout = 0
 			C.Nin = 0
@@ -95,8 +95,8 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		if catname == Refaca.name {
 			C.Eqptype = REFACOMP_TYPE
 			C.Ncat = i
-			C.Neqp = Esys.Nrefa
-			Esys.Nrefa++
+			C.Neqp = len(Esys.Refa)
+			Esys.Refa = append(Esys.Refa, NewREFA())
 			C.Nout = 1
 			C.Nin = 1
 			return true
@@ -108,8 +108,8 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		if catname == Pipeca.name {
 			C.Eqptype = PIPEDUCT_TYPE
 			C.Ncat = i
-			C.Neqp = Esys.Npipe
-			Esys.Npipe++
+			C.Neqp = len(Esys.Pipe)
+			Esys.Pipe = append(Esys.Pipe, NewPIPE())
 
 			if Pipeca.Type == PIPE_PDT {
 				C.Nout = 1
@@ -125,12 +125,12 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 	}
 
 	for i := range Ecat.Stankca {
-		Stankca := Ecat.Stankca[i]
+		Stankca := &Ecat.Stankca[i]
 		if catname == Stankca.name {
 			C.Eqptype = STANK_TYPE
 			C.Ncat = i
-			C.Neqp = Esys.Nstank
-			Esys.Nstank++
+			C.Neqp = len(Esys.Stank)
+			Esys.Stank = append(Esys.Stank, NewSTANK())
 
 			return true
 		}
@@ -141,8 +141,8 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		if catname == Hexca.Name {
 			C.Eqptype = HEXCHANGR_TYPE
 			C.Ncat = i
-			C.Neqp = Esys.Nhex
-			Esys.Nhex++
+			C.Neqp = len(Esys.Hex)
+			Esys.Hex = append(Esys.Hex, NewHEX())
 
 			C.Nout = 2
 			C.Nin = 2
@@ -158,8 +158,8 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		if catname == Pumpca.name {
 			C.Eqptype = PUMP_TYPE
 			C.Ncat = i
-			C.Neqp = Esys.Npump
-			Esys.Npump++
+			C.Neqp = len(Esys.Pump)
+			Esys.Pump = append(Esys.Pump, NewPUMP())
 
 			if Pumpca.pftype == PUMP_PF {
 				C.Nout = 1
@@ -185,8 +185,8 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 			}
 
 			C.Ncat = i
-			C.Neqp = Esys.Nvav
-			Esys.Nvav++
+			C.Neqp = len(Esys.Vav)
+			Esys.Vav = append(Esys.Vav, NewVAV())
 
 			if Vavca.Type == VAV_PDT {
 				C.Nout = 2
@@ -208,8 +208,8 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		if catname == OMvavca.Name {
 			C.Eqptype = OMVAV_TYPE
 			C.Ncat = i
-			C.Neqp = Esys.Nomvav
-			Esys.Nomvav++
+			C.Neqp = len(Esys.OMvav)
+			Esys.OMvav = append(Esys.OMvav, NewOMVAV())
 			C.Nout = 0
 			C.Nin = 0
 
@@ -222,8 +222,8 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		if catname == Stheatca.Name {
 			C.Eqptype = STHEAT_TYPE
 			C.Ncat = i
-			C.Neqp = Esys.Nstheat
-			Esys.Nstheat++
+			C.Neqp = len(Esys.Stheat)
+			Esys.Stheat = append(Esys.Stheat, NewSTHEAT())
 
 			C.Nout = 3
 			C.Nin = 3
@@ -240,8 +240,8 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		if catname == Desica.name {
 			C.Eqptype = DESI_TYPE
 			C.Ncat = i
-			C.Neqp = Esys.Ndesi
-			Esys.Ndesi++
+			C.Neqp = len(Esys.Desi)
+			Esys.Desi = append(Esys.Desi, NewDESI())
 
 			C.Nout = 2
 			C.Nin = 2
@@ -258,8 +258,8 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		if catname == Evcaca.Name {
 			C.Eqptype = EVAC_TYPE
 			C.Ncat = i
-			C.Neqp = Esys.Nevac
-			Esys.Nevac++
+			C.Neqp = len(Esys.Evac)
+			Esys.Evac = append(Esys.Evac, NewEVAC())
 			C.Airpathcpy = 'y'
 			C.Nout = 4
 			C.Nin = 4
@@ -275,8 +275,8 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		if catname == Thexca.Name {
 			C.Eqptype = THEX_TYPE
 			C.Ncat = i
-			C.Neqp = Esys.Nthex
-			Esys.Nthex++
+			C.Neqp = len(Esys.Thex)
+			Esys.Thex = append(Esys.Thex, NewTHEX())
 			C.Airpathcpy = 'y'
 			C.Nout = 4
 			C.Nin = 4

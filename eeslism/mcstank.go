@@ -20,6 +20,7 @@
 package eeslism
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -365,10 +366,10 @@ func Stankcfv(Stank []STANK) {
 
 /* ------------------------------------------------------- */
 
-/*  蓄熱槽内部水温のポインター  */
-
-func stankvptr(key []string, Stank *STANK, vptr *VPTR) int {
-	err := 0
+// 蓄熱槽内部水温のポインターの作成
+func stankvptr(key []string, Stank *STANK) (VPTR, error) {
+	var err error
+	var vptr VPTR
 	var s string
 	if key[1] == "Ts" {
 		s = key[2]
@@ -380,7 +381,7 @@ func stankvptr(key []string, Stank *STANK, vptr *VPTR) int {
 				vptr.Ptr = &Stank.Tssold[Stank.Ndiv-1]
 				vptr.Type = VAL_CTYPE
 			} else {
-				err = 1
+				err = errors.New("'t' or 'b' is expected")
 			}
 		} else {
 			i, _ := strconv.Atoi(s)
@@ -388,14 +389,14 @@ func stankvptr(key []string, Stank *STANK, vptr *VPTR) int {
 				vptr.Ptr = &Stank.Tssold[i]
 				vptr.Type = VAL_CTYPE
 			} else {
-				err = 1
+				err = errors.New("numeric value is expected")
 			}
 		}
 	} else {
-		err = 1
+		err = errors.New("'Ts' is expected")
 	}
 
-	return err
+	return vptr, err
 }
 
 /* ------------------------------------------------------- */

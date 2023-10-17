@@ -18,6 +18,7 @@
 package eeslism
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -192,22 +193,15 @@ func scolte(rtgko, cinc, Idre, Idf, Ta float64) float64 {
 
 /* ------------------------------------- */
 
-/*  集熱器内部変数のポインター  */
-
-func collvptr(key []string, Coll *COLL, vptr *VPTR) int {
-	err := 0
-
+// 集熱器内部変数のポインターの作成
+func collvptr(key []string, Coll *COLL) (VPTR, error) {
 	if key[1] == "Te" {
-		vptr.Ptr = &Coll.Te
-		vptr.Type = VAL_CTYPE
+		return VPTR{Ptr: &Coll.Te, Type: VAL_CTYPE}, nil
 	} else if key[1] == "Tcb" {
-		vptr.Ptr = &Coll.Tcb
-		vptr.Type = VAL_CTYPE
-	} else {
-		err = 1
+		return VPTR{Ptr: &Coll.Tcb, Type: VAL_CTYPE}, nil
 	}
 
-	return err
+	return VPTR{}, errors.New("collvptr error")
 }
 
 /* ------------------------------------------------------------- */

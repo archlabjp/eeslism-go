@@ -1,6 +1,7 @@
 package eeslism
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -208,8 +209,8 @@ func Flinint(Flin []FLIN, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT) {
 
 /* 境界条件・負荷仮想機器のファイル入力データのポインター */
 
-func vcfptr(key []string, Simc *SIMCONTL, vptr *VPTR) int {
-	var Ndata, err int = 1, 1
+func vcfptr(key []string, Simc *SIMCONTL) (VPTR, error) {
+	var Ndata int = 1
 	var Tlist *TLIST
 
 	for j := 0; j < Simc.Nvcfile; j++ {
@@ -220,16 +221,16 @@ func vcfptr(key []string, Simc *SIMCONTL, vptr *VPTR) int {
 			for k := 0; k < Ndata; k++ {
 				Tlist = &Vcfile.Tlist[k]
 				if key[1] == Tlist.Name && key[2] == Tlist.Id {
-					vptr.Ptr = Tlist.Fval
-					vptr.Type = VAL_CTYPE
-					err = 0
-					break
+					return VPTR{
+						Ptr:  Tlist.Fval,
+						Type: VAL_CTYPE,
+					}, nil
 				}
 			}
 		}
 	}
 
-	return err
+	return VPTR{}, errors.New("vcfptr error")
 }
 
 /* -------------------------------------------------- */

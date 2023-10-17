@@ -20,6 +20,7 @@
 package eeslism
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"strings"
@@ -194,15 +195,16 @@ func ValvControl(fi *EeTokens, Compnt []COMPNT, Schdl *SCHDL, Simc *SIMCONTL, Wd
 }
 
 // バルブの内部変数へのポインタ
-func valv_vptr(key []string, Valv *VALV, vptr *VPTR) int {
-	var err int
+func valv_vptr(key []string, Valv *VALV) (VPTR, error) {
+	var err error
+	var vptr VPTR
 
 	if strings.Compare(key[1], "value") == 0 {
 		vptr.Ptr = &Valv.X
 		vptr.Type = VAL_CTYPE
 	} else {
-		err = 1
+		err = errors.New("'value' is expected")
 	}
 
-	return err
+	return vptr, err
 }

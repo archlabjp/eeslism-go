@@ -19,6 +19,7 @@
 package eeslism
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -234,22 +235,29 @@ func Stheatene(_stheat []STHEAT) {
 	}
 }
 
-func stheatvptr(key []string, Stheat *STHEAT, vptr *VPTR, vpath *VPTR) int {
-	var err int
+func stheatvptr(key []string, Stheat *STHEAT) (VPTR, VPTR, error) {
+	var err error
+	var vptr, vpath VPTR
 
 	if key[1] == "Ts" {
-		vptr.Ptr = &Stheat.Tsold
-		vptr.Type = VAL_CTYPE
+		vptr = VPTR{
+			Ptr:  &Stheat.Tsold,
+			Type: VAL_CTYPE,
+		}
 	} else if key[1] == "control" {
-		vpath.Type = 's'
-		vpath.Ptr = Stheat
-		vptr.Ptr = &Stheat.Cmp.Control
-		vptr.Type = SW_CTYPE
+		vpath = VPTR{
+			Type: 's',
+			Ptr:  Stheat,
+		}
+		vptr = VPTR{
+			Ptr:  &Stheat.Cmp.Control,
+			Type: SW_CTYPE,
+		}
 	} else {
-		err = 1
+		err = errors.New("'Ts' or 'control' is expected")
 	}
 
-	return err
+	return vptr, vpath, err
 }
 
 /* ---------------------------*/

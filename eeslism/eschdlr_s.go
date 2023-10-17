@@ -23,15 +23,11 @@ func Eeschdlr(day, ttmm int, Schdl *SCHDL, Rmvls *RMVLS) {
 	//r := Rmvls.Room
 
 	for j := range Schdl.Sch {
-		val := &Schdl.Val[j]
-		Sch := &Schdl.Sch[j]
-		*val = schval(day, ttmm, Sch, Schdl.Dsch)
+		Schdl.Val[j] = schval(day, ttmm, &Schdl.Sch[j], Schdl.Dsch)
 	}
 
 	for j := range Schdl.Scw {
-		Scw := &Schdl.Scw[j]
-		isw := &Schdl.Isw[j]
-		*isw = rune(scwmode(day, ttmm, Scw, Schdl.Dscw))
+		Schdl.Isw[j] = rune(scwmode(day, ttmm, &Schdl.Scw[j], Schdl.Dscw))
 	}
 
 	if SIMUL_BUILDG {

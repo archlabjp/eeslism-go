@@ -49,6 +49,6 @@ type SCHDL struct {
 	Sch []SCH // SCHNMデータセット: 年間の設定値スケジュール
 	Scw []SCH // SCHNMデータセット: 年間の切替スケジュール
 
-	Val []float64 // `Sch`の要素数と同数
-	Isw []rune    // `Scw`の要素数と同数
+	Val []float64 // 設定値? (`Sch`の要素数と同数)
+	Isw []rune    // 切替状態? (`Scw`の要素数と同数)
 }

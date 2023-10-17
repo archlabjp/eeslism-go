@@ -15,9 +15,12 @@
 
 package eeslism
 
+import "errors"
+
 /* 室及び関連システム変数、内部変数のポインター  */
 
-func roomvptr(Nk int, key []string, Room *ROOM, vptr *VPTR) int {
+func roomvptr(Nk int, key []string, Room *ROOM) (VPTR, error) {
+	var vptr VPTR
 	vptr.Ptr = nil
 
 	if Nk == 2 {
@@ -64,20 +67,21 @@ func roomvptr(Nk int, key []string, Room *ROOM, vptr *VPTR) int {
 	}
 
 	if vptr.Ptr == nil {
-		return 1
+		return vptr, errors.New("roomvptr error")
 	}
 
-	return 0
+	return vptr, nil
 }
 
 /* ------------------------------------------- */
 
 /* 室負荷計算時の設定値ポインター */
 
-func roomldptr(load *rune, key []string, Room *ROOM, vptr *VPTR, idmrk *byte) int {
-	err := 0
+func roomldptr(load *rune, key []string, Room *ROOM, idmrk *byte) (VPTR, error) {
+	var err error
 	var i int
 	var Sd *RMSRF
+	var vptr VPTR
 
 	if key[1] == "Tr" {
 		vptr.Ptr = &Room.rmld.Tset
@@ -119,16 +123,16 @@ func roomldptr(load *rune, key []string, Room *ROOM, vptr *VPTR, idmrk *byte) in
 				vptr.Type = VAL_CTYPE
 				Room.rmld.loadt = load
 				*idmrk = 't'
-				err = 0
+				err = nil
 				break
 			}
-			err = 1
+			err = errors.New("Surface not found: " + Sd.Name)
 		}
 	} else {
-		err = 1
+		err = errors.New("'Tr', 'Tot', 'RH', 'Tdp', 'xr' or '<roomname> Ts' are expected")
 	}
 
-	return err
+	return vptr, err
 }
 
 /* ------------------------------------------- */

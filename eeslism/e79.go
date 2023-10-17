@@ -1,3 +1,4 @@
+// Package eeslism は C言語による Open EESLISM をGo言語に移植したものです。
 package eeslism
 
 import (

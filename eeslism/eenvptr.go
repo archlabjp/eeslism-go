@@ -6,22 +6,24 @@ import (
 	"strings"
 )
 
-/*  システム要素周囲条件（温度など）のポインター  */
-
+// システム要素周囲条件（温度など）のポインター
 func envptr(s string, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT, Exsf *EXSFS) *float64 {
-	var err int
+	var err error
 	var vptr VPTR
-	var pdmy VPTR
 	var dmy []MPATH
 	var val *float64
 
 	if isStrDigit(s) {
-		num, _ := strconv.ParseFloat(s, 64)
+		// 固定値へのポインタを作成
+		num, err2 := readFloat(s)
+		if err2 != nil {
+			panic(err2)
+		}
 		val = new(float64)
 		*val = num
 	} else {
-		err = kynameptr(s, Simc, Compnt, 0, dmy, Wd, Exsf, &vptr, &pdmy)
-		if err == 0 && vptr.Type == VAL_CTYPE {
+		vptr, _, err = kynameptr(s, Simc, Compnt, 0, dmy, Wd, Exsf)
+		if err == nil && vptr.Type == VAL_CTYPE {
 			val = vptr.Ptr.(*float64)
 		} else {
 			fmt.Println("<*envptr>", s)

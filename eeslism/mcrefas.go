@@ -18,6 +18,7 @@
 package eeslism
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -327,33 +328,33 @@ func Refaene2(Refa []REFA) {
 
 /* 負荷計算指定時の設定値のポインター */
 
-func refaldptr(load *rune, key []string, Refa *REFA, vptr *VPTR) int {
-	err := 0
+func refaldptr(load *rune, key []string, Refa *REFA) (VPTR, error) {
+	var err error
+	var vptr VPTR
 
 	if key[1] == "Tout" {
 		vptr.Ptr = &Refa.Toset
 		vptr.Type = VAL_CTYPE
 		Refa.Load = load
 	} else {
-		err = 1
+		err = errors.New("Tout expected")
 	}
-	return err
+	return vptr, err
 }
 
 /* ------------------------------------------------------------- */
 
 /* 冷暖運転切換のポインター */
 
-func refaswptr(key []string, Refa *REFA, vptr *VPTR) int {
-	err := 0
-
+func refaswptr(key []string, Refa *REFA) (VPTR, error) {
 	if key[1] == "chmode" {
-		vptr.Ptr = &Refa.Chmode
-		vptr.Type = SW_CTYPE
-	} else {
-		err = 1
+		return VPTR{
+			Ptr:  &Refa.Chmode,
+			Type: SW_CTYPE,
+		}, nil
 	}
-	return err
+
+	return VPTR{}, errors.New("refaswptr error")
 }
 
 /* --------------------------- */

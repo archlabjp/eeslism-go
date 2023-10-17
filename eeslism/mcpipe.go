@@ -18,6 +18,7 @@
 package eeslism
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -162,8 +163,9 @@ func Pipeene(Pipe []PIPE) {
 
 /* 負荷計算用設定値のポインター */
 
-func pipeldsptr(load *rune, key []string, Pipe *PIPE, vptr *VPTR, idmrk *byte) int {
-	err := 0
+func pipeldsptr(load *rune, key []string, Pipe *PIPE, idmrk *byte) (VPTR, error) {
+	var err error
+	var vptr VPTR
 
 	if key[1] == "Tout" {
 		vptr.Ptr = &Pipe.Toset
@@ -176,10 +178,10 @@ func pipeldsptr(load *rune, key []string, Pipe *PIPE, vptr *VPTR, idmrk *byte) i
 		Pipe.Loadx = load
 		*idmrk = 'x'
 	} else {
-		err = 1
+		err = errors.New("Tout or xout expected")
 	}
 
-	return err
+	return vptr, err
 }
 
 /* ------------------------------------------ */
@@ -332,11 +334,10 @@ func pipemonprt(fo io.Writer, id int, Pipe []PIPE) {
 	}
 }
 
-/*  配管、ダクト内部変数のポインター  */
-
-func pipevptr(key []string, Pipe *PIPE, vptr *VPTR) int {
-	err := 0
-
+// 配管、ダクト内部変数のポインターを作成します
+func pipevptr(key []string, Pipe *PIPE) (VPTR, error) {
+	var err error
+	var vptr VPTR
 	switch key[1] {
 	case "Tout":
 		vptr.Ptr = &Pipe.Tout
@@ -351,8 +352,8 @@ func pipevptr(key []string, Pipe *PIPE, vptr *VPTR) int {
 		vptr.Ptr = &Pipe.RHout
 		vptr.Type = VAL_CTYPE
 	default:
-		err = 1
+		err = errors.New("Tout, hout, xout or RHout is expected")
 	}
 
-	return err
+	return vptr, err
 }

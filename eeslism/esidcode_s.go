@@ -91,6 +91,7 @@ func iddsw(code string, Dscw []DSCW) (int, error) {
 
 /* ---------------------------------------- */
 
+//
 // スケジュールcodeを Sch から検索し、インデックス番号を返す
 // ただし、検索しても見つからない場合は -1 を返す
 func idsch(code string, Sch []SCH, err string) (int, error) {

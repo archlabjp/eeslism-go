@@ -19,6 +19,7 @@
 package eeslism
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"strconv"
@@ -326,8 +327,9 @@ func Desiene(_Desi []DESI) {
 }
 
 // 制御で使用する内部変数
-func Desivptr(key []string, Desi *DESI, vptr *VPTR) int {
-	var err int
+func Desivptr(key []string, Desi *DESI) (VPTR, error) {
+	var err error
+	var vptr VPTR
 
 	switch key[1] {
 	case "Ts":
@@ -340,10 +342,10 @@ func Desivptr(key []string, Desi *DESI, vptr *VPTR) int {
 		vptr.Ptr = &Desi.RHold
 		vptr.Type = VAL_CTYPE
 	default:
-		err = 1
+		err = errors.New("'Ts', 'xs' or 'RH' is expected")
 	}
 
-	return err
+	return vptr, err
 }
 
 ///* ---------------------------*/

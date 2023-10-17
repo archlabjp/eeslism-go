@@ -20,6 +20,7 @@
 package eeslism
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -239,20 +240,21 @@ func VAVcountinc(VAVs []VAV) {
 	}
 }
 
-func vavswptr(key []string, VAV *VAV, vptr *VPTR) int {
-	err := 0
-
+// VAVスイッチのポインターを作成します
+func vavswptr(key []string, VAV *VAV) (VPTR, error) {
 	if key[1] == "chmode" {
-		vptr.Ptr = &VAV.Chmode
-		vptr.Type = SW_CTYPE
+		return VPTR{
+			Ptr:  &VAV.Chmode,
+			Type: SW_CTYPE,
+		}, nil
 	} else if key[1] == "control" {
-		vptr.Ptr = &VAV.Cmp.Elouts[0].Control
-		vptr.Type = SW_CTYPE
-	} else {
-		err = 1
-	}
+		return VPTR{
+			Ptr:  &VAV.Cmp.Elouts[0].Control,
+			Type: SW_CTYPE,
+		}, nil
 
-	return err
+	}
+	return VPTR{}, errors.New("vavswptr error")
 }
 
 func chvavswreset(Qload float64, chmode rune, vav *VAV) int {

@@ -18,32 +18,40 @@
 package eeslism
 
 import (
+	"errors"
 	"strings"
 )
 
 /*  システム変数名、内部変数名、スケジュール名のポインター  */
 
-func ctlvptr(s string, Simc *SIMCONTL, Compnt []COMPNT, Nmpath int, Mpath []MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL, vptr *VPTR, vpath *VPTR) int {
-	var err int
+func ctlvptr(s string, Simc *SIMCONTL, Compnt []COMPNT, Nmpath int, Mpath []MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL) (VPTR, VPTR, error) {
+	var err error
+	var vptr, vpath VPTR
 
 	if i, err2 := idsch(s, Schdl.Sch, ""); err2 == nil {
-		vptr.Ptr = &Schdl.Val[i]
-		vptr.Type = VAL_CTYPE
+		// 年間の設定値スケジュールへのポインターを作成する
+		vptr = VPTR{
+			Ptr:  &Schdl.Val[i],
+			Type: VAL_CTYPE,
+		}
 	} else if i, iderr := idscw(s, Schdl.Scw, ""); iderr == nil {
-		vptr.Ptr = &Schdl.Isw[i]
-		vptr.Type = SW_CTYPE
+		// 年間の切替スケジュールへのポインターを作成する
+		vptr = VPTR{
+			Ptr:  &Schdl.Isw[i],
+			Type: SW_CTYPE,
+		}
 	} else {
-		err = kynameptr(s, Simc, Compnt, Nmpath, Mpath, Wd, Exsf, vptr, vpath)
+		// 経路名、システム変数名、内部変数名のポインターを作成する
+		vptr, vpath, err = kynameptr(s, Simc, Compnt, Nmpath, Mpath, Wd, Exsf)
 	}
 
-	Errprint(err, "<ctlvptr>", s)
-	return err
+	//Errprint(1, "<ctlvptr>", s)
+	return vptr, vpath, err
 }
 
 /* ----------------------------------------------------------------- */
 
-/* システム経路名、要素名、システム変数名、内部変数名の分離 */
-
+// システム経路名、要素名、システム変数名、内部変数名の分離
 func strkey(s string) ([]string, int) {
 	if len(s) == 0 {
 		return nil, 0
@@ -55,34 +63,46 @@ func strkey(s string) ([]string, int) {
 
 /* ----------------------------------------------------------------- */
 
-/*  経路名、システム変数名、内部変数名のポインター  */
-
+// 経路名、システム変数名、内部変数名のポインターを作成する
 func kynameptr(s string, Simc *SIMCONTL, _Compnt []COMPNT,
-	Nmpath int, Mpath []MPATH, Wd *WDAT, Exsf *EXSFS, vptr *VPTR, vpath *VPTR) int {
-	var err int
+	Nmpath int, Mpath []MPATH, Wd *WDAT, Exsf *EXSFS) (VPTR, VPTR, error) {
+	var err error
+	var vptr, vpath VPTR
 
 	key := strings.Split(s, "_")
 	nk := len(key)
 
 	switch key[0] {
 	case "Ta":
-		vptr.Type = VAL_CTYPE
-		vptr.Ptr = &Wd.T
+		vptr = VPTR{
+			Type: VAL_CTYPE,
+			Ptr:  &Wd.T,
+		}
 	case "xa":
-		vptr.Type = VAL_CTYPE
-		vptr.Ptr = &Wd.X
+		vptr = VPTR{
+			Type: VAL_CTYPE,
+			Ptr:  &Wd.X,
+		}
 	case "RHa":
-		vptr.Type = VAL_CTYPE
-		vptr.Ptr = &Wd.RH
+		vptr = VPTR{
+			Type: VAL_CTYPE,
+			Ptr:  &Wd.RH,
+		}
 	case "ha":
-		vptr.Type = VAL_CTYPE
-		vptr.Ptr = &Wd.H
+		vptr = VPTR{
+			Type: VAL_CTYPE,
+			Ptr:  &Wd.H,
+		}
 	case "Twsup":
-		vptr.Type = VAL_CTYPE
-		vptr.Ptr = &Wd.Twsup
+		vptr = VPTR{
+			Type: VAL_CTYPE,
+			Ptr:  &Wd.Twsup,
+		}
 	case "Ihol":
-		vptr.Type = VAL_CTYPE
-		vptr.Ptr = &Wd.Ihor
+		vptr = VPTR{
+			Type: VAL_CTYPE,
+			Ptr:  &Wd.Ihor,
+		}
 	default:
 		// // 傾斜面名称の検索
 		if Exsf != nil {
@@ -92,72 +112,78 @@ func kynameptr(s string, Simc *SIMCONTL, _Compnt []COMPNT,
 					switch key[1] {
 					case "Idre":
 						// 傾斜面への入射直達日射量
-						vptr.Type = VAL_CTYPE
-						vptr.Ptr = &Exs.Idre
-						return 0
+						vptr = VPTR{
+							Type: VAL_CTYPE,
+							Ptr:  &Exs.Idre,
+						}
+						return vptr, vpath, nil
 					case "Idf":
 						// 傾斜面への入射拡散日射量
-						vptr.Type = VAL_CTYPE
-						vptr.Ptr = &Exs.Idf
-						return 0
+						vptr = VPTR{
+							Type: VAL_CTYPE,
+							Ptr:  &Exs.Idf,
+						}
+						return vptr, vpath, nil
 					case "Iw":
 						// 傾斜面への入射全日射量
-						vptr.Type = VAL_CTYPE
-						vptr.Ptr = &Exs.Iw
-						return 0
+						vptr = VPTR{
+							Type: VAL_CTYPE,
+							Ptr:  &Exs.Iw,
+						}
+						return vptr, vpath, nil
 					}
 				}
 			}
 		}
 
 		if Nmpath > 0 {
-			err = pathvptr(nk, key, Nmpath, Mpath, vptr, vpath)
+			vptr, vpath, err = pathvptr(nk, key, Nmpath, Mpath)
 		} else {
-			err = 1
+			err = errors.New("Nmpath == 0")
 		}
 
-		if err != 0 {
+		if err != nil {
 			if Simc.Nvcfile > 0 {
-				err = vcfptr(key, Simc, vptr)
+				vptr, err = vcfptr(key, Simc)
 			} else {
-				err = 1
+				err = errors.New("Simc.Nvcfile == 0")
 			}
 		}
 
-		if err != 0 {
+		if err != nil {
 			for i := range _Compnt {
 				Compnt := &_Compnt[i]
 				if key[0] == Compnt.Name {
-					err = compntvptr(nk, key, Compnt, vptr)
-					if err != 0 {
+					vptr, err = compntvptr(nk, key, Compnt)
+					if err != nil {
 						e := Compnt.Eqptype
 						switch e {
 						case ROOM_TYPE:
 							if SIMUL_BUILDG {
-								err = roomvptr(nk, key, Compnt.Eqp.(*ROOM), vptr)
+								vptr, err = roomvptr(nk, key, Compnt.Eqp.(*ROOM))
 							}
 						case REFACOMP_TYPE:
-							err = refaswptr(key, Compnt.Eqp.(*REFA), vptr)
+							vptr, err = refaswptr(key, Compnt.Eqp.(*REFA))
 						case HCLOAD_TYPE, HCLOADW_TYPE, RMAC_TYPE, RMACD_TYPE:
-							err = hcldswptr(key, Compnt.Eqp.(*HCLOAD), vptr)
+							vptr, err = hcldswptr(key, Compnt.Eqp.(*HCLOAD))
 						case VAV_TYPE, VWV_TYPE:
 							/* VAV Satoh Debug 2001/1/19 */
-							err = vavswptr(key, Compnt.Eqp.(*VAV), vptr)
+							vptr, err = vavswptr(key, Compnt.Eqp.(*VAV))
 						case COLLECTOR_TYPE:
-							err = collvptr(key, Compnt.Eqp.(*COLL), vptr)
+							vptr, err = collvptr(key, Compnt.Eqp.(*COLL))
 						case STANK_TYPE:
-							err = stankvptr(key, Compnt.Eqp.(*STANK), vptr)
+							vptr, err = stankvptr(key, Compnt.Eqp.(*STANK))
 						case STHEAT_TYPE:
-							err = stheatvptr(key, Compnt.Eqp.(*STHEAT), vptr, vpath)
+							vptr, vpath, err = stheatvptr(key, Compnt.Eqp.(*STHEAT))
 						case DESI_TYPE:
 							// Satoh追加　デシカント槽　2013/10/23
-							err = Desivptr(key, Compnt.Eqp.(*DESI), vptr)
+							vptr, err = Desivptr(key, Compnt.Eqp.(*DESI))
 						case PIPEDUCT_TYPE:
-							err = pipevptr(key, Compnt.Eqp.(*PIPE), vptr)
+							vptr, err = pipevptr(key, Compnt.Eqp.(*PIPE))
 						case RDPANEL_TYPE:
-							err = rdpnlvptr(key, Compnt.Eqp.(*RDPNL), vptr)
+							vptr, err = rdpnlvptr(key, Compnt.Eqp.(*RDPNL))
 						case VALV_TYPE, TVALV_TYPE:
-							err = valv_vptr(key, Compnt.Eqp.(*VALV), vptr)
+							vptr, err = valv_vptr(key, Compnt.Eqp.(*VALV))
 						default:
 							Eprint("CONTL", Compnt.Name)
 						}
@@ -168,63 +194,73 @@ func kynameptr(s string, Simc *SIMCONTL, _Compnt []COMPNT,
 		}
 	}
 
-	Errprint(err, "<kynameptr>", s)
+	Eprint("<kynameptr>", s)
 
-	return err
+	return vptr, vpath, err
 }
 
 /* ----------------------------------------------------------------- */
 
-/*  経路名のポインター  */
-
-func pathvptr(nk int, key []string, Nmpath int, Mpath []MPATH, vptr *VPTR, vpath *VPTR) int {
-	var i, err int
+// 経路名のポインター
+func pathvptr(nk int, key []string, Nmpath int, Mpath []MPATH) (VPTR, VPTR, error) {
+	var i int
+	var err error
 	var Mp, Mpe *MPATH
 	var Plist, Plie *PLIST
+	var vptr, vpath VPTR
 
 	Mp = &Mpath[0]
 
 	for i = 0; i < Nmpath; i++ {
 		if string(key[0]) == Mpath[i].Name {
-			vpath.Type = MAIN_CPTYPE
-			vpath.Ptr = Mpath[i]
+			vpath = VPTR{
+				Type: MAIN_CPTYPE,
+				Ptr:  Mpath[i],
+			}
 
 			if nk == 1 || string(key[1]) == "control" {
-				vptr.Type = SW_CTYPE
-				vptr.Ptr = &Mpath[i].Control
+				vptr = VPTR{
+					Type: SW_CTYPE,
+					Ptr:  &Mpath[i].Control,
+				}
 			}
 			break
 		}
 	}
 
-	err = 0
 	if i == Nmpath {
-		err = 1
+		err = errors.New("i == Nmpath")
 		Mpe = &Mpath[Nmpath-1]
 
 		for j := 0; j < Mpe.Nlpath; j++ {
 			Plist = &Mp.Plist[j]
 			if Plist.Name != "" {
 				if key[0] == Plist.Name {
-					vpath.Type = LOCAL_CPTYPE
-					vpath.Ptr = Plist
+					vpath = VPTR{
+						Type: LOCAL_CPTYPE,
+						Ptr:  Plist,
+					}
 
 					if nk == 1 || key[1] == "control" {
-						vptr.Type = SW_CTYPE
-						vptr.Ptr = &Plist.Control
+						vptr = VPTR{
+							Type: SW_CTYPE,
+							Ptr:  &Plist.Control,
+						}
 					} else if key[1] == "G" {
-						vptr.Type = VAL_CTYPE
-						vptr.Ptr = &Plist.G
+						vptr = VPTR{
+							Type: VAL_CTYPE,
+							Ptr:  &Plist.G,
+						}
 					}
 					break
 				}
 			}
 		}
 		if Plist == Plie {
-			err = 1
+			err = errors.New("Plist == Plie")
 		}
 	}
-	return err
+	return vptr, vpath, err
 }
 
 func Compntptr(name string, Compnt []COMPNT) *COMPNT {
@@ -239,10 +275,11 @@ func Compntptr(name string, Compnt []COMPNT) *COMPNT {
 
 /* ----------------------------------------------------------------- */
 
-/*  システム要素出口温度、湿度のポインター  */
-
-func compntvptr(nk int, key []string, Compnt *COMPNT, vptr *VPTR) int {
-	var i, err int
+// システム要素出口温度、湿度のポインター
+func compntvptr(nk int, key []string, Compnt *COMPNT) (VPTR, error) {
+	var i int
+	var err error
+	var vptr VPTR
 
 	if nk == 1 || key[1] == "control" {
 		etype := Compnt.Eqptype
@@ -257,8 +294,10 @@ func compntvptr(nk int, key []string, Compnt *COMPNT, vptr *VPTR) int {
 			vptr.Type = SW_CTYPE
 		} else {
 			v := Compnt.Eqp.(*VALV)
-			vptr.Ptr = &v.X
-			vptr.Type = VAL_CTYPE
+			vptr = VPTR{
+				Ptr:  &v.X,
+				Type: VAL_CTYPE,
+			}
 			v.Org = 'y'
 		}
 	} else {
@@ -267,27 +306,31 @@ func compntvptr(nk int, key []string, Compnt *COMPNT, vptr *VPTR) int {
 			if (Eo.Fluid == AIRa_FLD && string(key[1]) == "Taout") ||
 				(Eo.Fluid == AIRx_FLD && string(key[1]) == "xout") ||
 				(Eo.Fluid == WATER_FLD && string(key[1]) == "Twout") {
-				vptr.Ptr = &Eo.Sysv
-				vptr.Type = VAL_CTYPE
+				vptr = VPTR{
+					Ptr:  &Eo.Sysv,
+					Type: VAL_CTYPE,
+				}
 				break
 			}
 		}
 		if i == Compnt.Nout {
-			err = 1
+			err = errors.New("i == Compnt.Nout")
 		}
 	}
-	return err
+	return vptr, err
 }
 
 /* ----------------------------------------------------------------- */
 
-/* 負荷計算を行うシステム要素の設定システム変数のポインター */
-
-func loadptr(loadcmp *COMPNT, load *rune, s string, _Compnt []COMPNT, vptr *VPTR) int {
+// 負荷計算を行うシステム要素の設定システム変数のポインターを作成します。
+// 負荷計算を行うシステム要素の設定システム変数のポインターを作成し、 vtr に保存します。
+// 内部では、 boildptr, refaldptr, hcldptr, pipeldsptr, rdpnlldsptr,roomldptr に処理を委譲します。
+func loadptr(loadcmp *COMPNT, load *rune, s string, _Compnt []COMPNT) (VPTR, error) {
 	var Room *ROOM
 	var key []string
 	var idmrk byte = ' '
-	var err int
+	var err error
+	var vptr VPTR
 
 	key = strings.Split(s, "_")
 	nk := len(key)
@@ -298,23 +341,23 @@ func loadptr(loadcmp *COMPNT, load *rune, s string, _Compnt []COMPNT, vptr *VPTR
 			if key[0] == Compnt.Name {
 				switch Compnt.Eqptype {
 				case BOILER_TYPE:
-					err = boildptr(load, key, Compnt.Eqp.(*BOI), vptr)
+					vptr, err = boildptr(load, key, Compnt.Eqp.(*BOI))
 					idmrk = 't'
 				case REFACOMP_TYPE:
-					err = refaldptr(load, key, Compnt.Eqp.(*REFA), vptr)
+					vptr, err = refaldptr(load, key, Compnt.Eqp.(*REFA))
 					idmrk = 't'
 				case HCLOAD_TYPE, RMAC_TYPE, RMACD_TYPE:
 					if SIMUL_BUILDG {
-						err = hcldptr(load, key, Compnt.Eqp.(*HCLOAD), vptr, &idmrk)
+						vptr, err = hcldptr(load, key, Compnt.Eqp.(*HCLOAD), &idmrk)
 					}
 				case PIPEDUCT_TYPE:
 					if SIMUL_BUILDG {
-						err = pipeldsptr(load, key, Compnt.Eqp.(*PIPE), vptr, &idmrk)
+						vptr, err = pipeldsptr(load, key, Compnt.Eqp.(*PIPE), &idmrk)
 					}
 				case RDPANEL_TYPE:
 					if SIMUL_BUILDG {
 						Rdpnl := Compnt.Eqp.(*RDPNL)
-						err = rdpnlldsptr(load, key, Rdpnl, vptr, &idmrk)
+						vptr, err = rdpnlldsptr(load, key, Rdpnl, &idmrk)
 						if loadcmp != nil && loadcmp.Eqptype == OMVAV_TYPE {
 							Rdpnl.OMvav = loadcmp.Eqp.(*OMVAV)
 							Rdpnl.OMvav.Omwall = Rdpnl.sd[0]
@@ -341,11 +384,11 @@ func loadptr(loadcmp *COMPNT, load *rune, s string, _Compnt []COMPNT, vptr *VPTR
 								Room.VAVcontrl = loadcmp.Eqp.(*VAV)
 							}
 						}
-						err = roomldptr(load, key, Room, vptr, &idmrk)
+						vptr, err = roomldptr(load, key, Room, &idmrk)
 					}
 				}
 
-				if err == 0 {
+				if err == nil {
 					if loadcmp == nil {
 						loadcmp = Compnt
 					}
@@ -364,11 +407,11 @@ func loadptr(loadcmp *COMPNT, load *rune, s string, _Compnt []COMPNT, vptr *VPTR
 					break
 				}
 			} else {
-				err = 1
+				err = errors.New("")
 			}
 		}
-		return err
+		return vptr, err
 	} else {
-		return 1
+		return vptr, errors.New("s is empty")
 	}
 }

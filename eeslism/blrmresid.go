@@ -28,7 +28,6 @@ import (
 
 func Residata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int, simc *SIMCONTL) {
 	errFmt := fmt.Sprintf(ERRFMT, dsn)
-	vall := schdl.Val
 
 	for fi.IsEnd() == false {
 		var s, ss, sss, s4 string
@@ -77,7 +76,7 @@ func Residata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int,
 					// 在室率設定値名
 					ss = match[2]
 					if k, err := idsch(ss, schdl.Sch, ""); err == nil {
-						rm.Hmsch = &vall[k]
+						rm.Hmsch = &schdl.Val[k]
 					} else {
 						rm.Hmsch = envptr(ss, simc, nil, nil, nil)
 					}
@@ -85,7 +84,7 @@ func Residata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int,
 					// 作業強度設定値名
 					sss = match[3]
 					if k, err := idsch(sss, schdl.Sch, ""); err == nil {
-						rm.Hmwksch = &vall[k]
+						rm.Hmwksch = &schdl.Val[k]
 					} else {
 						rm.Hmwksch = envptr(sss, simc, nil, nil, nil)
 					}
@@ -101,7 +100,7 @@ func Residata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int,
 					// 代謝率(Met値)設定値名
 					ss = match[1]
 					if k, err := idsch(ss, schdl.Sch, ""); err == nil {
-						rm.Metsch = &vall[k]
+						rm.Metsch = &schdl.Val[k]
 					} else {
 						rm.Metsch = envptr(ss, simc, nil, nil, nil)
 					}
@@ -109,7 +108,7 @@ func Residata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int,
 					// 着衣量(Clo値)設定値名
 					sss = match[2]
 					if k, err := idsch(sss, schdl.Sch, ""); err == nil {
-						rm.Closch = &vall[k]
+						rm.Closch = &schdl.Val[k]
 					} else {
 						rm.Closch = envptr(sss, simc, nil, nil, nil)
 					}
@@ -117,7 +116,7 @@ func Residata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int,
 					// 室内風速設定値名
 					s4 = match[3]
 					if k, err := idsch(s4, schdl.Sch, ""); err == nil {
-						rm.Wvsch = &vall[k]
+						rm.Wvsch = &schdl.Val[k]
 					} else {
 						rm.Wvsch = envptr(s4, simc, nil, nil, nil)
 					}
@@ -143,7 +142,6 @@ func Residata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, pmvpri *int,
 
 func Appldata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCONTL) {
 	errFmt := fmt.Sprintf(ERRFMT, dsn)
-	vall := schdl.Val
 
 	for fi.IsEnd() == false {
 		var s, ss string
@@ -195,7 +193,7 @@ func Appldata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCON
 					// 照明入力設定値名
 					ss = match[3]
 					if k, err := idsch(ss, schdl.Sch, ""); err == nil {
-						rm.Lightsch = &vall[k]
+						rm.Lightsch = &schdl.Val[k]
 					} else {
 						rm.Lightsch = envptr(ss, simc, nil, nil, nil)
 					}
@@ -224,7 +222,7 @@ func Appldata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCON
 					// 設定値名
 					ss = match[3]
 					if k, err := idsch(ss, schdl.Sch, ""); err == nil {
-						rm.Assch = &vall[k]
+						rm.Assch = &schdl.Val[k]
 					} else {
 						rm.Assch = envptr(ss, simc, nil, nil, nil)
 					}
@@ -247,7 +245,7 @@ func Appldata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCON
 					// 設定値名
 					ss = match[2]
 					if k, err := idsch(ss, schdl.Sch, ""); err == nil {
-						rm.Alsch = &vall[k]
+						rm.Alsch = &schdl.Val[k]
 					} else {
 						rm.Alsch = envptr(ss, simc, nil, nil, nil)
 					}
@@ -270,7 +268,7 @@ func Appldata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCON
 					// 電力設定値名
 					ss = match[2]
 					if k, err := idsch(ss, schdl.Sch, ""); err == nil {
-						rm.AEsch = &vall[k]
+						rm.AEsch = &schdl.Val[k]
 					} else {
 						rm.AEsch = envptr(ss, simc, nil, nil, nil)
 					}
@@ -293,7 +291,7 @@ func Appldata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []ROOM, simc *SIMCON
 					// ガス設定値名
 					ss = match[2]
 					if k, err := idsch(ss, schdl.Sch, ""); err == nil {
-						rm.AGsch = &vall[k]
+						rm.AGsch = &schdl.Val[k]
 					} else {
 						rm.AGsch = envptr(ss, simc, nil, nil, nil)
 					}

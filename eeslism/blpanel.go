@@ -17,7 +17,10 @@
 
 package eeslism
 
-import "math"
+import (
+	"errors"
+	"math"
+)
 
 const WPTOLE = 1.0e-10
 
@@ -320,8 +323,9 @@ func Panelce(rdpnl *RDPNL) float64 {
 
 /* 負荷計算用設定値のポインター */
 
-func rdpnlldsptr(load *rune, key []string, Rdpnl *RDPNL, vptr *VPTR, idmrk *byte) int {
-	err := 0
+func rdpnlldsptr(load *rune, key []string, Rdpnl *RDPNL, idmrk *byte) (VPTR, error) {
+	var err error
+	var vptr VPTR
 
 	if key[1] == "Tout" {
 		vptr.Ptr = &Rdpnl.Toset
@@ -329,10 +333,10 @@ func rdpnlldsptr(load *rune, key []string, Rdpnl *RDPNL, vptr *VPTR, idmrk *byte
 		Rdpnl.Loadt = load
 		*idmrk = 't'
 	} else {
-		err = 1
+		err = errors.New("Tout is expected")
 	}
 
-	return err
+	return vptr, err
 }
 
 /* ------------------------------------------ */
@@ -359,15 +363,16 @@ func rdpnlldsschd(Rdpnl *RDPNL) {
 
 /*  屋根一体型集熱器内部変数のポインター  */
 
-func rdpnlvptr(key []string, Rdpnl *RDPNL, vptr *VPTR) int {
-	err := 0
+func rdpnlvptr(key []string, Rdpnl *RDPNL) (VPTR, error) {
+	var err error
+	var vptr VPTR
 
 	if Rdpnl.sd[0].mw.wall.WallType == WallType_C && key[1] == "Te" {
 		vptr.Ptr = &Rdpnl.sd[0].Tcole
 		vptr.Type = VAL_CTYPE
 	} else {
-		err = 1
+		err = errors.New("rdpnlvptr error")
 	}
 
-	return err
+	return vptr, err
 }

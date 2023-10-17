@@ -20,6 +20,7 @@
 package eeslism
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -748,9 +749,9 @@ func fhtlb(T, x float64) float64 {
 
 /* 負荷計算指定時の設定値のポインター */
 
-func hcldptr(load *rune, key []string, Hcload *HCLOAD, vptr *VPTR, idmrk *byte) int {
-	err := 0
-
+func hcldptr(load *rune, key []string, Hcload *HCLOAD, idmrk *byte) (VPTR, error) {
+	var err error
+	var vptr VPTR
 	if key[1] == "Tout" || key[1] == "Tr" || key[1] == "Tot" {
 		vptr.Ptr = &Hcload.Toset
 		vptr.Type = VAL_CTYPE
@@ -762,9 +763,9 @@ func hcldptr(load *rune, key []string, Hcload *HCLOAD, vptr *VPTR, idmrk *byte) 
 		Hcload.Loadx = load
 		*idmrk = 'x'
 	} else {
-		err = 1
+		err = errors.New("Tout, Tr, Tot or xout are expected")
 	}
-	return err
+	return vptr, err
 }
 
 /* ------------------------------------------ */
@@ -1093,17 +1094,15 @@ func hcldmtprt(fo io.Writer, id, Mo, tt int, _Hcload []HCLOAD) {
 	}
 }
 
-func hcldswptr(key []string, Hcload *HCLOAD, vptr *VPTR) int {
-	err := 0
-
+func hcldswptr(key []string, Hcload *HCLOAD) (VPTR, error) {
 	if key[1] == "chmode" {
-		vptr.Ptr = &Hcload.Chmode
-		vptr.Type = SW_CTYPE
-	} else {
-		err = 1
+		return VPTR{
+			Ptr:  &Hcload.Chmode,
+			Type: SW_CTYPE,
+		}, nil
 	}
 
-	return err
+	return VPTR{}, errors.New("hcldswptr error")
 }
 
 func chhcldswreset(Qload, Ql float64, chmode byte, Eo *ELOUT) int {

@@ -13,7 +13,6 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 	var s, ename string
 	//var st *string
 	var dt, dfrg, wa, wb, swa, cwa, swb, cwb float64
-	var vall []float64
 	var i, j, k int
 	var ex *EXSF
 	var err error
@@ -23,8 +22,6 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 	if Nd == 0 {
 		Nd = 1
 	}
-
-	vall = Schdl.Val
 
 	var exs []EXSF
 	if Nd > 0 {
@@ -42,7 +39,7 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 			if s[4:] == "Calc" {
 				Exsf.Alotype = 'V'
 			} else if k, err = idsch(s[4:], Schdl.Sch, ""); err == nil {
-				Exsf.Alosch = &vall[k]
+				Exsf.Alosch = &Schdl.Val[k]
 				Exsf.Alotype = 'S'
 			} else {
 				Exsf.Alosch = envptr(s[4:], Simc, nil, nil, nil)
@@ -139,7 +136,7 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 						// スケジュール
 						ex.Alotype = Alotype_Schedule
 						if k, err = idsch(s[st+1:], Schdl.Sch, ""); err == nil {
-							ex.Alo = &vall[k]
+							ex.Alo = &Schdl.Val[k]
 						} else {
 							ex.Alo = envptr(s[st+1:], Simc, nil, nil, nil)
 						}

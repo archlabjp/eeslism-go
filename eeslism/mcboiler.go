@@ -22,6 +22,7 @@ package eeslism
 /* 機器仕様入力　　　　　　*/
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"math"
@@ -252,17 +253,18 @@ func Boiene(Boi []BOI, BOIreset *int) {
 
 /* 負荷計算指定時の設定値のポインター */
 
-func boildptr(load *rune, key []string, Boi *BOI, vptr *VPTR) int {
-	err := 0
+func boildptr(load *rune, key []string, Boi *BOI) (VPTR, error) {
+	var err error
+	var vptr VPTR
 
 	if strings.Compare(key[1], "Tout") == 0 {
 		vptr.Ptr = &Boi.Toset
 		vptr.Type = VAL_CTYPE
 		Boi.Load = load
 	} else {
-		err = 1
+		err = errors.New("Tout expected")
 	}
-	return err
+	return vptr, err
 }
 
 /* --------------------------- */

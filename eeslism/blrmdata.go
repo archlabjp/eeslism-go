@@ -43,7 +43,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 	// var Nairflow int
 	// var e *EXSF
 	// var Scw, Sch *SCH
-	// var vall []float64
+	// var Schdl.Val []float64
 	// var Ac *ACHIR
 	// var ca, roa float64
 	// var NSTOP int
@@ -93,10 +93,6 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 
 	SdIdx := 0
 	//rdpnl := Rmvls.Rdpnl
-
-	Scw := Schdl.Scw
-	//Sch := Schdl.Sch
-	vall := Schdl.Val
 
 	Er = fmt.Sprintf(ERRFMT, errkey)
 	RmIdx--
@@ -374,7 +370,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							Rm.flrsr = nil
 							k, err = idsch(value, Schdl.Sch, "")
 							if err == nil {
-								Rm.flrsr = &vall[k]
+								Rm.flrsr = &Schdl.Val[k]
 							} else {
 								Rm.flrsr = envptr(value, Simc, nil, nil, nil)
 							}
@@ -382,7 +378,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							// alc 室内表面熱伝達率[W/m2K]。
 							k, err = idsch(value, Schdl.Sch, "")
 							if err == nil {
-								Rm.alc = &vall[k]
+								Rm.alc = &Schdl.Val[k]
 							} else {
 								Rm.alc = envptr(s[st+1:], Simc, nil, nil, nil)
 							}
@@ -402,7 +398,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							// 室内に置かれた物体の熱容量 [J/K]
 							k, err := idsch(value, Schdl.Sch, "")
 							if err == nil {
-								Rm.MCAP = &vall[k]
+								Rm.MCAP = &Schdl.Val[k]
 							} else {
 								Rm.MCAP = envptr(value, Simc, nil, nil, nil)
 							}
@@ -410,14 +406,14 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							// 室内に置かれた物体と室内空気との間の熱コンダクタンス [W/K]
 							k, err = idsch(value, Schdl.Sch, "")
 							if err == nil {
-								Rm.CM = &vall[k]
+								Rm.CM = &Schdl.Val[k]
 							} else {
 								Rm.CM = envptr(value, Simc, nil, nil, nil)
 							}
 						} else if key == "fsolm" { // 家具への日射吸収割合
 							k, err = idsch(value, Schdl.Sch, "")
 							if err == nil {
-								Rm.fsolm = &vall[k]
+								Rm.fsolm = &Schdl.Val[k]
 							} else {
 								Rm.fsolm = envptr(value, Simc, nil, nil, nil)
 							}
@@ -456,7 +452,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 						} else if key == "OTc" {
 							// 作用温度設定時の対流成分重み係数の設定
 							if k, err = idsch(value, Schdl.Sch, ""); err == nil {
-								Rm.OTsetCwgt = &vall[k]
+								Rm.OTsetCwgt = &Schdl.Val[k]
 							} else {
 								Rm.OTsetCwgt = envptr(value, Simc, nil, nil, nil)
 							}
@@ -514,7 +510,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							}
 						} else if strings.HasPrefix(s, "sw=") {
 							// 窓変更設定番号
-							Sd.fnsw, err = idscw(s[st+1:], Scw, "")
+							Sd.fnsw, err = idscw(s[st+1:], Schdl.Scw, "")
 							if err != nil {
 								panic(err)
 							}
@@ -524,13 +520,13 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							Sd.Name = s[st+1:]
 						} else if strings.HasPrefix(s, "alc=") {
 							if k, err := idsch(s[st+1:], Schdl.Sch, ""); err == nil {
-								Sd.alicsch = &vall[k]
+								Sd.alicsch = &Schdl.Val[k]
 							} else {
 								Sd.alicsch = envptr(s[st+1:], Simc, nil, nil, nil)
 							}
 						} else if strings.HasPrefix(s, "alr=") {
 							if k, err := idsch(s[st+1:], Schdl.Sch, ""); err == nil {
-								Sd.alirsch = &vall[k]
+								Sd.alirsch = &Schdl.Val[k]
 							} else {
 								Sd.alirsch = envptr(s[st+1:], Simc, nil, nil, nil)
 							}
@@ -538,7 +534,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							Rm.Nfsolfix++
 							Sd.ffix_flg = '*'
 							if k, err := idsch(s[st+1:], Schdl.Sch, ""); err == nil {
-								Sd.fsol = &vall[k]
+								Sd.fsol = &Schdl.Val[k]
 							} else {
 								Sd.fsol = envptr(s[st+1:], Simc, nil, nil, nil)
 							}

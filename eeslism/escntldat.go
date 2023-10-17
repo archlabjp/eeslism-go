@@ -18,6 +18,7 @@
 package eeslism
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -164,15 +165,14 @@ func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int
 			} else if st := strings.IndexRune(s, '='); st != -1 {
 				ss := strings.SplitN(s, "=", 2)
 				key, value := ss[0], ss[1]
-				var err int
+				var err error
 				if load != nil {
-					err = loadptr(loadcmp, load, key, Compnt, &vptr)
+					vptr, err = loadptr(loadcmp, load, key, Compnt)
 					load = nil
 				} else {
-					vpath.Type = 0
-					err = ctlvptr(key, Simc, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl, &vptr, &vpath)
+					vptr, vpath, err = ctlvptr(key, Simc, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl)
 				}
-				if err == 0 {
+				if err == nil {
 					Ctlst := &(*Cs)[ctlstIdx]
 					Ctlst.Type = vptr.Type
 					Ctlst.PathType = vpath.Type
@@ -186,7 +186,7 @@ func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int
 				}
 
 				Err := fmt.Sprintf("%s = %s", s[:st], s[st+1:])
-				Errprint(err, "<Contrldata>", Err)
+				Eprint("<Contrldata>", Err)
 			} else if s == "TVALV" {
 				ctlstIdx--
 				contlIdx--
@@ -249,7 +249,7 @@ func ctifdecode(_s string, ctlif *CTLIF, Simc *SIMCONTL, Compnt []COMPNT,
 	Nmpath int, Mpath []MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL) {
 	var lft, op, rgt string // 左変数, 演算子, 右変数
 	var err int
-	var vptr, vpath VPTR
+	var vptr VPTR
 
 	s := strings.Split(_s, " ")
 	lft, op, rgt = s[0], s[1], s[2]
@@ -260,7 +260,7 @@ func ctifdecode(_s string, ctlif *CTLIF, Simc *SIMCONTL, Compnt []COMPNT,
 	}
 
 	// 演算対象の変数 その1を設定
-	ctlvptr(lft, Simc, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl, &vptr, &vpath)
+	vptr, _, _ = ctlvptr(lft, Simc, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl)
 
 	ctlif.Type = vptr.Type // 演算の種類を設定
 	ctlif.Nlft = 1
@@ -272,7 +272,7 @@ func ctifdecode(_s string, ctlif *CTLIF, Simc *SIMCONTL, Compnt []COMPNT,
 
 	// 演算対象の変数 その2を設定
 	if st != -1 {
-		ctlvptr(lft[st:], Simc, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl, &vptr, &vpath)
+		vptr, _, _ = ctlvptr(lft[st:], Simc, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl)
 
 		if vptr.Type == VAL_CTYPE && ctlif.Type == vptr.Type {
 			ctlif.Nlft = 2
@@ -309,12 +309,13 @@ func ctifdecode(_s string, ctlif *CTLIF, Simc *SIMCONTL, Compnt []COMPNT,
 
 /*  条件式、設定式の右辺（定数、またはスケジュール設定値のポインター） */
 
-func ctlrgtptr(s string, rgt *CTLTYP, Simc *SIMCONTL, Compnt []COMPNT, Nmpath int, Mpath []MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL, _type VPtrType) int {
+func ctlrgtptr(s string, rgt *CTLTYP, Simc *SIMCONTL, Compnt []COMPNT, Nmpath int, Mpath []MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL, _type VPtrType) error {
 	var vptr VPTR
-	var err int
+	var err error
 
 	if _type == VAL_CTYPE && isstrdigit(s) {
-		v, err := strconv.ParseFloat(s, 64)
+		var v float64
+		v, err = strconv.ParseFloat(s, 64)
 		if err == nil {
 			rgt.V = new(float64)
 			*rgt.V = v
@@ -338,7 +339,7 @@ func ctlrgtptr(s string, rgt *CTLTYP, Simc *SIMCONTL, Compnt []COMPNT, Nmpath in
 				rgt.S = new(string)
 				*rgt.S = s[1:2]
 			} else {
-				err = ctlvptr(s, Simc, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl, &vptr, nil)
+				vptr, _, err = ctlvptr(s, Simc, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl)
 				if _type == vptr.Type {
 					if _type == VAL_CTYPE {
 						rgt.V = vptr.Ptr.(*float64)
@@ -346,12 +347,12 @@ func ctlrgtptr(s string, rgt *CTLTYP, Simc *SIMCONTL, Compnt []COMPNT, Nmpath in
 						rgt.S = vptr.Ptr.(*string)
 					}
 				} else {
-					err = 1
+					err = errors.New("Generated pointer type is not expected")
 				}
 			}
 		}
 	}
 
-	Errprint(err, "<ctlrgtptr>", s)
+	//Errprint(err, "<ctlrgtptr>", s)
 	return err
 }

@@ -3,8 +3,8 @@ package eeslism
 type VPtrType rune
 
 const (
-	VAL_CTYPE    VPtrType = 'v' // 小数 (float64)
-	SW_CTYPE     VPtrType = 's' // For *STHEAT ?
+	VAL_CTYPE    VPtrType = 'v' // 設定値 (float64)
+	SW_CTYPE     VPtrType = 's' // 切替状態(SW)
 	MAIN_CPTYPE  VPtrType = 'M' // For *MPATH ?
 	LOCAL_CPTYPE VPtrType = 'L' // For *PLIST ?
 )

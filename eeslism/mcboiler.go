@@ -104,8 +104,12 @@ func Boicaint(_Boica []BOICA, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT, Exsf *E
 
 /*  特性式の係数  */
 
+//
+//             +-----+
+// [IN 1] ---> | BOI | ---> [OUT 1] 出口温度??
+//             +-----+
+//
 func Boicfv(Boi []BOI) {
-	var Eo *ELOUT
 	var cG, Qocat, Temp float64
 
 	if len(Boi) != len(Boi) {
@@ -113,6 +117,9 @@ func Boicfv(Boi []BOI) {
 	}
 
 	for i := range Boi {
+
+		Eo1 := Boi[i].Cmp.Elouts[0]
+
 		if Boi[i].Cmp.Control != OFF_SW {
 			Temp = math.Abs(*Boi[i].Cat.Qo - (-999.9))
 			if math.Abs(Temp) < 1e-3 {
@@ -135,33 +142,31 @@ func Boicfv(Boi []BOI) {
 
 			Boi[i].D1 = 0.0
 
-			Eo = Boi[i].Cmp.Elouts[0]
-			cG = Spcheat(Eo.Fluid) * Eo.G
+			cG = Spcheat(Eo1.Fluid) * Eo1.G
 			Boi[i].cG = cG
-			Eo.Coeffo = cG
+			Eo1.Coeffo = cG
 
-			if Eo.Control != OFF_SW {
-				if Eo.Sysld == 'y' {
+			if Eo1.Control != OFF_SW {
+				if Eo1.Sysld == 'y' {
 					// 出口を設定温度に制御
-					Eo.Co = 0.0
-					Eo.Coeffin[0] = -cG
+					Eo1.Co = 0.0
+					Eo1.Coeffin[0] = -cG
 				} else {
 					if Boi[i].Mode == 'M' {
 						// 最大能力
-						Eo.Co = Boi[i].Do
+						Eo1.Co = Boi[i].Do
 					} else {
 						// 最小能力
-						Eo.Co = Boi[i].Cat.Qmin
+						Eo1.Co = Boi[i].Cat.Qmin
 					}
-					Eo.Coeffin[0] = Boi[i].D1 - cG
+					Eo1.Coeffin[0] = Boi[i].D1 - cG
 				}
 			}
 		} else {
 			// 機器が停止
-			Eo = Boi[i].Cmp.Elouts[0]
-			Eo.Co = 0.0
-			Eo.Coeffo = 1.0
-			Eo.Coeffin[0] = -1.0
+			Eo1.Co = 0.0
+			Eo1.Coeffo = 1.0
+			Eo1.Coeffin[0] = -1.0
 		}
 	}
 }

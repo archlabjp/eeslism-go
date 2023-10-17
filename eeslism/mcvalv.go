@@ -27,28 +27,24 @@ import (
 
 /* ------------------------------------------ */
 
-func Valvcountreset(Nvalv int, Valv []VALV) {
-	var i int
-
-	for i = 0; i < Nvalv; i++ {
+func Valvcountreset(Valv []VALV) {
+	for i := range Valv {
 		Valv[i].Count = 0
 	}
 }
 
 /***********************************************/
 
-func Valvcountinc(Nvalv int, Valv []VALV) {
-	var i int
-
-	for i = 0; i < Nvalv; i++ {
+func Valvcountinc(Valv []VALV) {
+	for i := range Valv {
 		Valv[i].Count++
 	}
 }
 
 // 通常はバルブの上流の流量に比率を乗じるが、基準となるOMvavが指定されている場合には、この流量に対する比率とする
 // OMvavが指定されているときだけの対応
-func Valvinit(NValv int, Valv []VALV, NMpath int, Mpath []MPATH) {
-	for k := 0; k < NValv; k++ {
+func Valvinit(Valv []VALV, NMpath int, Mpath []MPATH) {
+	for k := range Valv {
 		if Valv[k].Cmp.MonPlistName != "" {
 			for i := 0; i < NMpath; i++ {
 				for j := 0; j < Mpath[i].Nlpath; j++ {
@@ -80,14 +76,13 @@ func Valvinit(NValv int, Valv []VALV, NMpath int, Mpath []MPATH) {
 	}
 }
 
-func Valvene(Nvalv int, Valv []VALV, Valvreset *int) {
-	var i int
+func Valvene(Valv []VALV, Valvreset *int) {
 	var etype EqpType
 	var T1, T2 float64
 	var Vcb *VALV
 	var r float64
 
-	for i = 0; i < Nvalv; i++ {
+	for i := range Valv {
 		etype = Valv[i].Cmp.Eqptype
 		if etype == TVALV_TYPE && Valv[i].Org == 'y' {
 			if Valv[i].Mon.Elouts[0].Control != OFF_SW {

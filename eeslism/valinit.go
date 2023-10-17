@@ -50,37 +50,43 @@ func Simcinit(S *SIMCONTL) {
 
 func Compinit(N int, Clist []COMPNT) {
 	for i := 0; i < N; i++ {
-		C := &Clist[i]
-		C.Name = ""
-		C.Roomname = ""
-		C.Eqptype = ""
-		C.Envname = ""
-		C.Exsname = ""
-		C.Hccname = ""
-		C.Idi = nil
-		C.Ido = nil
-		C.Tparm = ""
-		C.Wetparm = ""
-		C.Eqp = nil
-		C.Ivparm = nil
-		C.Elouts = nil
-		C.Elins = nil
-		C.Neqp, C.Ncat, C.Nivar = 0, 0, 0
-		C.Eqpeff = 0.0
-		C.Airpathcpy, C.Control = ' ', ' '
-		C.Nout, C.Nin = 3, 3
-		C.Valvcmp = nil
-		C.Rdpnlname = ""
-		C.Omparm = ""
-		C.PVcap = -999.0
-		C.Ac, C.Area = -999.0, -999.0
-		// C.x = 1.0
-		// C.xinit = -999.0
-		// C.org = 'n'
-		// C.OMfanName = nil
-		C.MonPlistName = ""
-		C.MPCM = -999.0
+		Clist[i] = *NewCOMPNT()
 	}
+}
+
+func NewCOMPNT() *COMPNT {
+	C := new(COMPNT)
+	C.Name = ""
+	C.Roomname = ""
+	C.Eqptype = ""
+	C.Envname = ""
+	C.Exsname = ""
+	C.Hccname = ""
+	C.Idi = nil
+	C.Ido = nil
+	C.Tparm = ""
+	C.Wetparm = ""
+	C.Eqp = nil
+	C.Ivparm = nil
+	C.Elouts = nil
+	C.Elins = nil
+	C.Neqp, C.Ncat, C.Nivar = 0, 0, 0
+	C.Eqpeff = 0.0
+	C.Airpathcpy = true
+	C.Control = ' '
+	C.Nout, C.Nin = 3, 3
+	C.Valvcmp = nil
+	C.Rdpnlname = ""
+	C.Omparm = ""
+	C.PVcap = -999.0
+	C.Ac, C.Area = -999.0, -999.0
+	// C.x = 1.0
+	// C.xinit = -999.0
+	// C.org = 'n'
+	// C.OMfanName = nil
+	C.MonPlistName = ""
+	C.MPCM = -999.0
+	return C
 }
 
 /*****  ELOUT の初期化  *****/
@@ -153,28 +159,46 @@ func Plistinit(N int, PlList []PLIST) {
 /*****  PELM の初期化  ******/
 func Pelminit(N int, PeList []PELM) {
 	for i := 0; i < N; i++ {
-		Pe := &PeList[i]
-		Pe.Co, Pe.Ci = ' ', ' '
-		Pe.Cmp = nil
-		Pe.Out = nil
-		Pe.In = nil
-		// Pe.Pelmx = nil
+		PeList[i] = NewPELM()
+	}
+}
+
+func NewPELM() PELM {
+	return PELM{
+		Co:  ' ',
+		Ci:  ' ',
+		Cmp: nil,
+		Out: nil,
+		In:  nil,
+		//Pelmx: nil,
 	}
 }
 
 /*****  MPATH の初期化  *****/
 func Mpathinit(N int, MList []MPATH) {
 	for i := 0; i < N; i++ {
-		M := &MList[i]
-		M.Name = ""
-		M.Nlpath, M.NGv, M.NGv2, M.Ncv, M.Lvcmx = 0, 0, 0, 0, 0
-		M.Plist = nil
-		M.Mpair = nil
-		M.Sys, M.Type, M.Fluid, M.Control = ' ', ' ', ' ', ' '
-		M.Pl = nil
-		M.Cbcmp = nil
-		M.G0 = nil
-		M.Rate = 'N'
+		MList[i] = NewMPATH()
+	}
+}
+
+func NewMPATH() MPATH {
+	return MPATH{
+		Name:    "",
+		Nlpath:  0,
+		NGv:     0,
+		NGv2:    0,
+		Ncv:     0,
+		Lvcmx:   0,
+		Plist:   nil,
+		Mpair:   nil,
+		Sys:     ' ',
+		Type:    ' ',
+		Fluid:   ' ',
+		Control: ' ',
+		Pl:      nil,
+		Cbcmp:   nil,
+		G0:      nil,
+		Rate:    'N',
 	}
 }
 
@@ -202,30 +226,28 @@ func Syseqinit(S *SYSEQ) {
 
 /*****  EQSYS の初期化  *****/
 func Eqsysinit(E *EQSYS) {
-	E.Ncnvrg = 0
-	E.Nflin = 0
-	E.Nhcload, E.Ngload = 0, 0
-	E.Nvalv = 0
+	E.Cnvrg = make([]*COMPNT, 0)
+	E.Hcc = make([]HCC, 0)
+	E.Boi = make([]BOI, 0)
+	E.Refa = make([]REFA, 0)
+	E.Coll = make([]COLL, 0)
+	E.Pipe = make([]PIPE, 0)
+	E.Stank = make([]STANK, 0)
+	E.Hex = make([]HEX, 0)
+	E.Pump = make([]PUMP, 0)
+	E.Flin = make([]FLIN, 0)
+	E.Hcload = make([]HCLOAD, 0)
+	E.Vav = make([]VAV, 0)
+	E.Stheat = make([]STHEAT, 0)
+	E.Thex = make([]THEX, 0)
+	E.Valv = make([]VALV, 0)
+	E.Qmeas = make([]QMEAS, 0)
+	E.PVcmp = make([]PV, 0)
+	E.OMvav = make([]OMVAV, 0)
 
-	E.Cnvrg = nil
-	E.Hcc = nil
-	E.Boi = nil
-	E.Refa = nil
-	E.Coll = nil
-	E.Pipe = nil
-	E.Stank = nil
-	E.Hex = nil
-	E.Pump = nil
-	E.Flin = nil
-	E.Hcload = nil
-	E.Gload = nil
-	E.Vav = nil
-	E.Stheat = nil
-	E.Thex = nil
-	E.Valv = nil
-	E.Qmeas = nil
-	E.PVcmp = nil
-	E.OMvav = nil
+	// 使用されていなかった:
+	//E.Ngload = 0
+	//E.Gload = nil
 }
 
 /*****  RMVLS の初期化  *****/

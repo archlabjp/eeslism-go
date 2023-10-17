@@ -128,26 +128,30 @@ func Stheatint(_stheat []STHEAT, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT, Npcm
 
 /*  特性式の係数  */
 
-func Stheatcfv(_stheat []STHEAT) {
-	var Eo *ELOUT
-	var Te, eff, cG, KA, Tsold, d float64
-	var pcm *PCM
+//
+//    +--------+ --> [OUT 1]
+//    | STHEAT |
+//    +--------+ --> [OUT 2]
+//
 
-	EoIdx := 0
+func Stheatcfv(_stheat []STHEAT) {
 	for i := range _stheat {
 		stheat := &_stheat[i]
+
+		// 作用温度 ?
+		var Te float64
 		if stheat.Cmp.Envname != "" {
 			Te = *(stheat.Tenv)
 		} else {
 			Te = stheat.Room.Tot
 		}
 
-		Eo = stheat.Cmp.Elouts[EoIdx]
-		eff = stheat.Cat.Eff
-		stheat.CG = Spcheat(Eo.Fluid) * Eo.G
-		KA = stheat.Cat.KA
-		Tsold = stheat.Tsold
-		pcm = stheat.Pcm
+		Eo1 := stheat.Cmp.Elouts[0]
+		eff := stheat.Cat.Eff
+		stheat.CG = Spcheat(Eo1.Fluid) * Eo1.G
+		KA := stheat.Cat.KA
+		Tsold := stheat.Tsold
+		pcm := stheat.Pcm
 		if pcm != nil {
 			//NOTE: FNPCMState のシグネチャがヘッダと一致しない。。。
 			// stheat.Hcap = stheat.MPCM *
@@ -156,9 +160,9 @@ func Stheatcfv(_stheat []STHEAT) {
 		} else {
 			stheat.Hcap = stheat.Cat.Hcap
 		}
-		cG = stheat.CG
+		cG := stheat.CG
 
-		d = stheat.Hcap/DTM + eff*cG + KA
+		d := stheat.Hcap/DTM + eff*cG + KA
 		if stheat.Cmp.Control != OFF_SW {
 			stheat.E = stheat.Cat.Q
 		} else {
@@ -166,26 +170,24 @@ func Stheatcfv(_stheat []STHEAT) {
 		}
 
 		//  空気が流れていれば出入口温度の関係式係数を作成する
-		if Eo.Control != OFF_SW {
-			Eo.Coeffo = 1.0
-			Eo.Co = eff * (stheat.Hcap/DTM*Tsold + KA*Te + stheat.E) / d
-			Eo.Coeffin[0] = eff - 1.0 - eff*eff*cG/d
+		if Eo1.Control != OFF_SW {
+			Eo1.Coeffo = 1.0
+			Eo1.Co = eff * (stheat.Hcap/DTM*Tsold + KA*Te + stheat.E) / d
+			Eo1.Coeffin[0] = eff - 1.0 - eff*eff*cG/d
 
-			EoIdx++
-			Eo = stheat.Cmp.Elouts[EoIdx]
-			Eo.Coeffo = 1.0
-			Eo.Co = 0.0
-			Eo.Coeffin[0] = -1.0
+			Eo2 := stheat.Cmp.Elouts[1]
+			Eo2.Coeffo = 1.0
+			Eo2.Co = 0.0
+			Eo2.Coeffin[0] = -1.0
 		} else {
-			Eo.Coeffo = 1.0
-			Eo.Co = 0.0
-			Eo.Coeffin[0] = -1.0
+			Eo1.Coeffo = 1.0
+			Eo1.Co = 0.0
+			Eo1.Coeffin[0] = -1.0
 
-			EoIdx++
-			Eo = stheat.Cmp.Elouts[EoIdx]
-			Eo.Coeffo = 1.0
-			Eo.Co = 0.0
-			Eo.Coeffin[0] = -1.0
+			Eo2 := stheat.Cmp.Elouts[1]
+			Eo2.Coeffo = 1.0
+			Eo2.Co = 0.0
+			Eo2.Coeffin[0] = -1.0
 		}
 	}
 }

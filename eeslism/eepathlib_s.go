@@ -284,8 +284,8 @@ func pelmci(pflow FliudType, Pelm *PELM, errkey string) {
 
 /* ----------------------------------------------- */
 
-/* システム要素接続データのコピー（空気系統湿度経路用） */
-
+// システム要素接続データのコピー（空気系統湿度経路用
+// 空気経路の場合は湿度経路用にpathをコピーする
 func plistcpy(Mpath *MPATH, Mpath_prev *MPATH, Npelm *int, _Pelm []PELM, _Plist []PLIST, Compnt []COMPNT) {
 	var mpi *MPATH
 	var cmp *COMPNT
@@ -335,68 +335,70 @@ func plistcpy(Mpath *MPATH, Mpath_prev *MPATH, Npelm *int, _Pelm []PELM, _Plist 
 		for j = 0; j < pli.Nelm; j++ {
 			peli := pli.Pelm[j]
 
-			if peli.Cmp.Airpathcpy == 'y' {
-				Pelm := &_Pelm[nelm]
+			// コピー対象は空気経路のみ
+			if !peli.Cmp.Airpathcpy {
+				continue
+			}
 
-				if Plist.Pelm == nil {
-					Plist.Pelm = []*PELM{Pelm}
+			Pelm := &_Pelm[nelm]
+
+			if Plist.Pelm == nil {
+				Plist.Pelm = []*PELM{Pelm}
+			}
+
+			(*Npelm)++
+
+			if peli.Cmp.Eqptype == CVRGAIR_TYPE || peli.Cmp.Eqptype == DIVGAIR_TYPE {
+
+				// Find index
+				var k int
+				for k = range Compnt {
+					cmp = &Compnt[k]
+					if cmp == peli.Cmp {
+						break
+					}
 				}
 
-				(*Npelm)++
+				for ; k < len(Compnt); k++ {
+					cmp = &Compnt[k]
+					s = cmp.Name
 
-				if peli.Cmp.Eqptype == CVRGAIR_TYPE ||
-					peli.Cmp.Eqptype == DIVGAIR_TYPE {
+					if idx := strings.IndexRune(s, '.'); idx >= 0 {
+						s = s[:idx]
 
-					// Find index
-					var k int
-					for k = range Compnt {
-						cmp = &Compnt[k]
-						if cmp == peli.Cmp {
+						if peli.Cmp.Name == s {
 							break
 						}
 					}
-
-					for ; k < len(Compnt); k++ {
-						cmp = &Compnt[k]
-						s = cmp.Name
-
-						if idx := strings.IndexRune(s, '.'); idx >= 0 {
-							s = s[:idx]
-
-							if peli.Cmp.Name == s {
-								break
-							}
-						}
-					}
-					Pelm.Cmp = cmp
-				} else if peli.Cmp.Eqptype == THEX_TYPE {
-					Pelm.Cmp = peli.Cmp
-					if peli.Ci == 'E' {
-						Pelm.Ci = 'e'
-						Pelm.Co = 'e'
-					} else {
-						Pelm.Ci = 'o'
-						Pelm.Co = 'o'
-					}
-				} else if peli.Cmp.Eqptype == EVAC_TYPE {
-					// Satoh追加　気化冷却器　2013/10/31
-					Pelm.Cmp = peli.Cmp
-					if peli.Ci == 'D' {
-						Pelm.Ci = 'd'
-						Pelm.Co = 'd'
-					} else if peli.Ci == 'W' {
-						Pelm.Ci = 'w'
-						Pelm.Co = 'w'
-					}
-				} else {
-					Pelm.Cmp = peli.Cmp
-					Pelm.Ci = peli.Ci
-					Pelm.Co = peli.Co
 				}
-
-				Pelm.Out = peli.Out
-				nelm++
+				Pelm.Cmp = cmp
+			} else if peli.Cmp.Eqptype == THEX_TYPE {
+				Pelm.Cmp = peli.Cmp
+				if peli.Ci == 'E' {
+					Pelm.Ci = 'e'
+					Pelm.Co = 'e'
+				} else {
+					Pelm.Ci = 'o'
+					Pelm.Co = 'o'
+				}
+			} else if peli.Cmp.Eqptype == EVAC_TYPE {
+				// Satoh追加　気化冷却器　2013/10/31
+				Pelm.Cmp = peli.Cmp
+				if peli.Ci == 'D' {
+					Pelm.Ci = 'd'
+					Pelm.Co = 'd'
+				} else if peli.Ci == 'W' {
+					Pelm.Ci = 'w'
+					Pelm.Co = 'w'
+				}
+			} else {
+				Pelm.Cmp = peli.Cmp
+				Pelm.Ci = peli.Ci
+				Pelm.Co = peli.Co
 			}
+
+			Pelm.Out = peli.Out
+			nelm++
 		}
 		Plist.Nelm = nelm
 	}

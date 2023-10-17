@@ -182,31 +182,32 @@ func Refaint(Refa []REFA, Wd *WDAT, Compnt []COMPNT) {
 
 /*  冷凍機／ヒ－トポンプのシステム方程式の係数  */
 
+//
+//             +------+
+// [IN 1] ---> | REFA | --> [OUT 1]
+//             +------+
+//
 func Refacfv(Refa []REFA) {
-	var Eo *ELOUT
-	var cG float64
-	var err int
-	var s string
-
 	for i := range Refa {
 		if Refa[i].Cmp.Control != OFF_SW {
-			Eo = Refa[i].Cmp.Elouts[0]
+			Eo1 := Refa[i].Cmp.Elouts[0]
 
-			cG = Spcheat(Eo.Fluid) * Eo.G
+			cG := Spcheat(Eo1.Fluid) * Eo1.G
 			Refa[i].cG = cG
-			Eo.Coeffo = cG
+			Eo1.Coeffo = cG
 
-			if Eo.Control != OFF_SW {
-				if Eo.Sysld == 'y' {
-					Eo.Co = 0.0
-					Eo.Coeffin[0] = -cG
+			if Eo1.Control != OFF_SW {
+				if Eo1.Sysld == 'y' {
+					Eo1.Co = 0.0
+					Eo1.Coeffin[0] = -cG
 				} else {
+					var err int
 					refacoeff(&Refa[i], &err)
 					if err == 0 {
-						Eo.Co = Refa[i].Do
-						Eo.Coeffin[0] = Refa[i].D1 - cG
+						Eo1.Co = Refa[i].Do
+						Eo1.Coeffin[0] = Refa[i].D1 - cG
 					} else {
-						s = fmt.Sprintf("xxxxx refacoeff xxx stop xx  %s chmode=%c  monitor=%s",
+						s := fmt.Sprintf("xxxxx refacoeff xxx stop xx  %s chmode=%c  monitor=%s",
 							Refa[i].Name, Refa[i].Chmode, Refa[i].Cmp.Elouts[0].Emonitr.Cmp.Name)
 						Eprint("<Refacfv>", s)
 						os.Exit(EXIT_REFA)

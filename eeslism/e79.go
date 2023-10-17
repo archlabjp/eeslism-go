@@ -24,7 +24,6 @@ func Entry(InFile string) {
 	/* ============================ */
 
 	var Nelout, Nelin int
-	var Ncmpalloc int
 	var Compnt []COMPNT
 	var Elout []*ELOUT
 	var Elin []*ELIN
@@ -143,7 +142,7 @@ func Entry(InFile string) {
 		EWKFile,
 		bdata, week, schtba, schnma,
 		&Simc, &Exsf, &Rmvls, &Eqcat, &Eqsys,
-		&Compnt, &Ncmpalloc,
+		&Compnt,
 		&Elout, &Nelout,
 		&Elin, &Nelin,
 		&Mpath, &Nmpath,
@@ -371,8 +370,8 @@ func Entry(InFile string) {
 			fmt.Printf("[%3d] Eo_cmp=%s\n", i, Eo.Cmp.Name)
 		}
 
-		fmt.Printf("Npelm=%d Ncmpalloc=%d Ncompnt=%d Nelout=%d Nelin=%d\n",
-			Npelm, Ncmpalloc, len(Compnt), Nelout, Nelin)
+		fmt.Printf("Npelm=%d Ncompnt=%d Nelout=%d Nelin=%d\n",
+			Npelm, len(Compnt), Nelout, Nelin)
 	}
 
 	Soldy = make([]float64, Exsf.Nexs)
@@ -535,7 +534,7 @@ func Entry(InFile string) {
 			}
 
 			if dayprn && Ferr != nil {
-				Flinprt(Eqsys.Nflin, Eqsys.Flin)
+				Flinprt(Eqsys.Flin)
 			}
 
 			/***   if (Daytm.ttmm == 100 )****/
@@ -710,7 +709,7 @@ func Entry(InFile string) {
 			*****/
 
 			VAVcountreset(Eqsys.Vav)
-			Valvcountreset(Eqsys.Nvalv, Eqsys.Valv)
+			Valvcountreset(Eqsys.Valv)
 			Evaccountreset(Eqsys.Evac)
 
 			/*---- Satoh Debug VAV  2000/12/6 ----*/
@@ -840,7 +839,7 @@ func Entry(InFile string) {
 
 					Stankcfv(Eqsys.Stank)
 
-					Hcldcfv(Eqsys.Nhcload, Eqsys.Hcload)
+					Hcldcfv(Eqsys.Hcload)
 
 					Syseqv(Nelout, Elout, &Syseq)
 
@@ -862,7 +861,7 @@ func Entry(InFile string) {
 
 					Refaene(Eqsys.Refa, &LDreset)
 
-					Hcldene(Eqsys.Nhcload, Eqsys.Hcload, &LDreset, &Wd)
+					Hcldene(Eqsys.Hcload, &LDreset, &Wd)
 
 					Hccdwreset(Eqsys.Hcc, &DWreset)
 
@@ -885,7 +884,7 @@ func Entry(InFile string) {
 				//if i == 0 {
 				VAVene(Eqsys.Vav, &VAVreset)
 				//}
-				Valvene(Eqsys.Nvalv, Eqsys.Valv, &Valvreset)
+				Valvene(Eqsys.Valv, &Valvreset)
 
 				//fmt.Printf("\n\nVAVreset=%d\n", VAVreset)
 				/***************/
@@ -893,7 +892,7 @@ func Entry(InFile string) {
 					break
 				}
 				VAVcountinc(Eqsys.Vav)
-				Valvcountinc(Eqsys.Nvalv, Eqsys.Valv)
+				Valvcountinc(Eqsys.Valv)
 
 				// 風量が変わったら電気蓄熱暖房器の係数を再計算
 				Stheatcfv(Eqsys.Stheat)

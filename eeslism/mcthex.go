@@ -149,6 +149,13 @@ func Thexelm(Thex []THEX) {
 
 /* ------------------------------------------------------ */
 
+//
+//  [IN 1] --(E)-->  +------+ --(E)--> [OUT 1] 排気系統（温度）
+//  [IN 2] --(e)-->  |      | --(e)--> [OUT 2] 排気系統（エンタルピー）
+//                   | THEX |
+//  [IN 3] --(O)-->  |      | --(O)--> [OUT 3] 給気系統（温度）
+//  [IN 4] --(o)-->  +------+ --(o)--> [OUT 4] 給気系統（エンタルピー）
+//
 func Thexcfv(Thex []THEX) {
 	var Eoet, Eoot, Eoex, Eoox *ELOUT
 	var etCGmin, ehGmin, Aeout, Aein, Aoout, Aoin float64

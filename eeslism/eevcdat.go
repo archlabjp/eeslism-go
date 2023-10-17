@@ -177,12 +177,12 @@ func flindat(Flin *FLIN) {
 		Flin.Awtype = 'W'
 		Flin.Cmp.Idi = []ELIOType{ELIO_W}
 		Flin.Cmp.Ido = []ELIOType{ELIO_W}
-		Flin.Cmp.Airpathcpy = 'n'
+		Flin.Cmp.Airpathcpy = false
 	} else {
 		Flin.Awtype = 'A'
 		Flin.Cmp.Idi = []ELIOType{ELIO_t, ELIO_x}
 		Flin.Cmp.Ido = []ELIOType{ELIO_t, ELIO_x}
-		Flin.Cmp.Airpathcpy = 'y'
+		Flin.Cmp.Airpathcpy = true
 	}
 
 	Flin.Cmp.Nin = n
@@ -193,8 +193,8 @@ func flindat(Flin *FLIN) {
 
 /* 境界条件・負荷仮想機器の要素機器データのポインター設定 */
 
-func Flinint(Nflin int, Flin []FLIN, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT) {
-	for i := 0; i < Nflin; i++ {
+func Flinint(Flin []FLIN, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT) {
+	for i := range Flin {
 		// fmt.Printf("<<Flinint>>  i=%d  namet=%s\n", i, Flin[i].namet)
 
 		Flin[i].Vart = envptr(Flin[i].Namet, Simc, Compnt, Wd, nil)
@@ -292,7 +292,7 @@ func Vcfinput(Daytm *DAYTM, Nvcfile int, Vcfile []VCFILE, perio rune) {
 
 /********************************************************************/
 
-func Flinprt(N int, Fl []FLIN) {
+func Flinprt(Fl []FLIN) {
 	if DEBUG {
 		for i, f := range Fl {
 			fmt.Printf("<< Flinprt >> Flin i=%d  %s %s = %.2g\n", i, f.Name, f.Namet, *f.Vart)

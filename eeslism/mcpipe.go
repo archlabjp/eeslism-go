@@ -89,6 +89,11 @@ func Pipeint(Pipe []PIPE, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT) {
 
 /*  特性式の係数  */
 
+//
+// [IN 1] ---> +------+ ---> [OUT 1] 空気 or 温水温度
+//             | PIPE |
+// [IN 2] ---> +------+ ---> [OUT 2] 湿度 (DUCT_PDTのみ)
+//
 func Pipecfv(Pipe []PIPE) {
 	for i := range Pipe {
 		Te := 0.0
@@ -103,20 +108,20 @@ func Pipecfv(Pipe []PIPE) {
 			}
 			Pipe[i].Ko = Pipe[i].Cat.Ko
 
-			Eo := Pipe[i].Cmp.Elouts[0]
-			cG := Spcheat(Eo.Fluid) * Eo.G
+			Eo1 := Pipe[i].Cmp.Elouts[0]
+			cG := Spcheat(Eo1.Fluid) * Eo1.G
 			Pipe[i].Ep = 1.0 - math.Exp(-(Pipe[i].Ko*Pipe[i].L)/cG)
 			Pipe[i].D1 = cG * Pipe[i].Ep
 			Pipe[i].Do = Pipe[i].D1 * Te
-			Eo.Coeffo = cG
-			Eo.Co = Pipe[i].Do
-			Eo.Coeffin[0] = Pipe[i].D1 - cG
+			Eo1.Coeffo = cG
+			Eo1.Co = Pipe[i].Do
+			Eo1.Coeffin[0] = Pipe[i].D1 - cG
 
 			if Pipe[i].Cat.Type == DUCT_PDT {
-				Eo = Pipe[i].Cmp.Elouts[1]
-				Eo.Coeffo = 1.0
-				Eo.Co = 0.0
-				Eo.Coeffin[0] = -1.0
+				Eo2 := Pipe[i].Cmp.Elouts[1]
+				Eo2.Coeffo = 1.0
+				Eo2.Co = 0.0
+				Eo2.Coeffin[0] = -1.0
 			}
 		}
 	}

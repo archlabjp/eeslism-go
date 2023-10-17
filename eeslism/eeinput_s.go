@@ -189,7 +189,6 @@ func (t *EeTokens) GetInt() int {
 func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 	Exsf *EXSFS, Rmvls *RMVLS, Eqcat *EQCAT, Eqsys *EQSYS,
 	Compnt *[]COMPNT,
-	Ncmpalloc *int,
 	Elout *[]*ELOUT, Nelout *int,
 	Elin *[]*ELIN, Nelin *int,
 	Mpath *[]MPATH, Nmpath *int,
@@ -222,9 +221,6 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 	Nwalpri := 0 // 壁体内部温度出力指定(壁体の数)
 	Npcmpri := 0 // PCMの状態値出力フラグ(壁体の数)
 	Nshdpri := 0 // 日よけの影面積出力 (壁体の数)
-
-	SYSCMP_ID := 0
-	SYSPTH_ID := 0
 
 	var dfwl DFWL
 
@@ -409,52 +405,24 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 		case "SYSCMP":
 			/*****Flwindata(Flwin, Nflwin,  Wd);********/
 			section := tokens.GetSection()
-			Compodata(section, "Compodata", Rmvls, Eqcat, Compnt, Eqsys, Ncmpalloc, 0)
+			Compodata(section, "Compodata", Rmvls, Eqcat, Compnt, Eqsys)
 			Elmalloc("Elmalloc ", *Compnt, Eqcat, Eqsys, Elout, Nelout, Elin, Nelin)
-			SYSCMP_ID++
 
 		case "SYSPTH":
 			section := tokens.GetSection()
-			if SYSCMP_ID == 0 {
-				Compodata(section, "Compodata", Rmvls, Eqcat, Compnt, Eqsys, Ncmpalloc, 1)
-				Elmalloc("Elmalloc ", *Compnt, Eqcat, Eqsys, Elout, Nelout, Elin, Nelin)
-				SYSCMP_ID++
-			}
-			Pathdata(section, "Pathdata", Simc, Wd, *Compnt, Schdl,
-				Mpath, Nmpath, Plist, Pelm, Npelm, Nplist, 0, Eqsys)
+			Pathdata(section, "Pathdata", Simc, Wd, *Compnt, Schdl, Mpath, Nmpath, Plist, Pelm, Npelm, Nplist, Eqsys)
 			Roomelm(Rmvls.Room, Rmvls.Rdpnl)
 
 			// 変数の割り当て
-			Hclelm(Eqsys.Nhcload, Eqsys.Hcload)
+			Hclelm(Eqsys.Hcload)
 			Thexelm(Eqsys.Thex)
 			Desielm(Eqsys.Desi)
 			Evacelm(Eqsys.Evac)
 
 			Qmeaselm(Eqsys.Qmeas)
-			SYSPTH_ID++
 
 		case "CONTL":
 			section := tokens.GetSection()
-			if SYSCMP_ID == 0 {
-				Compodata(section, "Compodata", Rmvls, Eqcat, Compnt, Eqsys, Ncmpalloc, 1)
-				Elmalloc("Elmalloc ", *Compnt, Eqcat, Eqsys, Elout, Nelout, Elin, Nelin)
-				SYSCMP_ID++
-			}
-
-			if SYSPTH_ID == 0 {
-				Pathdata(section, "Pathdata", Simc, Wd, *Compnt, Schdl, Mpath, Nmpath, Plist, Pelm, Npelm, Nplist, 1, Eqsys)
-				Roomelm(Rmvls.Room, Rmvls.Rdpnl)
-
-				Hclelm(Eqsys.Nhcload, Eqsys.Hcload)
-				Thexelm(Eqsys.Thex)
-				Desielm(Eqsys.Desi)
-				Evacelm(Eqsys.Evac)
-
-				Qmeaselm(Eqsys.Qmeas)
-
-				SYSPTH_ID++
-			}
-
 			Contrldata(section, Contl, Ncontl, Ctlif, Nctlif, Ctlst, Nctlst, Simc, *Compnt, *Nmpath, *Mpath, Wd, Exsf, Schdl)
 
 		/*--------------higuchi add-------------------start*/
@@ -546,26 +514,6 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 	Noplpmp.Nmp = Noplpmp.Nop + Noplpmp.Nlp
 
 	//////////////////////////////////////
-
-	if SYSCMP_ID == 0 {
-		section := tokens.GetSection()
-		Compodata(section, "Compodata", Rmvls, Eqcat, Compnt, Eqsys, Ncmpalloc, 1)
-
-		Elmalloc("Elmalloc ", *Compnt, Eqcat, Eqsys, Elout, Nelout, Elin, Nelin)
-	}
-
-	if SYSPTH_ID == 0 {
-		section := tokens.GetSection()
-		Pathdata(section, "Pathdata", Simc, Wd, *Compnt, Schdl,
-			Mpath, Nmpath, Plist, Pelm, Npelm, Nplist, 1, Eqsys)
-
-		Roomelm(Rmvls.Room, Rmvls.Rdpnl)
-
-		Hclelm(Eqsys.Nhcload, Eqsys.Hcload)
-		Thexelm(Eqsys.Thex)
-
-		Qmeaselm(Eqsys.Qmeas)
-	}
 
 	//----------------------------------------------------
 	// シミュレーション設定

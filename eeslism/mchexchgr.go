@@ -17,7 +17,14 @@
 
 package eeslism
 
-/*  熱交換器  */
+// -------------------------------------------------------------
+// 熱交換器
+//
+// 冷風入力 [IN  1] ---> +-----+ <--- [IN  2] 温風入力
+//                       | HEX |
+// 冷風出力 [OUT 1] <--- +-----+ ---> [OUT 2] 温風出力
+//
+// -------------------------------------------------------------
 
 /*  仕様入力  */
 
@@ -99,15 +106,13 @@ func Hexcfv(Hex []HEX) {
 
 			eCGmin := hex.Eff * math.Min(hex.CGc, hex.CGh)
 			hex.ECGmin = eCGmin
-			coeffin := eoc.Coeffin
-			coeffin[0] = -hex.CGc + eCGmin
-			coeffin[1] = -eCGmin
+			eoc.Coeffin[0] = -hex.CGc + eCGmin
+			eoc.Coeffin[1] = -eCGmin
 			eoc.Coeffo = hex.CGc
 			eoc.Co = 0.0
 
-			coeffin = eoh.Coeffin
-			coeffin[0] = -eCGmin
-			coeffin[1] = -hex.CGh + eCGmin
+			eoh.Coeffin[0] = -eCGmin
+			eoh.Coeffin[1] = -hex.CGh + eCGmin
 			eoh.Coeffo = hex.CGh
 			eoh.Co = 0.0
 		}
@@ -122,16 +127,14 @@ func Hexene(Hex []HEX) {
 	for i := range Hex {
 		hex := &Hex[i]
 
-		ei := hex.Cmp.Elins[0]
-		hex.Tcin = ei.Sysvin
-		ei = hex.Cmp.Elins[1]
-		hex.Thin = ei.Sysvin
+		// 流入
+		hex.Tcin = hex.Cmp.Elins[0].Sysvin
+		hex.Thin = hex.Cmp.Elins[1].Sysvin
 
 		if hex.Cmp.Control != OFF_SW {
-			eo := hex.Cmp.Elouts[0]
-			hex.Qci = hex.CGc * (eo.Sysv - hex.Tcin)
-			eo = hex.Cmp.Elouts[1]
-			hex.Qhi = hex.CGh * (eo.Sysv - hex.Thin)
+			// 流出
+			hex.Qci = hex.CGc * (hex.Cmp.Elouts[0].Sysv - hex.Tcin)
+			hex.Qhi = hex.CGh * (hex.Cmp.Elouts[1].Sysv - hex.Thin)
 		} else {
 			hex.Qci = 0.0
 			hex.Qhi = 0.0

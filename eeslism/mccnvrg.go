@@ -17,25 +17,33 @@
 
 package eeslism
 
-/* 合流要素 */
+// --------------------------------------------------------------
+// 合流要素
+//
+//  [IN] ---> +---+
+//            | C +---->[OUT]
+//  [IN] ---> +---+
+// --------------------------------------------------------------
 
-func Cnvrgcfv(Ncnvrg int, Cnvrg []*COMPNT) {
-	for i := 0; i < Ncnvrg; i++ {
+// 合流要素 Cnvrg の 出口の係数 Coeffo, Co と入口の係数 Coeffin を計算
+func Cnvrgcfv(Cnvrg []*COMPNT) {
+	for i := range Cnvrg {
 		C := Cnvrg[i]
 		E := C.Elouts[0]
 
-		// 経路が停止していなければ
-		if E.Control != OFF_SW {
-			E.Coeffo = E.G
-			E.Co = 0.0
+		// 経路が停止している場合
+		if E.Control == OFF_SW {
+			continue
+		}
 
-			if C.Elins[0].Lpath != nil {
-				for j := 0; j < C.Nin; j++ {
-					cfin := &E.Coeffin[j]
-					I := C.Elins[j]
+		// 出口係数の処理
+		E.Coeffo = E.G
+		E.Co = 0.0
 
-					*cfin = -I.Lpath.G
-				}
+		// 入口係数の処理
+		if C.Elins[0].Lpath != nil {
+			for j := 0; j < C.Nin; j++ {
+				E.Coeffin[j] = -C.Elins[j].Lpath.G
 			}
 		}
 	}

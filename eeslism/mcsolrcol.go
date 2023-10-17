@@ -125,28 +125,31 @@ func CalcCollTe(Coll []COLL) {
 
 /*  特性式の係数   */
 
+//
+//   +------+ ---> [OUT 1]
+//   | COLL |
+//   +------+ ---> [OUT 2] ACOLLECTOR_PDTのみ
+//
 func Collcfv(Coll []COLL) {
-	var cG, Kcw float64
-
 	for i := range Coll {
 		// 制御用の相当外気温度（現在時刻）は計算済みなのでここでは計算しない
 		if Coll[i].Cmp.Control != OFF_SW {
-			Eo := Coll[i].Cmp.Elouts[0]
-			Kcw = Coll[i].Cat.b1
-			cG = Spcheat(Eo.Fluid) * Eo.G
+			Eo1 := Coll[i].Cmp.Elouts[0]
+			Kcw := Coll[i].Cat.b1
+			cG := Spcheat(Eo1.Fluid) * Eo1.G
 			Coll[i].ec = 1.0 - math.Exp(-Kcw*Coll[i].Cmp.Ac/cG)
 			Coll[i].D1 = cG * Coll[i].ec
 			Coll[i].Do = Coll[i].D1 * Coll[i].Te
 
-			Eo.Coeffo = cG
-			Eo.Co = Coll[i].Do
-			Eo.Coeffin[0] = Coll[i].D1 - cG
+			Eo1.Coeffo = cG
+			Eo1.Co = Coll[i].Do
+			Eo1.Coeffin[0] = Coll[i].D1 - cG
 
 			if Coll[i].Cat.Type == ACOLLECTOR_PDT {
-				Eo = Coll[i].Cmp.Elouts[1]
-				Eo.Coeffo = 1.0
-				Eo.Co = 0.0
-				Eo.Coeffin[0] = -1.0
+				Eo2 := Coll[i].Cmp.Elouts[1]
+				Eo2.Coeffo = 1.0
+				Eo2.Co = 0.0
+				Eo2.Coeffin[0] = -1.0
 			}
 		}
 	}

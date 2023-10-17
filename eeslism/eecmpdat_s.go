@@ -7,37 +7,19 @@ import (
 	"strings"
 )
 
-/*   システム要素の入力 */
-func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
-	Cmp *[]COMPNT, Eqsys *EQSYS, Ncmpalloc *int, ID int) {
+// システム要素の入力
+// SYSCMP
+func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]COMPNT, Eqsys *EQSYS) {
 	var (
-		//cmp    *[]COMPNT
-		Compnt []COMPNT
 		Ni, No int
 		cio    ELIOType
 		idi    []ELIOType
 		ido    []ELIOType
-		N      int
 	)
 	D := 0
 
-	Nroom := len(Rmvls.Room)
-
-	var Room []ROOM
-	if Nroom > 0 {
-		Room = Rmvls.Room
-	} else {
-		Room = []ROOM{}
-	}
-
-	Nrdpnl := len(Rmvls.Rdpnl)
-
-	var Rdpnl []RDPNL
-	if Nrdpnl > 0 {
-		Rdpnl = Rmvls.Rdpnl
-	} else {
-		Rdpnl = []RDPNL{}
-	}
+	Room := Rmvls.Room
+	Rdpnl := Rmvls.Rdpnl
 
 	// Nairflow := Rmvls.Nairflow
 	// var AirFlow *AIRFLOW
@@ -48,16 +30,10 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 	// }
 
 	//コンポーネント数
-	Ncmp := Compntcount(f)
-	Ncmp += 2 + Nroom + Nrdpnl // + Nairflow
-
-	*Cmp = make([]COMPNT, Ncmp)
-	Compinit(Ncmp, *Cmp)
+	*Cmp = make([]COMPNT, 0, 100)
 
 	// fmt.Printf("<Compodata> Compnt Alloc=%d\n", Ncmp)
-	*Ncmpalloc = Ncmp
 	//cmp = Cmp
-	Compnt = *Cmp
 
 	// if fi, err := os.Open("bdata.ewk"); err != nil {
 	if f == nil {
@@ -65,64 +41,83 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 		os.Exit(EXIT_BDATA)
 	}
 
-	// 給水温度設定
-	Compnt[0].Name = CITYWATER_NAME
-	Compnt[0].Eqptype = FLIN_TYPE
-	Compnt[0].Tparm = CITYWATER_PARM
-	Compnt[0].Nin = 1
-	Compnt[0].Nout = 1
-	Eqsys.Nflin++
+	// ----------------------------------------------------------
+	// 組込みシステム要素
+	// 給水温度 _CW: -type FLI -V t=Twsup * ;
+	// 外気温度・絶対湿度 _OA: -type FLI -V t=_Ta x=_xa * ;
+	// 室 <室名>: ROOMデータセットの宣言に応じて自動で組み込まれる
+	// 放射パネル <パネル名>:  放射パネルの
+	// ----------------------------------------------------------
+
+	// 給水温度設定 `_CW`
+	Cmp1 := NewCOMPNT()
+	Cmp1.Name = CITYWATER_NAME
+	Cmp1.Eqptype = FLIN_TYPE
+	Cmp1.Tparm = CITYWATER_PARM
+	Cmp1.Nin = 1
+	Cmp1.Nout = 1
+	Eqsys.Flin = append(Eqsys.Flin, NewFLIN())
 	D++
 
-	// 取り入れ外気設定
-	Compnt[1].Name = OUTDRAIR_NAME
-	Compnt[1].Eqptype = FLIN_TYPE
-	Compnt[1].Tparm = OUTDRAIR_PARM
-	Compnt[1].Nin = 2
-	Compnt[1].Nout = 2
-	Eqsys.Nflin++
+	// 取り入れ外気設定 `_OA`
+	Cmp2 := NewCOMPNT()
+	Cmp2.Name = OUTDRAIR_NAME
+	Cmp2.Eqptype = FLIN_TYPE
+	Cmp2.Tparm = OUTDRAIR_PARM
+	Cmp2.Nin = 2
+	Cmp2.Nout = 2
+	Eqsys.Flin = append(Eqsys.Flin, NewFLIN())
 	D++
+
+	*Cmp = append(*Cmp, *Cmp1, *Cmp2)
 
 	/* 室およびパネル用     */
 
 	var Ncrm int
 	if SIMUL_BUILDG {
 
-		// 室およびパネル用
-		for i := 0; i < Nroom; i++ {
-			Compnt[i+2].Name = Room[i].Name
-			Compnt[i+2].Eqptype = ROOM_TYPE
-			Compnt[i+2].Neqp = i
-			Compnt[i+2].Eqp = &Room[i]
-			Compnt[i+2].Nout = 2
-			Compnt[i+2].Nin = 2*Room[i].Nachr + Room[i].Ntr + Room[i].Nrp
-			Compnt[i+2].Nivar = 0
-			Compnt[i+2].Ivparm = nil
-			Compnt[i+2].Airpathcpy = 'y'
+		// 室用 `<室名>`
+		for i := range Rmvls.Room {
+			c := NewCOMPNT()
+			c.Name = Room[i].Name
+			c.Eqptype = ROOM_TYPE
+			c.Neqp = i
+			c.Eqp = &Room[i]
+			c.Nout = 2
+			c.Nin = 2*Room[i].Nachr + Room[i].Ntr + Room[i].Nrp
+			c.Nivar = 0
+			c.Ivparm = nil
+			c.Airpathcpy = true
+			*Cmp = append(*Cmp, *c)
 		}
+		Ncrm = 2 + len(Rmvls.Room) // 給水温度設定+取り入れ外気設定+室の数
 
-		Ncrm = 2 + Nroom
-		for i := 0; i < Nrdpnl; i++ {
-			Compnt[Ncrm+i].Name = Rdpnl[i].Name
-			Compnt[Ncrm+i].Eqptype = RDPANEL_TYPE
-			Compnt[Ncrm+i].Neqp = i
-			Compnt[Ncrm+i].Eqp = &Rdpnl[i]
-			Compnt[Ncrm+i].Nout = 2
-			Compnt[Ncrm+i].Nin = 3 + Rdpnl[i].Ntrm[0] + Rdpnl[i].Ntrm[1] + Rdpnl[i].Nrp[0] + Rdpnl[i].Nrp[1] + 1
-			Compnt[Ncrm+i].Nivar = 0
-			Compnt[Ncrm+i].Airpathcpy = 'y'
+		// パネル用 `<パネル名>`
+		for i := range Rdpnl {
+			c := NewCOMPNT()
+			c.Name = Rdpnl[i].Name
+			c.Eqptype = RDPANEL_TYPE
+			c.Neqp = i
+			c.Eqp = &Rdpnl[i]
+			c.Nout = 2
+			c.Nin = 3 + Rdpnl[i].Ntrm[0] + Rdpnl[i].Ntrm[1] + Rdpnl[i].Nrp[0] + Rdpnl[i].Nrp[1] + 1
+			c.Nivar = 0
+			c.Airpathcpy = true
+			*Cmp = append(*Cmp, *c)
 		}
 
 		// エアフローウィンドウの機器メモリ
 		// for i := 0; i < Nairflow; i++ {
-		//     Compnt[Ncrm+Nrdpnl+i].name = AirFlow[i].name
-		//     Compnt[Ncrm+Nrdpnl+i].eqptype = AIRFLOW_TYPE
-		//     Compnt[Ncrm+Nrdpnl+i].neqp = i
-		//     Compnt[Ncrm+Nrdpnl+i].eqp = AirFlow[i]
-		//     Compnt[Ncrm+Nrdpnl+i].Nout = 2
-		//     Compnt[Ncrm+Nrdpnl+i].Nin = 3
-		//     Compnt[Ncrm+Nrdpnl+i].nivar = 0
-		//     Compnt[Ncrm+Nrdpnl+i].airpathcpy = 'y'
+		//	   c := NewCOMPNT()
+		//     c.name = AirFlow[i].name
+		//     c.eqptype = AIRFLOW_TYPE
+		//     c.neqp = i
+		//     c.eqp = AirFlow[i]
+		//     c.Nout = 2
+		//     c.Nin = 3
+		//     c.nivar = 0
+		//     c.airpathcpy = true
+		//	   *Cmp = append(*Cmp, *c)
 		// }
 
 	}
@@ -130,401 +125,432 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT,
 	//cp := (*COMPNT)(nil)
 	var comp_num int
 
-	if ID == 0 {
+	for f.IsEnd() == false {
+		s := f.GetToken()
+		if s == "*" {
+			break
+		}
+		cio = ELIO_SPACE
+
+		Crm := true
+		var comp *COMPNT = NewCOMPNT()
+
+		// 三方弁（二方弁で連動する弁）を指定するとき
+		// `(<elmname1> <elmname2>)` のように入力する
+		// elmname1とelmname2が三方弁のように、逆作動の連動弁として機能するときの記述方法。
+		// このように書くとelmname1とelmname2はともに2方弁であるが、elmname1が開くとelmname2は閉じる操作が行われる。
+		//
+		//   [elm1] --> [elm2]
+		//
+		if strings.HasPrefix(s, "(") {
+			if len(s) == 1 {
+				s = f.GetToken()
+			} else {
+				fmt.Sscanf(s, "(%s", &s)
+			}
+			Crm = false
+
+			// 1つ目の2方弁
+			vc1 := NewCOMPNT()
+			vc1.Name = s // <compname1>
+
+			s = f.GetToken()
+			if strings.IndexRune(s, ')') != -1 {
+				idx := strings.IndexRune(s, ')')
+				s = s[idx+1:]
+			}
+
+			// 2つ目の2方弁
+			vc2 := NewCOMPNT()
+			vc2.Name = s // <compname2>
+
+			// 1つ目の2方弁から2つ目の2方弁を参照させる
+			vc1.Valvcmp = vc2
+
+			*Cmp = append(*Cmp, *vc1, *vc2)
+
+			// 2つ目の要素に対して各種設定を反映させる
+			comp = vc2
+
+			// NOTE: ここでVALVを追加する理由が不明
+			Eqsys.Valv = append(Eqsys.Valv, NewVALV())
+		}
+
+		if Crm {
+			// 組み込みの部屋要素を探す → 該当がなければ初期化 (必要性不明)
+			cp := FindCOMPNTByName(s, (*Cmp)[:Ncrm])
+			if cp == nil {
+				comp.Name = s
+				comp.Ivparm = nil
+				comp.Tparm = ""
+				comp.Envname = ""
+				comp.Roomname = ""
+				comp.Nivar = 0
+			}
+		}
+
 		for f.IsEnd() == false {
-			s := f.GetToken()
-			if s == "*" {
+			s = f.GetToken()
+			if s[0] == ';' {
 				break
 			}
-			cio = ELIO_SPACE
-
-			Crm := true
-			comp_num := 0
-
-			if strings.HasPrefix(s, "(") {
-				if len(s) == 1 {
-					s = f.GetToken()
-				} else {
-					fmt.Sscanf(s, "(%s", &s)
-				}
-				Crm = false
-				Compnt[comp_num].Name = s
-				comp_num++
-
-				s = f.GetToken()
-
-				if strings.IndexRune(s, ')') != -1 {
-					idx := strings.IndexRune(s, ')')
-					s = s[idx+1:]
-				}
-				Compnt[comp_num].Name = s
-				Compnt[comp_num-1].Valvcmp = &Compnt[comp_num]
-
-				Eqsys.Nvalv++
-			}
-
-			if Crm {
-				//部屋を検索
-				cp := (*COMPNT)(nil)
-				for i := 0; i < Ncrm; i++ {
-					if s == Compnt[i].Name {
-						cp = &Compnt[i]
-						break
+			if strings.HasPrefix(s, "-") {
+				/********************************/
+				if cio == 'i' {
+					comp.Nin = Ni
+					idi[Ni] = ELIO_None
+					comp.Idi = idi
+				} else if cio == 'o' {
+					comp.Nout = No
+					ido[No] = ELIO_None
+					comp.Ido = ido
+					if comp.Eqptype == DIVERG_TYPE {
+						comp.Nivar = No
+						comp.Ivparm = new(float64)
 					}
 				}
-				if cp == nil {
-					Compnt[comp_num].Name = s
-					Compnt[comp_num].Ivparm = nil
-					Compnt[comp_num].Tparm = ""
-					Compnt[comp_num].Envname = ""
-					Compnt[comp_num].Roomname = ""
-					Compnt[comp_num].Nivar = 0
-				}
-			}
 
-			for f.IsEnd() == false {
-				s = f.GetToken()
-				if s[0] == ';' {
-					break
+				/********************************/
+
+				// ハイフンの後ろに続く文字列を取得
+				ps := s[1:]
+
+				switch ps {
+				case "c":
+					// カタログ名
+					cio = 'c'
+				case "type":
+					// 要素の種類
+					cio = 't'
+				case "Nin":
+					// 合流数
+					cio = 'I'
+				case "Nout":
+					// 分岐数
+					cio = 'O'
+				case "in":
+					cio = 'i'
+					Ni = 0
+					idi = []ELIOType{}
+				case "out":
+					cio = 'o'
+					No = 0
+					ido = []ELIOType{}
+				case "L":
+					// 配管長 [m]
+					cio = 'L'
+					comp.Nivar = 1
+					comp.Ivparm = new(float64)
+				case "env":
+					// 周囲温度
+					cio = 'e'
+				case "room":
+					// 機器設置空間の室名
+					cio = 'r'
+				case "roomheff":
+					cio = 'R'
+				case "exs":
+					// 太陽熱集熱器の方位・傾斜名（EXSRFデータで入力）
+					cio = 's'
+				case "S":
+					// ???
+					cio = 'S'
+				case "Tinit":
+					// 蓄熱槽の初期水温
+					cio = 'T'
+				case "V":
+					// ???
+					cio = 'V'
+				case "hcc":
+					// VWV制御するときの制御対象熱交換器名称
+					cio = 'h'
+				case "pfloor":
+					// VWV制御するときの制御対象床暖房
+					cio = 'f'
+				case "wet":
+					// 冷却コイルで出口相対湿度一定の仮定で除湿の計算を行う。
+					comp.Wetparm = ps
+
+					/*---- Roh Debug for a constant outlet humidity model of wet coil  2003/4/25 ----*/
+					cio = 'w'
+					comp.Ivparm = new(float64)
+					*comp.Ivparm = 90.0
+				case "control":
+					// 集熱器が直列接続の場合に流れ方向に記載する
+					cio = 'M'
+				case "monitor":
+					// Satoh Debug
+					cio = 'm'
+				case "PCMweight":
+					// 電気蓄熱暖房器の潜熱蓄熱材重量（kg）
+					cio = 'P'
+				default:
+					Eprint(errkey, s)
 				}
-				if strings.HasPrefix(s, "-") {
-					/********************************/
-					if cio == 'i' {
-						Compnt[comp_num].Nin = Ni
-						idi[Ni] = ELIO_None
-						Compnt[comp_num].Idi = idi
-					} else if cio == 'o' {
-						Compnt[comp_num].Nout = No
-						ido[No] = ELIO_None
-						Compnt[comp_num].Ido = ido
-						if Compnt[comp_num].Eqptype == DIVERG_TYPE {
-							Compnt[comp_num].Nivar = No
-							Compnt[comp_num].Ivparm = new(float64)
-						}
+			} else if cio != 'V' && cio != 'S' && strings.IndexRune(s, '-') != -1 {
+				idx := strings.IndexRune(s, '-')
+				st := s[idx+1:]
+				var err error
+				switch {
+				case strings.HasPrefix(s, "Ac"):
+					// 集熱器面積 [m2]
+					comp.Ac, err = readFloat(st)
+					if err != nil {
+						panic(err)
 					}
-
-					/********************************/
-
-					// ハイフンの後ろに続く文字列を取得
-					ps := s[1:]
-
-					switch ps {
-					case "c":
-						cio = 'c'
-					case "type":
-						cio = 't'
-					case "Nin":
-						cio = 'I'
-					case "Nout":
-						cio = 'O'
-					case "in":
-						cio = 'i'
-						Ni = 0
-						idi = []ELIOType{}
-					case "out":
-						cio = 'o'
-						No = 0
-						ido = []ELIOType{}
-					case "L":
-						cio = 'L'
-						Compnt[comp_num].Nivar = 1
-						Compnt[comp_num].Ivparm = new(float64)
-					case "env":
-						cio = 'e'
-					case "room":
-						cio = 'r'
-					case "roomheff":
-						cio = 'R'
-					case "exs":
-						cio = 's'
-					case "S":
-						cio = 'S'
-					case "Tinit":
-						cio = 'T'
-					case "V":
-						cio = 'V'
-					case "hcc":
-						cio = 'h'
-					case "pfloor":
-						cio = 'f'
-					case "wet":
-						Compnt[comp_num].Wetparm = ps
-
-						/*---- Roh Debug for a constant outlet humidity model of wet coil  2003/4/25 ----*/
-						cio = 'w'
-						Compnt[comp_num].Ivparm = new(float64)
-						*Compnt[comp_num].Ivparm = 90.0
-					case "control":
-						cio = 'M'
-					case "monitor":
-						cio = 'm'
-					case "PCMweight":
-						cio = 'P'
-					default:
+				case strings.HasPrefix(s, "PVcap"):
+					// 設置容量 [W] (PV)
+					comp.PVcap, err = readFloat(st)
+					if err != nil {
+						panic(err)
+					}
+				case strings.HasPrefix(s, "Area"):
+					// アレイ面積 [m2](PV)
+					comp.Area, err = readFloat(st)
+					if err != nil {
+						panic(err)
+					}
+				}
+			} else {
+				switch cio {
+				case 'c':
+					// `-c <カタログ名>`
+					if eqpcat(s, comp, Eqcat, Eqsys) {
 						Eprint(errkey, s)
 					}
-				} else if cio != 'V' && cio != 'S' && strings.IndexRune(s, '-') != -1 {
-					idx := strings.IndexRune(s, '-')
-					st := s[idx+1:]
-					var err error
-					switch {
-					case strings.HasPrefix(s, "Ac"):
-						Compnt[comp_num].Ac, err = strconv.ParseFloat(st, 64)
-						if err != nil {
-							panic(err)
-						}
-					case strings.HasPrefix(s, "PVcap"):
-						Compnt[comp_num].PVcap, err = strconv.ParseFloat(st, 64)
-						if err != nil {
-							panic(err)
-						}
-					case strings.HasPrefix(s, "Area"):
-						Compnt[comp_num].Area, err = strconv.ParseFloat(st, 64)
-						if err != nil {
-							panic(err)
-						}
+					break
+				case 't':
+					// `-type <種類>`
+					comp.Eqptype = EqpType(s)
+
+					//  三方弁（二方弁で連動する弁）
+					if comp.Valvcmp != nil {
+						// 連動する対となる要素にも種類を指定
+						comp.Valvcmp.Eqptype = EqpType(s)
 					}
-				} else {
-					switch cio {
-					case 'c':
-						if eqpcat(s, &Compnt[comp_num], Eqcat, Eqsys) {
+
+					comp.Neqp = 0
+					comp.Ncat = 0
+
+					switch s {
+					case CONVRG_TYPE, CVRGAIR_TYPE:
+						// 合流要素
+						Eqsys.Cnvrg = append(Eqsys.Cnvrg, nil)
+						comp.Nout = 1
+					case DIVERG_TYPE, DIVGAIR_TYPE:
+						// 分岐要素
+						comp.Nin = 1
+					case FLIN_TYPE:
+						// 流入境界条件
+						Eqsys.Flin = append(Eqsys.Flin, NewFLIN())
+					case HCLOAD_TYPE, HCLOADW_TYPE, RMAC_TYPE, RMACD_TYPE:
+						// 空調負荷
+						Eqsys.Hcload = append(Eqsys.Hcload, NewHCLOAD())
+
+					case VALV_TYPE, TVALV_TYPE:
+						// 弁・ダンパー
+						Eqsys.Valv = append(Eqsys.Valv, NewVALV())
+					case QMEAS_TYPE:
+						// カロリーメータ
+						//Eqsys.Nqmeas++
+					default:
+						if s != DIVERG_TYPE && s != DIVGAIR_TYPE {
 							Eprint(errkey, s)
 						}
-						break
-					case 't':
-						Compnt[comp_num].Eqptype = EqpType(s)
+					}
 
-						if Compnt[comp_num].Valvcmp != nil {
-							Compnt[comp_num].Valvcmp.Eqptype = EqpType(s)
-						}
+					break
 
-						Compnt[comp_num].Neqp = 0
-						Compnt[comp_num].Ncat = 0
-
-						switch s {
-						case CONVRG_TYPE, CVRGAIR_TYPE:
-							// 合流要素
-							Eqsys.Ncnvrg++
-							Compnt[comp_num].Nout = 1
-						case DIVERG_TYPE, DIVGAIR_TYPE:
-							// 分岐要素
-							Compnt[comp_num].Nin = 1
-						case FLIN_TYPE:
-							// 流入境界条件
-							Eqsys.Nflin++
-						case HCLOAD_TYPE, HCLOADW_TYPE, RMAC_TYPE, RMACD_TYPE:
-							// 空調負荷
-							Eqsys.Nhcload++
-						case VALV_TYPE, TVALV_TYPE:
-							// 弁・ダンパー
-							Eqsys.Nvalv++
-						case QMEAS_TYPE:
-							// カロリーメータ
-							//Eqsys.Nqmeas++
-						default:
-							if s != DIVERG_TYPE && s != DIVGAIR_TYPE {
-								Eprint(errkey, s)
-							}
-						}
-
-						break
-
-					case 'i':
-						idi = append(idi, ELIO_None)
-						Ni++
-						break
-					case 'o':
-						ido = append(ido, ELIO_None)
-						No++
-						break
-					case 'I':
-						// Satoh DEBUG 1998/5/15
-						if Crm {
-							var err error
-							if Compnt[comp_num].Eqptype == ROOM_TYPE {
-								if SIMUL_BUILDG {
-									room := Compnt[comp_num].Eqp.(*ROOM)
-									room.Nasup, err = strconv.Atoi(s)
-									if err != nil {
-										panic(err)
-									}
-
-									N := room.Nasup
-									if N > 0 {
-										if room.Arsp == nil {
-											room.Arsp = make([]AIRSUP, N)
-										}
-									}
-
-									Compnt[comp_num].Nin += 2 * room.Nasup
-								}
-							} else {
-								Compnt[comp_num].Nin, err = strconv.Atoi(s)
+				case 'i':
+					// `-in`
+					idi = append(idi, ELIO_None)
+					Ni++
+					break
+				case 'o':
+					// `-out`
+					ido = append(ido, ELIO_None)
+					No++
+					break
+				case 'I':
+					// `-Nin <合流数>`
+					// Satoh DEBUG 1998/5/15
+					if Crm {
+						var err error
+						if comp.Eqptype == ROOM_TYPE {
+							if SIMUL_BUILDG {
+								room := comp.Eqp.(*ROOM)
+								room.Nasup, err = strconv.Atoi(s)
 								if err != nil {
 									panic(err)
 								}
-							}
 
-							for i := 0; i < Compnt[comp_num].Nin; i++ {
-								idi[i] = ' '
-							}
-							Compnt[comp_num].Idi = idi[:Compnt[comp_num].Nin]
-						}
-						break
-					case 'O':
-						var err error
-						Compnt[comp_num].Nout, err = strconv.Atoi(s)
-						if err != nil {
-							panic(err)
-						}
-						ido = make([]ELIOType, Compnt[comp_num].Nout)
-						for i := 0; i < Compnt[comp_num].Nout; i++ {
-							ido[i] = ELIO_SPACE
-						}
-						Compnt[comp_num].Ido = ido
-						break
+								N := room.Nasup
+								if N > 0 {
+									if room.Arsp == nil {
+										room.Arsp = make([]AIRSUP, N)
+									}
+								}
 
-					case 'L':
-						var err error
-						*Compnt[comp_num].Ivparm, err = strconv.ParseFloat(s, 64)
-						if err != nil {
-							panic(err)
+								comp.Nin += 2 * room.Nasup
+							}
+						} else {
+							comp.Nin, err = strconv.Atoi(s)
+							if err != nil {
+								panic(err)
+							}
 						}
-						break
-					case 'e':
-						Compnt[comp_num].Envname = s
-						break
-					case 'r':
-						Compnt[comp_num].Roomname = s
-						break
-					case 'h':
-						Compnt[comp_num].Hccname = s
-						break
-					case 'f':
-						Compnt[comp_num].Rdpnlname = s
-						break
-					case 'R':
-						var err error
-						Compnt[comp_num].Roomname = s
-						s = f.GetToken()
-						Compnt[comp_num].Eqpeff, err = strconv.ParseFloat(s, 64)
-						if err != nil {
-							panic(err)
+
+						for i := 0; i < comp.Nin; i++ {
+							idi[i] = ' '
 						}
-						break
-					case 's':
-						Compnt[comp_num].Exsname = s
-						break
-					case 'M':
-						Compnt[comp_num].Omparm = s
-						break
-					case 'S', 'V':
-						s += "  "
+						comp.Idi = idi[:comp.Nin]
+					}
+					break
+				case 'O':
+					// `-Nout <分岐数>`
+					var err error
+					comp.Nout, err = strconv.Atoi(s)
+					if err != nil {
+						panic(err)
+					}
+					ido = make([]ELIOType, comp.Nout)
+					for i := 0; i < comp.Nout; i++ {
+						ido[i] = ELIO_SPACE
+					}
+					comp.Ido = ido
+					break
+
+				case 'L':
+					// `-L <配管長>`
+					var err error
+					*comp.Ivparm, err = readFloat(s)
+					if err != nil {
+						panic(err)
+					}
+					break
+				case 'e':
+					// `-env <周囲温度>`
+					comp.Envname = s
+					break
+				case 'r':
+					// `-room <機器設置空間の室名>`
+					comp.Roomname = s
+					break
+				case 'h':
+					// `-hcc <VWV制御するときの制御対象熱交換器名称>`
+					comp.Hccname = s
+					break
+				case 'f':
+					// `-pfloor <VWV制御するときの制御対象床暖房>`
+					comp.Rdpnlname = s
+					break
+				case 'R':
+					// `-roomheff <ボイラ室内置き時の室内供給熱量率>`
+					var err error
+					comp.Roomname = s
+					s = f.GetToken()
+					comp.Eqpeff, err = readFloat(s)
+					if err != nil {
+						panic(err)
+					}
+					break
+				case 's':
+					// `-exs <太陽熱集熱器の方位・傾斜名>`
+					comp.Exsname = s
+					break
+				case 'M':
+					// `-control <集熱器が直列接続の場合に集熱器の要素名を流れ方向に記載する>`
+					comp.Omparm = s
+					break
+				case 'S', 'V':
+					// `-S <????>` or `-V <????>`
+					s += "  "
+					s += strings.Repeat(" ", len(s))
+					_s := f.GetToken()
+					s += _s + " *"
+					comp.Tparm = s
+					break
+
+				case 'T':
+					// `-Tinit <蓄熱槽の初期水温>`
+					if strings.HasPrefix(s, "(") {
+						s += " "
 						s += strings.Repeat(" ", len(s))
 						_s := f.GetToken()
-						s += _s + " *"
-						Compnt[comp_num].Tparm = s
-						break
-
-					case 'T':
-						if strings.HasPrefix(s, "(") {
-							s += " "
-							s += strings.Repeat(" ", len(s))
-							_s := f.GetToken()
-							s += _s
-							Compnt[comp_num].Tparm = s
-						} else {
-							Compnt[comp_num].Tparm = s
-						}
-						break
-					case 'w':
-						var err error
-						*Compnt[comp_num].Ivparm, err = strconv.ParseFloat(s, 64)
-						if err != nil {
-							panic(err)
-						}
-						break
-					case 'm':
-						Compnt[comp_num].MonPlistName = s
-						Compnt[comp_num].Valvcmp.MonPlistName = s
-						break
-					case 'P':
-						var err error
-						Compnt[comp_num].MPCM, err = strconv.ParseFloat(s, 64)
-						if err != nil {
-							panic(err)
-						}
-						break
+						s += _s
+						comp.Tparm = s
+					} else {
+						comp.Tparm = s
 					}
+					break
+				case 'w':
+					// `-wet` 冷却コイルで出口相対湿度一定の仮定で除湿の計算を行う。
+					var err error
+					*comp.Ivparm, err = readFloat(s)
+					if err != nil {
+						panic(err)
+					}
+					break
+				case 'm':
+					// `-monitor` デバッグ用
+					comp.MonPlistName = s
+					comp.Valvcmp.MonPlistName = s
+					break
+				case 'P':
+					// `-PCMweight <電気蓄熱暖房器の潜熱蓄熱材重量（kg）>`
+					var err error
+					comp.MPCM, err = readFloat(s)
+					if err != nil {
+						panic(err)
+					}
+					break
 				}
 			}
+		}
 
-			if Crm == false {
-				comp_num++
-				D++
-			}
+		if Crm == false {
+			comp_num++
+			D++
 		}
 	}
 
-	ncmp := comp_num
-	for i := 0; i < ncmp; i++ {
-		cm := &Compnt[i]
+	// 空気の分岐要素・合流要素があった場合、内容をコピーして湿度用に分岐要素・合流要素を作成
+	n := len(*Cmp)
+	for i := 0; i < n; i++ {
+		cm := &(*Cmp)[i]
 		if cm.Eqptype == DIVGAIR_TYPE {
-			s := cm.Name + ".x"
-			Compnt[comp_num].Name = s
-			Compnt[comp_num].Eqptype = cm.Eqptype
-			Compnt[comp_num].Nout = cm.Nout
-			Compnt[comp_num].Ido = cm.Ido
-			comp_num++
+			c := NewCOMPNT()
+			c.Name = cm.Name + ".x"
+			c.Eqptype = cm.Eqptype
+			c.Nout = cm.Nout
+			c.Ido = cm.Ido
+			*Cmp = append(*Cmp, *c)
 		} else if cm.Eqptype == CVRGAIR_TYPE {
-			s := cm.Name + ".x"
-			Compnt[comp_num].Name = s
-			Compnt[comp_num].Eqptype = cm.Eqptype
-			Compnt[comp_num].Nin = cm.Nin
-			Compnt[comp_num].Idi = cm.Idi
-			Eqsys.Ncnvrg++
-			comp_num++
+			c := NewCOMPNT()
+			c.Name = cm.Name + ".x"
+			c.Eqptype = cm.Eqptype
+			c.Nin = cm.Nin
+			c.Idi = cm.Idi
+			// ここで合流要素一覧に追加する理由が不明
+			Eqsys.Cnvrg = append(Eqsys.Cnvrg, nil)
+			*Cmp = append(*Cmp, *c)
 		}
 	}
 
 	//fmt.Printf("<<Compodata>> Ncompnt = %d\n", *Ncompnt)
 
-	N = Eqsys.Nvalv
-	if N > 0 {
-		Eqsys.Valv = make([]VALV, N)
-		Valv := Eqsys.Valv
-		for i := 0; i < N; i++ {
-			Valv[i] = NewVALV()
-		}
-	}
-
-	N = Eqsys.Ncnvrg
-	if N > 0 {
-		Eqsys.Cnvrg = make([]*COMPNT, N)
-		for i := 0; i < N; i++ {
-			Eqsys.Cnvrg[i] = nil
-		}
-	}
-
-	N = Eqsys.Nflin
-	Eqsys.Flin = nil
-	if N > 0 {
-		Eqsys.Flin = make([]FLIN, N)
-		for i := 0; i < N; i++ {
-			Eqsys.Flin[i] = NewFLIN()
-		}
-	}
-
-	N = Eqsys.Nhcload
-	Eqsys.Hcload = nil
-	if N > 0 {
-		Eqsys.Hcload = make([]HCLOAD, N)
-		for i := 0; i < N; i++ {
-			Eqsys.Hcload[i] = NewHCLOAD()
-		}
-	}
-
 	//printf("<<Compodata>> end\n");
+}
+
+func FindCOMPNTByName(s string, Compnt []COMPNT) *COMPNT {
+	cp := (*COMPNT)(nil)
+	for i := range Compnt {
+		if s == Compnt[i].Name {
+			cp = &Compnt[i]
+			break
+		}
+	}
+	return cp
 }
 
 func NewVALV() VALV {
@@ -788,33 +814,4 @@ func NewTHEX() THEX {
 		ET:   -999.0,
 		EH:   -999.0,
 	}
-}
-
-func Compntcount(fi *EeTokens) int {
-	N := 0
-	ad := fi.GetPos()
-
-	for fi.IsEnd() == false {
-		s := fi.GetToken()
-
-		if s == ";" {
-			N++
-
-			s = fi.GetToken()
-
-			if s == "*" {
-				break
-			} else if s == "(" {
-				N++
-			}
-		} else if s == DIVGAIR_TYPE || s == CVRGAIR_TYPE {
-			N++
-		} else if s == "(" {
-			N++
-		}
-	}
-
-	fi.RestorePos(ad)
-
-	return N
 }

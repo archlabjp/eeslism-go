@@ -9,9 +9,7 @@ import (
 func Syseqv(Nelout int, _Elout []*ELOUT, Syseq *SYSEQ) {
 	var elov *ELOUT
 	var eleq, elosv []*ELOUT
-	var elin *ELIN
 	var sysmcf, syscv, Y []float64
-	var cfin *float64
 	var i, j, m, n, nn, Nsv int
 	var mrk []rune
 
@@ -19,11 +17,9 @@ func Syseqv(Nelout int, _Elout []*ELOUT, Syseq *SYSEQ) {
 	elov = nil
 	eleq = nil
 	elosv = nil
-	elin = nil
 	sysmcf = nil
 	syscv = nil
 	Y = nil
-	cfin = nil
 
 	if Nelout > 0 {
 		eleq = make([]*ELOUT, Nelout)
@@ -127,8 +123,8 @@ func Syseqv(Nelout int, _Elout []*ELOUT, Syseq *SYSEQ) {
 		}
 
 		for j = 0; j < elout.Ni; j++ {
-			elin = elout.Elins[j]
-			cfin = &elout.Coeffin[j]
+			elin := elout.Elins[j]
+			cfin := &elout.Coeffin[j]
 
 			if elov = elin.Upv; elov != nil {
 				if DEBUG {

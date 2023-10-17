@@ -166,23 +166,28 @@ func Pumpflow(Pump []PUMP) {
 
 /*  特性式の係数  */
 
+//
+//  +------+ ---> [OUT 1] 空気 or 温水温度 ?
+//  | PUMP |
+//  +------+ ---> [OUT 2] 湿度? (FAN_PFのみ)
+//
 func Pumpcfv(Pump []PUMP) {
 	for i := range Pump {
 		p := &Pump[i]
 		if p.Cmp.Control != OFF_SW {
-			Eo := p.Cmp.Elouts[0]
-			cG := Spcheat(Eo.Fluid) * Eo.G
+			Eo1 := p.Cmp.Elouts[0]
+			cG := Spcheat(Eo1.Fluid) * Eo1.G
 			p.CG = cG
-			Eo.Coeffo = cG
-			p.PLC = PumpFanPLC(Eo.G/p.G, p)
-			Eo.Co = p.Cat.qef * p.E * p.PLC
-			Eo.Coeffin[0] = -cG
+			Eo1.Coeffo = cG
+			p.PLC = PumpFanPLC(Eo1.G/p.G, p)
+			Eo1.Co = p.Cat.qef * p.E * p.PLC
+			Eo1.Coeffin[0] = -cG
 
 			if p.Cat.pftype == FAN_PF {
-				Eo = p.Cmp.Elouts[1]
-				Eo.Coeffo = Eo.G
-				Eo.Co = 0.0
-				Eo.Coeffin[0] = -Eo.G
+				Eo2 := p.Cmp.Elouts[1]
+				Eo2.Coeffo = Eo2.G
+				Eo2.Co = 0.0
+				Eo2.Coeffin[0] = -Eo2.G
 			}
 		} else {
 			p.G = 0.0

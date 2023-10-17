@@ -155,9 +155,9 @@ func Elmalloc(
 			elinIdx++
 		} else if c == DIVERG_TYPE || c == DIVGAIR_TYPE {
 			if c == DIVGAIR_TYPE {
-				Compnt.Airpathcpy = 'y'
+				Compnt.Airpathcpy = true
 			} else {
-				Compnt.Airpathcpy = 'n'
+				Compnt.Airpathcpy = false
 			}
 
 			Compnt.Nin = 1
@@ -178,9 +178,9 @@ func Elmalloc(
 			elinIdx++
 		} else if c == CONVRG_TYPE || c == CVRGAIR_TYPE {
 			if c == CVRGAIR_TYPE {
-				Compnt.Airpathcpy = 'y'
+				Compnt.Airpathcpy = true
 			} else {
-				Compnt.Airpathcpy = 'n'
+				Compnt.Airpathcpy = false
 			}
 
 			Compnt.Nout = 1
@@ -480,7 +480,7 @@ func Elmalloc(
 			}
 
 			// 空気の絶対湿度用経路コピーを行う
-			Compnt.Airpathcpy = 'y'
+			Compnt.Airpathcpy = true
 			id = idmrkc
 			for i = 0; i < Compnt.Nout; i++ {
 				Elin := (*Eli)[elinIdx]
@@ -530,7 +530,7 @@ func Elmalloc(
 			Compnt.Nout = 2
 
 			if Eqsys.Vav[neqp].Cat.Type == VAV_PDT {
-				Compnt.Airpathcpy = 'y'
+				Compnt.Airpathcpy = true
 				for i = 0; i < Compnt.Nout; i++ {
 					Elin := (*Eli)[elinIdx]
 					Elout := (*Elo)[eloIdx]
@@ -561,7 +561,7 @@ func Elmalloc(
 			Stheat.Name = name
 			Stheat.Cmp = Compnt
 			Stheat.Cat = &Eqcat.Stheatca[ncat]
-			Compnt.Airpathcpy = 'y'
+			Compnt.Airpathcpy = true
 			Compnt.Nin = 2
 			Compnt.Nout = 2
 
@@ -589,7 +589,7 @@ func Elmalloc(
 			Desi.Cat = &Eqcat.Desica[ncat]
 
 			// 絶対湿度経路のコピー
-			Compnt.Airpathcpy = 'y'
+			Compnt.Airpathcpy = true
 
 			id = idmrkc
 			for i = 0; i < Compnt.Nout; i++ {
@@ -620,7 +620,7 @@ func Elmalloc(
 			Compnt.Nin = 4
 
 			// 絶対湿度経路のコピー
-			Compnt.Airpathcpy = 'y'
+			Compnt.Airpathcpy = true
 
 			// D:Tdry d:xdry V:Twet v:xwet
 			idd := [4]ELIOType{
@@ -679,7 +679,7 @@ func Elmalloc(
 			Thex.Name = name
 			Thex.Cmp = Compnt
 			Thex.Cat = &Eqcat.Thexca[ncat]
-			Compnt.Airpathcpy = 'y'
+			Compnt.Airpathcpy = true
 			Compnt.Nout = 4
 
 			for i = 0; i < Compnt.Nout; i++ {

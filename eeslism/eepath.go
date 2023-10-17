@@ -30,8 +30,8 @@ type VAVType rune
 
 const (
 	// ---- Satoh Debug VAV  2000/10/30 ----
-	VAV_PDT VAVType = 'A'
-	VWV_PDT VAVType = 'W'
+	VAV_PDT VAVType = 'A' // 空気
+	VWV_PDT VAVType = 'W' // 温水
 
 	PIPEDUCT_TYPE = "PIPE"
 	DUCT_TYPE     = "DUCT"
@@ -109,8 +109,8 @@ const (
 	IN_LPTP     = 'i' // 流入境界条件
 	OUT_LPTP    = 'o'
 
-	OFF_SW   ControlSWType = 'x'
-	ON_SW    ControlSWType = '-'
+	OFF_SW   ControlSWType = 'x' // 経路が停止中
+	ON_SW    ControlSWType = '-' // 経路が動作中
 	LOAD_SW  ControlSWType = 'F'
 	FLWIN_SW ControlSWType = 'I'
 	BATCH_SW ControlSWType = 'B'
@@ -144,8 +144,8 @@ type COMPNT struct {
 	Ido        []ELIOType // 出口の識別記号（熱交換器の'C'、'H'や全熱交換器の'E'、'O'など）
 	Tparm      string     // SYSCMPで定義された"-S"や"-V"以降の文字列を収録する
 	Wetparm    string     // 湿りコイルの除湿時出口相対湿度の文字列を収録
-	Omparm     string     //
-	Airpathcpy rune       // 空気経路の場合は'Y'（湿度経路用にpathをコピーする）
+	Omparm     string     // 集熱器が直列接続の場合に流れ方向に記載する
+	Airpathcpy bool       // 空気経路の場合は'Y'（湿度経路用にpathをコピーする）
 	Control    ControlSWType
 	Eqp        interface{} // 機器特有の構造体へのポインタ
 	Neqp       int
@@ -161,6 +161,7 @@ type COMPNT struct {
 	Elouts     []*ELOUT // 機器出口の構造体へのポインタ（Nout個）
 	Elins      []*ELIN  // 機器入口の構造体へのポインタ（Nin個）
 	//	valv	*Valv
+
 	Valvcmp *COMPNT // 三方弁の対となるValvのComptへのポインタ
 	//	x,			/* バルブ開度 */
 	//	xinit ;
@@ -199,22 +200,22 @@ type ELIOType rune
 const (
 	ELIO_None  ELIOType = 0
 	ELIO_G     ELIOType = 'G'
-	ELIO_C     ELIOType = 'C'
-	ELIO_H     ELIOType = 'H'
+	ELIO_C     ELIOType = 'C' // 冷風?
+	ELIO_H     ELIOType = 'H' // 温風?
 	ELIO_D     ELIOType = 'D' // Tdry
 	ELIO_d     ELIOType = 'd' // xdry
 	ELIO_V     ELIOType = 'V' // Twet
 	ELIO_v     ELIOType = 'v' // xwet
-	ELIO_e     ELIOType = 'e'
-	ELIO_E     ELIOType = 'E'
-	ELIO_O     ELIOType = 'O'
-	ELIO_o     ELIOType = 'o'
-	ELIO_x     ELIOType = 'x'
+	ELIO_e     ELIOType = 'e' // 排気系統（エンタルピー） ?
+	ELIO_E     ELIOType = 'E' // 排気系統（温度）?
+	ELIO_O     ELIOType = 'O' // 給気系統（温度） ?
+	ELIO_o     ELIOType = 'o' // 給気系統（エンタルピー） ?
+	ELIO_x     ELIOType = 'x' // 空気湿度
 	ELIO_f     ELIOType = 'f'
 	ELIO_r     ELIOType = 'r'
-	ELIO_W     ELIOType = 'W'
+	ELIO_W     ELIOType = 'W' // 温水温度
 	ELIO_w     ELIOType = 'w'
-	ELIO_t     ELIOType = 't'
+	ELIO_t     ELIOType = 't' // 空気温度
 	ELIO_ASTER ELIOType = '*'
 	ELIO_SPACE ELIOType = ' '
 )

@@ -300,6 +300,11 @@ func Stankint(Stank []STANK, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT) {
 
 /* 蓄熱槽特性式係数 */
 
+//
+//    +-------+  ---> [OUT 1]
+//    | STANK |  --->  ....
+//    +-------+  ---> [OUT N]
+//
 func Stankcfv(Stank []STANK) {
 	for i := range Stank {
 		Stank := &Stank[i]

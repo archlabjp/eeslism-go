@@ -38,7 +38,7 @@ func Mecsinit(Eqsys *EQSYS, Simc *SIMCONTL, Compnt []COMPNT, Nexsf int, Exsf []E
 	Stheatint(Eqsys.Stheat, Simc, Compnt, Wd, Rmvls.Npcm, Rmvls.PCM)
 
 	// 境界条件設定用仮想機器
-	Flinint(Eqsys.Nflin, Eqsys.Flin, Simc, Compnt, Wd)
+	Flinint(Eqsys.Flin, Simc, Compnt, Wd)
 
 	// VAVユニット
 	VWVint(Eqsys.Vav, Compnt)
@@ -58,7 +58,8 @@ func Mecsinit(Eqsys *EQSYS, Simc *SIMCONTL, Compnt []COMPNT, Nexsf int, Exsf []E
 
 // システム使用機器特性式係数の計算
 func Mecscf(Eqsys *EQSYS) {
-	Cnvrgcfv(Eqsys.Ncnvrg, Eqsys.Cnvrg)
+	// 合流要素
+	Cnvrgcfv(Eqsys.Cnvrg)
 
 	// 冷温水コイル
 	Hccdwint(Eqsys.Hcc)

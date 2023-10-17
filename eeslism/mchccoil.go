@@ -58,24 +58,25 @@ func Hccdata(s string, Hccca *HCCCA) int {
 }
 
 /* ------------------------------------------ */
-func Hccdwint(_Hcc []HCC) {
-	for i := range _Hcc {
-		Hcc := &_Hcc[i] // Get the address of the current element
+func Hccdwint(_hcc []HCC) {
+	for i := range _hcc {
+		hcc := &_hcc[i]
+
 		// 乾きコイルと湿りコイルの判定
-		if Hcc.Cat.eh > 1.0e-10 {
-			Hcc.Wet = 'w'
+		if hcc.Cat.eh > 1.0e-10 {
+			hcc.Wet = 'w' // 湿りコイル
 		} else {
-			Hcc.Wet = 'd'
+			hcc.Wet = 'd' // 乾きコイル
 		}
 
 		// 温度効率固定タイプと変動タイプの判定
-		if Hcc.Cat.et > 0.0 {
-			Hcc.Etype = 'e'
-		} else if Hcc.Cat.KA > 0.0 {
-			Hcc.Etype = 'k'
+		if hcc.Cat.et > 0.0 {
+			hcc.Etype = 'e' // 定格(温度効率固定タイプ)
+		} else if hcc.Cat.KA > 0.0 {
+			hcc.Etype = 'k' // 変動タイプ
 		} else {
-			fmt.Printf("Hcc %s  Undefined Character et or KA\n", Hcc.Name)
-			Hcc.Etype = '-'
+			fmt.Printf("Hcc %s  Undefined Character et or KA\n", hcc.Name)
+			hcc.Etype = '-'
 		}
 
 		// 入口水温、入口空気絶対湿度を初期化
@@ -87,79 +88,88 @@ func Hccdwint(_Hcc []HCC) {
 /* ------------------------------------------ */
 /*  特性式の係数  */
 
-func Hcccfv(Hcc []HCC) {
-	for i := range Hcc {
-		hcc := &Hcc[i] // Get the address of the current element
+//
+// [IN 1] ----> +-----+ ----> [OUT 1] 空気の温度
+// [IN 2] ----> | HCC | ----> [OUT 2] 空気の絶対湿度
+// [IN 3] ----> +-----+ ----> [OUT 3] 水の温度
+//
+func Hcccfv(_hcc []HCC) {
+	for i := range _hcc {
+		hcc := &_hcc[i]
 
 		hcc.Ga = 0.0
 		hcc.Gw = 0.0
 		hcc.et = 0.0
 		hcc.eh = 0.0
 
-		if hcc.Cmp.Control != OFF_SW {
-			var Eo *ELOUT
-			var cfin []float64 // Use a slice instead of a pointer
-			var AirSW, WaterSW ControlSWType
-
-			Eo = hcc.Cmp.Elouts[0]
-			hcc.Ga = Eo.G
-			hcc.cGa = Spcheat(Eo.Fluid) * hcc.Ga
-
-			AirSW = OFF_SW
-			if hcc.Ga > 0.0 {
-				AirSW = ON_SW
-			}
-
-			Eo = hcc.Cmp.Elouts[2]
-			hcc.Gw = Eo.G
-			hcc.cGw = Spcheat(Eo.Fluid) * hcc.Gw
-
-			WaterSW = OFF_SW
-			if hcc.Gw > 0.0 {
-				WaterSW = ON_SW
-			}
-
-			Eo = hcc.Cmp.Elouts[0]
-
-			if hcc.Etype == 'e' {
-				hcc.et = hcc.Cat.et
-			} else if hcc.Etype == 'k' {
-				hcc.et = FNhccet(hcc.cGa, hcc.cGw, hcc.Cat.KA)
-			}
-
-			hcc.eh = hcc.Cat.eh
-
-			wcoil(AirSW, WaterSW, hcc.Wet, hcc.Ga*hcc.et, hcc.Ga*hcc.eh, hcc.Xain, hcc.Twin, &hcc.Et, &hcc.Ex, &hcc.Ew)
-
-			Eo.Coeffo = hcc.cGa
-			Eo.Co = -(hcc.Et.C)
-			cfin = Eo.Coeffin[:]
-			cfin[0] = hcc.Et.T - hcc.cGa
-			cfin = cfin[1:]
-			cfin[0] = hcc.Et.X
-			cfin = cfin[1:]
-			cfin[0] = -(hcc.Et.W)
-
-			Eo = hcc.Cmp.Elouts[1]
-			Eo.Coeffo = hcc.Ga
-			Eo.Co = -(hcc.Ex.C)
-			cfin = Eo.Coeffin[:]
-			cfin[0] = hcc.Ex.T
-			cfin = cfin[1:]
-			cfin[0] = hcc.Ex.X - hcc.Ga
-			cfin = cfin[1:]
-			cfin[0] = -(hcc.Ex.W)
-
-			Eo = hcc.Cmp.Elouts[2]
-			Eo.Coeffo = hcc.cGw
-			Eo.Co = hcc.Ew.C
-			cfin = Eo.Coeffin[:]
-			cfin[0] = -(hcc.Ew.T)
-			cfin = cfin[1:]
-			cfin[0] = -(hcc.Ew.X)
-			cfin = cfin[1:]
-			cfin[0] = hcc.Ew.W - hcc.cGw
+		// 経路が停止していなければ
+		if hcc.Cmp.Control == OFF_SW {
+			continue
 		}
+
+		// 機器出力は3つ
+		if len(hcc.Cmp.Elouts) != 3 || len(hcc.Cmp.Elins) != 0 {
+			panic("HCCの機器出力数は3、機器入力は0です。")
+		}
+		Eo1 := hcc.Cmp.Elouts[0]
+		Eo2 := hcc.Cmp.Elouts[1]
+		Eo3 := hcc.Cmp.Elouts[2]
+
+		var AirSW, WaterSW ControlSWType
+
+		// 水の流量?
+		hcc.Ga = Eo1.G                        // 水の流量?
+		hcc.cGa = Spcheat(Eo1.Fluid) * hcc.Ga // 水の熱量?
+		if hcc.Ga > 0.0 {
+			AirSW = ON_SW
+		} else {
+			AirSW = OFF_SW
+		}
+
+		// 空気の流量?
+		hcc.Gw = Eo3.G                        // 空気の流量?
+		hcc.cGw = Spcheat(Eo3.Fluid) * hcc.Gw // 空気の熱量?
+		if hcc.Gw > 0.0 {
+			WaterSW = ON_SW
+		} else {
+			WaterSW = OFF_SW
+		}
+
+		// 温度効率
+		if hcc.Etype == 'e' {
+			// 定格温度効率
+			hcc.et = hcc.Cat.et
+		} else if hcc.Etype == 'k' {
+			// 温度効率を計算
+			hcc.et = FNhccet(hcc.cGa, hcc.cGw, hcc.Cat.KA)
+		}
+
+		// エンタルピ効率
+		hcc.eh = hcc.Cat.eh
+
+		// 冷温水コイルの処理熱量
+		hcc.Et, hcc.Ex, hcc.Ew = wcoil(AirSW, WaterSW, hcc.Wet, hcc.Ga*hcc.et, hcc.Ga*hcc.eh, hcc.Xain, hcc.Twin)
+
+		// 空気の温度
+		Eo1.Coeffo = hcc.cGa
+		Eo1.Co = -(hcc.Et.C)
+		Eo1.Coeffin[0] = hcc.Et.T - hcc.cGa
+		Eo1.Coeffin[1] = hcc.Et.X
+		Eo1.Coeffin[2] = -(hcc.Et.W)
+
+		// 空気の絶対湿度
+		Eo2.Coeffo = hcc.Ga
+		Eo2.Co = -(hcc.Ex.C)
+		Eo2.Coeffin[0] = hcc.Ex.T
+		Eo2.Coeffin[1] = hcc.Ex.X - hcc.Ga
+		Eo2.Coeffin[2] = -(hcc.Ex.W)
+
+		// 水の温度
+		Eo3.Coeffo = hcc.cGw
+		Eo3.Co = hcc.Ew.C
+		Eo3.Coeffin[0] = -(hcc.Ew.T)
+		Eo3.Coeffin[1] = -(hcc.Ew.X)
+		Eo3.Coeffin[2] = hcc.Ew.W - hcc.cGw
 	}
 }
 
@@ -444,21 +454,20 @@ func hccmonprt(fo io.Writer, id int, Hcc []HCC) {
 	}
 }
 
-/* 温水コイルの温度効率計算関数　計算モデルは向流コイル */
+// 温水コイルの温度効率計算関数
+// 計算モデルは向流コイル
 func FNhccet(Wa, Ww, KA float64) float64 {
-	var NTU, B, Ws, Wl, exB, C float64
+	Ws := Wa
+	Wl := Ww
 
-	Ws = Wa
-	Wl = Ww
-
-	NTU = KA / Ws
-	C = Ws / Wl
-	B = (1.0 - C) * NTU
+	NTU := KA / Ws
+	C := Ws / Wl
+	B := (1.0 - C) * NTU
 
 	if math.Abs(Ws-Wl) < 1.0e-5 {
 		return NTU / (1.0 + NTU)
 	} else {
-		if exB = math.Exp(-B); math.IsInf(exB, 0) {
+		if exB := math.Exp(-B); math.IsInf(exB, 0) {
 			return 1.0 / C
 		} else {
 			return (1.0 - exB) / (1.0 - C*exB)

@@ -153,8 +153,13 @@ func Desiint(_Desi []DESI, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT) {
 
 /*  特性式の係数  */
 
+//
+// 温度 [IN 1] --> +------+ --> [OUT 1] 出口温度
+//                 | DESI |
+// 湿度 [IN 2] --> +------+ --> [OUT 2] 出口湿度
+//
 func Desicfv(Desi []DESI) {
-	var Eo *ELOUT
+	var Eo1 *ELOUT
 	var h, i, j float64
 	var Te, hsa, hsad, hAsa, hdAsa float64
 	var Desica *DESICA
@@ -177,12 +182,12 @@ func Desicfv(Desi []DESI) {
 			Te = Desi.Room.Tot
 		}
 
-		Eo = Desi.Cmp.Elouts[0]
+		Eo1 = Desi.Cmp.Elouts[0]
 		// 熱容量流量の計算
-		Desi.CG = Spcheat(Eo.Fluid) * Eo.G
+		Desi.CG = Spcheat(Eo1.Fluid) * Eo1.G
 
 		// シリカゲルと槽内空気の対流熱伝達率の計算
-		if Eo.Cmp.Control == OFF_SW {
+		if Eo1.Cmp.Control == OFF_SW {
 			hsa = 4.614
 		} else {
 			hsa = 40.0
@@ -217,8 +222,8 @@ func Desicfv(Desi []DESI) {
 		U[0*N+2] = -hdAsa * Ro
 		U[0*N+3] = hdAsa * Ro
 		U[1*N+0] = -hAsa
-		U[1*N+1] = Ca*Eo.G + hAsa + Desi.UA
-		U[2*N+2] = Eo.G + hdAsa
+		U[1*N+1] = Ca*Eo1.G + hAsa + Desi.UA
+		U[2*N+2] = Eo1.G + hdAsa
 		U[2*N+3] = -hdAsa
 		U[3*N+2] = -hdAsa
 		U[3*N+3] = hdAsa
@@ -243,17 +248,17 @@ func Desicfv(Desi []DESI) {
 		}
 
 		// 出口温度の要素方程式
-		Eo.Coeffo = -1.0
-		Eo.Co = -Desi.UXC[1]
-		Eo.Coeffin[0] = Desi.UX[1*N+1] * Eo.G * Ca
-		Eo.Coeffin[1] = Desi.UX[1*N+2] * Eo.G
+		Eo1.Coeffo = -1.0
+		Eo1.Co = -Desi.UXC[1]
+		Eo1.Coeffin[0] = Desi.UX[1*N+1] * Eo1.G * Ca
+		Eo1.Coeffin[1] = Desi.UX[1*N+2] * Eo1.G
 
 		// 出口湿度の要素方程式
-		Eo = Desi.Cmp.Elouts[1]
-		Eo.Coeffo = -1.0
-		Eo.Co = -Desi.UXC[2]
-		Eo.Coeffin[0] = Desi.UX[2*N+2] * Eo.G
-		Eo.Coeffin[1] = Desi.UX[2*N+1] * Eo.G * Ca
+		Eo2 := Desi.Cmp.Elouts[1]
+		Eo2.Coeffo = -1.0
+		Eo2.Co = -Desi.UXC[2]
+		Eo2.Coeffin[0] = Desi.UX[2*N+2] * Eo2.G
+		Eo2.Coeffin[1] = Desi.UX[2*N+1] * Eo2.G * Ca
 	}
 }
 

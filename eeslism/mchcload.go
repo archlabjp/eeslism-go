@@ -32,8 +32,8 @@ import (
 
 /*  コイル出口空気温湿度に関する変数割当  */
 
-func Hclelm(Nhcload int, Hcload []HCLOAD) {
-	for i := 0; i < Nhcload; i++ {
+func Hclelm(Hcload []HCLOAD) {
+	for i := range Hcload {
 		hc := &Hcload[i]
 		// 湿りコイルの場合
 		if hc.Wet == 'y' {
@@ -407,67 +407,73 @@ func FNTevph(Tco, Qc, Eh, cao, Go, xco float64) float64 {
 
 /*  特性式の係数  */
 
-func Hcldcfv(Nhcload int, _Hcload []HCLOAD) {
+//
+// +--------+ ---> [OUT 1]
+// | HCLOAD | ---> [OUT 2]
+// +--------+ ---> [OUT 3] 冷温水コイル想定時のみ
+//
+func Hcldcfv(_Hcload []HCLOAD) {
 	var f0, f1 float64
 
 	Tout15 := 15.0
 	Tout20 := 20.0
 
-	for i := 0; i < Nhcload; i++ {
+	for i := range _Hcload {
 		Hcload := &_Hcload[i]
 		Xout15 := FNXtr(Tout15, Hcload.RHout)
 		Xout20 := FNXtr(Tout20, Hcload.RHout)
 		f1 = (Xout20 - Xout15) / (Tout20 - Tout15)
 		f0 = Xout15 - f1*Tout15
 
-		Eo := Hcload.Cmp.Elouts[0]
-		Hcload.Ga = Eo.G
+		Eo1 := Hcload.Cmp.Elouts[0]
+		Hcload.Ga = Eo1.G
 
-		if Eo.Control != OFF_SW {
-			Hcload.Ga = Eo.G
-			Hcload.CGa = Spcheat(Eo.Fluid) * Hcload.Ga
+		if Eo1.Control != OFF_SW {
+			Hcload.Ga = Eo1.G
+			Hcload.CGa = Spcheat(Eo1.Fluid) * Hcload.Ga
 
-			Eo.Coeffo = Hcload.CGa
-			Eo.Co = 0.0
-			Eo.Coeffin[0] = -Hcload.CGa
+			Eo1.Coeffo = Hcload.CGa
+			Eo1.Co = 0.0
+			Eo1.Coeffin[0] = -Hcload.CGa
 		}
 
-		Eo = Hcload.Cmp.Elouts[1]
-		if Eo.Control != OFF_SW {
+		Eo2 := Hcload.Cmp.Elouts[1]
+		if Eo2.Control != OFF_SW {
 			if Hcload.Wetmode == 'y' {
-				Eo.Coeffo = 1.0
-				Eo.Co = f0
-				Eo.Coeffin[0] = 0.0
-				Eo.Coeffin[1] = -f1
+				Eo2.Coeffo = 1.0
+				Eo2.Co = f0
+				Eo2.Coeffin[0] = 0.0
+				Eo2.Coeffin[1] = -f1
 			} else {
-				Eo.Coeffo = Hcload.Ga
-				Eo.Co = 0.0
-				Eo.Coeffin[0] = -Hcload.Ga
-				Eo.Coeffin[1] = 0.0
+				Eo2.Coeffo = Hcload.Ga
+				Eo2.Co = 0.0
+				Eo2.Coeffin[0] = -Hcload.Ga
+				Eo2.Coeffin[1] = 0.0
 			}
 		}
 
+		// 冷温水コイル想定時
 		if Hcload.Type == 'W' {
-			Eo = Hcload.Cmp.Elouts[2]
-			if Eo.Control != OFF_SW {
-				Hcload.Gw = Eo.G
-				Hcload.CGw = Spcheat(Eo.Fluid) * Hcload.Gw
+			Eo3 := Hcload.Cmp.Elouts[2]
+			if Eo3.Control != OFF_SW {
+				Hcload.Gw = Eo3.G
+				Hcload.CGw = Spcheat(Eo3.Fluid) * Hcload.Gw
 				rGa := Ro * Hcload.Ga
 
-				Eo.Coeffo = Hcload.CGw
+				Eo3.Coeffo = Hcload.CGw
 
-				Eo.Coeffin[0] = -Hcload.CGw
-				Eo.Coeffin[1] = -Hcload.CGa
-				Eo.Coeffin[2] = -rGa
+				Eo3.Coeffin[0] = -Hcload.CGw
+				Eo3.Coeffin[1] = -Hcload.CGa
+				Eo3.Coeffin[2] = -rGa
 
 				if Hcload.Wetmode == 'y' && Hcload.Chmode == COOLING_SW {
-					Eo.Coeffin[3] = Hcload.CGa + rGa*f1
-					Eo.Coeffin[4] = 0.0
-					Eo.Co = -rGa * f0
+					Eo3.Coeffin[3] = Hcload.CGa + rGa*f1
+					Eo3.Coeffin[4] = 0.0
+					Eo3.Co = -rGa * f0
 				} else {
-					Eo.Coeffin[3] = Hcload.CGa
-					Eo.Coeffin[4] = rGa
-					Eo.Co = 0.0
+					Eo3.Coeffin[3] = Hcload.CGa
+					Eo3.Coeffin[4] = rGa
+					Eo3.Co = 0.0
 				}
 			}
 		}
@@ -478,7 +484,7 @@ func Hcldcfv(Nhcload int, _Hcload []HCLOAD) {
 
 /* 空調負荷の計算 */
 
-func Hcldene(Nhcload int, _Hcload []HCLOAD, LDrest *int, Wd *WDAT) {
+func Hcldene(_Hcload []HCLOAD, LDrest *int, Wd *WDAT) {
 	var rest int
 	var elo *ELOUT
 	ro := 0.0
@@ -487,7 +493,7 @@ func Hcldene(Nhcload int, _Hcload []HCLOAD, LDrest *int, Wd *WDAT) {
 
 	rest = 0
 
-	for i := 0; i < Nhcload; i++ {
+	for i := range _Hcload {
 		Hcload := &_Hcload[i]
 		elo = Hcload.Cmp.Elouts[0]
 		Hcload.Tain = elo.Elins[0].Sysvin
@@ -801,13 +807,13 @@ func hcldschd(Hcload *HCLOAD) {
 
 /* ------------------------------------------ */
 
-func hcldprint(fo io.Writer, id int, Nhcload int, _Hcload []HCLOAD) {
+func hcldprint(fo io.Writer, id int, _Hcload []HCLOAD) {
 	switch id {
 	case 0:
-		if Nhcload > 0 {
-			fmt.Fprintf(fo, "%s %d\n", HCLOAD_TYPE, Nhcload)
+		if len(_Hcload) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", HCLOAD_TYPE, len(_Hcload))
 		}
-		for i := 0; i < Nhcload; i++ {
+		for i := range _Hcload {
 			Hcload := &_Hcload[i]
 			if Hcload.Type == 'W' {
 				fmt.Fprintf(fo, " %s 1 15\n", Hcload.Name)
@@ -820,7 +826,7 @@ func hcldprint(fo io.Writer, id int, Nhcload int, _Hcload []HCLOAD) {
 			}
 		}
 	case 1:
-		for i := 0; i < Nhcload; i++ {
+		for i := range _Hcload {
 			Hcload := &_Hcload[i]
 			fmt.Fprintf(fo, "%s_ca c c %s_Ga m f %s_Ti t f %s_To t f %s_Qs q f\n",
 				Hcload.Name, Hcload.Name, Hcload.Name, Hcload.Name, Hcload.Name)
@@ -838,7 +844,7 @@ func hcldprint(fo io.Writer, id int, Nhcload int, _Hcload []HCLOAD) {
 			}
 		}
 	default:
-		for i := 0; i < Nhcload; i++ {
+		for i := range _Hcload {
 			Hcload := &_Hcload[i]
 			el := Hcload.Cmp.Elouts[0]
 			Taout := el.Sysv
@@ -874,8 +880,8 @@ func hcldprint(fo io.Writer, id int, Nhcload int, _Hcload []HCLOAD) {
 
 /* 日積算値に関する処理 */
 
-func hclddyint(Nhcload int, _Hcload []HCLOAD) {
-	for i := 0; i < Nhcload; i++ {
+func hclddyint(_Hcload []HCLOAD) {
+	for i := range _Hcload {
 		Hcload := &_Hcload[i]
 		svdyint(&Hcload.Taidy)
 		svdyint(&Hcload.xaidy)
@@ -888,8 +894,8 @@ func hclddyint(Nhcload int, _Hcload []HCLOAD) {
 	}
 }
 
-func hcldmonint(Nhcload int, _Hcload []HCLOAD) {
-	for i := 0; i < Nhcload; i++ {
+func hcldmonint(_Hcload []HCLOAD) {
+	for i := range _Hcload {
 		Hcload := &_Hcload[i]
 		svdyint(&Hcload.mTaidy)
 		svdyint(&Hcload.mxaidy)
@@ -902,11 +908,11 @@ func hcldmonint(Nhcload int, _Hcload []HCLOAD) {
 	}
 }
 
-func hcldday(Mon, Day, ttmm, Nhcload, Nday, SimDayend int, _Hcload []HCLOAD) {
+func hcldday(Mon, Day, ttmm, Nday, SimDayend int, _Hcload []HCLOAD) {
 	Mo := Mon - 1
 	tt := ConvertHour(ttmm)
 
-	for i := 0; i < Nhcload; i++ {
+	for i := range _Hcload {
 		Hcload := &_Hcload[i]
 
 		// 日集計
@@ -936,19 +942,19 @@ func hcldday(Mon, Day, ttmm, Nhcload, Nday, SimDayend int, _Hcload []HCLOAD) {
 	}
 }
 
-func hclddyprt(fo io.Writer, id, Nhcload int, _Hcload []HCLOAD) {
+func hclddyprt(fo io.Writer, id int, _Hcload []HCLOAD) {
 	switch id {
 	case 0:
-		if Nhcload > 0 {
-			fmt.Fprintf(fo, "%s %d\n", HCLOAD_TYPE, Nhcload)
+		if len(_Hcload) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", HCLOAD_TYPE, len(_Hcload))
 		}
-		for i := 0; i < Nhcload; i++ {
+		for i := range _Hcload {
 			Hcload := &_Hcload[i]
 			fmt.Fprintf(fo, "%s 4 36 14 14 8\n", Hcload.Name)
 		}
 
 	case 1:
-		for i := 0; i < Nhcload; i++ {
+		for i := range _Hcload {
 			Hcload := &_Hcload[i]
 			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", Hcload.Name, Hcload.Name)
 			fmt.Fprintf(fo, "%s_ttn h d %s_Tn t f %s_ttm h d %s_Tm t f\n",
@@ -971,7 +977,7 @@ func hclddyprt(fo io.Writer, id, Nhcload int, _Hcload []HCLOAD) {
 		}
 
 	default:
-		for i := 0; i < Nhcload; i++ {
+		for i := range _Hcload {
 			Hcload := &_Hcload[i]
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				Hcload.Taidy.Hrs, Hcload.Taidy.M,
@@ -999,19 +1005,19 @@ func hclddyprt(fo io.Writer, id, Nhcload int, _Hcload []HCLOAD) {
 	}
 }
 
-func hcldmonprt(fo io.Writer, id, Nhcload int, _Hcload []HCLOAD) {
+func hcldmonprt(fo io.Writer, id int, _Hcload []HCLOAD) {
 	switch id {
 	case 0:
-		if Nhcload > 0 {
-			fmt.Fprintf(fo, "%s %d\n", HCLOAD_TYPE, Nhcload)
+		if len(_Hcload) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", HCLOAD_TYPE, len(_Hcload))
 		}
-		for i := 0; i < Nhcload; i++ {
+		for i := range _Hcload {
 			Hcload := &_Hcload[i]
 			fmt.Fprintf(fo, "%s 4 36 14 14 8\n", Hcload.Name)
 		}
 
 	case 1:
-		for i := 0; i < Nhcload; i++ {
+		for i := range _Hcload {
 			Hcload := &_Hcload[i]
 			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", Hcload.Name, Hcload.Name)
 			fmt.Fprintf(fo, "%s_ttn h d %s_Tn t f %s_ttm h d %s_Tm t f\n",
@@ -1034,7 +1040,7 @@ func hcldmonprt(fo io.Writer, id, Nhcload int, _Hcload []HCLOAD) {
 		}
 
 	default:
-		for i := 0; i < Nhcload; i++ {
+		for i := range _Hcload {
 			Hcload := &_Hcload[i]
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				Hcload.mTaidy.Hrs, Hcload.mTaidy.M,
@@ -1062,25 +1068,25 @@ func hcldmonprt(fo io.Writer, id, Nhcload int, _Hcload []HCLOAD) {
 	}
 }
 
-func hcldmtprt(fo io.Writer, id, Nhcload, Mo, tt int, _Hcload []HCLOAD) {
+func hcldmtprt(fo io.Writer, id, Mo, tt int, _Hcload []HCLOAD) {
 	switch id {
 	case 0:
-		if Nhcload > 0 {
-			fmt.Fprintf(fo, "%s %d\n", HCLOAD_TYPE, Nhcload)
+		if len(_Hcload) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", HCLOAD_TYPE, len(_Hcload))
 		}
-		for i := 0; i < Nhcload; i++ {
+		for i := range _Hcload {
 			Hcload := &_Hcload[i]
 			fmt.Fprintf(fo, " %s 1 1\n", Hcload.Name)
 		}
 
 	case 1:
-		for i := 0; i < Nhcload; i++ {
+		for i := range _Hcload {
 			Hcload := &_Hcload[i]
 			fmt.Fprintf(fo, "%s_E E f \n", Hcload.Name)
 		}
 
 	default:
-		for i := 0; i < Nhcload; i++ {
+		for i := range _Hcload {
 			Hcload := &_Hcload[i]
 			fmt.Fprintf(fo, " %.2f \n", Hcload.mtEdy[Mo-1][tt-1].D*Cff_kWh)
 		}
@@ -1116,9 +1122,8 @@ func chhcldswreset(Qload, Ql float64, chmode byte, Eo *ELOUT) int {
 
 func hcldwetmdreset(Eqsys *EQSYS) {
 	Hcload := Eqsys.Hcload
-	Nhcload := Eqsys.Nhcload
 
-	for i := 0; i < Nhcload; i++ {
+	for i := range Hcload {
 		Hcload[i].Wetmode = Hcload[i].Wet
 	}
 }

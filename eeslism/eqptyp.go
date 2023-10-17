@@ -317,37 +317,35 @@ type OMVAV struct {
 	Nrdpnl int
 }
 
-type HCCCA struct /* 冷温水コイル機器仕様*/
-{
+// 冷温水コイル機器仕様
+type HCCCA struct {
 	name string
-	et   float64 /*定格温度効率　　　　　　*/
+	et   float64 // 定格温度効率 [-]
 	KA   float64
-	eh   float64 /*定格エンタルピ効率　　　*/
+	eh   float64 // 定格エンタルピ効率 [-]
 }
 
-type HCC struct /* システム使用冷温水コイル　*/
-{
-	Name  string
-	Wet   rune
-	Etype rune /* 温度効率の入力方法
-	　　e:et
-		k:KA	*/
-	Cat                    *HCCCA
+// システム使用冷温水コイル
+type HCC struct {
+	Name                   string
+	Wet                    rune   // w:湿りコイル, d:乾きコイル
+	Etype                  rune   // 温度効率の入力方法 e:et (定格(温度効率固定タイプ)) k:KA (変動タイプ)
+	Cat                    *HCCCA // 冷温水コイル機器仕様
 	Cmp                    *COMPNT
-	et                     float64 /*温度効率　　　　　　*/
-	eh                     float64 /*エンタルピ効率　　　*/
-	Et                     ACS
-	Ex                     ACS
-	Ew                     ACS
+	et                     float64 // 温度効率 [-]
+	eh                     float64 // エンタルピ効率 [-]
+	Et                     ACS     // 処理熱量(温度?)
+	Ex                     ACS     // 処理熱量(湿度?)
+	Ew                     ACS     // 処理熱量(水?)
 	cGa                    float64
 	Ga                     float64
 	cGw                    float64
 	Gw                     float64
-	Tain                   float64
-	Taout                  float64
-	Xain                   float64
-	Twin                   float64
-	Twout                  float64
+	Tain                   float64 // IN空気温度??
+	Taout                  float64 // OUT空気温度??
+	Xain                   float64 // IN空気湿度??
+	Twin                   float64 // IN水湿度??
+	Twout                  float64 // OUT水湿度??
 	Qs                     float64
 	Ql                     float64
 	Qt                     float64
@@ -375,8 +373,8 @@ type BOICA struct /*ボイラ－機器仕様*/
 	Ph   float64 /*温水ポンプ動力 [W] */
 }
 
-type BOI struct /*システム使用ボイラ－*/
-{
+// システム使用ボイラ－
+type BOI struct {
 	Name string
 	Mode rune /* 負荷制御以外での運転モード
 	最大能力：M
@@ -444,8 +442,8 @@ type REFACA struct /*ヒートポンプ（圧縮式冷凍機）機器仕様*/
 	heat *HPCH /* 暖房運転時定格能力　*/
 }
 
-type REFA struct /*システム使用ヒートポンプ*/
-{
+// システム使用ヒートポンプ
+type REFA struct {
 	Name   string /*名称　　　　　　　　　　*/
 	Load   *rune
 	Chmode rune /*冷房運転: C、暖房運転時: H */
@@ -495,8 +493,8 @@ type COLLCA struct /*太陽熱集熱器機器仕様*/
 	Ag     float64
 }
 
-type COLL struct /*システム使用太陽熱集熱器*/
-{
+// システム使用太陽熱集熱器
+type COLL struct {
 	Name string
 
 	Cat    *COLLCA
@@ -528,8 +526,8 @@ type PIPECA struct /*配管・ダクト仕様*/
 	Ko   float64
 }
 
-type PIPE struct /*システム使用配管・ダクト*/
-{
+// システム使用配管・ダクト
+type PIPE struct {
 	Name  string
 	Loadt *rune
 	Loadx *rune
@@ -569,8 +567,8 @@ type STANKCA struct /* 蓄熱槽機器仕様 */
 	gxr    float64
 }
 
-type STANK struct /* システム使用蓄熱槽 */
-{
+// システム使用蓄熱槽
+type STANK struct {
 	Name      string
 	Batchop   rune /* バッチ操作有　給水:'F'  排出:'D'  停止:'-'  バッチ操作無:'n' */
 	Cat       *STANKCA
@@ -641,8 +639,8 @@ type HEXCA struct /* 熱交換器機器仕様 */
 	KA   float64
 }
 
-type HEX struct /* システム使用熱交換器 */
-{
+// システム使用熱交換器
+type HEX struct {
 	Id    int
 	Name  string
 	Etype rune /* 温度効率の入力方法
@@ -653,9 +651,9 @@ type HEX struct /* システム使用熱交換器 */
 	Eff            float64
 	ECGmin         float64
 	CGc, CGh       float64
-	Tcin           float64
-	Thin           float64
-	Qci, Qhi       float64
+	Tcin           float64 // 流入温度?
+	Thin           float64 // 流入温度?
+	Qci, Qhi       float64 // 交換熱量
 	Tcidy, Thidy   SVDAY
 	Qcidy, Qhidy   QDAY
 	MTcidy, MThidy SVDAY
@@ -682,8 +680,8 @@ type PUMPCA struct /* ポンプ・ファン機器仕様 */
 	pfcmp *PFCMP
 }
 
-type PUMP struct /* システム使用ポンプ・ファン */
-{
+// システム使用ポンプ・ファン
+type PUMP struct {
 	Name string
 	Cat  *PUMPCA
 	Cmp  *COMPNT
@@ -700,8 +698,8 @@ type PUMP struct /* システム使用ポンプ・ファン */
 	MQdy, MGdy, MEdy EDAY
 }
 
-type FLIN struct /*  境界条件設定用仮想機器 */
-{
+//  境界条件設定用仮想機器
+type FLIN struct {
 	Name   string
 	Namet  string   /* 変数名（温度、顕熱） */
 	Namex  string   /* 変数名（湿度、潜熱） */
@@ -719,8 +717,8 @@ const (
 	HCLoadType_W HCLoadType = 'W' // 冷温水コイル想定
 )
 
-type HCLOAD struct /* 空調機負荷仮想機器　*/
-{
+// 空調機負荷仮想機器
+type HCLOAD struct {
 	Name    string
 	Loadt   *rune
 	Loadx   *rune
@@ -774,18 +772,18 @@ type HCLOAD struct /* 空調機負荷仮想機器　*/
 	Cmp *COMPNT
 }
 
-type GLOAD struct /* 入力負荷仮想機器 */
-{
-	name   string
-	nameqs string
-	nameql string
-	nameQt string
-	Qs     []float64
-	Ql     []float64
-	Qt     []float64
+// // 入力負荷仮想機器
+// type GLOAD struct {
+// 	name   string
+// 	nameqs string
+// 	nameql string
+// 	nameQt string
+// 	Qs     []float64
+// 	Ql     []float64
+// 	Qt     []float64
 
-	cmp *COMPNT
-}
+// 	cmp *COMPNT
+// }
 
 // 太陽電池のカタログデータ
 type PVCA struct {
@@ -829,57 +827,50 @@ type PV struct {
 
 // カタログデータ（機器仕様データ一覧）
 type EQCAT struct {
-	Hccca    []HCCCA    // 冷温水コイル
-	Boica    []BOICA    // ボイラー
-	Refaca   []REFACA   // 冷温水方式の圧縮式電動ヒートポンプ,仮想熱源
-	Rfcmp    []RFCMP    // 標準圧縮機特性 (for REFACA)
-	Pfcmp    []PFCMP    // ポンプ・ファンの部分負荷特性の近似式係数  (for REFACA)
-	Collca   []COLLCA   // 架台設置型太陽熱集熱器
-	Pipeca   []PIPECA   // 配管
-	Stankca  []STANKCA  // 蓄熱槽(熱交換型内蔵型含む)
-	Hexca    []HEXCA    // 熱交換器
-	Pumpca   []PUMPCA   // ポンプ
-	Vavca    []VAVCA    // VAVユニット
-	Stheatca []STHEATCA // 電気蓄熱式暖房器
-	Thexca   []THEXCA   // 全熱交換器
-	PVca     []PVCA     // 架台設置型太陽電池
-	OMvavca  []OMVAVCA  // OMVAV
-	Desica   []DESICA   // デシカント槽
-	Evacca   []EVACCA   // 気化冷却器
+	Hccca    []HCCCA    // <カタログ>冷温水コイル
+	Boica    []BOICA    // <カタログ>ボイラー
+	Refaca   []REFACA   // <カタログ>冷温水方式の圧縮式電動ヒートポンプ,仮想熱源
+	Rfcmp    []RFCMP    // <カタログ>標準圧縮機特性 (for REFACA)
+	Pfcmp    []PFCMP    // <カタログ>ポンプ・ファンの部分負荷特性の近似式係数  (for REFACA)
+	Collca   []COLLCA   // <カタログ>架台設置型太陽熱集熱器
+	Pipeca   []PIPECA   // <カタログ>配管
+	Stankca  []STANKCA  // <カタログ>蓄熱槽(熱交換型内蔵型含む)
+	Hexca    []HEXCA    // <カタログ>熱交換器
+	Pumpca   []PUMPCA   // <カタログ>ポンプ
+	Vavca    []VAVCA    // <カタログ>VAVユニット
+	Stheatca []STHEATCA // <カタログ>電気蓄熱式暖房器
+	Thexca   []THEXCA   // <カタログ>全熱交換器
+	PVca     []PVCA     // <カタログ>架台設置型太陽電池
+	OMvavca  []OMVAVCA  // <カタログ>OMVAV
+	Desica   []DESICA   // <カタログ>デシカント槽
+	Evacca   []EVACCA   // <カタログ>気化冷却器
 }
 
 // 「実際に」システムを構成する機器(システム使用機器データ一覧)
 type EQSYS struct {
-	Ncnvrg int
-	Cnvrg  []*COMPNT
+	Cnvrg []*COMPNT // 機器
 
-	Hcc   []HCC
-	Boi   []BOI
-	Refa  []REFA
-	Coll  []COLL
-	Pipe  []PIPE
-	Stank []STANK
-	Hex   []HEX
-	Pump  []PUMP
-
-	Nflin int
-	Flin  []FLIN
-
-	Nhcload int
-	Hcload  []HCLOAD
-
-	Ngload int
-	Gload  []GLOAD
-
+	Hcc    []HCC    // システム使用冷温水コイル
+	Boi    []BOI    // システム使用ボイラ－
+	Refa   []REFA   // システム使用ヒートポンプ
+	Coll   []COLL   // システム使用太陽熱集熱器
+	Pipe   []PIPE   // システム使用配管・ダクト
+	Stank  []STANK  // システム使用蓄熱槽
+	Hex    []HEX    // システム使用熱交換器
+	Pump   []PUMP   // システム使用ポンプ・ファン
+	Flin   []FLIN   // 境界条件設定用仮想機器
+	Hcload []HCLOAD // 空調機負荷仮想機器
 	Vav    []VAV    // VAVユニット
 	Stheat []STHEAT // 電気蓄熱式暖房器
 	Thex   []THEX   // 全熱交換器
+	Valv   []VALV   // VAV
+	Qmeas  []QMEAS  // カロリーメータ
+	PVcmp  []PV     // 太陽電池
+	OMvav  []OMVAV  // OMVAV
+	Desi   []DESI   // デシカント槽
+	Evac   []EVAC   // 気化冷却器
 
-	Nvalv int
-	Valv  []VALV  // VAV
-	Qmeas []QMEAS // カロリーメータ
-	PVcmp []PV    // 太陽電池
-	OMvav []OMVAV //OMVAV
-	Desi  []DESI  // デシカント槽
-	Evac  []EVAC  // 気化冷却器
+	// 使用されていなかった:
+	// Ngload int
+	// Gload  []GLOAD // 入力負荷仮想機器
 }

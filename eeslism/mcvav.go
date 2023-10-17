@@ -99,12 +99,18 @@ func VWVint(VAVs []VAV, Compn []COMPNT) {
 /*  特性式の係数  */
 /*---- Satoh Debug VAV  2000/11/8 ----*/
 /*********************/
+
+//
+//   +-----+ ---> [OUT 1] 空気 or 温水温度
+///  | VAV |
+//   +-----+ ---> [OUT 2] 湿度 (VAV_PDTのみ)
+//
 func VAVcfv(vav []VAV) {
 	for i := range vav {
 		v := &vav[i]
-		Eo := v.Cmp.Elouts
+		Eo1 := v.Cmp.Elouts[0]
 
-		if v.Cmp.Control != OFF_SW && Eo[0].Control != OFF_SW {
+		if v.Cmp.Control != OFF_SW && Eo1.Control != OFF_SW {
 			if v.Cat.Gmax < 0.0 {
 				Err := fmt.Sprintf("Name=%s  Gmax=%.5g", v.Name, v.Cat.Gmax)
 				Eprint("VAVcfv", Err)
@@ -115,22 +121,23 @@ func VAVcfv(vav []VAV) {
 			}
 
 			if v.Count == 0 {
-				v.G = Eo[0].G
-				v.CG = Spcheat(Eo[0].Fluid) * v.G
+				v.G = Eo1.G
+				v.CG = Spcheat(Eo1.Fluid) * v.G
 
-				Eo[0].Coeffo = v.CG
-				Eo[0].Co = 0.0
-				Eo[0].Coeffin[0] = -v.CG
+				Eo1.Coeffo = v.CG
+				Eo1.Co = 0.0
+				Eo1.Coeffin[0] = -v.CG
 			} else {
-				Eo[0].Coeffo = 1.0
-				Eo[0].Co = 0.0
-				Eo[0].Coeffin[0] = -1.0
+				Eo1.Coeffo = 1.0
+				Eo1.Co = 0.0
+				Eo1.Coeffin[0] = -1.0
 			}
 
 			if v.Cat.Type == VAV_PDT {
-				Eo[1].Coeffo = 1.0
-				Eo[1].Co = 0.0
-				Eo[1].Coeffin[0] = -1.0
+				Eo2 := v.Cmp.Elouts[1]
+				Eo2.Coeffo = 1.0
+				Eo2.Co = 0.0
+				Eo2.Coeffin[0] = -1.0
 			}
 		}
 	}

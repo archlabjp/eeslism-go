@@ -20,7 +20,7 @@ package eeslism
 // 名称がcatname の設備をEcatから探して、 C に格納する
 // Esys には、設備の種類ごとの個数を格納する
 func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
-	C.Airpathcpy = 'n'
+	C.Airpathcpy = false
 	C.Idi = nil
 	C.Ido = nil
 
@@ -35,7 +35,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 			C.Nin = 3
 			C.Idi = []ELIOType{ELIO_t, ELIO_x, ELIO_W} // txW
 			C.Ido = []ELIOType{ELIO_t, ELIO_x, ELIO_W} // txW
-			C.Airpathcpy = 'y'
+			C.Airpathcpy = true
 			return true
 		}
 	}
@@ -68,7 +68,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 			} else {
 				C.Nout = 2
 				C.Nin = 2
-				C.Airpathcpy = 'y'
+				C.Airpathcpy = true
 			}
 			return true
 		}
@@ -117,7 +117,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 			} else {
 				C.Nout = 2
 				C.Nin = 2
-				C.Airpathcpy = 'y'
+				C.Airpathcpy = true
 			}
 
 			return true
@@ -167,7 +167,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 			} else {
 				C.Nout = 2
 				C.Nin = 2
-				C.Airpathcpy = 'y'
+				C.Airpathcpy = true
 			}
 
 			return true
@@ -192,7 +192,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 				C.Nout = 2
 				C.Nin = 2
 				// 温湿度計算のために出入り口数は2
-				C.Airpathcpy = 'y'
+				C.Airpathcpy = true
 			} else {
 				C.Nout = 1
 				C.Nin = 1
@@ -225,10 +225,11 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 			C.Neqp = len(Esys.Stheat)
 			Esys.Stheat = append(Esys.Stheat, NewSTHEAT())
 
+			// NOTE: たぶんここは 2が正しいのでは
 			C.Nout = 3
 			C.Nin = 3
 			// 温湿度計算のために出入り口数は2
-			C.Airpathcpy = 'y'
+			C.Airpathcpy = true
 
 			return true
 		}
@@ -246,7 +247,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 			C.Nout = 2
 			C.Nin = 2
 			// 温湿度計算のために出入り口数は2
-			C.Airpathcpy = 'y'
+			C.Airpathcpy = true
 
 			return true
 		}
@@ -260,7 +261,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 			C.Ncat = i
 			C.Neqp = len(Esys.Evac)
 			Esys.Evac = append(Esys.Evac, NewEVAC())
-			C.Airpathcpy = 'y'
+			C.Airpathcpy = true
 			C.Nout = 4
 			C.Nin = 4
 			C.Idi = []ELIOType{ELIO_D, ELIO_d, ELIO_W, ELIO_w} // DdWw
@@ -277,7 +278,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 			C.Ncat = i
 			C.Neqp = len(Esys.Thex)
 			Esys.Thex = append(Esys.Thex, NewTHEX())
-			C.Airpathcpy = 'y'
+			C.Airpathcpy = true
 			C.Nout = 4
 			C.Nin = 4
 			C.Idi = []ELIOType{ELIO_E, ELIO_e, ELIO_O, ELIO_o} // EeOo

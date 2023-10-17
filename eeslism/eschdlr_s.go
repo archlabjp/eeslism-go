@@ -22,13 +22,13 @@ package eeslism
 func Eeschdlr(day, ttmm int, Schdl *SCHDL, Rmvls *RMVLS) {
 	//r := Rmvls.Room
 
-	for j := 0; j < Schdl.Nsch; j++ {
+	for j := range Schdl.Sch {
 		val := &Schdl.Val[j]
 		Sch := &Schdl.Sch[j]
 		*val = schval(day, ttmm, Sch, Schdl.Dsch)
 	}
 
-	for j := 0; j < Schdl.Nscw; j++ {
+	for j := range Schdl.Scw {
 		Scw := &Schdl.Scw[j]
 		isw := &Schdl.Isw[j]
 		*isw = rune(scwmode(day, ttmm, Scw, Schdl.Dscw))
@@ -36,7 +36,7 @@ func Eeschdlr(day, ttmm int, Schdl *SCHDL, Rmvls *RMVLS) {
 
 	if SIMUL_BUILDG {
 		if DEBUG {
-			xprschval(Schdl.Nsch, Schdl.Val, Schdl.Nscw, Schdl.Isw)
+			xprschval(Schdl.Val, Schdl.Isw)
 		}
 
 		Windowschdlr(Schdl.Isw, Rmvls.Window, Rmvls.Nsrf, Rmvls.Sd)

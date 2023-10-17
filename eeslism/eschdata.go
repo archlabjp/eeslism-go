@@ -406,6 +406,10 @@ func Schdata(schnma string, dsn string, daywk []int, Schdl *SCHDL) {
 			}
 		}
 	}
+
+	// Val, Isw の領域確保
+	Schdl.Val = make([]float64, len(Schdl.Sch))
+	Schdl.Isw = make([]rune, len(Schdl.Scw))
 }
 
 /* ------------------------------------------------------------ */

@@ -77,16 +77,14 @@ func xprroom(R []*ROOM) {
 
 /* ----------------------------------------- */
 
-func xprschval(Nsch int, val []float64, Nscw int, isw []rune) {
-	var j int
-
+func xprschval(val []float64, isw []rune) {
 	fmt.Println("--- xprschval")
 
-	for j = 0; j < Nsch; j++ {
+	for j := range val {
 		fmt.Printf("--- val=(%d) %f\n", j, val[j])
 	}
 
-	for j = 0; j < Nscw; j++ {
+	for j := range isw {
 		fmt.Printf("--- isw=(%d) %c\n", j, isw[j])
 	}
 }

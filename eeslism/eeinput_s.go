@@ -271,25 +271,11 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 	var Schdl *SCHDL = new(SCHDL)
 	Schtable(schtba, Schdl)
 	Schname(Schdl)
-	Schdl.Nsch = len(Schdl.Sch)
-	Schdl.Nscw = len(Schdl.Scw)
 
 	// -------------------------------------------------------
 	//  季節、曜日によるスケジュ－ル表の組み合わせの読み取り
 	// -------------------------------------------------------
 	Schdata(schnma, "schnm", Simc.Daywk, Schdl)
-	Schdl.Nsch = len(Schdl.Sch)
-	Schdl.Nscw = len(Schdl.Scw)
-	if Schdl.Nsch > 0 {
-		Schdl.Val = make([]float64, Schdl.Nsch)
-	} else {
-		Schdl.Val = nil
-	}
-	if Schdl.Nscw > 0 {
-		Schdl.Isw = make([]rune, Schdl.Nscw)
-	} else {
-		Schdl.Isw = nil
-	}
 
 	// 入力を正規化することで後処理を簡単にする
 	tokens := NewEeTokens(bdata)
@@ -336,15 +322,9 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 			// SCHDBデータセットの読み取り
 			Schtable(schtba, Schdl)
 			Schname(Schdl)
-
-			Schdl.Nsch = len(Schdl.Sch)
-			Schdl.Nscw = len(Schdl.Scw)
 		case "SCHNM":
 			// SCHNMデータセットの読み取り
 			Schdata(schnma, s, Simc.Daywk, Schdl)
-
-			Schdl.Nsch = len(Schdl.Sch)
-			Schdl.Nscw = len(Schdl.Scw)
 		case "EXSRF":
 			// EXSRFデータセットの読み取り
 			section := tokens.GetSection()

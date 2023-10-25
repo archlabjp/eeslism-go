@@ -24,7 +24,7 @@ import (
 
 /*  システム変数名、内部変数名、スケジュール名のポインター  */
 
-func ctlvptr(s string, Simc *SIMCONTL, Compnt []COMPNT, Nmpath int, Mpath []MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL) (VPTR, VPTR, error) {
+func ctlvptr(s string, Simc *SIMCONTL, Compnt []COMPNT, Mpath []*MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL) (VPTR, VPTR, error) {
 	var err error
 	var vptr, vpath VPTR
 
@@ -42,7 +42,7 @@ func ctlvptr(s string, Simc *SIMCONTL, Compnt []COMPNT, Nmpath int, Mpath []MPAT
 		}
 	} else {
 		// 経路名、システム変数名、内部変数名のポインターを作成する
-		vptr, vpath, err = kynameptr(s, Simc, Compnt, Nmpath, Mpath, Wd, Exsf)
+		vptr, vpath, err = kynameptr(s, Simc, Compnt, Mpath, Wd, Exsf)
 	}
 
 	//Errprint(1, "<ctlvptr>", s)
@@ -65,7 +65,7 @@ func strkey(s string) ([]string, int) {
 
 // 経路名、システム変数名、内部変数名のポインターを作成する
 func kynameptr(s string, Simc *SIMCONTL, _Compnt []COMPNT,
-	Nmpath int, Mpath []MPATH, Wd *WDAT, Exsf *EXSFS) (VPTR, VPTR, error) {
+	Mpath []*MPATH, Wd *WDAT, Exsf *EXSFS) (VPTR, VPTR, error) {
 	var err error
 	var vptr, vpath VPTR
 
@@ -136,8 +136,8 @@ func kynameptr(s string, Simc *SIMCONTL, _Compnt []COMPNT,
 			}
 		}
 
-		if Nmpath > 0 {
-			vptr, vpath, err = pathvptr(nk, key, Nmpath, Mpath)
+		if len(Mpath) > 0 {
+			vptr, vpath, err = pathvptr(nk, key, Mpath)
 		} else {
 			err = errors.New("Nmpath == 0")
 		}
@@ -202,38 +202,35 @@ func kynameptr(s string, Simc *SIMCONTL, _Compnt []COMPNT,
 /* ----------------------------------------------------------------- */
 
 // 経路名のポインター
-func pathvptr(nk int, key []string, Nmpath int, Mpath []MPATH) (VPTR, VPTR, error) {
-	var i int
+func pathvptr(nk int, key []string, Mpath []*MPATH) (VPTR, VPTR, error) {
 	var err error
-	var Mp, Mpe *MPATH
 	var Plist, Plie *PLIST
 	var vptr, vpath VPTR
 
-	Mp = &Mpath[0]
-
-	for i = 0; i < Nmpath; i++ {
-		if string(key[0]) == Mpath[i].Name {
+	found := false
+	for _, Mp := range Mpath {
+		if string(key[0]) == Mp.Name {
 			vpath = VPTR{
 				Type: MAIN_CPTYPE,
-				Ptr:  Mpath[i],
+				Ptr:  Mp,
 			}
 
 			if nk == 1 || string(key[1]) == "control" {
 				vptr = VPTR{
 					Type: SW_CTYPE,
-					Ptr:  &Mpath[i].Control,
+					Ptr:  &Mp.Control,
 				}
 			}
+			found = true
 			break
 		}
 	}
 
-	if i == Nmpath {
+	if found == false {
 		err = errors.New("i == Nmpath")
-		Mpe = &Mpath[Nmpath-1]
+		Mpe := Mpath[len(Mpath)-1]
 
-		for j := 0; j < Mpe.Nlpath; j++ {
-			Plist = &Mp.Plist[j]
+		for _, Plist := range Mpe.Plist {
 			if Plist.Name != "" {
 				if key[0] == Plist.Name {
 					vpath = VPTR{

@@ -37,7 +37,7 @@ func Hclelm(Hcload []HCLOAD) {
 	for i := range Hcload {
 		hc := &Hcload[i]
 		// 湿りコイルの場合
-		if hc.Wet == 'y' {
+		if hc.Wet {
 			// 空気温度出口の計算式
 			eo := hc.Cmp.Elouts[0]
 			// elo:空気湿度出口の計算式
@@ -440,7 +440,7 @@ func Hcldcfv(_Hcload []HCLOAD) {
 
 		Eo2 := Hcload.Cmp.Elouts[1]
 		if Eo2.Control != OFF_SW {
-			if Hcload.Wetmode == 'y' {
+			if Hcload.Wetmode {
 				Eo2.Coeffo = 1.0
 				Eo2.Co = f0
 				Eo2.Coeffin[0] = 0.0
@@ -467,7 +467,7 @@ func Hcldcfv(_Hcload []HCLOAD) {
 				Eo3.Coeffin[1] = -Hcload.CGa
 				Eo3.Coeffin[2] = -rGa
 
-				if Hcload.Wetmode == 'y' && Hcload.Chmode == COOLING_SW {
+				if Hcload.Wetmode && Hcload.Chmode == COOLING_SW {
 					Eo3.Coeffin[3] = Hcload.CGa + rGa*f1
 					Eo3.Coeffin[4] = 0.0
 					Eo3.Co = -rGa * f0
@@ -783,7 +783,7 @@ func hcldschd(Hcload *HCLOAD) {
 			} else {
 				Eo[0].Control = OFF_SW
 
-				if Hcload.Wetmode == 'y' {
+				if Hcload.Wetmode {
 					Eo[1].Control = OFF_SW
 				}
 			}

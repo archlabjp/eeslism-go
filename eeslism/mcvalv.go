@@ -44,12 +44,11 @@ func Valvcountinc(Valv []VALV) {
 
 // 通常はバルブの上流の流量に比率を乗じるが、基準となるOMvavが指定されている場合には、この流量に対する比率とする
 // OMvavが指定されているときだけの対応
-func Valvinit(Valv []VALV, NMpath int, Mpath []MPATH) {
+func Valvinit(Valv []VALV, Mpath []*MPATH) {
 	for k := range Valv {
 		if Valv[k].Cmp.MonPlistName != "" {
-			for i := 0; i < NMpath; i++ {
-				for j := 0; j < Mpath[i].Nlpath; j++ {
-					Plist := &Mpath[i].Plist[j]
+			for _, mpath := range Mpath {
+				for _, Plist := range mpath.Plist {
 					if Valv[k].Cmp.MonPlistName == Plist.Plistname {
 						Valv[k].MonPlist = Plist
 						Valv[k].MGo = &Plist.G
@@ -64,7 +63,7 @@ func Valvinit(Valv []VALV, NMpath int, Mpath []MPATH) {
 				}
 			}
 		} else {
-			Pelm := Valv[k].Plist.Pelm[Valv[k].Plist.Nelm-1]
+			Pelm := Valv[k].Plist.Pelm[len(Valv[k].Plist.Pelm)-1]
 			Valv[k].MGo = Pelm.Cmp.Elouts[0].Lpath.Go
 			Valv[k].MonPlist = Pelm.Cmp.Elouts[0].Lpath
 
@@ -167,7 +166,7 @@ func ValvControl(fi *EeTokens, Compnt []COMPNT, Schdl *SCHDL, Simc *SIMCONTL, Wd
 				Valv.Tset = envptr(s, Simc, Compnt, Wd, nil)
 			}
 
-			Pelm = Valv.Plist.Pelm[Valv.Plist.Nelm-1]
+			Pelm = Valv.Plist.Pelm[len(Valv.Plist.Pelm)-1]
 			Valv.Mon = Pelm.Cmp
 			Valv.Tout = &Valv.Mon.Elouts[0].Sysv
 			Valv.MGo = &Pelm.Cmp.Elouts[0].Lpath.G
@@ -182,7 +181,7 @@ func ValvControl(fi *EeTokens, Compnt []COMPNT, Schdl *SCHDL, Simc *SIMCONTL, Wd
 		}
 	}
 
-	Pelm = Valv.Plist.Pelm[Valv.Plist.Nelm-1]
+	Pelm = Valv.Plist.Pelm[len(Valv.Plist.Pelm)-1]
 	elins = Pelm.Cmp.Elins[0]
 
 	for i = 0; i < Pelm.Cmp.Nin; i++ {

@@ -140,12 +140,12 @@ type COMPNT struct {
 	Exsname    string     // 方位名称
 	Hccname    string     // VWV制御するときの制御対象熱交換器名称
 	Rdpnlname  string     // VWV制御するときの制御対象床暖房（未完成）
-	Idi        []ELIOType // 入口の識別記号
-	Ido        []ELIOType // 出口の識別記号（熱交換器の'C'、'H'や全熱交換器の'E'、'O'など）
+	Idi        []ELIOType // 入口の識別記号 (len(Idi) == Nin)
+	Ido        []ELIOType // 出口の識別記号（熱交換器の'C'、'H'や全熱交換器の'E'、'O'など）(len(Ido) == Nout)
 	Tparm      string     // SYSCMPで定義された"-S"や"-V"以降の文字列を収録する
 	Wetparm    string     // 湿りコイルの除湿時出口相対湿度の文字列を収録
 	Omparm     string     // 集熱器が直列接続の場合に流れ方向に記載する
-	Airpathcpy bool       // 空気経路の場合は'Y'（湿度経路用にpathをコピーする）
+	Airpathcpy bool       // 空気経路の場合はtrue（湿度経路用にpathをコピーする）
 	Control    ControlSWType
 	Eqp        interface{} // 機器特有の構造体へのポインタ
 	Neqp       int
@@ -228,7 +228,7 @@ type ELIN struct {
 	Lpath  *PLIST // 機器入口が属する末端経路
 }
 
-// 末端経路の要素
+// SYSPTHに記載の機器
 type PELM struct {
 	Co  ELIOType // SYSPTHに記載の機器の出口の識別番号（熱交換器の'C'、'H'や全熱交換器の'E'、'O'など）
 	Ci  ELIOType // SYSPTHに記載の機器の入口の識別番号（熱交換器の'C'、'H'や全熱交換器の'E'、'O'など）
@@ -247,7 +247,6 @@ type PLIST struct {
 	Batch       bool          // バッチ運転を行う蓄熱槽のあるときtrue
 	Org         bool          // 入力された経路のときtrue、複写された経路（空気系統の湿度経路）のとき false
 	Plistname   string        // 末端経路の名前
-	Nelm        int           // 末端経路内の機器の数
 	Lvc         int
 	Nvalv       int      // 経路中のバルブ数
 	Nvav        int      // 経路中のVAVユニットの数
@@ -263,29 +262,30 @@ type PLIST struct {
 	Plistt      *PLIST // 空気系当時の温度系統
 	Plistx      *PLIST // 空気系当時の湿度系統
 	Valv        *VALV  // 弁・ダンパーへの参照 (V,VT用)
-	Mpath       *MPATH
+	Mpath       *MPATH // システム経路 MPATH への逆参照
 	Upplist     *PLIST
 	Dnplist     *PLIST
 	OMvav       *OMVAV // OMVAVへの参照 (OMVAV用)
 }
 
+// SYSPTHにおける';'で区切られる経路
+// SYSPTH (1)--(N) MPATH (1)--(N) PLIST (1) -- (N) PELM
 type MPATH struct {
 	Name    string        // 経路名称
 	Sys     byte          // 系統番号
 	Type    byte          // 貫流経路か循環経路かの判定
 	Fluid   FliudType     // 流体種別
 	Control ControlSWType // 経路の制御情報
-	Nlpath  int           // 末端経路数
 	NGv     int           // ガス導管数
 	NGv2    int           // 開口率が2%未満のガス導管数
 	Ncv     int           // 制御弁数
 	Lvcmx   int           // 制御弁の接続数の最大値
-	Plist   []PLIST       // 末端経路
+	Plist   []*PLIST      // 末端経路
 	Pl      []*PLIST      // 末端経路を格納する配列へのポインタ
-	Rate    rune          // 流量比率が入力されている経路なら'Y'
+	Rate    bool          // 流量比率(Plist[x].Rate)が入力されている経路ならtrue
 	G0      *float64      // 流量比率設定時の既知流量へのポインタ
-	Mpair   *MPATH
-	Cbcmp   []*COMPNT // 流量連立方程式を解くときに使用する分岐・合流機器
+	Mpair   *MPATH        // 温度経路から湿度経路への参照
+	Cbcmp   []*COMPNT     // 流量連立方程式を解くときに使用する分岐・合流機器
 }
 
 type SYSEQ struct {

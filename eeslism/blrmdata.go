@@ -1406,8 +1406,7 @@ func Roominit(N int, Room []ROOM) {
 		B.MRM = 0.0
 		B.Area = 0.0
 		B.FArea = 0.0
-		B.flrsr = new(float64)
-		*(B.flrsr) = 0.3
+		B.flrsr = CreateConstantValuePointer(0.3)
 		B.tfsol = 0.0
 		B.alrbold = 0.0
 		B.Hcap = 0.0

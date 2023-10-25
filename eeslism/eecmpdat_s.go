@@ -8,7 +8,14 @@ import (
 )
 
 // システム要素の入力
-// SYSCMP
+//
+// - SYSCMPを`f`から読み込み、`Cmp`に使用機器情報を登録する.同時に、 `Eqsys`にメモリを確保する。
+// - `Cmp`に使用機器情報を登録する際に `Eqcat`のカタログデータを参照する。
+// - `Rmvls`に含まれる室および放射パネルは `Cmp`に使用機器として自動登録される。
+//
+// TODO:
+// - この関数内で Eqsysにメモリを確保すると関数の責務を超えるので、分離独立させたほうが良い。
+//
 func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]COMPNT, Eqsys *EQSYS) {
 	var (
 		Ni, No int
@@ -123,17 +130,19 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]CO
 	}
 
 	//cp := (*COMPNT)(nil)
-	var comp_num int
 
 	for f.IsEnd() == false {
 		s := f.GetToken()
 		if s == "*" {
 			break
 		}
+		if s == "\n" {
+			continue
+		}
 		cio = ELIO_SPACE
 
-		Crm := true
 		var comp *COMPNT = NewCOMPNT()
+		var Crm *COMPNT = comp
 
 		// 三方弁（二方弁で連動する弁）を指定するとき
 		// `(<elmname1> <elmname2>)` のように入力する
@@ -148,7 +157,7 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]CO
 			} else {
 				fmt.Sscanf(s, "(%s", &s)
 			}
-			Crm = false
+			Crm = nil
 
 			// 1つ目の2方弁
 			vc1 := NewCOMPNT()
@@ -176,10 +185,10 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]CO
 			Eqsys.Valv = append(Eqsys.Valv, NewVALV())
 		}
 
-		if Crm {
+		if Crm != nil {
 			// 組み込みの部屋要素を探す → 該当がなければ初期化 (必要性不明)
-			cp := FindCOMPNTByName(s, (*Cmp)[:Ncrm])
-			if cp == nil {
+			Crm = FindCOMPNTByName(s, (*Cmp)[:Ncrm])
+			if Crm == nil {
 				comp.Name = s
 				comp.Ivparm = nil
 				comp.Tparm = ""
@@ -198,15 +207,13 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]CO
 				/********************************/
 				if cio == 'i' {
 					comp.Nin = Ni
-					idi[Ni] = ELIO_None
-					comp.Idi = idi
+					comp.Idi = make([]ELIOType, Ni)
 				} else if cio == 'o' {
 					comp.Nout = No
-					ido[No] = ELIO_None
-					comp.Ido = ido
+					comp.Ido = make([]ELIOType, No)
 					if comp.Eqptype == DIVERG_TYPE {
 						comp.Nivar = No
-						comp.Ivparm = new(float64)
+						//comp.Ivparm = new(float64)
 					}
 				}
 
@@ -240,7 +247,6 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]CO
 					// 配管長 [m]
 					cio = 'L'
 					comp.Nivar = 1
-					comp.Ivparm = new(float64)
 				case "env":
 					// 周囲温度
 					cio = 'e'
@@ -273,8 +279,7 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]CO
 
 					/*---- Roh Debug for a constant outlet humidity model of wet coil  2003/4/25 ----*/
 					cio = 'w'
-					comp.Ivparm = new(float64)
-					*comp.Ivparm = 90.0
+					comp.Ivparm = CreateConstantValuePointer(90.0)
 				case "control":
 					// 集熱器が直列接続の場合に流れ方向に記載する
 					cio = 'M'
@@ -374,36 +379,34 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]CO
 				case 'I':
 					// `-Nin <合流数>`
 					// Satoh DEBUG 1998/5/15
-					if Crm {
-						var err error
-						if comp.Eqptype == ROOM_TYPE {
-							if SIMUL_BUILDG {
-								room := comp.Eqp.(*ROOM)
-								room.Nasup, err = strconv.Atoi(s)
-								if err != nil {
-									panic(err)
-								}
-
-								N := room.Nasup
-								if N > 0 {
-									if room.Arsp == nil {
-										room.Arsp = make([]AIRSUP, N)
-									}
-								}
-
-								comp.Nin += 2 * room.Nasup
-							}
-						} else {
-							comp.Nin, err = strconv.Atoi(s)
+					var err error
+					if Crm != nil && SIMUL_BUILDG {
+						if Crm.Eqptype == ROOM_TYPE {
+							room := Crm.Eqp.(*ROOM)
+							room.Nasup, err = strconv.Atoi(s)
 							if err != nil {
 								panic(err)
 							}
-						}
 
-						for i := 0; i < comp.Nin; i++ {
-							idi[i] = ' '
+							N := room.Nasup
+							if N > 0 {
+								if room.Arsp == nil {
+									room.Arsp = make([]AIRSUP, N)
+								}
+							}
+
+							Crm.Nin += 2 * room.Nasup
 						}
-						comp.Idi = idi[:comp.Nin]
+					} else {
+						comp.Nin, err = strconv.Atoi(s)
+						if err != nil {
+							panic(err)
+						}
+					}
+
+					comp.Idi = make([]ELIOType, comp.Nin)
+					for i := 0; i < comp.Nin; i++ {
+						comp.Idi[i] = ' '
 					}
 					break
 				case 'O':
@@ -422,11 +425,11 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]CO
 
 				case 'L':
 					// `-L <配管長>`
-					var err error
-					*comp.Ivparm, err = readFloat(s)
+					l, err := readFloat(s)
 					if err != nil {
 						panic(err)
 					}
+					comp.Ivparm = CreateConstantValuePointer(l)
 					break
 				case 'e':
 					// `-env <周囲温度>`
@@ -464,10 +467,14 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]CO
 					break
 				case 'S', 'V':
 					// `-S <????>` or `-V <????>`
-					s += "  "
-					s += strings.Repeat(" ", len(s))
-					_s := f.GetToken()
-					s += _s + " *"
+					for {
+						_s := f.GetToken()
+						if _s == "*" {
+							break
+						}
+						s += " " + _s
+					}
+					s += " *"
 					comp.Tparm = s
 					break
 
@@ -485,11 +492,11 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]CO
 					break
 				case 'w':
 					// `-wet` 冷却コイルで出口相対湿度一定の仮定で除湿の計算を行う。
-					var err error
-					*comp.Ivparm, err = readFloat(s)
+					wet, err := readFloat(s)
 					if err != nil {
 						panic(err)
 					}
+					comp.Ivparm = CreateConstantValuePointer(wet)
 					break
 				case 'm':
 					// `-monitor` デバッグ用
@@ -508,8 +515,8 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]CO
 			}
 		}
 
-		if Crm == false {
-			comp_num++
+		if Crm == nil {
+			*Cmp = append(*Cmp, *comp)
 			D++
 		}
 	}
@@ -536,6 +543,15 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]CO
 			*Cmp = append(*Cmp, *c)
 		}
 	}
+
+	// for _, c := range *Cmp {
+	// 	if len(c.Idi) != c.Nin {
+	// 		panic(c.Name)
+	// 	}
+	// 	if len(c.Ido) != c.Nout {
+	// 		panic(c.Name)
+	// 	}
+	// }
 
 	//fmt.Printf("<<Compodata>> Ncompnt = %d\n", *Ncompnt)
 

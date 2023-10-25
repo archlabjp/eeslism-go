@@ -722,12 +722,12 @@ type HCLOAD struct {
 	Name    string
 	Loadt   *rune
 	Loadx   *rune
-	RMACFlg rune // ルームエアコンなら'Y'
+	RMACFlg rune // 'Y': ルームエアコン(RMAC), 'y':ルームエアコン(RMACD) ←ほぼ同じだが Hcldene 関数での負荷計算処理が違う
 	Chmode  rune // スケジュール等によって設定されている運転モード
 	//		opmode rune			// 実際の運転時のモード
 	Type    HCLoadType /* 'D':直膨コイル想定 'W':冷温水コイル想定　*/
-	Wetmode rune       /* 実際のコイル状態 */
-	Wet     rune       /*'y': wet coil  'n':dry coil */
+	Wetmode bool       /* 実際のコイル状態 */
+	Wet     bool       /*true: wet coil  false:dry coil */
 
 	CGa   float64
 	Ga    float64

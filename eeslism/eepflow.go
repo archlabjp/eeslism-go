@@ -10,11 +10,10 @@ import (
 
 /* システム要素の流量設定 */
 
-func Pflow(Nmpath int, _Mpath []MPATH, Wd *WDAT) {
-	var m, i, j, n, NG int
+func Pflow(_Mpath []*MPATH, Wd *WDAT) {
+	var i, j, n, NG int
 	var mpi *MPATH
-	var Plist, pl *PLIST
-	var Pelm *PELM
+	var pl *PLIST
 	var eli *ELIN
 	var elo *ELOUT
 	var cmp *COMPNT
@@ -26,28 +25,25 @@ func Pflow(Nmpath int, _Mpath []MPATH, Wd *WDAT) {
 	var vav *VAV
 	var G0 float64
 
-	if Nmpath > 0 {
-		for m = 0; m < Nmpath; m++ {
-			Mpath := _Mpath[m]
+	if len(_Mpath) > 0 {
+		for m, Mpath := range _Mpath {
 
 			if DEBUG {
-				fmt.Printf("m=%d mMAX=%d name=%s\n", m, Nmpath, Mpath.Name)
+				fmt.Printf("m=%d mMAX=%d name=%s\n", m, len(_Mpath), Mpath.Name)
 			}
 
 			// 流量が既知の末端流量の初期化
-			for i = 0; i < Mpath.Nlpath; i++ {
-				Plist := &Mpath.Plist[i]
+			for _, Plist := range Mpath.Plist {
 				if Plist.Go != nil && Plist.Nvalv == 0 {
 					Plist.G = *Plist.Go
 				}
 			}
 
-			for i = 0; i < Mpath.Nlpath; i++ {
-				Plist := &Mpath.Plist[i]
+			for _, Plist := range Mpath.Plist {
 				Plist.G = 0.0
 
 				if DEBUG {
-					fmt.Printf("i=%d iMAX=%d name=%s\n", i, Mpath.Nlpath, Plist.Name)
+					fmt.Printf("i=%d iMAX=%d name=%s\n", i, len(Mpath.Plist), Plist.Name)
 				}
 
 				// 流量が既知の末端経路
@@ -108,9 +104,7 @@ func Pflow(Nmpath int, _Mpath []MPATH, Wd *WDAT) {
 					/* VAVユニット時の流量 */
 
 					G = -999.0
-					for j = 0; j < Plist.Nelm; j++ {
-						Pelm = Plist.Pelm[j]
-
+					for _, Pelm := range Plist.Pelm {
 						if Pelm.Cmp.Eqptype == VAV_TYPE ||
 							Pelm.Cmp.Eqptype == VWV_TYPE {
 							vav = Pelm.Cmp.Eqp.(*VAV)
@@ -135,7 +129,7 @@ func Pflow(Nmpath int, _Mpath []MPATH, Wd *WDAT) {
 					if Plist.Pelm != nil {
 						var l int
 						for l = 0; l < len(mpi.Plist); l++ {
-							if &mpi.Plist[l] == Plist {
+							if mpi.Plist[l] == Plist {
 								break
 							}
 						}
@@ -258,17 +252,16 @@ func Pflow(Nmpath int, _Mpath []MPATH, Wd *WDAT) {
 				}
 			}
 
-			for i = 0; i < NG; i++ {
+			for i := 0; i < NG; i++ {
 				pl = Mpath.Pl[i]
 				pl.G = X[i]
 			}
 
-			for i = 0; i < Mpath.Nlpath; i++ {
-				Plist = &Mpath.Plist[i]
+			for i, Plist := range Mpath.Plist {
 
 				if DEBUG {
 					fmt.Printf("<< Pflow >> e i=%d iMAX=%d control=%c G=%g\n",
-						i, Mpath.Nlpath, Plist.Control, Plist.G)
+						i, len(Mpath.Plist), Plist.Control, Plist.G)
 				}
 
 				if Plist.Control == OFF_SW {
@@ -283,9 +276,7 @@ func Pflow(Nmpath int, _Mpath []MPATH, Wd *WDAT) {
 					lpathscdd(Plist.Control, Plist)
 				}
 
-				for j = 0; j < Plist.Nelm; j++ {
-					Pelm = Plist.Pelm[j]
-
+				for j, Pelm := range Plist.Pelm {
 					if Pelm.Out != nil {
 						Pelm.Out.G = Plist.G
 					}
@@ -298,7 +289,7 @@ func Pflow(Nmpath int, _Mpath []MPATH, Wd *WDAT) {
 						}
 
 						fmt.Printf("< Pflow > j=%d\tjMAX=%d\tPelm-G=%g\tPlist.G=%g\n",
-							j, Plist.Nelm, G0, Plist.G)
+							j, len(Plist.Pelm), G0, Plist.G)
 					}
 				}
 			}

@@ -21,13 +21,12 @@ import (
 	"io"
 )
 
-func Contlschdlr(Ncontl int, _Contl []CONTL, Nmpath int, Mpath []MPATH, _Compnt []COMPNT) {
+func Contlschdlr(Ncontl int, _Contl []CONTL, Mpath []*MPATH, _Compnt []COMPNT) {
 
 	// 全ての経路、機器を停止で初期化
-	for i := 0; i < Nmpath; i++ {
-		Mp := &Mpath[i]
+	for _, Mp := range Mpath {
 		Mp.Control = OFF_SW
-		mpathschd(OFF_SW, Mp.Nlpath, Mp.Plist)
+		mpathschd(OFF_SW, Mp.Plist)
 	}
 
 	// 機器の制御情報を「停止」で初期化
@@ -86,7 +85,7 @@ func Contlschdlr(Ncontl int, _Contl []CONTL, Nmpath int, Mpath []MPATH, _Compnt 
 					if Contl.Cst.PathType == MAIN_CPTYPE {
 						Mp := Contl.Cst.Path.(*MPATH)
 						Mp.Control = ControlSWType((*Contl.Cst.Lft.S)[0])
-						mpathschd(Mp.Control, Mp.Nlpath, Mp.Plist)
+						mpathschd(Mp.Control, Mp.Plist)
 					} else if Contl.Cst.PathType == LOCAL_CPTYPE {
 						Pli := Contl.Cst.Path.(*PLIST)
 						lpathscdd(ControlSWType((*Contl.Cst.Lft.S)[0]), Pli)
@@ -147,10 +146,8 @@ func Contlschdlr(Ncontl int, _Contl []CONTL, Nmpath int, Mpath []MPATH, _Compnt 
 		}
 	}
 
-	for m := 0; m < Nmpath; m++ {
-		Mp := &Mpath[m]
-		for i := 0; i < Mp.Nlpath; i++ {
-			Pli := &Mp.Plist[i]
+	for _, Mp := range Mpath {
+		for _, Pli := range Mp.Plist {
 			if Pli.Batch {
 				lpathschbat(Pli)
 			}
@@ -210,10 +207,10 @@ func contrlif(ctlif *CTLIF) int {
 
 /* --------------------------------------------------- */
 
-func mpathschd(control ControlSWType, Nlpath int, Plist []PLIST) {
-	for j := 0; j < Nlpath; j++ {
+func mpathschd(control ControlSWType, Plist []*PLIST) {
+	for j := range Plist {
 		Plist[j].Control = control
-		lpathscdd(control, &Plist[j])
+		lpathscdd(control, Plist[j])
 	}
 }
 
@@ -221,20 +218,19 @@ func mpathschd(control ControlSWType, Nlpath int, Plist []PLIST) {
 
 func lpathscdd(control ControlSWType, plist *PLIST) {
 	if plist.Org {
-		lpathschd(control, plist.Nelm, plist.Pelm)
+		lpathschd(control, plist.Pelm)
 
 		if plist.Lpair != nil {
 			plist.Lpair.Control = control
-			lpathschd(control, plist.Lpair.Nelm, plist.Lpair.Pelm)
+			lpathschd(control, plist.Lpair.Pelm)
 		}
 	}
 }
 
 /* --------------------------------------------------- */
 
-func lpathschd(control ControlSWType, Nelm int, pelm []*PELM) {
-	for j := 0; j < Nelm; j++ {
-		Pelm := pelm[j]
+func lpathschd(control ControlSWType, pelm []*PELM) {
+	for _, Pelm := range pelm {
 
 		// 電気蓄熱暖房器の機器制御は変更しない
 		if Pelm.Cmp.Eqptype != STHEAT_TYPE {
@@ -258,17 +254,14 @@ func lpathschd(control ControlSWType, Nelm int, pelm []*PELM) {
 /* 蓄熱槽のバッチ給水、排水時の設定  */
 
 func lpathschbat(Plist *PLIST) {
-	var j, k, i, jt, ifl, Nelm, Ne int
+	var j, k, i, jt, ifl int
 	var batop rune
 	var Tsout, Gbat float64
 	var Stank *STANK
-	var Pe, Pelm *PELM
+	var Pelm *PELM
 
 	Stank = nil
-	Nelm = Plist.Nelm
-	//Pelm = Plist.Pelm
-	for j = 0; j < Nelm; j++ {
-		Pe = Plist.Pelm[j]
+	for j, Pe := range Plist.Pelm {
 
 		if Pe.Cmp.Eqptype == STANK_TYPE {
 			Plist.G = Gbat
@@ -308,21 +301,18 @@ func lpathschbat(Plist *PLIST) {
 
 	peiIdx := 0
 	if Stank.Batchop == BTFILL || Stank.Batchop == BTDRAW {
-		Ne = Nelm
 		if Pelm.Out.Control == FLWIN_SW {
 			peiIdx++
-			Ne--
 		}
 
-		Pei := Plist.Pelm[peiIdx : peiIdx+Ne]
-		lpathschd(ON_SW, Ne, Pei)
+		lpathschd(ON_SW, Plist.Pelm[peiIdx:])
 
 		if Stank.Batchop == BTFILL {
 			Plist.G = Gbat * Row / DTM
-			lpathschd(OFF_SW, Nelm-jt, Plist.Pelm[jt:jt+Ne])
+			lpathschd(OFF_SW, Plist.Pelm[jt:])
 			Plist.Pelm[jt].Out.Control = BATCH_SW
 		} else if Stank.Batchop == BTDRAW {
-			lpathschd(OFF_SW, jt, Pei)
+			lpathschd(OFF_SW, Plist.Pelm[:jt])
 			Plist.Pelm[jt].Out.Control = BATCH_SW
 
 			for j = 0; j <= Stank.Jout[k]; j++ {
@@ -469,8 +459,8 @@ func chqlreset(Hcload *HCLOAD) int {
 	Elo := Hcload.Cmp.Elouts[1]
 	//Elos := Hcload.Cmp.Elouts[0]
 
-	if (wet == 'y' && Ql > 1.e-6) || (wet == 'y' && Qs >= 0.0) {
-		Hcload.Wetmode = 'n'
+	if (wet && Ql > 1.e-6) || (wet && Qs >= 0.0) {
+		Hcload.Wetmode = false
 		Elo.Control = ON_SW
 		Elo.Sysld = 'n'
 
@@ -483,7 +473,7 @@ func chqlreset(Hcload *HCLOAD) int {
 
 	if chmode == COOLING_SW && (Ql > 0.0 || Qs >= 0.0) {
 		Elo.Control = ON_SW
-		Hcload.Wetmode = 'n'
+		Hcload.Wetmode = false
 		Elo.Sysld = 'n'
 		if Elo.Emonitr != nil {
 			Elo.Emonitr.Control = ON_SW

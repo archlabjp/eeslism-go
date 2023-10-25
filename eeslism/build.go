@@ -820,8 +820,8 @@ type ROOM struct {
 	//rairflow []RAIRFLOW
 	Arsp      []AIRSUP // 室への冷温風供給熱量
 	cmp       *COMPNT
-	elinasup  []*ELIN // 流入経路
-	elinasupx []*ELIN // 流入経路？？？
+	elinasup  []*ELIN // 流入経路(空気温度用)
+	elinasupx []*ELIN // 流入経路(空気湿度用)
 	rmld      *RMLOAD // 室負荷
 	rmqe      *RMQELM
 

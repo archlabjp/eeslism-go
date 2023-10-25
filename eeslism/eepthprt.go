@@ -9,36 +9,32 @@ import (
 
 var __Pathprint_id int
 
-func Pathprint(fo io.Writer, title string, mon int, day int, time float64, Nmpath int, _Mpath []MPATH) {
+func Pathprint(fo io.Writer, title string, mon int, day int, time float64, Nmpath int, _Mpath []*MPATH) {
 	if __Pathprint_id == 0 {
 		__Pathprint_id++
 		fmt.Fprintf(fo, "%s ;\n", title)
 		fmt.Fprintf(fo, "%d\n", Nmpath)
 
-		for i := 0; i < Nmpath; i++ {
-			Mpath := &_Mpath[i]
-			fmt.Fprintf(fo, "%s %c %c %d\n", Mpath.Name, Mpath.Type, Mpath.Fluid, Mpath.Nlpath)
+		for _, Mpath := range _Mpath {
+			fmt.Fprintf(fo, "%s %c %c %d\n", Mpath.Name, Mpath.Type, Mpath.Fluid, len(Mpath.Plist))
 
 			if Mpath.Plist[0].Pelm[0].Ci == '>' {
 				fmt.Fprint(fo, " >")
 			}
 
-			for j := 0; j < Mpath.Nlpath; j++ {
-				Pli := &Mpath.Plist[j]
-
+			for _, Pli := range Mpath.Plist {
 				if Pli.Name != "" {
 					fmt.Fprintf(fo, "%s", Pli.Name)
 				} else {
 					fmt.Fprint(fo, "?")
 				}
-				fmt.Fprintf(fo, " %c %d\n", Pli.Type, Pli.Nelm)
+				fmt.Fprintf(fo, " %c %d\n", Pli.Type, len(Pli.Pelm))
 
 				if Pli.Pelm[0].Ci == '>' {
 					fmt.Fprintf(fo, " %s", Pli.Pelm[0].Cmp.Name)
 				}
 
-				for k := 0; k < Pli.Nelm; k++ {
-					Pelm := Pli.Pelm[k]
+				for _, Pelm := range Pli.Pelm {
 					fmt.Fprintf(fo, " %s", Pelm.Cmp.Name)
 				}
 				fmt.Fprint(fo, "\n")
@@ -48,9 +44,7 @@ func Pathprint(fo io.Writer, title string, mon int, day int, time float64, Nmpat
 
 	fmt.Fprintf(fo, "%02d %02d %5.2f\n", mon, day, time)
 
-	for i := 0; i < Nmpath; i++ {
-		Mpath := &_Mpath[i]
-
+	for _, Mpath := range _Mpath {
 		var fm string
 		fm = "%4.1f"
 		if Mpath.Fluid == AIRx_FLD {
@@ -63,8 +57,7 @@ func Pathprint(fo io.Writer, title string, mon int, day int, time float64, Nmpat
 		}
 		fmt.Fprintf(fo, "[%c]", c)
 
-		for j := 0; j < Mpath.Nlpath; j++ {
-			Pli := &Mpath.Plist[j]
+		for _, Pli := range Mpath.Plist {
 
 			if c = Pli.Control; c == 0 {
 				c = '?'
@@ -74,8 +67,7 @@ func Pathprint(fo io.Writer, title string, mon int, day int, time float64, Nmpat
 			if Pli.Pelm[0].Ci == '>' {
 				fmt.Fprintf(fo, fm, Pli.Pelm[0].In.Sysvin)
 			}
-			for k := 0; k < Pli.Nelm; k++ {
-				Pelm := Pli.Pelm[k]
+			for _, Pelm := range Pli.Pelm {
 				if Pelm.Out != nil {
 					fmt.Fprintf(fo, fm, Pelm.Out.Sysv)
 					if c = Pelm.Out.Control; c == 0 {

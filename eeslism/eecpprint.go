@@ -194,21 +194,16 @@ func elinfprint(id int, C []COMPNT, eo []*ELOUT, ei []*ELIN) {
 	}
 }
 
-func plistprint(Nmpath int, Mpath []MPATH, Pe []*PELM, Eo []*ELOUT, Ei []*ELIN) {
-	var pl *PLIST
-	var p *PELM
-	var ii int
-
+func plistprint(Mpath []*MPATH, Pe []*PELM, Eo []*ELOUT, Ei []*ELIN) {
 	fmt.Printf("xxx plistprint\n")
-	for i := 0; i < Nmpath; i++ {
-		Mpathi := &Mpath[i]
+	for i, Mpathi := range Mpath {
 
 		fmt.Printf("\nMpath=[%d] %s sys=%c type=%c fluid=%c Nlpath= %d  Ncv=%d lvcmx=%d\n",
-			i, Mpathi.Name, Mpathi.Sys, Mpathi.Type, Mpathi.Fluid, Mpathi.Nlpath,
+			i, Mpathi.Name, Mpathi.Sys, Mpathi.Type, Mpathi.Fluid, len(Mpathi.Plist),
 			Mpathi.Ncv, Mpathi.Lvcmx)
 
-		for j := 0; j < Mpathi.Nlpath; j++ {
-			pl = &Mpathi.Plist[j]
+		for j, pl := range Mpathi.Plist {
+			// 要素のグローバルインデックスの取得
 			var idx int = 0
 			for idx = 0; idx < len(Pe); idx++ {
 				if pl.Pelm[0] == Pe[idx] {
@@ -217,11 +212,10 @@ func plistprint(Nmpath int, Mpath []MPATH, Pe []*PELM, Eo []*ELOUT, Ei []*ELIN) 
 			}
 			fmt.Printf("PLIST\n  n type Nelm Npump Nvav lvc Pelm  G \n")
 			fmt.Printf("%3d  %c  %3d  %3d %3d %3d %6.3f\n",
-				j, pl.Type, pl.Nelm, pl.Nvav, pl.Lvc, idx, pl.G)
+				j, pl.Type, len(pl.Pelm), pl.Nvav, pl.Lvc, idx, pl.G)
 
 			fmt.Printf("    PELM  n  co ci elin eout\n")
-			for ii = 0; ii < pl.Nelm; ii++ {
-				p = pl.Pelm[ii]
+			for _, p := range pl.Pelm {
 				var pIdx, pInIdx, pOutIdx int = 0, 0, 0
 				for pIdx = 0; pIdx < len(pl.Pelm); pIdx++ {
 					if p == pl.Pelm[pIdx] {

@@ -462,9 +462,9 @@ func Elmalloc(
 			}
 
 			if Compnt.Wetparm == "wet" {
-				Hcload[hcloadIdx].Wet = 'y' // 湿りコイル（吹出相対湿度一定
+				Hcload[hcloadIdx].Wet = true // 湿りコイル（吹出相対湿度一定
 			} else {
-				Hcload[hcloadIdx].Wet = 'n' // 吹出相対湿度は成り行き
+				Hcload[hcloadIdx].Wet = false // 吹出相対湿度は成り行き
 			}
 
 			// 空気のみの流入、流出
@@ -474,7 +474,7 @@ func Elmalloc(
 				Compnt.Nin = 2
 			} else {
 				// 空気＋水の流入、流出
-				Hcload[hcloadIdx].Type = 'W'
+				Hcload[hcloadIdx].Type = HCLoadType_W
 				Compnt.Nout = 3
 				Compnt.Nin = 3
 			}
@@ -494,7 +494,7 @@ func Elmalloc(
 				//Elout.Ni = 2;
 				// 湿りコイル（吹出相対湿度一定）で出口絶対湿度の経路の場合
 				// 要素方程式の未知数は2つ（入口絶対湿度と出口温度）
-				if i == 1 && Hcload[hcloadIdx].Wet == 'y' {
+				if i == 1 && Hcload[hcloadIdx].Wet {
 					Elout.Ni = 2
 				} else if i == 2 && Hcload[hcloadIdx].Type == 'W' {
 					// 冷温水コイルで水側系統の場合

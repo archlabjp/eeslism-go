@@ -127,46 +127,38 @@ func Elininit(N int, EiList []*ELIN) {
 	}
 }
 
-/*****  PLIST の初期化  *****/
-func Plistinit(N int, PlList []PLIST) {
-	for i := 0; i < N; i++ {
-		Pl := &PlList[i]
-		Pl.Name = ""
-		Pl.Type, Pl.Control = ' ', ' '
-		Pl.Batch = false
-		Pl.Org = true
-		Pl.Plmvb, Pl.Pelm = nil, nil
-		Pl.Lpair = nil
-		Pl.Go = nil
-		Pl.G = -999.0
-		Pl.Nelm, Pl.Lvc, Pl.Nvav, Pl.Nvalv = 0, 0, 0, 0
-		// Pl.Npump = 0
-		Pl.N = -999
-		Pl.Valv = nil
-		Pl.Mpath = nil
-		Pl.Plistt, Pl.Plistx = nil, nil
-		Pl.Rate = nil
-		Pl.Upplist, Pl.Dnplist = nil, nil
-		Pl.NOMVAV = 0
-		// Pl.Pump = nil
-		Pl.OMvav = nil
-		Pl.UnknownFlow = 1
-		Pl.Plistname = ""
-		Pl.Gcalc = 0.0
-	}
+func NewPLIST() *PLIST {
+	Pl := new(PLIST)
+	Pl.Name = ""
+	Pl.Type, Pl.Control = ' ', ' '
+	Pl.Batch = false
+	Pl.Org = true
+	Pl.Plmvb, Pl.Pelm = nil, nil
+	Pl.Lpair = nil
+	Pl.Go = nil
+	Pl.G = -999.0
+	Pl.Lvc, Pl.Nvav, Pl.Nvalv = 0, 0, 0
+	// Pl.Npump = 0
+	Pl.N = -999
+	Pl.Valv = nil
+	Pl.Mpath = nil
+	Pl.Plistt, Pl.Plistx = nil, nil
+	Pl.Rate = nil
+	Pl.Upplist, Pl.Dnplist = nil, nil
+	Pl.NOMVAV = 0
+	// Pl.Pump = nil
+	Pl.OMvav = nil
+	Pl.UnknownFlow = 1
+	Pl.Plistname = ""
+	Pl.Gcalc = 0.0
+	return Pl
 }
 
 /*****  PELM の初期化  ******/
-func Pelminit(N int, PeList []PELM) {
-	for i := 0; i < N; i++ {
-		PeList[i] = NewPELM()
-	}
-}
-
-func NewPELM() PELM {
-	return PELM{
-		Co:  ' ',
-		Ci:  ' ',
+func NewPELM() *PELM {
+	return &PELM{
+		Co:  ELIO_SPACE,
+		Ci:  ELIO_SPACE,
 		Cmp: nil,
 		Out: nil,
 		In:  nil,
@@ -175,16 +167,9 @@ func NewPELM() PELM {
 }
 
 /*****  MPATH の初期化  *****/
-func Mpathinit(N int, MList []MPATH) {
-	for i := 0; i < N; i++ {
-		MList[i] = NewMPATH()
-	}
-}
-
-func NewMPATH() MPATH {
-	return MPATH{
+func NewMPATH() *MPATH {
+	return &MPATH{
 		Name:    "",
-		Nlpath:  0,
 		NGv:     0,
 		NGv2:    0,
 		Ncv:     0,
@@ -198,7 +183,7 @@ func NewMPATH() MPATH {
 		Pl:      nil,
 		Cbcmp:   nil,
 		G0:      nil,
-		Rate:    'N',
+		Rate:    false,
 	}
 }
 
@@ -213,8 +198,7 @@ func Exsfinit(e *EXSF) {
 	e.Tazm, e.Tprof, e.Idre, e.Idf = 0.0, 0.0, 0.0, 0.0
 	e.Iw, e.Rn, e.Tearth = 0.0, 0.0, 0.0
 	e.Erdff = 0.36e-6
-	e.Alo = new(float64)
-	*e.Alo = 0.0
+	e.Alo = CreateConstantValuePointer(0.0)
 	// e.alosch = nil
 	e.Alotype = Alotype_Fix
 }

@@ -30,9 +30,9 @@ func Entry(InFile string) {
 	var Elin []*ELIN
 	var Syseq SYSEQ
 	var Nmpath, Npelm, Nplist int
-	var Mpath []MPATH
-	var Plist []PLIST
-	var Pelm []PELM
+	var Mpath []*MPATH
+	var Plist []*PLIST
+	var Pelm []*PELM
 	var Ncontl, Nctlif, Nctlst int
 	var Contl []CONTL
 	var Ctlif []CTLIF
@@ -170,7 +170,7 @@ func Entry(InFile string) {
 	for i := 0; i < Rmvls.Nsrf; i++ {
 		Sd := &Rmvls.Sd[i]
 		if Sd.DynamicCode != "" {
-			ctifdecode(Sd.DynamicCode, Sd.Ctlif, &Simc, Compnt, Nmpath, Mpath, &Wd, &Exsf, Schdl)
+			ctifdecode(Sd.DynamicCode, Sd.Ctlif, &Simc, Compnt, Mpath, &Wd, &Exsf, Schdl)
 		}
 	}
 
@@ -361,13 +361,11 @@ func Entry(InFile string) {
 	if DEBUG {
 		fmt.Println("eeinput end")
 
-		for i := 0; i < Npelm; i++ {
-			Pe := &Pelm[i]
+		for i, Pe := range Pelm {
 			fmt.Printf("[%3d] Pelm=%s\n", i, Pe.Cmp.Name)
 		}
 
-		for i := 0; i < Nelout; i++ {
-			Eo := Elout[i]
+		for i, Eo := range Elout {
 			fmt.Printf("[%3d] Eo_cmp=%s\n", i, Eo.Cmp.Name)
 		}
 
@@ -696,7 +694,7 @@ func Entry(InFile string) {
 			CalcControlStatus(&Eqsys, &Rmvls, &Wd, &Exsf)
 
 			// Update control information
-			Contlschdlr(Ncontl, Contl, Nmpath, Mpath, Compnt)
+			Contlschdlr(Ncontl, Contl, Mpath, Compnt)
 
 			// Recalculate internal heat gains after setting air conditioning on/off schedule
 			Qischdlr(Rmvls.Room)
@@ -736,7 +734,7 @@ func Entry(InFile string) {
 					fmt.Fprintln(Ferr, "<<main>> Pumpflow")
 				}
 
-				Pflow(Nmpath, Mpath, &Wd)
+				Pflow(Mpath, &Wd)
 
 				if DEBUG {
 					fmt.Println("<<main>> Pflow")
@@ -750,7 +748,7 @@ func Entry(InFile string) {
 				eloutprint(0, Nelout, Elout, Compnt);
 				***********/
 
-				Sysupv(Nmpath, Mpath, &Rmvls)
+				Sysupv(Mpath, &Rmvls)
 
 				if DEBUG {
 					fmt.Println("<<main>> Sysupv")

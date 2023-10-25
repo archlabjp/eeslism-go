@@ -134,9 +134,9 @@ func (t *EeTokens) SkipToEndOfLine() {
 func (t *EeTokens) GetSection() *EeTokens {
 	t.SkipToEndOfLine()
 
-	// find `*`
+	// find `*` at start of some line
 	for i := t.pos; i < len(t.tokens); i++ {
-		if t.tokens[i] == "*" {
+		if i > 0 && t.tokens[i-1] == "\n" && t.tokens[i] == "*" {
 			section := &EeTokens{tokens: t.tokens[t.pos : i+1], pos: 0}
 			t.pos = i + 1
 			return section
@@ -191,8 +191,8 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 	Compnt *[]COMPNT,
 	Elout *[]*ELOUT, Nelout *int,
 	Elin *[]*ELIN, Nelin *int,
-	Mpath *[]MPATH, Nmpath *int,
-	Plist *[]PLIST, Pelm *[]PELM, Npelm *int,
+	Mpath *[]*MPATH, Nmpath *int,
+	Plist *[]*PLIST, Pelm *[]*PELM, Npelm *int,
 	Contl *[]CONTL, Ncontl *int,
 	Ctlif *[]CTLIF, Nctlif *int,
 	Ctlst *[]CTLST, Nctlst *int,
@@ -382,15 +382,15 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 			section := tokens.GetSection()
 			Eqcadata(section, "Eqcadata", Eqcat)
 
-		case "SYSCMP":
+		case "SYSCMP": // 接続用のノードを設定している
 			/*****Flwindata(Flwin, Nflwin,  Wd);********/
 			section := tokens.GetSection()
 			Compodata(section, "Compodata", Rmvls, Eqcat, Compnt, Eqsys)
 			Elmalloc("Elmalloc ", *Compnt, Eqcat, Eqsys, Elout, Nelout, Elin, Nelin)
 
-		case "SYSPTH":
+		case "SYSPTH": // 接続パスの設定をしている
 			section := tokens.GetSection()
-			Pathdata(section, "Pathdata", Simc, Wd, *Compnt, Schdl, Mpath, Nmpath, Plist, Pelm, Npelm, Nplist, Eqsys)
+			Pathdata(section, "Pathdata", Simc, Wd, *Compnt, Schdl, Mpath, Nmpath, Plist, Pelm, Eqsys)
 			Roomelm(Rmvls.Room, Rmvls.Rdpnl)
 
 			// 変数の割り当て
@@ -403,7 +403,7 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 
 		case "CONTL":
 			section := tokens.GetSection()
-			Contrldata(section, Contl, Ncontl, Ctlif, Nctlif, Ctlst, Nctlst, Simc, *Compnt, *Nmpath, *Mpath, Wd, Exsf, Schdl)
+			Contrldata(section, Contl, Ncontl, Ctlif, Nctlif, Ctlst, Nctlst, Simc, *Compnt, *Mpath, Wd, Exsf, Schdl)
 
 		/*--------------higuchi add-------------------start*/
 

@@ -4,28 +4,26 @@ import (
 	"fmt"
 )
 
-func Sysupv(Nmpath int, Mpath []MPATH, Rmvls *RMVLS) {
+func Sysupv(Mpath []*MPATH, Rmvls *RMVLS) {
 	var Rdpnl *RDPNL
 	var Nrdpnl int
 	var up *ELOUT
 
-	for m := 0; m < Nmpath; m++ {
-		mpath := &Mpath[m]
+	for m, mpath := range Mpath {
 		/* 停止要素のシステム方程式からの除外 */
 
 		if DEBUG {
-			fmt.Printf("\n\n<< Sysupv >> m=%d  MAX=%d\n", m, Nmpath)
+			fmt.Printf("\n\n<< Sysupv >> m=%d  MAX=%d\n", m, len(Mpath))
 		}
 
-		for i := 0; i < mpath.Nlpath; i++ {
-			plist := &mpath.Plist[i]
+		for i, plist := range mpath.Plist {
 
 			if DEBUG {
-				fmt.Printf("\n<<Sysupv>  i=%d  iMAX=%d\n", i, mpath.Nlpath)
+				fmt.Printf("\n<<Sysupv>  i=%d  iMAX=%d\n", i, len(mpath.Plist))
 				fmt.Printf("OFF_SW=%c  Plist->control=%c\n", OFF_SW, plist.Control)
 			}
 			if dayprn && Ferr != nil {
-				fmt.Fprintf(Ferr, "\n<<Sysupv>  i=%d  iMAX=%d\n", i, mpath.Nlpath)
+				fmt.Fprintf(Ferr, "\n<<Sysupv>  i=%d  iMAX=%d\n", i, len(mpath.Plist))
 				fmt.Fprintf(Ferr, "OFF_SW=%c  Plist->control=%c\n", OFF_SW, plist.Control)
 			}
 			if plist.Control != OFF_SW {
@@ -40,15 +38,15 @@ func Sysupv(Nmpath int, Mpath []MPATH, Rmvls *RMVLS) {
 					up = pelm.In.Upo
 				}
 				plist.Plmvb = nil
-				for j := pelmStartIdx; j < plist.Nelm; j++ {
+				for j := pelmStartIdx; j < len(plist.Pelm); j++ {
 					if DEBUG {
-						fmt.Printf("\n<< sysupv >> pelm=%d %s  MAX=%d\n", j, pelm.Cmp.Name, plist.Nelm)
+						fmt.Printf("\n<< sysupv >> pelm=%d %s  MAX=%d\n", j, pelm.Cmp.Name, len(plist.Pelm))
 						if pelm.Out != nil {
 							fmt.Printf("<< Sysupv >> Pelm->out->control=%c\n", pelm.Out.Control)
 						}
 					}
 					if dayprn && Ferr != nil {
-						fmt.Fprintf(Ferr, "\n<< sysupv >> pelm=%d %s  MAX=%d\n", j, pelm.Cmp.Name, plist.Nelm)
+						fmt.Fprintf(Ferr, "\n<< sysupv >> pelm=%d %s  MAX=%d\n", j, pelm.Cmp.Name, len(plist.Pelm))
 						if pelm.Out != nil {
 							fmt.Fprintf(Ferr, "<< Sysupv >> Pelm->out->control=%c\n", pelm.Out.Control)
 						}
@@ -95,8 +93,7 @@ func Sysupv(Nmpath int, Mpath []MPATH, Rmvls *RMVLS) {
 
 		/* 分岐要素のシステム方程式からの除外 */
 
-		for i := 0; i < mpath.Nlpath; i++ {
-			Plist := &mpath.Plist[i]
+		for i, Plist := range mpath.Plist {
 			if DEBUG {
 				fmt.Printf("  Sysupv  BRC  i=%d\n", i)
 			}

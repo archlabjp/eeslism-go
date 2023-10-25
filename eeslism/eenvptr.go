@@ -10,7 +10,7 @@ import (
 func envptr(s string, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT, Exsf *EXSFS) *float64 {
 	var err error
 	var vptr VPTR
-	var dmy []MPATH
+	var dmy []*MPATH
 	var val *float64
 
 	if isStrDigit(s) {
@@ -19,10 +19,9 @@ func envptr(s string, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT, Exsf *EXSFS) *f
 		if err2 != nil {
 			panic(err2)
 		}
-		val = new(float64)
-		*val = num
+		val = CreateConstantValuePointer(num)
 	} else {
-		vptr, _, err = kynameptr(s, Simc, Compnt, 0, dmy, Wd, Exsf)
+		vptr, _, err = kynameptr(s, Simc, Compnt, dmy, Wd, Exsf)
 		if err == nil && vptr.Type == VAL_CTYPE {
 			val = vptr.Ptr.(*float64)
 		} else {

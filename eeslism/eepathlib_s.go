@@ -1,6 +1,7 @@
 package eeslism
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -9,8 +10,7 @@ import (
 
 /* ----------------------------------------------- */
 
-/*  システム要素出力端割当  */
-
+// システム要素出力端割当
 func pelmco(pflow FliudType, Pelm *PELM, errkey string) {
 	var Nout int
 	err := 0
@@ -115,89 +115,84 @@ func pelmco(pflow FliudType, Pelm *PELM, errkey string) {
 
 /* ----------------------------------------------- */
 
-/*  システム要素入力端割当  */
-
+// システム要素入力端割当
 func pelmci(pflow FliudType, Pelm *PELM, errkey string) {
-	var Nin int
 	err := 0
-	var N int
-	var cmp *COMPNT
-	var elmi *ELIN
-	var Elout, Eo *ELOUT
+	cmp := Pelm.Cmp
+	elmi := cmp.Elins[0]
+	Nin := cmp.Nin
 
-	var room *ROOM
-	var Hcload *HCLOAD
-
-	cmp = Pelm.Cmp
-	elmi = cmp.Elins[0]
-	Nin = cmp.Nin
-
+	// 入口の数が0の場合は処理を行わない
 	if Nin <= 0 {
 		return
-	} else if cmp.Eqptype == CONVRG_TYPE || cmp.Eqptype == CVRGAIR_TYPE {
+	}
+
+	if cmp.Eqptype == CONVRG_TYPE || cmp.Eqptype == CVRGAIR_TYPE {
+		// 合流要素の場合
+		//
 		for i := 0; i < Nin; i++ {
-			elmi = cmp.Elins[i]
-			if elmi.Id != '*' {
-				Pelm.Ci = '*'
-				elmi.Id = '*'
+			elmi := cmp.Elins[i]
+			if elmi.Id != ELIO_ASTER {
+				elmi.Id = ELIO_ASTER
+				Pelm.Ci = ELIO_ASTER
 				Pelm.In = elmi
 				break
 			}
 		}
 	} else if SIMUL_BUILDG && cmp.Eqptype == ROOM_TYPE {
-		room = cmp.Eqp.(*ROOM)
-		/*************
-		if (pflow == AIRa_FLD)
-		ii = room.Nachr + room.Nrp;
-		else if (pflow == AIRx_FLD)
-		ii = Nin - room.Nasup;
-		elmi += ii;
-		**************/
+		// 室要素の場合
+		//
+		room := cmp.Eqp.(*ROOM)
 
+		var elins *[]*ELIN
 		if pflow == AIRa_FLD {
-			elmi = room.elinasup[0]
+			// 流体が空気(温度)の場合:
+			elins = &room.elinasup
 		} else if pflow == AIRx_FLD {
-			elmi = room.elinasupx[0]
+			// 流体が空気(湿度)の場合:
+			elins = &room.elinasupx
+		} else {
+			panic(pflow)
 		}
 
-		/***************
-		printf("<<pelmci>>  room=%s  ii=%d  Nin=%d\n", room.name, ii, Nin);
-		***********************/
-
 		for i := 0; i < room.Nasup; i++ {
-			elmi = cmp.Elins[i]
-			if elmi.Id != '*' {
-				Pelm.Ci = '*'
-				elmi.Id = '*'
+			elmi := (*elins)[i]
+			if elmi.Id != ELIO_ASTER {
+				Pelm.Ci = ELIO_ASTER
+				elmi.Id = ELIO_ASTER
 				Pelm.In = elmi
 				break
 			}
 		}
 	} else if SIMUL_BUILDG && cmp.Eqptype == RDPANEL_TYPE {
-
-		Elout = cmp.Elouts[0]
+		// 放射パネル要素の場合
+		//
 		if pflow == WATER_FLD || pflow == AIRa_FLD {
-			for i := 0; i < Elout.Ni; i++ {
-				elmi = cmp.Elins[i]
-				if elmi.Id == 'f' {
+			Elout_a := cmp.Elouts[0] // 温水または空気温度
+			for i := 0; i < Elout_a.Ni; i++ {
+				elmi := cmp.Elins[i]
+				if elmi.Id == ELIO_f {
 					Pelm.Ci = elmi.Id
 					Pelm.In = elmi
 					break
 				}
 			}
 		} else if pflow == AIRx_FLD {
-			Elout = cmp.Elouts[1]
-			Pelm.In = Elout.Elins[0]
-			Pelm.Ci = Elout.Elins[0].Id
+			Elout_x := cmp.Elouts[1] // 空気湿度
+			elmi := Elout_x.Elins[0]
+			Pelm.Ci = elmi.Id
+			Pelm.In = elmi
 		}
 	} else if Nin == 1 {
+		// 入口の数が1の場合
+		//
 		Pelm.In = elmi
 		Pelm.Ci = elmi.Id
 	} else {
 		err = 1
 
 		for i := 0; i < Nin; i++ {
-			elmi = cmp.Elins[i]
+			elmi := cmp.Elins[i]
 
 			// ACの絶対湿度はここに入った
 			if Pelm.Ci == elmi.Id {
@@ -211,8 +206,8 @@ func pelmci(pflow FliudType, Pelm *PELM, errkey string) {
 	if err != 0 {
 
 		if cmp.Eqptype == HCLOADW_TYPE {
-			Hcload = cmp.Eqp.(*HCLOAD)
-			if Hcload.Wet == 'y' {
+			Hcload := cmp.Eqp.(*HCLOAD)
+			if Hcload.Wet {
 				Nin = 4
 			}
 		} else if cmp.Eqptype == DESI_TYPE {
@@ -220,10 +215,10 @@ func pelmci(pflow FliudType, Pelm *PELM, errkey string) {
 		}
 
 		for i := 0; i < Nin; i++ {
-			elmi = cmp.Elins[i]
-			if (pflow == AIRa_FLD && elmi.Id == 't') ||
-				(pflow == AIRx_FLD && elmi.Id == 'x') ||
-				(pflow == WATER_FLD && elmi.Id == 'W') {
+			elmi := cmp.Elins[i]
+			if (pflow == AIRa_FLD && elmi.Id == ELIO_t) ||
+				(pflow == AIRx_FLD && elmi.Id == ELIO_x) ||
+				(pflow == WATER_FLD && elmi.Id == ELIO_W) {
 				Pelm.In = elmi
 				Pelm.Ci = elmi.Id
 				err = 0
@@ -237,9 +232,9 @@ func pelmci(pflow FliudType, Pelm *PELM, errkey string) {
 	if err != 0 {
 
 		if cmp.Eqptype == THEX_TYPE {
-			N = 0
+			N := 0
 			for i := 0; i < cmp.Nout; i++ {
-				Eo = cmp.Elouts[i]
+				Eo := cmp.Elouts[i]
 				N += Eo.Ni
 			}
 
@@ -247,7 +242,7 @@ func pelmci(pflow FliudType, Pelm *PELM, errkey string) {
 		}
 
 		for i := 0; i < Nin; i++ {
-			elmi = cmp.Elins[i]
+			elmi := cmp.Elins[i]
 			if Pelm.Ci == elmi.Id {
 				Pelm.In = elmi
 				err = 0
@@ -258,9 +253,9 @@ func pelmci(pflow FliudType, Pelm *PELM, errkey string) {
 
 	if err != 0 {
 		if cmp.Eqptype == EVAC_TYPE {
-			N = 0
+			N := 0
 			for i := 0; i < cmp.Nout; i++ {
-				Eo = cmp.Elouts[i]
+				Eo := cmp.Elouts[i]
 				N += Eo.Ni
 			}
 
@@ -268,7 +263,7 @@ func pelmci(pflow FliudType, Pelm *PELM, errkey string) {
 		}
 
 		for i := 0; i < Nin; i++ {
-			elmi = cmp.Elins[i]
+			elmi := cmp.Elins[i]
 			if Pelm.Ci == elmi.Id ||
 				(Pelm.Ci == 'W' && elmi.Id == 'V') ||
 				(Pelm.Ci == 'w' && elmi.Id == 'v') {
@@ -286,34 +281,39 @@ func pelmci(pflow FliudType, Pelm *PELM, errkey string) {
 
 // システム要素接続データのコピー（空気系統湿度経路用
 // 空気経路の場合は湿度経路用にpathをコピーする
-func plistcpy(Mpath *MPATH, Mpath_prev *MPATH, Npelm *int, _Pelm []PELM, _Plist []PLIST, Compnt []COMPNT) {
-	var mpi *MPATH
-	var cmp *COMPNT
-	var i, j, nelm int
-	var s string
+//
+// - 空気温度用のシステム経路 mpath_t の設定を 空湿度用のシステム経路 にコピーする。
+// - コピーに際して要素(PELM)を追加する。
+// - 要素(PELM)は _Pelm 配列に追加するものとし、 Npelm 番目から詰め込むとする。 Npelmは上書きする。
+// ##- _Plist は システム経路 mpath_t に属するすべての 末端経路の配列である。
+// - Compntには SYSCMPデータセットで読み込んだすべての機器情報が保持されている。
+func plistcpy(mpath_t *MPATH, _Pelm *[]*PELM, _Plist *[]*PLIST, Compnt []COMPNT) *MPATH {
+	// 空気湿度用経路
+	var mpath_x *MPATH = NewMPATH()
+	mpath_x.Name = mpath_t.Name + ".x" // 湿度用経路の名前 = 温度経路用の名前 + ".x"
+	//mpath_x.Plist = _Plist             // 末端経路 (要確認)
+	mpath_x.Fluid = AIRx_FLD    // 流体種別 = 空気湿度
+	mpath_x.G0 = mpath_t.G0     // 流量比率
+	mpath_x.Rate = mpath_t.Rate // 流量比率フラグ
 
-	mpi = Mpath_prev
+	// 空気温度用経路
+	mpath_t.Fluid = AIRa_FLD // 流体種別を念のため上書き?
+	mpath_t.Mpair = mpath_x  // 空気湿度経路への参照(Mpair)を設定
 
-	mpi.Mpair = Mpath
+	// 末端経路についてループ
+	for i := range mpath_t.Plist {
+		pli := mpath_t.Plist[i]
+		Plist := NewPLIST()
 
-	Mpath.Name = mpi.Name + ".x"
+		// ターゲットの末端経路
+		//pli := &mpath_t.Plist[i]
 
-	Mpath.Nlpath = mpi.Nlpath
-	Mpath.Plist = _Plist
-	mpi.Fluid = AIRa_FLD
-	Mpath.Fluid = AIRx_FLD
-	Mpath.G0 = mpi.G0
-	Mpath.Rate = mpi.Rate
-
-	for i = 0; i < mpi.Nlpath; i++ {
-		pli := &mpi.Plist[i]
-		Plist := &_Plist[i]
-
+		// 相互参照設定
 		pli.Lpair = Plist
 		pli.Plistx = Plist
 		Plist.Plistt = pli
 
-		nelm = 0
+		// コピー
 		Plist.Pelm = nil
 		Plist.Org = false
 		Plist.Type = pli.Type
@@ -326,43 +326,44 @@ func plistcpy(Mpath *MPATH, Mpath_prev *MPATH, Npelm *int, _Pelm []PELM, _Plist 
 		Plist.Rate = pli.Rate
 		Plist.UnknownFlow = pli.UnknownFlow
 
+		// 名前のコピー: ".x"を付与しながらコピー
 		if pli.Name != "" {
 			Plist.Name = pli.Name + ".x"
 		} else {
 			Plist.Name = ".x"
 		}
 
-		for j = 0; j < pli.Nelm; j++ {
-			peli := pli.Pelm[j]
+		// 要素のコピー
+		nelm := 0
+		Plist.Pelm = make([]*PELM, 0, len(pli.Pelm))
+		for _, peli := range pli.Pelm {
 
 			// コピー対象は空気経路のみ
 			if !peli.Cmp.Airpathcpy {
 				continue
 			}
 
-			Pelm := &_Pelm[nelm]
+			var Pelm *PELM = NewPELM()
 
-			if Plist.Pelm == nil {
-				Plist.Pelm = []*PELM{Pelm}
-			}
-
-			(*Npelm)++
+			*_Pelm = append(*_Pelm, Pelm)
+			Plist.Pelm = append(Plist.Pelm, Pelm)
 
 			if peli.Cmp.Eqptype == CVRGAIR_TYPE || peli.Cmp.Eqptype == DIVGAIR_TYPE {
+				// ** 合流要素の場合 **
 
 				// Find index
-				var k int
-				for k = range Compnt {
-					cmp = &Compnt[k]
-					if cmp == peli.Cmp {
-						break
-					}
+				k, err := FindComponentRef(peli.Cmp, Compnt)
+				if err != nil {
+					panic(err)
 				}
 
-				for ; k < len(Compnt); k++ {
+				// k+1番目位以降のコンポーネントのみ検索している: 理由？？
+				var cmp *COMPNT
+				for k++; k < len(Compnt); k++ {
 					cmp = &Compnt[k]
-					s = cmp.Name
+					s := cmp.Name
 
+					// "name.xxx" のうち name だけで一致する機器を探す。
 					if idx := strings.IndexRune(s, '.'); idx >= 0 {
 						s = s[:idx]
 
@@ -371,25 +372,26 @@ func plistcpy(Mpath *MPATH, Mpath_prev *MPATH, Npelm *int, _Pelm []PELM, _Plist 
 						}
 					}
 				}
-				Pelm.Cmp = cmp
+				Pelm.Cmp = cmp // 検索で見つけた機器参照
 			} else if peli.Cmp.Eqptype == THEX_TYPE {
+				// ** 全熱交換器の場合 **
 				Pelm.Cmp = peli.Cmp
-				if peli.Ci == 'E' {
-					Pelm.Ci = 'e'
-					Pelm.Co = 'e'
+				if peli.Ci == ELIO_E {
+					Pelm.Ci = ELIO_e
+					Pelm.Co = ELIO_e
 				} else {
-					Pelm.Ci = 'o'
-					Pelm.Co = 'o'
+					Pelm.Ci = ELIO_o
+					Pelm.Co = ELIO_o
 				}
 			} else if peli.Cmp.Eqptype == EVAC_TYPE {
 				// Satoh追加　気化冷却器　2013/10/31
 				Pelm.Cmp = peli.Cmp
-				if peli.Ci == 'D' {
-					Pelm.Ci = 'd'
-					Pelm.Co = 'd'
-				} else if peli.Ci == 'W' {
-					Pelm.Ci = 'w'
-					Pelm.Co = 'w'
+				if peli.Ci == ELIO_D {
+					Pelm.Ci = ELIO_d
+					Pelm.Co = ELIO_d
+				} else if peli.Ci == ELIO_W {
+					Pelm.Ci = ELIO_w
+					Pelm.Co = ELIO_w
 				}
 			} else {
 				Pelm.Cmp = peli.Cmp
@@ -400,8 +402,11 @@ func plistcpy(Mpath *MPATH, Mpath_prev *MPATH, Npelm *int, _Pelm []PELM, _Plist 
 			Pelm.Out = peli.Out
 			nelm++
 		}
-		Plist.Nelm = nelm
+
+		mpath_x.Plist = append(mpath_x.Plist, Plist)
 	}
+
+	return mpath_x
 }
 
 /* ----------------------------------------------- */
@@ -459,8 +464,7 @@ func plevel(Nmpath int, Mpath []MPATH, Ncnvrg int, Cnvrg []*COMPNT) {
 
 		lvcmx = 0
 
-		for j = 0; j < _Mpath.Nlpath; j++ {
-			Plist = &_Mpath.Plist[j]
+		for _, Plist := range _Mpath.Plist {
 			if Plist.Lvc > lvcmx {
 				lvcmx = Plist.Lvc
 			}
@@ -471,21 +475,26 @@ func plevel(Nmpath int, Mpath []MPATH, Ncnvrg int, Cnvrg []*COMPNT) {
 
 /* ----------------------------------------------- */
 
-func pflowstrct(Nmpath int, _Mpath []MPATH) {
-	var m, i, j, n, M, MM, k int
-	var Plist *PLIST
+func pflowstrct(_Mpath []*MPATH) {
+	var j, n, M, MM, k int
 	var etype EqpType
 	var Elout *ELOUT
 	var Elin *ELIN
 
-	for m = 0; m < Nmpath; m++ {
-		Mpath := _Mpath[m]
+	var nplist int = 0
+	for _, Mpath := range _Mpath {
+		nplist += len(Mpath.Plist)
+	}
 
+	for _, Mpath := range _Mpath {
+		Mpath.Pl = make([]*PLIST, nplist)
+		Mpath.Cbcmp = make([]*COMPNT, nplist)
+	}
+
+	for _, Mpath := range _Mpath {
 		n = 0
 
-		for i = 0; i < Mpath.Nlpath; i++ {
-			Plist = &Mpath.Plist[i]
-
+		for _, Plist := range Mpath.Plist {
 			// 流量未設定の末端経路を検索
 			if Plist.Go == nil && Plist.Nvav == 0 &&
 				Plist.Rate == nil && Plist.NOMVAV == 0 &&
@@ -497,7 +506,7 @@ func pflowstrct(Nmpath int, _Mpath []MPATH) {
 				n++
 			}
 
-			if Mpath.Rate == 'Y' && (Plist.Go != nil || Plist.Nvav > 0 || Plist.Nvalv > 0 || Plist.NOMVAV > 0) {
+			if Mpath.Rate && (Plist.Go != nil || Plist.Nvav > 0 || Plist.Nvalv > 0 || Plist.NOMVAV > 0) {
 				Mpath.G0 = &Plist.G // 流量比率設定時の既知流量へのポインタをセット
 			}
 		}
@@ -507,8 +516,7 @@ func pflowstrct(Nmpath int, _Mpath []MPATH) {
 
 		n = 0
 
-		for i = 0; i < Mpath.Nlpath; i++ {
-			Plist = &Mpath.Plist[i]
+		for _, Plist := range Mpath.Plist {
 
 			// 末端経路の先頭機器
 			etype = Plist.Pelm[0].Cmp.Eqptype
@@ -574,4 +582,14 @@ func pflowstrct(Nmpath int, _Mpath []MPATH) {
 			fmt.Printf("<%s> 末端流量の与えすぎ、もしくは少なすぎです n=%d NGv=%d\n", Mpath.Name, n, Mpath.NGv)
 		}
 	}
+}
+
+func FindComponentRef(target *COMPNT, Compnt []COMPNT) (int, error) {
+	for k := range Compnt {
+		cmp := &Compnt[k]
+		if cmp == target {
+			return k, nil
+		}
+	}
+	return -1, errors.New("Not Found")
 }

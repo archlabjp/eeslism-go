@@ -132,8 +132,7 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 				if rm.Nfsolfix == 0 {
 					// 床の日射吸収比率は固定
 					rsd.ffix_flg = '*'
-					rsd.fsol = new(float64)
-					*rsd.fsol = *rm.flrsr * rsd.A / rm.FArea
+					rsd.fsol = CreateConstantValuePointer(*rm.flrsr * rsd.A / rm.FArea)
 				}
 			}
 

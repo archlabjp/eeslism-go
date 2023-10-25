@@ -115,18 +115,18 @@ const (
 	FLWIN_SW ControlSWType = 'I'
 	BATCH_SW ControlSWType = 'B'
 
-	COOLING_LOAD  = 'C'
-	HEATING_LOAD  = 'H'
-	HEATCOOL_LOAD = 'L'
+	COOLING_LOAD  ControlSWType = 'C'
+	HEATING_LOAD  ControlSWType = 'H'
+	HEATCOOL_LOAD ControlSWType = 'L'
 
-	COOLING_SW = 'C'
-	HEATING_SW = 'H'
+	COOLING_SW ControlSWType = 'C'
+	HEATING_SW ControlSWType = 'H'
 
-	TANK_FULL   = 'F'
-	TANK_EMPTY  = 'E'
-	TANK_EMPTMP = -777.0
-	BTFILL      = 'F'
-	BTDRAW      = 'D'
+	TANK_FULL                 = 'F'
+	TANK_EMPTY                = 'E'
+	TANK_EMPTMP               = -777.0
+	BTFILL      ControlSWType = 'F'
+	BTDRAW      ControlSWType = 'D'
 
 	SYSV_EQV = 'v'
 	LOAD_EQV = 'L'

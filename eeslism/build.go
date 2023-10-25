@@ -599,7 +599,7 @@ type RPANEL struct {
 // 輻射パネル
 type RDPNL struct {
 	Name    string
-	Loadt   *rune
+	Loadt   *ControlSWType
 	Type    rune // 建材一体型空気集熱器の場合：'C', それ以外：'P'
 	rm      [2]*ROOM
 	sd      [2]*RMSRF
@@ -665,8 +665,8 @@ type AIRSUP struct {
 
 // 室負荷
 type RMLOAD struct {
-	loadt *rune
-	loadx *rune
+	loadt *ControlSWType
+	loadx *ControlSWType
 	tropt rune /* 室温制御方法  'o': OT制御、'a': 空気温度制御 */
 	hmopt rune /* 湿度制御設定値 'x': 絶対湿度、'r': 相対湿度、 'd': 露点温度 */
 	Tset  float64

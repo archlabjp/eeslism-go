@@ -323,7 +323,7 @@ func Panelce(rdpnl *RDPNL) float64 {
 
 /* 負荷計算用設定値のポインター */
 
-func rdpnlldsptr(load *rune, key []string, Rdpnl *RDPNL, idmrk *byte) (VPTR, error) {
+func rdpnlldsptr(load *ControlSWType, key []string, Rdpnl *RDPNL, idmrk *byte) (VPTR, error) {
 	var err error
 	var vptr VPTR
 

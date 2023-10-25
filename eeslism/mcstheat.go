@@ -72,7 +72,7 @@ func Stheatdata(s string, stheatca *STHEATCA) int {
 
 /*  管長・ダクト長、周囲温度設定 */
 
-func Stheatint(_stheat []STHEAT, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT, Npcm int, _PCM []PCM) {
+func Stheatint(_stheat []STHEAT, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT, Npcm int, _PCM []PCM) {
 	for i := range _stheat {
 		stheat := &_stheat[i]
 		if stheat.Cmp.Envname != "" {

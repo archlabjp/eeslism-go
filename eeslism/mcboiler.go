@@ -90,7 +90,7 @@ func Boidata(s string, boica *BOICA) int {
 	return id
 }
 
-func Boicaint(_Boica []BOICA, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL) {
+func Boicaint(_Boica []BOICA, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL) {
 	for i := 0; i < len(_Boica); i++ {
 		Boica := &_Boica[i]
 		if idx, err := idsch(Boica.Qostr, Schdl.Sch, ""); err == nil {
@@ -253,7 +253,7 @@ func Boiene(Boi []BOI, BOIreset *int) {
 
 /* 負荷計算指定時の設定値のポインター */
 
-func boildptr(load *rune, key []string, Boi *BOI) (VPTR, error) {
+func boildptr(load *ControlSWType, key []string, Boi *BOI) (VPTR, error) {
 	var err error
 	var vptr VPTR
 

@@ -60,7 +60,7 @@ func Pipedata(cattype string, s string, Pipeca *PIPECA) int {
 
 /*  管長・ダクト長、周囲温度設定 */
 
-func Pipeint(Pipe []PIPE, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT) {
+func Pipeint(Pipe []PIPE, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT) {
 	for i := range Pipe {
 		if Pipe[i].Cmp.Ivparm != nil {
 			Pipe[i].L = *Pipe[i].Cmp.Ivparm
@@ -163,7 +163,7 @@ func Pipeene(Pipe []PIPE) {
 
 /* 負荷計算用設定値のポインター */
 
-func pipeldsptr(load *rune, key []string, Pipe *PIPE, idmrk *byte) (VPTR, error) {
+func pipeldsptr(load *ControlSWType, key []string, Pipe *PIPE, idmrk *byte) (VPTR, error) {
 	var err error
 	var vptr VPTR
 

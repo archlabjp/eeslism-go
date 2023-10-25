@@ -32,7 +32,7 @@ import (
 var __Refadata_hpch *HPCH
 
 func Refadata(s string, Refaca *REFACA, Rfcmp []RFCMP) int {
-	var c byte
+	var c ControlSWType
 	var dt float64
 	var id int
 
@@ -68,8 +68,8 @@ func Refadata(s string, Refaca *REFACA, Rfcmp []RFCMP) int {
 		} else if s[0] == 'p' {
 			Refaca.plf = rune(s[1])
 		} else if s[0] == 'm' {
-			c = s[1]
-			Refaca.mode[Refaca.Nmode] = rune(c)
+			c = ControlSWType(s[1])
+			Refaca.mode[Refaca.Nmode] = c
 			if c == COOLING_SW {
 				Refaca.cool = new(HPCH)
 				__Refadata_hpch = Refaca.cool
@@ -113,7 +113,7 @@ func Refadata(s string, Refaca *REFACA, Rfcmp []RFCMP) int {
 
 /*  冷凍機／ヒ－トポンプの圧縮機特性設定   */
 
-func Refaint(Refa []REFA, Wd *WDAT, Compnt []COMPNT) {
+func Refaint(Refa []REFA, Wd *WDAT, Compnt []*COMPNT) {
 	var Cmp *RFCMP
 	var Teo, Tco, cGex, Qeo, Qco float64
 	var Qes, Qcs, Ws, ke, kc, kw, E float64
@@ -328,7 +328,7 @@ func Refaene2(Refa []REFA) {
 
 /* 負荷計算指定時の設定値のポインター */
 
-func refaldptr(load *rune, key []string, Refa *REFA) (VPTR, error) {
+func refaldptr(load *ControlSWType, key []string, Refa *REFA) (VPTR, error) {
 	var err error
 	var vptr VPTR
 

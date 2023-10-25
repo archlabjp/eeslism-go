@@ -287,7 +287,7 @@ func pelmci(pflow FliudType, Pelm *PELM, errkey string) {
 // - 要素(PELM)は _Pelm 配列に追加するものとし、 Npelm 番目から詰め込むとする。 Npelmは上書きする。
 // ##- _Plist は システム経路 mpath_t に属するすべての 末端経路の配列である。
 // - Compntには SYSCMPデータセットで読み込んだすべての機器情報が保持されている。
-func plistcpy(mpath_t *MPATH, _Pelm *[]*PELM, _Plist *[]*PLIST, Compnt []COMPNT) *MPATH {
+func plistcpy(mpath_t *MPATH, _Pelm *[]*PELM, _Plist *[]*PLIST, Compnt []*COMPNT) *MPATH {
 	// 空気湿度用経路
 	var mpath_x *MPATH = NewMPATH()
 	mpath_x.Name = mpath_t.Name + ".x" // 湿度用経路の名前 = 温度経路用の名前 + ".x"
@@ -360,7 +360,7 @@ func plistcpy(mpath_t *MPATH, _Pelm *[]*PELM, _Plist *[]*PLIST, Compnt []COMPNT)
 				// k+1番目位以降のコンポーネントのみ検索している: 理由？？
 				var cmp *COMPNT
 				for k++; k < len(Compnt); k++ {
-					cmp = &Compnt[k]
+					cmp = Compnt[k]
 					s := cmp.Name
 
 					// "name.xxx" のうち name だけで一致する機器を探す。
@@ -584,9 +584,9 @@ func pflowstrct(_Mpath []*MPATH) {
 	}
 }
 
-func FindComponentRef(target *COMPNT, Compnt []COMPNT) (int, error) {
+func FindComponentRef(target *COMPNT, Compnt []*COMPNT) (int, error) {
 	for k := range Compnt {
-		cmp := &Compnt[k]
+		cmp := Compnt[k]
 		if cmp == target {
 			return k, nil
 		}

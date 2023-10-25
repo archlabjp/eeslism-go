@@ -91,7 +91,7 @@ func Desiccantdata(s string, desica *DESICA) int {
 
 /*  管長・ダクト長、周囲温度設定 */
 
-func Desiint(_Desi []DESI, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT) {
+func Desiint(_Desi []DESI, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT) {
 	var Err string
 	var Desica *DESICA
 

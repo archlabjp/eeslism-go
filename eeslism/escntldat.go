@@ -30,16 +30,16 @@ import (
 // 	 Cload,  /* Cload = COOLING_LOAD */
 // 	 HCload;  /* HCload = HEATCOOL_LOAD */
 
-func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int,
-	Cs *[]CTLST, Nctlst *int,
-	Simc *SIMCONTL, Compnt []COMPNT,
+func Contrldata(fi *EeTokens, Ct *[]*CONTL, Ci *[]*CTLIF,
+	Cs *[]*CTLST,
+	Simc *SIMCONTL, Compnt []*COMPNT,
 	Mpath []*MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL) {
 	//loadcmp, cmp := (*COMPNT)(nil), (*COMPNT)(nil)
 	// varcontl, Contl, ctl := (*CONTL)(nil), (*CONTL)(nil), (*CONTL)(nil)
 	// ctlif, Ctlif, cti := (*CTLIF)(nil), (*CTLIF)(nil), (*CTLIF)(nil)
 	// ctlst, Ctlst, cts := (*CTLST)(nil), (*CTLST)(nil), (*CTLST)(nil)
 	vptr, vpath := VPTR{}, VPTR{}
-	var load *rune
+	var load *ControlSWType
 	i := 0
 	Nm := 0
 	var loadcmp *COMPNT = nil
@@ -47,45 +47,10 @@ func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int
 	Cload := COOLING_LOAD
 	HCload := HEATCOOL_LOAD
 
-	Ni, N := ContrlCount(fi)
+	*Ct = make([]*CONTL, 0)
+	*Cs = make([]*CTLST, 0)
+	*Ci = make([]*CTLIF, Nm)
 
-	Nm = N
-	if Nm > 0 {
-		*Ct = make([]CONTL, Nm)
-		for i = 0; i < Nm; i++ {
-			contl := &(*Ct)[i]
-			contl.Lgv = 0
-			contl.Type = ' '
-			contl.Cif = nil
-			contl.AndCif = nil
-			contl.AndAndCif = nil
-			contl.OrCif = nil
-			contl.Cst = nil
-		}
-
-		*Cs = make([]CTLST, Nm)
-		for i = 0; i < Nm; i++ {
-			ctlst := &(*Cs)[i]
-			ctlst.Type = ' '
-			ctlst.PathType = ' '
-			ctlst.Path = nil
-		}
-	}
-
-	Nm = Ni
-	if Ni > 0 {
-		*Ci = make([]CTLIF, Nm)
-		for i = 0; i < Nm; i++ {
-			ctlif := &(*Ci)[i]
-			ctlif.Type = ' '
-			ctlif.Op = ' '
-			ctlif.Nlft = 0
-		}
-	}
-
-	contlIdx := 0
-	ctlifIdx := 0
-	ctlstIdx := 0
 	load = nil
 	for fi.IsEnd() == false {
 		s := fi.GetToken()
@@ -100,21 +65,21 @@ func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int
 		VPTRinit(&vptr)
 		VPTRinit(&vpath)
 
-		Contl := &(*Ct)[contlIdx]
+		Contl := NewCONTL()
 		Contl.Type = ' '
-		Contl.Cst = &(*Cs)[ctlstIdx]
+		Contl.Cst = NewCTLST()
 
+		flag_ignore := false
 		for fi.IsEnd() == false {
 			if s == "if" {
-				Ctlif := &(*Ci)[ctlifIdx]
+				Ctlif := NewCTLIF()
 				Contl.Type = 'c'
 				Contl.Cif = Ctlif
 				s = strings.Trim(fi.GetToken(), "()")
 				ctifdecode(s, Ctlif, Simc, Compnt, Mpath, Wd, Exsf, Schdl)
-				ctlifIdx++
-				*Nctlif = ctlifIdx
+				*Ci = append(*Ci, Ctlif)
 			} else if s == "AND" {
-				Ctlif := &(*Ci)[ctlifIdx]
+				Ctlif := NewCTLIF()
 				Contl.Type = 'c'
 				if Contl.AndCif == nil {
 					Contl.AndCif = Ctlif
@@ -123,24 +88,22 @@ func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int
 				}
 				s = strings.Trim(fi.GetToken(), "()")
 				ctifdecode(s, Ctlif, Simc, Compnt, Mpath, Wd, Exsf, Schdl)
-				ctlifIdx++
-				*Nctlif = ctlifIdx
+				*Ci = append(*Ci, Ctlif)
 			} else if s == "OR" {
-				Ctlif := &(*Ci)[ctlifIdx]
+				Ctlif := NewCTLIF()
 				Contl.Type = 'c'
 				Contl.OrCif = Ctlif
 				s = strings.Trim(fi.GetToken(), "()")
 				ctifdecode(s, Ctlif, Simc, Compnt, Mpath, Wd, Exsf, Schdl)
-				ctlifIdx++
-				*Nctlif = ctlifIdx
+				*Ci = append(*Ci, Ctlif)
 			} else if strings.HasPrefix(s, "LOAD") {
 				loadcmp = nil
 				if strings.ContainsRune(s, ':') {
-					if len(s) == 5 && s[5] == HEATING_LOAD {
-						load = new(rune)
+					if len(s) == 5 && ControlSWType(s[5]) == HEATING_LOAD {
+						load = new(ControlSWType)
 						*load = Hload
-					} else if len(s) == 5 && s[5] == COOLING_LOAD {
-						load = new(rune)
+					} else if len(s) == 5 && ControlSWType(s[5]) == COOLING_LOAD {
+						load = new(ControlSWType)
 						*load = Cload
 					} else {
 						var iderr error
@@ -156,8 +119,7 @@ func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int
 				}
 			} else if s == "-e" {
 				s = fi.GetToken()
-				for i = range Compnt {
-					cmp := &Compnt[i]
+				for _, cmp := range Compnt {
 					if s == cmp.Name {
 						loadcmp = cmp
 					}
@@ -173,14 +135,14 @@ func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int
 					vptr, vpath, err = ctlvptr(key, Simc, Compnt, Mpath, Wd, Exsf, Schdl)
 				}
 				if err == nil {
-					Ctlst := &(*Cs)[ctlstIdx]
+					Ctlst := Contl.Cst
 					Ctlst.Type = vptr.Type
 					Ctlst.PathType = vpath.Type
 					Ctlst.Path = vpath.Ptr
 					if Ctlst.Type == VAL_CTYPE {
 						Ctlst.Lft.V = vptr.Ptr.(*float64)
 					} else {
-						Ctlst.Lft.S = vptr.Ptr.(*string)
+						Ctlst.Lft.S = vptr.Ptr.(*ControlSWType)
 					}
 					err = ctlrgtptr(value, &Ctlst.Rgt, Simc, Compnt, Mpath, Wd, Exsf, Schdl, Ctlst.Type)
 				}
@@ -188,8 +150,7 @@ func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int
 				Err := fmt.Sprintf("%s = %s", s[:st], s[st+1:])
 				Eprint("<Contrldata>", Err)
 			} else if s == "TVALV" {
-				ctlstIdx--
-				contlIdx--
+				flag_ignore = true
 				ValvControl(fi, Compnt, Schdl, Simc, Wd, &vptr)
 			} else {
 				Eprint("<Contrldata>", s)
@@ -201,11 +162,10 @@ func Contrldata(fi *EeTokens, Ct *[]CONTL, Ncontl *int, Ci *[]CTLIF, Nctlif *int
 			}
 		}
 
-		ctlstIdx++
-		*Nctlst = ctlstIdx
-
-		contlIdx++
-		*Ncontl = contlIdx
+		if !flag_ignore {
+			*Ct = append(*Ct, Contl)
+			*Cs = append(*Cs, Contl.Cst)
+		}
 	}
 }
 
@@ -245,7 +205,7 @@ func ContrlCount(fi *EeTokens) (Nif, N int) {
 
 /*  制御条件式 (lft1 - lft2 ? rgt ) に関するポインター */
 
-func ctifdecode(_s string, ctlif *CTLIF, Simc *SIMCONTL, Compnt []COMPNT,
+func ctifdecode(_s string, ctlif *CTLIF, Simc *SIMCONTL, Compnt []*COMPNT,
 	Mpath []*MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL) {
 	var lft, op, rgt string // 左変数, 演算子, 右変数
 	var err int
@@ -267,7 +227,7 @@ func ctifdecode(_s string, ctlif *CTLIF, Simc *SIMCONTL, Compnt []COMPNT,
 	if vptr.Type == VAL_CTYPE {
 		ctlif.Lft1.V = vptr.Ptr.(*float64)
 	} else {
-		ctlif.Lft1.S = vptr.Ptr.(*string)
+		ctlif.Lft1.S = vptr.Ptr.(*ControlSWType)
 	}
 
 	// 演算対象の変数 その2を設定
@@ -309,7 +269,7 @@ func ctifdecode(_s string, ctlif *CTLIF, Simc *SIMCONTL, Compnt []COMPNT,
 
 /*  条件式、設定式の右辺（定数、またはスケジュール設定値のポインター） */
 
-func ctlrgtptr(s string, rgt *CTLTYP, Simc *SIMCONTL, Compnt []COMPNT, Mpath []*MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL, _type VPtrType) error {
+func ctlrgtptr(s string, rgt *CTLTYP, Simc *SIMCONTL, Compnt []*COMPNT, Mpath []*MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL, _type VPtrType) error {
 	var vptr VPTR
 	var err error
 
@@ -322,28 +282,28 @@ func ctlrgtptr(s string, rgt *CTLTYP, Simc *SIMCONTL, Compnt []COMPNT, Mpath []*
 	} else {
 		switch s {
 		case "OFF":
-			rgt.S = new(string)
-			*rgt.S = string(OFF_SW)
+			rgt.S = new(ControlSWType)
+			*rgt.S = OFF_SW
 		case "ON":
-			rgt.S = new(string)
-			*rgt.S = string(ON_SW)
+			rgt.S = new(ControlSWType)
+			*rgt.S = ON_SW
 		case "COOL":
-			rgt.S = new(string)
-			*rgt.S = string(COOLING_SW)
+			rgt.S = new(ControlSWType)
+			*rgt.S = COOLING_SW
 		case "HEAT":
-			rgt.S = new(string)
-			*rgt.S = string(HEATING_SW)
+			rgt.S = new(ControlSWType)
+			*rgt.S = HEATING_SW
 		default:
 			if _type == SW_CTYPE && strings.HasPrefix(s, "'") && len(s) > 2 {
-				rgt.S = new(string)
-				*rgt.S = s[1:2]
+				rgt.S = new(ControlSWType)
+				*rgt.S = ControlSWType(s[1])
 			} else {
 				vptr, _, err = ctlvptr(s, Simc, Compnt, Mpath, Wd, Exsf, Schdl)
 				if _type == vptr.Type {
 					if _type == VAL_CTYPE {
 						rgt.V = vptr.Ptr.(*float64)
 					} else {
-						rgt.S = vptr.Ptr.(*string)
+						rgt.S = vptr.Ptr.(*ControlSWType)
 					}
 				} else {
 					err = errors.New("Generated pointer type is not expected")
@@ -354,4 +314,32 @@ func ctlrgtptr(s string, rgt *CTLTYP, Simc *SIMCONTL, Compnt []COMPNT, Mpath []*
 
 	//Errprint(err, "<ctlrgtptr>", s)
 	return err
+}
+
+func NewCONTL() *CONTL {
+	contl := new(CONTL)
+	contl.Lgv = 0
+	contl.Type = ' '
+	contl.Cif = nil
+	contl.AndCif = nil
+	contl.AndAndCif = nil
+	contl.OrCif = nil
+	contl.Cst = nil
+	return contl
+}
+
+func NewCTLST() *CTLST {
+	ctlst := new(CTLST)
+	ctlst.Type = ' '
+	ctlst.PathType = ' '
+	ctlst.Path = nil
+	return ctlst
+}
+
+func NewCTLIF() *CTLIF {
+	ctlif := new(CTLIF)
+	ctlif.Type = ' '
+	ctlif.Op = ' '
+	ctlif.Nlft = 0
+	return ctlif
 }

@@ -284,9 +284,9 @@ type STHEAT struct {
 
 /*---- Satoh Debug VAV  2000/10/30 ----*/
 type VAV struct {
-	Chmode rune   /* 冷房用、暖房用の設定 */
-	Name   string /* 機器名 */
-	Mon    rune   /* 制御対象が
+	Chmode ControlSWType /* 冷房用、暖房用の設定 */
+	Name   string        /* 機器名 */
+	Mon    rune          /* 制御対象が
 	　　コイルの時：c
 	　　仮想空調機の時：h
 	　　床暖房の時：f
@@ -379,8 +379,8 @@ type BOI struct {
 	Mode rune /* 負荷制御以外での運転モード
 	最大能力：M
 	最小能力：m        */
-	HCmode      rune // 冷房モート゛、暖房モード
-	Load        *rune
+	HCmode      ControlSWType // 冷房モート゛、暖房モード
+	Load        *ControlSWType
 	Cat         *BOICA
 	Cmp         *COMPNT
 	Do, D1      float64
@@ -430,10 +430,10 @@ type REFACA struct /*ヒートポンプ（圧縮式冷凍機）機器仕様*/
 	name  string /*名称　　　　　　　　　　*/
 	awtyp rune   /*空冷（空気熱源）=a、冷却塔使用=w */
 
-	plf      rune    /*部分負荷特性コ－ド　　　*/
-	unlimcap rune    /*エネルギー計算で機器容量上限無いとき 'y' */
-	mode     [2]rune /*冷房運転: C、暖房運転時: H */
-	Nmode    int     /*mode[]の数。1 のとき冷房専用または暖房専用　*/
+	plf      rune             /*部分負荷特性コ－ド　　　*/
+	unlimcap rune             /*エネルギー計算で機器容量上限無いとき 'y' */
+	mode     [2]ControlSWType /*冷房運転: C、暖房運転時: H */
+	Nmode    int              /*mode[]の数。1 のとき冷房専用または暖房専用　*/
 	/*            2 のとき冷・暖 切換運転　*/
 	rfc *RFCMP
 	Ph  float64 /*定格冷温水ポンプ動力 [W] */
@@ -445,8 +445,8 @@ type REFACA struct /*ヒートポンプ（圧縮式冷凍機）機器仕様*/
 // システム使用ヒートポンプ
 type REFA struct {
 	Name   string /*名称　　　　　　　　　　*/
-	Load   *rune
-	Chmode rune /*冷房運転: C、暖房運転時: H */
+	Load   *ControlSWType
+	Chmode ControlSWType /*冷房運転: C、暖房運転時: H */
 	Cat    *REFACA
 	Cmp    *COMPNT
 	Room   *ROOM
@@ -529,8 +529,8 @@ type PIPECA struct /*配管・ダクト仕様*/
 // システム使用配管・ダクト
 type PIPE struct {
 	Name  string
-	Loadt *rune
-	Loadx *rune
+	Loadt *ControlSWType
+	Loadx *ControlSWType
 	//Type rune
 	Cat    *PIPECA
 	Cmp    *COMPNT
@@ -570,7 +570,7 @@ type STANKCA struct /* 蓄熱槽機器仕様 */
 // システム使用蓄熱槽
 type STANK struct {
 	Name      string
-	Batchop   rune /* バッチ操作有　給水:'F'  排出:'D'  停止:'-'  バッチ操作無:'n' */
+	Batchop   ControlSWType /* バッチ操作有　給水:'F'  排出:'D'  停止:'-'  バッチ操作無:'n' */
 	Cat       *STANKCA
 	Cmp       *COMPNT
 	Ndiv      int /* 分割層数 */
@@ -581,9 +581,9 @@ type STANK struct {
 	Jvb       int
 	Ncalcihex int // 内径と長さから計算される内蔵熱交のモデルの数
 	Pthcon    []ELIOType
-	Batchcon  []rune /* バッチ給水、排出スケジュール　'F':給水 'D':排出 */
-	Ihex      []rune /* 内蔵熱交換器のある経路のとき ihex[i]='y' */
-	Cfcalc    rune   /* cfcalc = 'y':要素モデル係数の計算する。
+	Batchcon  []ControlSWType /* バッチ給水、排出スケジュール　'F':給水 'D':排出 */
+	Ihex      []rune          /* 内蔵熱交換器のある経路のとき ihex[i]='y' */
+	Cfcalc    rune            /* cfcalc = 'y':要素モデル係数の計算する。
 							'n':要素モデル係数の計算しない。
 	(温度分布の逆転時再計算指定のときに使用*/
 	B   []float64
@@ -720,10 +720,10 @@ const (
 // 空調機負荷仮想機器
 type HCLOAD struct {
 	Name    string
-	Loadt   *rune
-	Loadx   *rune
-	RMACFlg rune // 'Y': ルームエアコン(RMAC), 'y':ルームエアコン(RMACD) ←ほぼ同じだが Hcldene 関数での負荷計算処理が違う
-	Chmode  rune // スケジュール等によって設定されている運転モード
+	Loadt   *ControlSWType
+	Loadx   *ControlSWType
+	RMACFlg rune          // 'Y': ルームエアコン(RMAC), 'y':ルームエアコン(RMACD) ←ほぼ同じだが Hcldene 関数での負荷計算処理が違う
+	Chmode  ControlSWType // スケジュール等によって設定されている運転モード
 	//		opmode rune			// 実際の運転時のモード
 	Type    HCLoadType /* 'D':直膨コイル想定 'W':冷温水コイル想定　*/
 	Wetmode bool       /* 実際のコイル状態 */

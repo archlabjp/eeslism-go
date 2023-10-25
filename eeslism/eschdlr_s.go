@@ -27,7 +27,7 @@ func Eeschdlr(day, ttmm int, Schdl *SCHDL, Rmvls *RMVLS) {
 	}
 
 	for j := range Schdl.Scw {
-		Schdl.Isw[j] = rune(scwmode(day, ttmm, &Schdl.Scw[j], Schdl.Dscw))
+		Schdl.Isw[j] = scwmode(day, ttmm, &Schdl.Scw[j], Schdl.Dscw)
 	}
 
 	if SIMUL_BUILDG {

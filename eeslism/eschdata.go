@@ -113,7 +113,7 @@ func Dayweek(fi io.Reader, week string, daywk []int, key int) {
 // 入力文字列`schtba`を読み取って、 [eeslism.SCHDL]に書き込む
 // NOTE: SCHTBデータセットと %s の両方を読み取るために無理が出ている
 func Schtable(schtba string, Schdl *SCHDL) {
-	var code byte
+	var code ControlSWType
 
 	tokens := NewEeTokens(schtba)
 
@@ -212,28 +212,28 @@ func Schtable(schtba string, Schdl *SCHDL) {
 				Nmod:  0,
 				stime: make([]int, 10),
 				etime: make([]int, 10),
-				mode:  make([]rune, 10),
+				mode:  make([]ControlSWType, 10),
 				//dcode: make([]rune, swmx),
 			}
 
 			Dw.stime = make([]int, n)
 			Dw.etime = make([]int, n)
-			Dw.mode = make([]rune, n)
+			Dw.mode = make([]ControlSWType, n)
 			for i := 0; i < n; i++ {
 				fmt.Sscanf(fields[i+1], "%d-(%c)-%d", &Dw.stime[i], &code, &Dw.etime[i])
-				Dw.mode[i] = rune(code)
+				Dw.mode[i] = ControlSWType(code)
 			}
 
 			// モード数を調べる
 			var j int
 			for j = 0; j < nmod; j++ {
-				if Dw.dcode[j] == rune(code) {
+				if Dw.dcode[j] == code {
 					break
 				}
 			}
 
 			if j == nmod {
-				Dw.dcode[nmod] = rune(code)
+				Dw.dcode[nmod] = code
 				nmod++
 			}
 
@@ -409,7 +409,7 @@ func Schdata(schnma string, dsn string, daywk []int, Schdl *SCHDL) {
 
 	// Val, Isw の領域確保
 	Schdl.Val = make([]float64, len(Schdl.Sch))
-	Schdl.Isw = make([]rune, len(Schdl.Scw))
+	Schdl.Isw = make([]ControlSWType, len(Schdl.Scw))
 }
 
 /* ------------------------------------------------------------ */

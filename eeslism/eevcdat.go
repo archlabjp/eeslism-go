@@ -194,7 +194,7 @@ func flindat(Flin *FLIN) {
 
 /* 境界条件・負荷仮想機器の要素機器データのポインター設定 */
 
-func Flinint(Flin []FLIN, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT) {
+func Flinint(Flin []FLIN, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT) {
 	for i := range Flin {
 		// fmt.Printf("<<Flinint>>  i=%d  namet=%s\n", i, Flin[i].namet)
 

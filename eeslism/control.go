@@ -22,7 +22,7 @@ type CONTL struct {
 // union V or S alternative
 type CTLTYP struct {
 	V *float64
-	S *string
+	S *ControlSWType
 }
 
 // ControlIf

@@ -7,7 +7,7 @@ import (
 )
 
 // システム要素周囲条件（温度など）のポインター
-func envptr(s string, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT, Exsf *EXSFS) *float64 {
+func envptr(s string, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT, Exsf *EXSFS) *float64 {
 	var err error
 	var vptr VPTR
 	var dmy []*MPATH
@@ -36,7 +36,7 @@ func envptr(s string, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT, Exsf *EXSFS) *f
 	return val
 }
 
-func roomptr(s string, Compnt []COMPNT) *ROOM {
+func roomptr(s string, Compnt []*COMPNT) *ROOM {
 	var rm *ROOM
 
 	for i := range Compnt {
@@ -55,7 +55,7 @@ func isStrDigit(s string) bool {
 }
 
 /*********** Satoh Create  2001/5/3 ********************/
-func hccptr(c byte, s string, Compnt []COMPNT, m *rune) interface{} {
+func hccptr(c byte, s string, Compnt []*COMPNT, m *rune) interface{} {
 	var i int
 	var h interface{}
 
@@ -81,7 +81,7 @@ func hccptr(c byte, s string, Compnt []COMPNT, m *rune) interface{} {
 /*********** Satoh Create  2003/5/17 ********************/
 /* 放射パネルの検索 */
 
-func rdpnlptr(s string, Compnt []COMPNT) *RDPNL {
+func rdpnlptr(s string, Compnt []*COMPNT) *RDPNL {
 	var i int
 	var h *RDPNL
 

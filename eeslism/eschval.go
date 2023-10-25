@@ -44,7 +44,7 @@ func schval(nday, ttmm int, Sch *SCH, Dsch []DSCH) float64 {
 
 /*  １日スケジュ－ルから設定モ－ドの選択   */
 
-func scwmode(nday, ttmm int, Scw *SCH, Dscw []DSCW) rune {
+func scwmode(nday, ttmm int, Scw *SCH, Dscw []DSCW) ControlSWType {
 	sw := Scw.day[nday]
 	Ds := &Dscw[sw]
 	N := Ds.N

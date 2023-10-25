@@ -116,7 +116,7 @@ func Valvene(Valv []VALV, Valvreset *int) {
 
 /************************************************************************/
 
-func ValvControl(fi *EeTokens, Compnt []COMPNT, Schdl *SCHDL, Simc *SIMCONTL, Wd *WDAT, vptr *VPTR) {
+func ValvControl(fi *EeTokens, Compnt []*COMPNT, Schdl *SCHDL, Simc *SIMCONTL, Wd *WDAT, vptr *VPTR) {
 	var s string
 	var Valv, Vb *VALV
 	var Vc *COMPNT

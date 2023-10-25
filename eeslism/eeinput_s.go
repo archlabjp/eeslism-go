@@ -188,14 +188,14 @@ func (t *EeTokens) GetInt() int {
 
 func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 	Exsf *EXSFS, Rmvls *RMVLS, Eqcat *EQCAT, Eqsys *EQSYS,
-	Compnt *[]COMPNT,
+	Compnt *[]*COMPNT,
 	Elout *[]*ELOUT, Nelout *int,
 	Elin *[]*ELIN, Nelin *int,
 	Mpath *[]*MPATH, Nmpath *int,
 	Plist *[]*PLIST, Pelm *[]*PELM, Npelm *int,
-	Contl *[]CONTL, Ncontl *int,
-	Ctlif *[]CTLIF, Nctlif *int,
-	Ctlst *[]CTLST, Nctlst *int,
+	Contl *[]*CONTL, Ncontl *int,
+	Ctlif *[]*CTLIF, Nctlif *int,
+	Ctlst *[]*CTLST, Nctlst *int,
 	Wd *WDAT, Daytm *DAYTM, key int, Nplist *int,
 	bdpn *int, obsn *int, treen *int, shadn *int, polyn *int,
 	bp *[]BBDP, obs *[]OBS, tree *[]TREE, shadtb *[]SHADTB, poly *[]POLYGN, monten *int, gpn *int, DE *float64, Noplpmp *NOPLPMP) (*SCHDL, []*FLOUT) {
@@ -403,7 +403,7 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 
 		case "CONTL":
 			section := tokens.GetSection()
-			Contrldata(section, Contl, Ncontl, Ctlif, Nctlif, Ctlst, Nctlst, Simc, *Compnt, *Mpath, Wd, Exsf, Schdl)
+			Contrldata(section, Contl, Ctlif, Ctlst, Simc, *Compnt, *Mpath, Wd, Exsf, Schdl)
 
 		/*--------------higuchi add-------------------start*/
 

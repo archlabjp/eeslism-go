@@ -749,7 +749,7 @@ func fhtlb(T, x float64) float64 {
 
 /* 負荷計算指定時の設定値のポインター */
 
-func hcldptr(load *rune, key []string, Hcload *HCLOAD, idmrk *byte) (VPTR, error) {
+func hcldptr(load *ControlSWType, key []string, Hcload *HCLOAD, idmrk *byte) (VPTR, error) {
 	var err error
 	var vptr VPTR
 	if key[1] == "Tout" || key[1] == "Tr" || key[1] == "Tot" {
@@ -1105,7 +1105,7 @@ func hcldswptr(key []string, Hcload *HCLOAD) (VPTR, error) {
 	return VPTR{}, errors.New("hcldswptr error")
 }
 
-func chhcldswreset(Qload, Ql float64, chmode byte, Eo *ELOUT) int {
+func chhcldswreset(Qload, Ql float64, chmode ControlSWType, Eo *ELOUT) int {
 	if (chmode == HEATING_SW && Qload < 0.0) ||
 		(chmode == COOLING_SW && Ql > 0.0) ||
 		(chmode == COOLING_SW && Qload > 0.0) {

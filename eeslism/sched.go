@@ -23,12 +23,12 @@ type DSCH struct {
 
 // 一日の切り替えスケジュ－ル
 type DSCW struct {
-	name         string   // 切替設定名 (wdname)
-	dcode        [10]rune // 切替名 (mode)
-	N            int      // 切替時間帯の数(stime,mode,etimeのスライスの長さ)
-	stime, etime []int    // 切替開始時分, 切替終了時分
-	Nmod         int      // 切替モードの種類の数 (modeの重複を除いた数)
-	mode         []rune   // 切替モード
+	name         string            // 切替設定名 (wdname)
+	dcode        [10]ControlSWType // 切替名 (mode)
+	N            int               // 切替時間帯の数(stime,mode,etimeのスライスの長さ)
+	stime, etime []int             // 切替開始時分, 切替終了時分
+	Nmod         int               // 切替モードの種類の数 (modeの重複を除いた数)
+	mode         []ControlSWType   // 切替モード
 }
 
 type SCH struct /*スケジュ－ル*/
@@ -49,6 +49,6 @@ type SCHDL struct {
 	Sch []SCH // SCHNMデータセット: 年間の設定値スケジュール
 	Scw []SCH // SCHNMデータセット: 年間の切替スケジュール
 
-	Val []float64 // 設定値? (`Sch`の要素数と同数)
-	Isw []rune    // 切替状態? (`Scw`の要素数と同数)
+	Val []float64       // 設定値? (`Sch`の要素数と同数)
+	Isw []ControlSWType // 切替状態? (`Scw`の要素数と同数)
 }

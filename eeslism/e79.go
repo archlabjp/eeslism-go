@@ -25,7 +25,7 @@ func Entry(InFile string) {
 	/* ============================ */
 
 	var Nelout, Nelin int
-	var Compnt []COMPNT
+	var Compnt []*COMPNT
 	var Elout []*ELOUT
 	var Elin []*ELIN
 	var Syseq SYSEQ
@@ -34,9 +34,9 @@ func Entry(InFile string) {
 	var Plist []*PLIST
 	var Pelm []*PELM
 	var Ncontl, Nctlif, Nctlst int
-	var Contl []CONTL
-	var Ctlif []CTLIF
-	var Ctlst []CTLST
+	var Contl []*CONTL
+	var Ctlif []*CTLIF
+	var Ctlst []*CTLST
 	var key int
 	var Exsf EXSFS
 	var Soldy, Solmon []float64

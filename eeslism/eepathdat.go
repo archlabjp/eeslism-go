@@ -14,7 +14,7 @@ func Pathdata(
 	errkey string,
 	Simc *SIMCONTL,
 	Wd *WDAT,
-	Compnt []COMPNT,
+	Compnt []*COMPNT,
 	Schdl *SCHDL,
 	M *[]*MPATH,
 	Nmpath *int,
@@ -35,7 +35,7 @@ func Pathdata(
 	if DEBUG {
 		fmt.Printf("\n")
 		for i := range Compnt {
-			C = &Compnt[i]
+			C = Compnt[i]
 			fmt.Printf("name=%s Nin=%d  Nout=%d\n", C.Name, C.Nin, C.Nout)
 		}
 	}
@@ -604,7 +604,7 @@ func Pathdata(
 	if DEBUG {
 		fmt.Printf("\n")
 		for i = range Compnt {
-			C := &Compnt[i]
+			C := Compnt[i]
 			fmt.Printf("name=%s Nin=%d  Nout=%d\n", C.Name, C.Nin, C.Nout)
 		}
 	}
@@ -731,7 +731,7 @@ func Pelmcount(fi *EeTokens) int {
 
 /***********************************************************************/
 
-func Elcount(C []COMPNT) (int, int) {
+func Elcount(C []*COMPNT) (int, int) {
 	var Nelout, Nelin int = 0, 0
 
 	for i := range C {
@@ -753,9 +753,9 @@ func Elcount(C []COMPNT) (int, int) {
 	return Nelout, Nelin
 }
 
-func FindComponent(name string, Compnt []COMPNT) (int, *COMPNT, error) {
+func FindComponent(name string, Compnt []*COMPNT) (int, *COMPNT, error) {
 	for i := range Compnt {
-		cmp := &Compnt[i]
+		cmp := Compnt[i]
 		if cmp.Name == name {
 			return i, cmp, nil
 		}

@@ -108,7 +108,7 @@ func Stankmemloc(errkey string, Stank *STANK) {
 	}
 
 	Stank.Pthcon = make([]ELIOType, np)
-	Stank.Batchcon = make([]rune, np)
+	Stank.Batchcon = make([]ControlSWType, np)
 	Stank.Ihex = make([]rune, np)
 	Stank.Jin = make([]int, np)
 	Stank.Jout = make([]int, np)
@@ -216,7 +216,7 @@ func Stankmemloc(errkey string, Stank *STANK) {
 
 /* 蓄熱槽初期設定 */
 
-func Stankint(Stank []STANK, Simc *SIMCONTL, Compnt []COMPNT, Wd *WDAT) {
+func Stankint(Stank []STANK, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT) {
 	var s, ss, Err, E string
 	var mrk rune
 	var Tso float64

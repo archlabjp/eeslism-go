@@ -21,7 +21,7 @@ import (
 	"io"
 )
 
-func Contlschdlr(Ncontl int, _Contl []CONTL, Mpath []*MPATH, _Compnt []COMPNT) {
+func Contlschdlr(Ncontl int, _Contl []*CONTL, Mpath []*MPATH, _Compnt []*COMPNT) {
 
 	// 全ての経路、機器を停止で初期化
 	for _, Mp := range Mpath {
@@ -31,7 +31,7 @@ func Contlschdlr(Ncontl int, _Contl []CONTL, Mpath []*MPATH, _Compnt []COMPNT) {
 
 	// 機器の制御情報を「停止」で初期化
 	for i := range _Compnt {
-		Compnt := &_Compnt[i]
+		Compnt := _Compnt[i]
 		Compnt.Control = OFF_SW
 
 		if Compnt.Eqptype == VALV_TYPE || Compnt.Eqptype == TVALV_TYPE {
@@ -52,7 +52,7 @@ func Contlschdlr(Ncontl int, _Contl []CONTL, Mpath []*MPATH, _Compnt []COMPNT) {
 
 	// CONTLの制御情報を反映
 	for i := 0; i < Ncontl; i++ {
-		Contl := &_Contl[i]
+		Contl := _Contl[i]
 		Contl.Lgv = 1
 		// True:1、False:0
 		// if分で制御される場合
@@ -84,11 +84,11 @@ func Contlschdlr(Ncontl int, _Contl []CONTL, Mpath []*MPATH, _Compnt []COMPNT) {
 
 					if Contl.Cst.PathType == MAIN_CPTYPE {
 						Mp := Contl.Cst.Path.(*MPATH)
-						Mp.Control = ControlSWType((*Contl.Cst.Lft.S)[0])
+						Mp.Control = *Contl.Cst.Lft.S
 						mpathschd(Mp.Control, Mp.Plist)
 					} else if Contl.Cst.PathType == LOCAL_CPTYPE {
 						Pli := Contl.Cst.Path.(*PLIST)
-						lpathscdd(ControlSWType((*Contl.Cst.Lft.S)[0]), Pli)
+						lpathscdd(*Contl.Cst.Lft.S, Pli)
 					}
 				}
 			}
@@ -96,7 +96,7 @@ func Contlschdlr(Ncontl int, _Contl []CONTL, Mpath []*MPATH, _Compnt []COMPNT) {
 	}
 
 	for i := range _Compnt {
-		Compnt := &_Compnt[i]
+		Compnt := _Compnt[i]
 
 		switch Compnt.Eqptype {
 		case ROOM_TYPE:
@@ -255,7 +255,7 @@ func lpathschd(control ControlSWType, pelm []*PELM) {
 
 func lpathschbat(Plist *PLIST) {
 	var j, k, i, jt, ifl int
-	var batop rune
+	var batop ControlSWType
 	var Tsout, Gbat float64
 	var Stank *STANK
 	var Pelm *PELM
@@ -272,7 +272,7 @@ func lpathschbat(Plist *PLIST) {
 				}
 			}
 			Stank = Pe.Cmp.Eqp.(*STANK)
-			Stank.Batchop = rune(OFF_SW)
+			Stank.Batchop = OFF_SW
 			batop = Stank.Batchcon[k]
 
 			if batop == BTFILL {
@@ -410,7 +410,7 @@ func contlxprint(Ncontl int, C *CONTL, out io.Writer) {
 /* 負荷計算モードの再設定、
 暖房時冷房負荷または冷房時暖房負荷のときは自然室温計算　*/
 
-func rmloadreset(Qload float64, loadsw rune, Eo *ELOUT, SWITCH ControlSWType) int {
+func rmloadreset(Qload float64, loadsw ControlSWType, Eo *ELOUT, SWITCH ControlSWType) int {
 	if Eo.Sysld == 'y' {
 		if (loadsw == HEATING_LOAD && Qload < 0.0) ||
 			(loadsw == COOLING_LOAD && Qload > 0.0) {
@@ -430,7 +430,7 @@ func rmloadreset(Qload float64, loadsw rune, Eo *ELOUT, SWITCH ControlSWType) in
 /* 加熱、冷却モードの再設定、
 加熱房時冷房負荷または冷却時暖房負荷のときは機器停止　*/
 
-func chswreset(Qload float64, chmode rune, Eo *ELOUT) int {
+func chswreset(Qload float64, chmode ControlSWType, Eo *ELOUT) int {
 	var Elo *ELOUT
 
 	if (chmode == HEATING_SW && Qload < 0.0) ||
@@ -487,7 +487,7 @@ func chqlreset(Hcload *HCLOAD) int {
 
 /* 過負荷運転ための再設定 */
 
-func maxcapreset(Qload, Qmax float64, chmode rune, Eo *ELOUT) int {
+func maxcapreset(Qload, Qmax float64, chmode ControlSWType, Eo *ELOUT) int {
 	var Boi *BOI
 
 	var Eosysld rune

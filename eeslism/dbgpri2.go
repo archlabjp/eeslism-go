@@ -77,7 +77,7 @@ func xprroom(R []*ROOM) {
 
 /* ----------------------------------------- */
 
-func xprschval(val []float64, isw []rune) {
+func xprschval(val []float64, isw []ControlSWType) {
 	fmt.Println("--- xprschval")
 
 	for j := range val {

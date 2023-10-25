@@ -6,7 +6,7 @@ const idmrkc = "txW"
 
 func Elmalloc(
 	errkey string,
-	_Compnt []COMPNT,
+	_Compnt []*COMPNT,
 	Eqcat *EQCAT,
 	Eqsys *EQSYS,
 	Elo *[]*ELOUT,
@@ -14,7 +14,7 @@ func Elmalloc(
 	Eli *[]*ELIN,
 	Nelin *int,
 ) {
-	var cmp []COMPNT
+	var cmp []*COMPNT
 	var elop, elo *ELOUT
 	var room *ROOM
 	var rdpnl *RDPNL
@@ -69,7 +69,7 @@ func Elmalloc(
 	Hcload = Eqsys.Hcload
 
 	for m := range _Compnt {
-		Compnt := &_Compnt[m]
+		Compnt := _Compnt[m]
 
 		if Compnt.Eqptype != PV_TYPE {
 			Compnt.Elouts = (*Elo)[eloIdx : eloIdx+Compnt.Nout]
@@ -439,7 +439,7 @@ func Elmalloc(
 			c == RMACD_TYPE {
 			// 仮想空調機
 
-			Compnt.Eqp = Hcload
+			Compnt.Eqp = &Hcload[hcloadIdx]
 			Hcload[hcloadIdx].Cmp = Compnt
 			Hcload[hcloadIdx].Name = name
 

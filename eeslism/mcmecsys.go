@@ -18,7 +18,7 @@
 package eeslism
 
 // システム使用機器の初期設定
-func Mecsinit(Eqsys *EQSYS, Simc *SIMCONTL, Compnt []COMPNT, Nexsf int, Exsf []EXSF, Wd *WDAT, Rmvls *RMVLS) {
+func Mecsinit(Eqsys *EQSYS, Simc *SIMCONTL, Compnt []*COMPNT, Nexsf int, Exsf []EXSF, Wd *WDAT, Rmvls *RMVLS) {
 	// ヒートポンプ
 	Refaint(Eqsys.Refa, Wd, Compnt)
 

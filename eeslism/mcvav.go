@@ -68,7 +68,7 @@ func VAVdata(cattype EqpType, s string, vavca *VAVCA) int {
 	return id
 }
 
-func VWVint(VAVs []VAV, Compn []COMPNT) {
+func VWVint(VAVs []VAV, Compn []*COMPNT) {
 	for i := range VAVs {
 		vav := &VAVs[i]
 		vav.Hcc = nil
@@ -257,7 +257,7 @@ func vavswptr(key []string, VAV *VAV) (VPTR, error) {
 	return VPTR{}, errors.New("vavswptr error")
 }
 
-func chvavswreset(Qload float64, chmode rune, vav *VAV) int {
+func chvavswreset(Qload float64, chmode ControlSWType, vav *VAV) int {
 	if (chmode == HEATING_SW && Qload < 0.0) ||
 		(chmode == COOLING_SW && Qload > 0.0) {
 		vav.G = vav.Cat.Gmin

@@ -26,7 +26,7 @@ import (
 
 /*  窓の熱抵抗の変更 */
 
-func Windowschdlr(isw []rune, windows []WINDOW, N int, ds []RMSRF) {
+func Windowschdlr(isw []ControlSWType, windows []WINDOW, N int, ds []RMSRF) {
 	for i := 0; i < N; i++ {
 		sd := &ds[i]
 		if sd.ble == BLE_Window {

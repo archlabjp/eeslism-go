@@ -77,7 +77,7 @@ func roomvptr(Nk int, key []string, Room *ROOM) (VPTR, error) {
 
 /* 室負荷計算時の設定値ポインター */
 
-func roomldptr(load *rune, key []string, Room *ROOM, idmrk *byte) (VPTR, error) {
+func roomldptr(load *ControlSWType, key []string, Room *ROOM, idmrk *byte) (VPTR, error) {
 	var err error
 	var i int
 	var Sd *RMSRF

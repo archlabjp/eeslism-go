@@ -24,7 +24,7 @@ import (
 
 /*  システム変数名、内部変数名、スケジュール名のポインター  */
 
-func ctlvptr(s string, Simc *SIMCONTL, Compnt []COMPNT, Mpath []*MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL) (VPTR, VPTR, error) {
+func ctlvptr(s string, Simc *SIMCONTL, Compnt []*COMPNT, Mpath []*MPATH, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL) (VPTR, VPTR, error) {
 	var err error
 	var vptr, vpath VPTR
 
@@ -64,7 +64,7 @@ func strkey(s string) ([]string, int) {
 /* ----------------------------------------------------------------- */
 
 // 経路名、システム変数名、内部変数名のポインターを作成する
-func kynameptr(s string, Simc *SIMCONTL, _Compnt []COMPNT,
+func kynameptr(s string, Simc *SIMCONTL, _Compnt []*COMPNT,
 	Mpath []*MPATH, Wd *WDAT, Exsf *EXSFS) (VPTR, VPTR, error) {
 	var err error
 	var vptr, vpath VPTR
@@ -152,7 +152,7 @@ func kynameptr(s string, Simc *SIMCONTL, _Compnt []COMPNT,
 
 		if err != nil {
 			for i := range _Compnt {
-				Compnt := &_Compnt[i]
+				Compnt := _Compnt[i]
 				if key[0] == Compnt.Name {
 					vptr, err = compntvptr(nk, key, Compnt)
 					if err != nil {
@@ -260,10 +260,10 @@ func pathvptr(nk int, key []string, Mpath []*MPATH) (VPTR, VPTR, error) {
 	return vptr, vpath, err
 }
 
-func Compntptr(name string, Compnt []COMPNT) *COMPNT {
+func Compntptr(name string, Compnt []*COMPNT) *COMPNT {
 	for i := range Compnt {
 		if name == Compnt[i].Name {
-			return &Compnt[i]
+			return Compnt[i]
 		}
 	}
 
@@ -322,7 +322,7 @@ func compntvptr(nk int, key []string, Compnt *COMPNT) (VPTR, error) {
 // 負荷計算を行うシステム要素の設定システム変数のポインターを作成します。
 // 負荷計算を行うシステム要素の設定システム変数のポインターを作成し、 vtr に保存します。
 // 内部では、 boildptr, refaldptr, hcldptr, pipeldsptr, rdpnlldsptr,roomldptr に処理を委譲します。
-func loadptr(loadcmp *COMPNT, load *rune, s string, _Compnt []COMPNT) (VPTR, error) {
+func loadptr(loadcmp *COMPNT, load *ControlSWType, s string, _Compnt []*COMPNT) (VPTR, error) {
 	var Room *ROOM
 	var key []string
 	var idmrk byte = ' '
@@ -334,7 +334,7 @@ func loadptr(loadcmp *COMPNT, load *rune, s string, _Compnt []COMPNT) (VPTR, err
 
 	if nk != 0 {
 		for i := range _Compnt {
-			Compnt := &_Compnt[i]
+			Compnt := _Compnt[i]
 			if key[0] == Compnt.Name {
 				switch Compnt.Eqptype {
 				case BOILER_TYPE:

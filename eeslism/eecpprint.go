@@ -27,7 +27,7 @@ func cmpprint(id, N int, cmp []COMPNT, Elout []*ELOUT, Elin []*ELIN) {
 	}
 }
 
-func eloutprint(id int, E []*ELOUT, cmp []COMPNT) {
+func eloutprint(id int, E []*ELOUT, cmp []*COMPNT) {
 	if id == 1 {
 		fmt.Printf("ELOUT\n  n name            id fld contl sysld Cmp   G      cfo    cfin\n")
 	}
@@ -35,7 +35,7 @@ func eloutprint(id int, E []*ELOUT, cmp []COMPNT) {
 		e := E[i]
 		var eCmpIdx int
 		for eCmpIdx = 0; eCmpIdx < len(cmp); eCmpIdx++ {
-			if e.Cmp == &cmp[eCmpIdx] {
+			if e.Cmp == cmp[eCmpIdx] {
 				break
 			}
 		}
@@ -50,7 +50,7 @@ func eloutprint(id int, E []*ELOUT, cmp []COMPNT) {
 	}
 }
 
-func eloutfprint(id int, E []*ELOUT, cmp []COMPNT) {
+func eloutfprint(id int, E []*ELOUT, cmp []*COMPNT) {
 	if id == 1 {
 		fmt.Fprintf(Ferr, "ELOUT\n  n         id fld contl sysld Cmp   G      cfo    cfin\n")
 	}
@@ -58,7 +58,7 @@ func eloutfprint(id int, E []*ELOUT, cmp []COMPNT) {
 		e := E[i]
 		cmp_idx := 0
 		for cmp_idx = 0; cmp_idx < len(cmp); cmp_idx++ {
-			if e.Cmp == &cmp[cmp_idx] {
+			if e.Cmp == cmp[cmp_idx] {
 				break
 			}
 		}
@@ -73,7 +73,7 @@ func eloutfprint(id int, E []*ELOUT, cmp []COMPNT) {
 	}
 }
 
-func elinprint(id int, C []COMPNT, eo []*ELOUT, ei []*ELIN) {
+func elinprint(id int, C []*COMPNT, eo []*ELOUT, ei []*ELIN) {
 	var E *ELIN
 	var Eo []*ELOUT
 	var o, v int
@@ -83,7 +83,7 @@ func elinprint(id int, C []COMPNT, eo []*ELOUT, ei []*ELIN) {
 	}
 
 	for i := range C {
-		Ci := &C[i]
+		Ci := C[i]
 		Eo = Ci.Elouts
 
 		for ii := 0; ii < Ci.Nout; ii++ {
@@ -136,7 +136,7 @@ func elinprint(id int, C []COMPNT, eo []*ELOUT, ei []*ELIN) {
 	}
 }
 
-func elinfprint(id int, C []COMPNT, eo []*ELOUT, ei []*ELIN) {
+func elinfprint(id int, C []*COMPNT, eo []*ELOUT, ei []*ELIN) {
 	var E *ELIN
 	var Eo *ELOUT
 	var o, v int
@@ -146,7 +146,7 @@ func elinfprint(id int, C []COMPNT, eo []*ELOUT, ei []*ELIN) {
 	}
 
 	for i := range C {
-		Ci := &C[i]
+		Ci := C[i]
 
 		for ii := 0; ii < Ci.Nout; ii++ {
 			Eo = Ci.Elouts[ii]

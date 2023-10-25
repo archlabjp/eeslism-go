@@ -16,7 +16,7 @@ import (
 // TODO:
 // - この関数内で Eqsysにメモリを確保すると関数の責務を超えるので、分離独立させたほうが良い。
 //
-func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]COMPNT, Eqsys *EQSYS) {
+func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *EQSYS) {
 	var (
 		Ni, No int
 		cio    ELIOType
@@ -37,7 +37,7 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]CO
 	// }
 
 	//コンポーネント数
-	*Cmp = make([]COMPNT, 0, 100)
+	*Cmp = make([]*COMPNT, 0, 100)
 
 	// fmt.Printf("<Compodata> Compnt Alloc=%d\n", Ncmp)
 	//cmp = Cmp
@@ -76,7 +76,7 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]CO
 	Eqsys.Flin = append(Eqsys.Flin, NewFLIN())
 	D++
 
-	*Cmp = append(*Cmp, *Cmp1, *Cmp2)
+	*Cmp = append(*Cmp, Cmp1, Cmp2)
 
 	/* 室およびパネル用     */
 
@@ -95,7 +95,7 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]CO
 			c.Nivar = 0
 			c.Ivparm = nil
 			c.Airpathcpy = true
-			*Cmp = append(*Cmp, *c)
+			*Cmp = append(*Cmp, c)
 		}
 		Ncrm = 2 + len(Rmvls.Room) // 給水温度設定+取り入れ外気設定+室の数
 
@@ -110,7 +110,7 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]CO
 			c.Nin = 3 + Rdpnl[i].Ntrm[0] + Rdpnl[i].Ntrm[1] + Rdpnl[i].Nrp[0] + Rdpnl[i].Nrp[1] + 1
 			c.Nivar = 0
 			c.Airpathcpy = true
-			*Cmp = append(*Cmp, *c)
+			*Cmp = append(*Cmp, c)
 		}
 
 		// エアフローウィンドウの機器メモリ
@@ -176,7 +176,7 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]CO
 			// 1つ目の2方弁から2つ目の2方弁を参照させる
 			vc1.Valvcmp = vc2
 
-			*Cmp = append(*Cmp, *vc1, *vc2)
+			*Cmp = append(*Cmp, vc1, vc2)
 
 			// 2つ目の要素に対して各種設定を反映させる
 			comp = vc2
@@ -516,7 +516,7 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]CO
 		}
 
 		if Crm == nil {
-			*Cmp = append(*Cmp, *comp)
+			*Cmp = append(*Cmp, comp)
 			D++
 		}
 	}
@@ -524,14 +524,14 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]CO
 	// 空気の分岐要素・合流要素があった場合、内容をコピーして湿度用に分岐要素・合流要素を作成
 	n := len(*Cmp)
 	for i := 0; i < n; i++ {
-		cm := &(*Cmp)[i]
+		cm := (*Cmp)[i]
 		if cm.Eqptype == DIVGAIR_TYPE {
 			c := NewCOMPNT()
 			c.Name = cm.Name + ".x"
 			c.Eqptype = cm.Eqptype
 			c.Nout = cm.Nout
 			c.Ido = cm.Ido
-			*Cmp = append(*Cmp, *c)
+			*Cmp = append(*Cmp, c)
 		} else if cm.Eqptype == CVRGAIR_TYPE {
 			c := NewCOMPNT()
 			c.Name = cm.Name + ".x"
@@ -540,7 +540,7 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]CO
 			c.Idi = cm.Idi
 			// ここで合流要素一覧に追加する理由が不明
 			Eqsys.Cnvrg = append(Eqsys.Cnvrg, nil)
-			*Cmp = append(*Cmp, *c)
+			*Cmp = append(*Cmp, c)
 		}
 	}
 
@@ -558,11 +558,11 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]CO
 	//printf("<<Compodata>> end\n");
 }
 
-func FindCOMPNTByName(s string, Compnt []COMPNT) *COMPNT {
+func FindCOMPNTByName(s string, Compnt []*COMPNT) *COMPNT {
 	cp := (*COMPNT)(nil)
 	for i := range Compnt {
 		if s == Compnt[i].Name {
-			cp = &Compnt[i]
+			cp = Compnt[i]
 			break
 		}
 	}

@@ -47,13 +47,6 @@ func Simcinit(S *SIMCONTL) {
 }
 
 /*****  COMPNT の初期化  *****/
-
-func Compinit(N int, Clist []COMPNT) {
-	for i := 0; i < N; i++ {
-		Clist[i] = *NewCOMPNT()
-	}
-}
-
 func NewCOMPNT() *COMPNT {
 	C := new(COMPNT)
 	C.Name = ""
@@ -90,41 +83,53 @@ func NewCOMPNT() *COMPNT {
 }
 
 /*****  ELOUT の初期化  *****/
-func Eloutinit(EoList []*ELOUT, N int) {
-	for i := 0; i < N; i++ {
-		Eo := new(ELOUT)
-		Eo.Ni = 0
-		Eo.G = 0.0
-		Eo.Co = 0.0
-		Eo.Coeffo = 0.0
-		Eo.Control = ' '
-		Eo.Id = ' '
-		Eo.Fluid, Eo.Sysld = ' ', ' '
-		Eo.Q, Eo.Sysv, Eo.Load = 0.0, 0.0, 0.0
-		Eo.Sv, Eo.Sld = 0, 0
-
-		Eo.Cmp = nil
-		Eo.Elins = nil
-		Eo.Eldobj, Eo.Emonitr = nil, nil
-
-		Eo.Coeffin = nil
-		Eo.Lpath = nil
-		Eo.Pelmoid = 'x'
-
-		EoList[i] = Eo
+func NewEloutSlice(n int) []*ELOUT {
+	s := make([]*ELOUT, n)
+	for i := 0; i < n; i++ {
+		s[i] = NewElout()
 	}
+	return s
+}
+
+func NewElout() *ELOUT {
+	Eo := new(ELOUT)
+	Eo.Ni = 0
+	Eo.G = 0.0
+	Eo.Co = 0.0
+	Eo.Coeffo = 0.0
+	Eo.Control = ' '
+	Eo.Id = ' '
+	Eo.Fluid, Eo.Sysld = ' ', ' '
+	Eo.Q, Eo.Sysv, Eo.Load = 0.0, 0.0, 0.0
+	Eo.Sv, Eo.Sld = 0, 0
+
+	Eo.Cmp = nil
+	Eo.Elins = nil
+	Eo.Eldobj, Eo.Emonitr = nil, nil
+
+	Eo.Coeffin = nil
+	Eo.Lpath = nil
+	Eo.Pelmoid = 'x'
+
+	return Eo
 }
 
 /*****  ELIN の初期化  *****/
-func Elininit(N int, EiList []*ELIN) {
-	for i := 0; i < N; i++ {
-		Ei := new(ELIN)
-		Ei.Id = ' '
-		Ei.Sysvin = 0.0
-		Ei.Upo, Ei.Upv = nil, nil
-		Ei.Lpath = nil
-		EiList[i] = Ei
+func NewElinSlice(n int) []*ELIN {
+	s := make([]*ELIN, n)
+	for i := 0; i < n; i++ {
+		s[i] = NewElin()
 	}
+	return s
+}
+
+func NewElin() *ELIN {
+	Ei := new(ELIN)
+	Ei.Id = ' '
+	Ei.Sysvin = 0.0
+	Ei.Upo, Ei.Upv = nil, nil
+	Ei.Lpath = nil
+	return Ei
 }
 
 func NewPLIST() *PLIST {

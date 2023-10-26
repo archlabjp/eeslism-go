@@ -386,7 +386,7 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 			/*****Flwindata(Flwin, Nflwin,  Wd);********/
 			section := tokens.GetSection()
 			Compodata(section, "Compodata", Rmvls, Eqcat, Compnt, Eqsys)
-			Elmalloc("Elmalloc ", *Compnt, Eqcat, Eqsys, Elout, Nelout, Elin, Nelin)
+			Elmalloc("Elmalloc ", *Compnt, Eqcat, Eqsys, Elout, Elin)
 
 		case "SYSPTH": // 接続パスの設定をしている
 			section := tokens.GetSection()

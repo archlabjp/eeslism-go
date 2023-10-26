@@ -92,6 +92,7 @@ type FliudType rune
 
 const (
 	AIR_FLD   FliudType = 'A' // 空気??
+	AIRt_FLD  FliudType = 't' // 空気（温度）
 	AIRa_FLD  FliudType = 'a' // 空気（温度）
 	AIRx_FLD  FliudType = 'x' // 空気（湿度）
 	WATER_FLD FliudType = 'W' // 水
@@ -187,7 +188,7 @@ type ELOUT struct {
 	Ni      int       // 入口の数
 	Sv      int
 	Sld     int
-	Cmp     *COMPNT // 機器出口の構造体が属する機器
+	Cmp     *COMPNT // 機器出口の構造体が属する機器(逆参照)
 	Elins   []*ELIN // 機器出口の構造体が関連する機器入口
 	Lpath   *PLIST  // 機器出口が属する末端経路
 	Eldobj  *ELOUT
@@ -216,6 +217,7 @@ const (
 	ELIO_W     ELIOType = 'W' // 温水温度
 	ELIO_w     ELIOType = 'w'
 	ELIO_t     ELIOType = 't' // 空気温度
+	ELIO_i     ELIOType = 'i'
 	ELIO_ASTER ELIOType = '*'
 	ELIO_SPACE ELIOType = ' '
 )

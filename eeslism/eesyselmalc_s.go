@@ -2,7 +2,11 @@ package eeslism
 
 /* 機器使用データの割り付けおよびシステム要素から入力、出力要素の割り付け */
 
-const idmrkc = "txW"
+var idmrkc = []FliudType{
+	AIRt_FLD,  //'t' 空気（温度）
+	AIRx_FLD,  //'x' 空気（湿度）
+	WATER_FLD, //'W' 水
+}
 
 func Elmalloc(
 	errkey string,
@@ -10,14 +14,9 @@ func Elmalloc(
 	Eqcat *EQCAT,
 	Eqsys *EQSYS,
 	Elo *[]*ELOUT,
-	Nelout *int,
 	Eli *[]*ELIN,
-	Nelin *int,
 ) {
 	var cmp []*COMPNT
-	var elop, elo *ELOUT
-	var room *ROOM
-	var rdpnl *RDPNL
 	var Hcc *HCC
 	var Boi *BOI
 	var Refa *REFA
@@ -40,27 +39,18 @@ func Elmalloc(
 	icv := 0
 	var name string
 
-	var id string
 	var Nvalv, NQmeas, NOMvav int
 	idTe := "EO"
 	idTo := "OE"
 	var idxe, idxo []ELIOType
 
 	cmp = _Compnt
-	Nout, Nin := Elcount(_Compnt)
 
-	if Nout > 0 {
-		*Elo = make([]*ELOUT, Nout)
-		Eloutinit(*Elo, Nout)
-	}
+	*Elo = make([]*ELOUT, 0)
+	*Eli = make([]*ELIN, 0)
 
-	if Nin > 0 {
-		*Eli = make([]*ELIN, Nin)
-		Elininit(Nin, *Eli)
-	}
-
-	eloIdx := 0
-	elinIdx := 0
+	// eloIdx := 0
+	// elinIdx := 0
 
 	flinIdx := 0
 	hcloadIdx := 0
@@ -68,12 +58,11 @@ func Elmalloc(
 	Flin = Eqsys.Flin
 	Hcload = Eqsys.Hcload
 
-	for m := range _Compnt {
-		Compnt := _Compnt[m]
+	for _, Compnt := range _Compnt {
 
 		if Compnt.Eqptype != PV_TYPE {
-			Compnt.Elouts = (*Elo)[eloIdx : eloIdx+Compnt.Nout]
-			Compnt.Elins = (*Eli)[elinIdx : elinIdx+Compnt.Nin]
+			Compnt.Elouts = make([]*ELOUT, 0)
+			Compnt.Elins = make([]*ELIN, 0)
 		}
 
 		name = Compnt.Name
@@ -83,76 +72,88 @@ func Elmalloc(
 		c := Compnt.Eqptype
 
 		if SIMUL_BUILDG && c == ROOM_TYPE {
-			room = Compnt.Eqp.(*ROOM)
-			room.cmp = Compnt
+			room := Compnt.Eqp.(*ROOM)
+			room.cmp = Compnt //逆参照の設定
 
-			id = idmrkc
-			for i = 0; i < 2; i++ {
-				Elout := (*Elo)[eloIdx]
-				Elout.Cmp = Compnt
+			id := idmrkc
+			for i := 0; i < 2; i++ {
+				Elout := NewElout()
+				Elout.Cmp = Compnt //逆参照の設定
 				Elout.Id = ELIOType(id[i])
 				Elout.Fluid = FliudType(id[i])
 				if i == 0 {
+					// 空気温度の流入経路の数
 					Elout.Ni = room.Nachr + room.Ntr + room.Nrp + room.Nasup
 				} else if i == 1 {
+					// 空気湿度の流入経路の数
 					Elout.Ni = room.Nachr + room.Nasup
 				}
-				Elout.Elins = (*Eli)[elinIdx : elinIdx+Elout.Ni]
+				Elout.Elins = NewElinSlice(Elout.Ni)
 
-				elinIdx += Elout.Ni
-				eloIdx++
+				*Elo = append(*Elo, Elout)
+				*Eli = append(*Eli, Elout.Elins...)
+
+				Compnt.Elouts = append(Compnt.Elouts, Elout)
+				Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 			}
-			elo = Compnt.Elouts[0]
-			room.elinasup = elo.Elins[room.Nachr+room.Ntr+room.Nrp:]
-			elo = Compnt.Elouts[1]
-			room.elinasupx = elo.Elins[room.Nachr:]
+
+			// 空気温度・湿度それぞれの流入経路の設定
+			room.elinasup = Compnt.Elouts[0].Elins[room.Nachr+room.Ntr+room.Nrp:]
+			room.elinasupx = Compnt.Elouts[1].Elins[room.Nachr:]
 		} else if SIMUL_BUILDG && c == RDPANEL_TYPE {
-			rdpnl = Compnt.Eqp.(*RDPNL)
+			rdpnl := Compnt.Eqp.(*RDPNL)
 			rdpnl.cmp = Compnt
 			rdpnl.Tpi = 15.0
 
-			Elout := (*Elo)[eloIdx]
-			Elout.Cmp = Compnt
-			Elout.Id = 'f'
-			Elout.Ni = 1 + 1 + rdpnl.Ntrm[0] + rdpnl.Nrp[0]
+			// 空気経路温度用
+			Elout_t := NewElout()
+			Elout_t.Cmp = Compnt
+			Elout_t.Id = ELIO_f
+			Elout_t.Ni = 1 + 1 + rdpnl.Ntrm[0] + rdpnl.Nrp[0]
 			if rdpnl.MC == 2 {
-				Elout.Ni += 1 + rdpnl.Ntrm[1] + rdpnl.Nrp[1]
+				// 共用壁の場合
+				Elout_t.Ni += 1 + rdpnl.Ntrm[1] + rdpnl.Nrp[1]
 			}
-			Elout.Elins = (*Eli)[elinIdx : elinIdx+Elout.Ni]
+			Elout_t.Elins = make([]*ELIN, 0, Elout_t.Ni)
 
-			eloIdx++
-
-			Elin := (*Eli)[elinIdx]
+			Elin := NewElin()
 			Elin.Id = ELIO_f
-			elinIdx++
+			Elout_t.Elins = append(Elout_t.Elins, Elin)
 
 			for mm = 0; mm < rdpnl.MC; mm++ {
-
-				Elin = (*Eli)[elinIdx]
+				Elin := NewElin()
 				Elin.Id = ELIO_r
-				elinIdx++
+				Elout_t.Elins = append(Elout_t.Elins, Elin)
 
 				for ii = 0; ii < rdpnl.Ntrm[mm]; ii++ {
-					Elin = (*Eli)[elinIdx]
+					Elin := NewElin()
 					Elin.Id = ELIO_r
-					elinIdx++
+					Elout_t.Elins = append(Elout_t.Elins, Elin)
 				}
 				for ii = 0; ii < rdpnl.Nrp[mm]; ii++ {
-					Elin = (*Eli)[elinIdx]
+					Elin := NewElin()
 					Elin.Id = ELIO_f
-					elinIdx++
+					Elout_t.Elins = append(Elout_t.Elins, Elin)
 				}
 			}
 
-			/* 空気経路湿度用 */
-			Elout = (*Elo)[eloIdx]
-			Elout.Ni = 1
-			Elout.Cmp = Compnt
-			Elout.Elins = (*Eli)[elinIdx : elinIdx+1]
-			Elout.Id = ELIO_x
+			*Elo = append(*Elo, Elout_t)
+			*Eli = append(*Eli, Elout_t.Elins...)
+
+			// 空気経路湿度用
+			Elout_x := NewElout()
+			Elout_x.Cmp = Compnt
+			Elout_x.Id = ELIO_x
+			Elout_x.Ni = 1
+			Elout_x.Elins = make([]*ELIN, 0, Elout_x.Ni)
 			Elin.Id = ELIO_x
-			eloIdx++
-			elinIdx++
+
+			*Elo = append(*Elo, Elout_x)
+			*Eli = append(*Eli, Elout_x.Elins...)
+
+			Compnt.Elouts = append(Compnt.Elouts, Elout_t, Elout_x)
+			Compnt.Elins = append(Compnt.Elins, Elout_t.Elins...)
+			Compnt.Elins = append(Compnt.Elins, Elout_x.Elins...)
 		} else if c == DIVERG_TYPE || c == DIVGAIR_TYPE {
 			if c == DIVGAIR_TYPE {
 				Compnt.Airpathcpy = true
@@ -162,20 +163,22 @@ func Elmalloc(
 
 			Compnt.Nin = 1
 
-			for i = 0; i < Compnt.Nout; i++ {
-				Elout := (*Elo)[eloIdx]
+			// 分岐なので、入口は共通で1つ
+			Elin := NewElin()
+			Elin.Id = ELIO_i
+			*Eli = append(*Eli, Elin)
+			Compnt.Elins = append(Compnt.Elins, Elin)
+
+			// 出口は複数
+			for i := 0; i < Compnt.Nout; i++ {
+				Elout := NewElout()
 				Elout.Cmp = Compnt
-
 				Elout.Ni = Compnt.Nin
-				Elout.Elins = (*Eli)[elinIdx : elinIdx+Elout.Ni]
-
+				Elout.Elins = []*ELIN{Elin} //共通
 				Elout.Id = Compnt.Ido[i]
-				eloIdx++
+				*Elo = append(*Elo, Elout)
+				Compnt.Elouts = append(Compnt.Elouts, Elout)
 			}
-
-			Elin := (*Eli)[elinIdx]
-			Elin.Id = 'i'
-			elinIdx++
 		} else if c == CONVRG_TYPE || c == CVRGAIR_TYPE {
 			if c == CVRGAIR_TYPE {
 				Compnt.Airpathcpy = true
@@ -188,19 +191,24 @@ func Elmalloc(
 			Cnvrg[icv] = Compnt
 			icv++
 
-			Elout := (*Elo)[eloIdx]
-			Elout.Id = 'o'
+			// 合流なので、出口は1つ
+			Elout := NewElout()
+			Elout.Id = ELIO_o
 			Elout.Cmp = Compnt
-
 			Elout.Ni = Compnt.Nin
-			Elout.Elins = (*Eli)[elinIdx : elinIdx+Elout.Ni]
+			Elout.Elins = make([]*ELIN, 0, Elout.Ni)
 
-			eloIdx++
-			for i = 0; i < Compnt.Nin; i++ {
-				Elin := (*Eli)[elinIdx]
+			// 入口は複数
+			for i := 0; i < Compnt.Nin; i++ {
+				Elin := NewElin()
 				Elin.Id = Compnt.Idi[i]
-				elinIdx++
+				Elout.Elins = append(Elout.Elins, Elin)
 			}
+
+			*Elo = append(*Elo, Elout)
+			*Eli = append(*Eli, Elout.Elins...)
+			Compnt.Elouts = append(Compnt.Elouts, Elout)
+			Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 		} else if c == HCCOIL_TYPE {
 			Hcc = &Eqsys.Hcc[neqp]
 			Compnt.Eqp = Hcc
@@ -208,20 +216,21 @@ func Elmalloc(
 			Hcc.Cmp = Compnt
 			Hcc.Cat = &Eqcat.Hccca[ncat]
 
+			// 入口の数=出口の数
 			for i = 0; i < Compnt.Nout; i++ {
-				Elin := (*Eli)[elinIdx]
-				Elout := (*Elo)[eloIdx]
-
+				Elout := NewElout()
 				Elout.Cmp = Compnt
-
 				Elout.Ni = Compnt.Nin
 				Elout.Elins = Compnt.Elins
-
 				Elout.Id = Compnt.Ido[i]
+
+				Elin := NewElin()
 				Elin.Id = Compnt.Idi[i]
 
-				eloIdx++
-				elinIdx++
+				*Elo = append(*Elo, Elout)
+				*Eli = append(*Eli, Elout.Elins...)
+				Compnt.Elouts = append(Compnt.Elouts, Elout)
+				Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 			}
 		} else if c == HEXCHANGR_TYPE {
 			Hex := &Eqsys.Hex[neqp]
@@ -231,19 +240,19 @@ func Elmalloc(
 			Hex.Cat = &Eqcat.Hexca[ncat]
 
 			for i = 0; i < Compnt.Nout; i++ {
-				Elin := (*Eli)[elinIdx]
-				Elout := (*Elo)[eloIdx]
-
+				Elout := NewElout()
 				Elout.Cmp = Compnt
-
 				Elout.Ni = Compnt.Nin
 				Elout.Elins = Compnt.Elins
-
 				Elout.Id = Compnt.Ido[i]
+
+				Elin := NewElin()
 				Elin.Id = Compnt.Idi[i]
 
-				eloIdx++
-				elinIdx++
+				*Elo = append(*Elo, Elout)
+				*Eli = append(*Eli, Elout.Elins...)
+				Compnt.Elouts = append(Compnt.Elouts, Elout)
+				Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 			}
 		} else if c == BOILER_TYPE {
 			Boi = &Eqsys.Boi[neqp]
@@ -252,13 +261,15 @@ func Elmalloc(
 			Boi.Cmp = Compnt
 			Boi.Cat = &Eqcat.Boica[ncat]
 
-			Elout := (*Elo)[eloIdx]
+			Elout := NewElout()
 			Elout.Cmp = Compnt
 			Elout.Ni = Compnt.Nin
-			Elout.Elins = (*Eli)[elinIdx : elinIdx+Elout.Ni]
+			Elout.Elins = NewElinSlice(Elout.Ni)
 
-			eloIdx++
-			elinIdx++
+			*Elo = append(*Elo, Elout)
+			*Eli = append(*Eli, Elout.Elins...)
+			Compnt.Elouts = append(Compnt.Elouts, Elout)
+			Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 		} else if c == COLLECTOR_TYPE || c == ACOLLECTOR_TYPE {
 			Coll = &Eqsys.Coll[neqp]
 			Compnt.Eqp = Coll
@@ -268,28 +279,31 @@ func Elmalloc(
 			Coll.Ac = Compnt.Ac
 
 			if Coll.Cat.Type == COLLECTOR_PDT {
-				Elout := (*Elo)[eloIdx]
+				Elout := NewElout()
 				Elout.Cmp = Compnt
 
 				Elout.Ni = 1
-				Elout.Elins = (*Eli)[elinIdx : elinIdx+1]
+				Elout.Elins = NewElinSlice(Elout.Ni)
 
-				eloIdx++
-				elinIdx++
+				*Elo = append(*Elo, Elout)
+				*Eli = append(*Eli, Elout.Elins...)
+				Compnt.Elouts = append(Compnt.Elouts, Elout)
+				Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 			} else {
-				id = idmrkc
 				for i = 0; i < Compnt.Nout; i++ {
-					Elin := (*Eli)[elinIdx]
-					Elout := (*Elo)[eloIdx]
+					Elin := NewElin()
+					Elout := NewElout()
 
 					Elout.Cmp = Compnt
 					Elout.Id = ELIOType(idmrkc[i])
 					Elin.Id = ELIOType(idmrkc[i])
 					Elout.Ni = 1
-					Elout.Elins = (*Eli)[elinIdx : elinIdx+1]
+					Elout.Elins = []*ELIN{Elin}
 
-					eloIdx++
-					elinIdx++
+					*Elo = append(*Elo, Elout)
+					*Eli = append(*Eli, Elout.Elins...)
+					Compnt.Elouts = append(Compnt.Elouts, Elout)
+					Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 				}
 			}
 		} else if c == PV_TYPE {
@@ -307,13 +321,15 @@ func Elmalloc(
 			Refa.Cmp = Compnt
 			Refa.Cat = &Eqcat.Refaca[ncat]
 
-			Elout := (*Elo)[eloIdx]
+			Elout := NewElout()
 			Elout.Cmp = Compnt
 			Elout.Ni = Compnt.Nin
-			Elout.Elins = (*Eli)[elinIdx : elinIdx+Elout.Ni]
+			Elout.Elins = NewElinSlice(Elout.Ni)
 
-			eloIdx++
-			elinIdx++
+			*Elo = append(*Elo, Elout)
+			*Eli = append(*Eli, Elout.Elins...)
+			Compnt.Elouts = append(Compnt.Elouts, Elout)
+			Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 		} else if c == PUMP_TYPE {
 			Pump = &Eqsys.Pump[neqp]
 			Compnt.Eqp = Pump
@@ -322,25 +338,29 @@ func Elmalloc(
 			Pump.Cat = &Eqcat.Pumpca[ncat]
 
 			if Pump.Cat.pftype == PUMP_PF {
-				Elout := (*Elo)[eloIdx]
+				Elout := NewElout()
 				Elout.Cmp = Compnt
-				Elout.Elins = (*Eli)[elinIdx : elinIdx+1]
+				Elout.Elins = NewElinSlice(1)
 				Elout.Ni = 1
-				eloIdx++
-				elinIdx++
+				*Elo = append(*Elo, Elout)
+				*Eli = append(*Eli, Elout.Elins...)
+				Compnt.Elouts = append(Compnt.Elouts, Elout)
+				Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 			} else {
 				for i = 0; i < Compnt.Nout; i++ {
-					Elin := (*Eli)[elinIdx]
-					Elout := (*Elo)[eloIdx]
+					Elin := NewElin()
+					Elout := NewElout()
 
 					Elout.Cmp = Compnt
 					Elout.Id = ELIOType(idmrkc[i])
 					Elin.Id = ELIOType(idmrkc[i])
-					Elout.Elins = (*Eli)[elinIdx : elinIdx+1]
+					Elout.Elins = NewElinSlice(1)
 					Elout.Ni = 1
 
-					eloIdx++
-					elinIdx++
+					*Elo = append(*Elo, Elout)
+					*Eli = append(*Eli, Elout.Elins...)
+					Compnt.Elouts = append(Compnt.Elouts, Elout)
+					Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 				}
 			}
 		} else if c == PIPEDUCT_TYPE {
@@ -351,28 +371,31 @@ func Elmalloc(
 			Pipe.Cat = &Eqcat.Pipeca[ncat]
 
 			if Pipe.Cat.Type == PIPE_PDT {
-				Elout := (*Elo)[eloIdx]
+				Elout := NewElout()
 
 				Elout.Cmp = Compnt
-				Elout.Elins = (*Eli)[elinIdx : elinIdx+1]
+				Elout.Elins = NewElinSlice(1)
 				Elout.Ni = 1
 
-				eloIdx++
-				elinIdx++
+				*Elo = append(*Elo, Elout)
+				*Eli = append(*Eli, Elout.Elins...)
+				Compnt.Elouts = append(Compnt.Elouts, Elout)
+				Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 			} else {
-				id = idmrkc
 				for i = 0; i < Compnt.Nout; i++ {
-					Elin := (*Eli)[elinIdx]
-					Elout := (*Elo)[eloIdx]
+					Elin := NewElin()
+					Elout := NewElout()
 
 					Elout.Cmp = Compnt
 					Elout.Id = ELIOType(idmrkc[i])
 					Elin.Id = ELIOType(idmrkc[i])
-					Elout.Elins = (*Eli)[elinIdx : elinIdx+1]
+					Elout.Elins = []*ELIN{Elin}
 					Elout.Ni = 1
 
-					eloIdx++
-					elinIdx++
+					*Elo = append(*Elo, Elout)
+					*Eli = append(*Eli, Elout.Elins...)
+					Compnt.Elouts = append(Compnt.Elouts, Elout)
+					Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 				}
 			}
 		} else if c == STANK_TYPE {
@@ -389,25 +412,26 @@ func Elmalloc(
 			Compnt.Idi = make([]ELIOType, Stank.Nin)
 			Compnt.Ido = make([]ELIOType, Stank.Nin)
 
+			// 入力は共通
+			Elins := NewElinSlice(Compnt.Nin)
+			for i := 0; i < Compnt.Nin; i++ {
+				Elins[i].Id = Stank.Pthcon[i]
+				Compnt.Idi[i] = Stank.Pthcon[i]
+			}
+			*Eli = append(*Eli, Elins...)
+			Compnt.Elins = append(Compnt.Elins, Elins...)
+
 			for i = 0; i < Compnt.Nout; i++ {
-				Elout := (*Elo)[eloIdx]
+				Elout := NewElout()
 
 				Elout.Cmp = Compnt
 				Elout.Ni = Compnt.Nin
-				Elout.Elins = (*Eli)[elinIdx : elinIdx+Elout.Ni]
+				Elout.Elins = Elins
 				Elout.Id = Stank.Pthcon[i]
 				Compnt.Ido[i] = Stank.Pthcon[i]
 
-				eloIdx++
-			}
-
-			for i = 0; i < Compnt.Nin; i++ {
-				Elin := (*Eli)[elinIdx]
-
-				Elin.Id = Stank.Pthcon[i]
-				Compnt.Idi[i] = Stank.Pthcon[i]
-
-				elinIdx++
+				*Elo = append(*Elo, Elout)
+				Compnt.Elouts = append(Compnt.Elouts, Elout)
 			}
 		} else if c == FLIN_TYPE {
 			// 流入境界条件
@@ -418,18 +442,16 @@ func Elmalloc(
 			flindat(&Flin[flinIdx])
 
 			for i = 0; i < Compnt.Nout; i++ {
-				//Elin := (*Eli)[elinIdx]
-				Elout := (*Elo)[eloIdx]
-
+				Elout := NewElout()
 				Elout.Cmp = Compnt
-
 				Elout.Ni = Compnt.Nin
-				Elout.Elins = Compnt.Elins
-
+				Elout.Elins = NewElinSlice(1)
 				Elout.Id = Compnt.Ido[i]
 
-				eloIdx++
-				elinIdx++
+				*Elo = append(*Elo, Elout)
+				*Eli = append(*Eli, Elout.Elins...)
+				Compnt.Elouts = append(Compnt.Elouts, Elout)
+				Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 			}
 
 			flinIdx++
@@ -481,14 +503,11 @@ func Elmalloc(
 
 			// 空気の絶対湿度用経路コピーを行う
 			Compnt.Airpathcpy = true
-			id = idmrkc
-			for i = 0; i < Compnt.Nout; i++ {
-				Elin := (*Eli)[elinIdx]
-				Elout := (*Elo)[eloIdx]
+			for i := 0; i < Compnt.Nout; i++ {
+				Elout := NewElout()
 
 				Elout.Cmp = Compnt
 				Elout.Id = ELIOType(idmrkc[i])
-				Elin.Id = ELIOType(idmrkc[i])
 
 				Elout.Ni = 1
 				//Elout.Ni = 2;
@@ -503,20 +522,25 @@ func Elmalloc(
 					// 空気出口温度、空気出口湿度
 					Elout.Ni = 5
 				}
-				Elout.Elins = (*Eli)[elinIdx : elinIdx+Elout.Ni]
+				Elout.Elins = NewElinSlice(Elout.Ni)
 
-				for ii = 0; ii < Elout.Ni; ii++ {
+				for ii := 0; ii < Elout.Ni; ii++ {
+					Elout.Elins[ii].Id = Elout.Id
+
 					// 空気出口絶対湿度の計算の2つ目の変数は空気出口温度
 					if i == 1 && ii == 1 {
-						Elin.Id = ELIO_ASTER
+						Elout.Elins[ii].Id = ELIO_ASTER
 					}
-					elinIdx++
 				}
+				*Eli = append(*Eli, Elout.Elins...)
 
 				/***** printf("xxx Elmalloc xxx   %s  i=%d  Elout.Ni=%d\n",
 				Hcload.name, i, Elout.Ni); *****/
 
-				eloIdx++
+				*Elo = append(*Elo, Elout)
+
+				Compnt.Elouts = append(Compnt.Elouts, Elout)
+				Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 			}
 			hcloadIdx++
 		} else if c == VAV_TYPE || c == VWV_TYPE {
@@ -532,26 +556,31 @@ func Elmalloc(
 			if Eqsys.Vav[neqp].Cat.Type == VAV_PDT {
 				Compnt.Airpathcpy = true
 				for i = 0; i < Compnt.Nout; i++ {
-					Elin := (*Eli)[elinIdx]
-					Elout := (*Elo)[eloIdx]
+					Elin := NewElin()
+					Elout := NewElout()
 
 					Elout.Cmp = Compnt
 					Elout.Id = ELIOType(idmrkc[i])
 					Elin.Id = ELIOType(idmrkc[i])
-					Elout.Elins = (*Eli)[elinIdx : elinIdx+1]
+					Elout.Elins = []*ELIN{Elin}
 					Elout.Ni = 1
 
-					eloIdx++
-					elinIdx++
+					*Elo = append(*Elo, Elout)
+					*Eli = append(*Eli, Elout.Elins...)
+					Compnt.Elouts = append(Compnt.Elouts, Elout)
+					Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 				}
 			} else {
-				//Elin := (*Eli)[elinIdx]
-				Elout := (*Elo)[eloIdx]
+				Elin := NewElin()
+				Elout := NewElout()
 				Elout.Cmp = Compnt
-				Elout.Elins = (*Eli)[elinIdx : elinIdx+1]
+				Elout.Elins = []*ELIN{Elin}
 				Elout.Ni = 1
-				eloIdx++
-				elinIdx++
+
+				*Elo = append(*Elo, Elout)
+				*Eli = append(*Eli, Elout.Elins...)
+				Compnt.Elouts = append(Compnt.Elouts, Elout)
+				Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 			}
 		} else if c == STHEAT_TYPE {
 			// 電気蓄熱暖房器
@@ -565,19 +594,20 @@ func Elmalloc(
 			Compnt.Nin = 2
 			Compnt.Nout = 2
 
-			id = idmrkc
 			for i = 0; i < Compnt.Nout; i++ {
-				Elin := (*Eli)[elinIdx]
-				Elout := (*Elo)[eloIdx]
+				Elin := NewElin()
+				Elout := NewElout()
 
 				Elout.Cmp = Compnt
 				Elout.Id = ELIOType(idmrkc[i])
 				Elin.Id = ELIOType(idmrkc[i])
-				Elout.Elins = (*Eli)[elinIdx : elinIdx+1]
+				Elout.Elins = []*ELIN{Elin}
 				Elout.Ni = 1
 
-				eloIdx++
-				elinIdx++
+				*Elo = append(*Elo, Elout)
+				*Eli = append(*Eli, Elout.Elins...)
+				Compnt.Elouts = append(Compnt.Elouts, Elout)
+				Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 			}
 		} else if c == DESI_TYPE {
 			// Satoh追加　デシカント槽　2013/10/23
@@ -591,20 +621,21 @@ func Elmalloc(
 			// 絶対湿度経路のコピー
 			Compnt.Airpathcpy = true
 
-			id = idmrkc
-			for i = 0; i < Compnt.Nout; i++ {
-				Elin := (*Eli)[elinIdx]
-				Elout := (*Elo)[eloIdx]
+			for i := 0; i < Compnt.Nout; i++ {
+				Elout := NewElout()
 
 				Elout.Cmp = Compnt
 				Elout.Id = ELIOType(idmrkc[i])
-				Elin.Id = ELIOType(idmrkc[i])
-				Elout.Elins = (*Eli)[elinIdx : elinIdx+2]
+				Elout.Elins = NewElinSlice(2)
+				Elout.Elins[0].Id = ELIOType(idmrkc[i])
 
 				// すべての出口状態計算のための変数は2つ（温度と湿度）
 				Elout.Ni = 2
 
-				eloIdx++
+				*Elo = append(*Elo, Elout)
+				*Eli = append(*Eli, Elout.Elins...)
+				Compnt.Elouts = append(Compnt.Elouts, Elout)
+				Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 			}
 		} else if c == EVAC_TYPE {
 			// Satoh追加　気化冷却器 2013/10/26
@@ -627,19 +658,19 @@ func Elmalloc(
 				ELIO_D, ELIO_d, ELIO_V, ELIO_v,
 			}
 			for i = 0; i < Compnt.Nout; i++ {
-				Elin := (*Eli)[elinIdx]
-				Elout := (*Elo)[eloIdx]
-
+				Elout := NewElout()
 				Elout.Cmp = Compnt
 				Elout.Id = idd[i]
-				Elin.Id = idd[i]
-				Elout.Elins = (*Eli)[elinIdx : elinIdx+4]
+				Elout.Elins = NewElinSlice(4)
 				// すべての出口状態計算のための変数は4つ（Wet、Dryの温度と湿度）
 				Elout.Ni = 4
 				// 出口状態計算のための変数分だけメモリを確保する
-				elinIdx += Elout.Ni
+				Elout.Elins[0].Id = idd[i]
 
-				eloIdx++
+				*Elo = append(*Elo, Elout)
+				*Eli = append(*Eli, Elout.Elins...)
+				Compnt.Elouts = append(Compnt.Elouts, Elout)
+				Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 			}
 		} else if c == VALV_TYPE || c == TVALV_TYPE {
 			Valv := &Eqsys.Valv[Nvalv]
@@ -683,8 +714,7 @@ func Elmalloc(
 			Compnt.Nout = 4
 
 			for i = 0; i < Compnt.Nout; i++ {
-				Elin := (*Eli)[elinIdx]
-				Elout := (*Elo)[eloIdx]
+				Elout := NewElout()
 
 				Elout.Cmp = Compnt
 				Elout.Id = Compnt.Ido[i]
@@ -712,38 +742,37 @@ func Elmalloc(
 					Elout.Ni = 2
 				}
 
-				Elout.Elins = (*Eli)[elinIdx : elinIdx+Elout.Ni]
+				Elout.Elins = NewElinSlice(Elout.Ni)
 
 				for ii = 0; ii < Elout.Ni; ii++ {
 					if i == 0 {
-						Elin.Id = ELIOType(idTe[ii])
+						Elout.Elins[ii].Id = ELIOType(idTe[ii])
 					} else if i == 2 {
-						Elin.Id = ELIOType(idTo[ii])
+						Elout.Elins[ii].Id = ELIOType(idTo[ii])
 					} else if i == 1 {
-						Elin.Id = idxe[ii]
+						Elout.Elins[ii].Id = idxe[ii]
 					} else if i == 3 {
-						Elin.Id = idxo[ii]
+						Elout.Elins[ii].Id = idxo[ii]
 					}
-
-					elinIdx++
 				}
 
-				eloIdx++
+				*Elo = append(*Elo, Elout)
+				*Eli = append(*Eli, Elout.Elins...)
+				Compnt.Elouts = append(Compnt.Elouts, Elout)
+				Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 			}
 		} else {
 			Errprint(1, errkey, string(c))
 		}
 
 		for i = 0; i < Compnt.Nout; i++ {
-			elop = Compnt.Elouts[i]
+			elop := Compnt.Elouts[i]
 			elop.Coeffin = make([]float64, elop.Ni)
 		}
 	}
 
-	*Nelout = eloIdx
-	*Nelin = elinIdx
-
-	for i = 0; i < *Nelin; i++ {
+	// 上流の機器の出口の参照をクリアしておく
+	for i := range *Eli {
 		Elin := (*Eli)[i]
 		Elin.Upo = nil
 		Elin.Upv = nil

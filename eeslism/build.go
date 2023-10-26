@@ -819,10 +819,10 @@ type ROOM struct {
 	rmpnl []RPANEL // 室についての輻射パネル
 	//rairflow []RAIRFLOW
 	Arsp      []AIRSUP // 室への冷温風供給熱量
-	cmp       *COMPNT
-	elinasup  []*ELIN // 流入経路(空気温度用)
-	elinasupx []*ELIN // 流入経路(空気湿度用)
-	rmld      *RMLOAD // 室負荷
+	cmp       *COMPNT  // 逆参照
+	elinasup  []*ELIN  // 流入経路(空気温度用) サイズは Nasup に等しい
+	elinasupx []*ELIN  // 流入経路(空気湿度用) サイズは Nasup に等しい
+	rmld      *RMLOAD  // 室負荷
 	rmqe      *RMQELM
 
 	F     []float64

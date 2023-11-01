@@ -307,7 +307,7 @@ func Elmalloc(
 				}
 			}
 		} else if c == PV_TYPE {
-			PV = &Eqsys.PVcmp[neqp]
+			PV = Eqsys.PVcmp[neqp]
 			Compnt.Eqp = PV
 			PV.Name = name
 			PV.Cmp = Compnt

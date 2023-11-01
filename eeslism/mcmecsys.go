@@ -18,12 +18,12 @@
 package eeslism
 
 // システム使用機器の初期設定
-func Mecsinit(Eqsys *EQSYS, Simc *SIMCONTL, Compnt []*COMPNT, Nexsf int, Exsf []EXSF, Wd *WDAT, Rmvls *RMVLS) {
+func Mecsinit(Eqsys *EQSYS, Simc *SIMCONTL, Compnt []*COMPNT, Exsf []*EXSF, Wd *WDAT, Rmvls *RMVLS) {
 	// ヒートポンプ
 	Refaint(Eqsys.Refa, Wd, Compnt)
 
 	// 太陽熱集熱器
-	Collint(Eqsys.Coll, Nexsf, Exsf, Wd)
+	Collint(Eqsys.Coll, Exsf, Wd)
 
 	// 配管・ダクト
 	Pipeint(Eqsys.Pipe, Simc, Compnt, Wd)
@@ -32,7 +32,7 @@ func Mecsinit(Eqsys *EQSYS, Simc *SIMCONTL, Compnt []*COMPNT, Nexsf int, Exsf []
 	Stankint(Eqsys.Stank, Simc, Compnt, Wd)
 
 	// 定流量ポンプ、変流量ポンプおよび太陽電池駆動ポンプ
-	Pumpint(Eqsys.Pump, Nexsf, Exsf)
+	Pumpint(Eqsys.Pump, Exsf)
 
 	// 電気蓄熱暖房器
 	Stheatint(Eqsys.Stheat, Simc, Compnt, Wd, Rmvls.Npcm, Rmvls.PCM)
@@ -47,7 +47,7 @@ func Mecsinit(Eqsys *EQSYS, Simc *SIMCONTL, Compnt []*COMPNT, Nexsf int, Exsf []
 	Thexint(Eqsys.Thex)
 
 	// 太陽電池
-	PVint(Eqsys.PVcmp, Nexsf, Exsf, Wd)
+	PVint(Eqsys.PVcmp, Exsf, Wd)
 
 	// デシカント槽
 	Desiint(Eqsys.Desi, Simc, Compnt, Wd)

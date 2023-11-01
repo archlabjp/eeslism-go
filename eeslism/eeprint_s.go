@@ -84,7 +84,7 @@ func Eeprinth(Daytm *DAYTM, Simc *SIMCONTL, flout []*FLOUT, Rmvls *RMVLS, Exsfst
 
 var __Eeprintd_ic int
 
-func Eeprintd(Daytm *DAYTM, Simc *SIMCONTL, flout []*FLOUT, Rmvls *RMVLS, Nexs int, Exs []EXSF, Soldy []float64, Eqsys *EQSYS, Wdd *WDAT) {
+func Eeprintd(Daytm *DAYTM, Simc *SIMCONTL, flout []*FLOUT, Rmvls *RMVLS, Exs []*EXSF, Soldy []float64, Eqsys *EQSYS, Wdd *WDAT) {
 	if Daytm.Ddpri != 0 {
 		title := Simc.Title
 		Mon := int(Daytm.Mon)
@@ -94,7 +94,7 @@ func Eeprintd(Daytm *DAYTM, Simc *SIMCONTL, flout []*FLOUT, Rmvls *RMVLS, Nexs i
 			switch flo.Idn {
 			case PRTDWD:
 				// 気象データ日集計値出力
-				Wdtdprint(flo.F, title, Mon, Day, Wdd, Nexs, Exs, Soldy)
+				Wdtdprint(flo.F, title, Mon, Day, Wdd, Exs, Soldy)
 			case PRTWK:
 				// 計算年月日出力
 				if __Eeprintd_ic == 0 {
@@ -126,7 +126,7 @@ func Eeprintd(Daytm *DAYTM, Simc *SIMCONTL, flout []*FLOUT, Rmvls *RMVLS, Nexs i
 /* ----------------------------------------------------------- */
 /*  月集計値出力  */
 
-func Eeprintm(daytm *DAYTM, simc *SIMCONTL, flout []*FLOUT, rmvls *RMVLS, nexs int, exs []EXSF, solmon []float64, eqsys *EQSYS, wdm *WDAT) {
+func Eeprintm(daytm *DAYTM, simc *SIMCONTL, flout []*FLOUT, rmvls *RMVLS, exs []*EXSF, solmon []float64, eqsys *EQSYS, wdm *WDAT) {
 	var title string
 	var mon, day int
 	title = simc.Title
@@ -137,7 +137,7 @@ func Eeprintm(daytm *DAYTM, simc *SIMCONTL, flout []*FLOUT, rmvls *RMVLS, nexs i
 			switch flo.Idn {
 			case PRTMWD:
 				// 気象データ月集計値出力
-				Wdtmprint(flo.F, title, mon, day, wdm, nexs, exs, solmon)
+				Wdtmprint(flo.F, title, mon, day, wdm, exs, solmon)
 			case PRTMNCOMP:
 				// システム要素機器の月集計結果出力
 				Compomonprt(flo.F, string(PRTMNCOMP), simc, mon, day, eqsys, rmvls.Rdpnl)

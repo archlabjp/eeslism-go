@@ -865,7 +865,7 @@ type EQSYS struct {
 	Thex   []THEX   // 全熱交換器
 	Valv   []VALV   // VAV
 	Qmeas  []QMEAS  // カロリーメータ
-	PVcmp  []PV     // 太陽電池
+	PVcmp  []*PV    // 太陽電池
 	OMvav  []OMVAV  // OMVAV
 	Desi   []DESI   // デシカント槽
 	Evac   []EVAC   // 気化冷却器

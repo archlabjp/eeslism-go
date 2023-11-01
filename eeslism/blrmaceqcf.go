@@ -94,7 +94,7 @@ func Rmhtrsmcf(Nsrf int, _Sd []RMSRF) {
 
 /* ----------------------------------------------------------------- */
 // 透過日射、相当外気温度の計算
-func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK, Qrm []QRM, nday, mt int) {
+func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []SNBK, Qrm []QRM, nday, mt int) {
 	var n, nn int
 	var Fsdw float64
 	var Idre float64 // 直逹日射  [W/m2]
@@ -165,7 +165,7 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 				continue
 			}
 
-			e := &Exs[Sdn.exs]
+			e := Exs[Sdn.exs]
 
 			Sdn.RSsol = 0.0
 			Sdn.RSsold = 0.

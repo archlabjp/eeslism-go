@@ -101,7 +101,6 @@ func Entry(InFile string) {
 
 	Wd.EarthSurface = nil
 	Exsf.EarthSrfFlg = false
-	Exsf.Nexs = 0
 	Exsf.Exs = nil
 	Soldy = nil
 	Loc.Name = ""
@@ -373,8 +372,8 @@ func Entry(InFile string) {
 			Npelm, len(Compnt), Nelout, Nelin)
 	}
 
-	Soldy = make([]float64, Exsf.Nexs)
-	Solmon = make([]float64, Exsf.Nexs)
+	Soldy = make([]float64, len(Exsf.Exs))
+	Solmon = make([]float64, len(Exsf.Exs))
 
 	DTM = float64(Simc.DTm)
 	dminute = int(float64(Simc.DTm) / 60.0)
@@ -416,7 +415,7 @@ func Entry(InFile string) {
 
 	// ボイラ機器仕様の初期化
 	Boicaint(Eqcat.Boica, &Simc, Compnt, &Wd, &Exsf, Schdl)
-	Mecsinit(&Eqsys, &Simc, Compnt, Exsf.Nexs, Exsf.Exs, &Wd, &Rmvls)
+	Mecsinit(&Eqsys, &Simc, Compnt, Exsf.Exs, &Wd, &Rmvls)
 
 	if DEBUG {
 		fmt.Println("<<main>> Mecsinit")
@@ -586,7 +585,7 @@ func Entry(InFile string) {
 			}
 
 			// 傾斜面日射量の計算
-			Exsfsol(Exsf.Nexs, &Wd, Exsf.Exs)
+			Exsfsol(&Wd, Exsf.Exs)
 
 			/*==transplantation to eeslism from KAGExSUN by higuchi 070918==start*/
 			if bdpn != 0 {
@@ -675,11 +674,11 @@ func Entry(InFile string) {
 
 			/*===============higuchi 070918============================end*/
 			if dayprn && Ferr != nil {
-				xprsolrd(Exsf.Nexs, Exsf.Exs)
+				xprsolrd(Exsf.Exs)
 			}
 
 			if DEBUG {
-				xprsolrd(Exsf.Nexs, Exsf.Exs)
+				xprsolrd(Exsf.Exs)
 				fmt.Println("<<main>> Exsfsol")
 			}
 
@@ -990,7 +989,7 @@ func Entry(InFile string) {
 				}
 
 				// 気象データの日集計、月集計
-				Wdtsum(Daytm.Mon, Daytm.Day, day, Daytm.Ttmm, &Wd, Exsf.Nexs, Exsf.Exs, &Wdd, &Wdm, Soldy, Solmon, &Simc)
+				Wdtsum(Daytm.Mon, Daytm.Day, day, Daytm.Ttmm, &Wd, Exsf.Exs, &Wdd, &Wdm, Soldy, Solmon, &Simc)
 			}
 			if DEBUG {
 				fmt.Printf("xxxmain 8\n")
@@ -1009,7 +1008,7 @@ func Entry(InFile string) {
 		}
 
 		// 日集計の出力
-		Eeprintd(&Daytm, &Simc, Flout, &Rmvls, Exsf.Nexs, Exsf.Exs, Soldy, &Eqsys, &Wdd)
+		Eeprintd(&Daytm, &Simc, Flout, &Rmvls, Exsf.Exs, Soldy, &Eqsys, &Wdd)
 		/*****fmt.Printf("xxxmain 9\n")*****/
 
 		//if (Daytm.Mon == 4 && Daytm.Day == 25)
@@ -1018,7 +1017,7 @@ func Entry(InFile string) {
 		// 月集計の出力
 		if IsEndDay(Daytm.Mon, Daytm.Day, Daytm.DayOfYear, Simc.Dayend) && Daytm.Ddpri != 0 {
 			//fmt.Printf("月集計出力\n")
-			Eeprintm(&Daytm, &Simc, Flout, &Rmvls, Exsf.Nexs, Exsf.Exs, Solmon, &Eqsys, &Wdm)
+			Eeprintm(&Daytm, &Simc, Flout, &Rmvls, Exsf.Exs, Solmon, &Eqsys, &Wdm)
 		}
 
 	}

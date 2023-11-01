@@ -106,8 +106,7 @@ func kynameptr(s string, Simc *SIMCONTL, _Compnt []*COMPNT,
 	default:
 		// // 傾斜面名称の検索
 		if Exsf != nil {
-			for i := 0; i < Exsf.Nexs; i++ {
-				Exs := &Exsf.Exs[i]
+			for _, Exs := range Exsf.Exs {
 				if key[0] == Exs.Name {
 					switch key[1] {
 					case "Idre":

@@ -268,15 +268,14 @@ func dprachv(Room []ROOM) {
 
 /* ----------------------------------------------------------------- */
 
-func dprexsf(E []EXSF) {
+func dprexsf(E []*EXSF) {
 	if E == nil {
 		return
 	}
 
 	if DEBUG {
 		fmt.Println("\n*** dprexsf ***")
-		for i := range E {
-			Exs := &E[i]
+		for i, Exs := range E {
 			fmt.Printf("%2d  %-11s  typ=%c Wa=%6.2f Wb=%5.2f Rg=%4.2f  z=%5.2f edf=%6.2e\n",
 				i, Exs.Name, Exs.Typ, Exs.Wa, Exs.Wb, Exs.Rg, Exs.Z, Exs.Erdff)
 		}
@@ -286,8 +285,7 @@ func dprexsf(E []EXSF) {
 		fmt.Fprintln(Ferr, "\n*** dprexsf ***")
 		fmt.Fprintln(Ferr, "\tNo.\tName\ttyp\tWa\tWb\tRg\tz\tedf")
 
-		for i := range E {
-			Exs := &E[i]
+		for i, Exs := range E {
 			fmt.Fprintf(Ferr, "\t%d\t%s\t%c\t%.4g\t%.4g\t%.2g\t%.2g\t%.2g\n",
 				i, Exs.Name, Exs.Typ, Exs.Wa, Exs.Wb, Exs.Rg, Exs.Z, Exs.Erdff)
 		}

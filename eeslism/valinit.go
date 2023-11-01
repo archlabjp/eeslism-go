@@ -231,7 +231,7 @@ func Eqsysinit(E *EQSYS) {
 	E.Thex = make([]THEX, 0)
 	E.Valv = make([]VALV, 0)
 	E.Qmeas = make([]QMEAS, 0)
-	E.PVcmp = make([]PV, 0)
+	E.PVcmp = make([]*PV, 0)
 	E.OMvav = make([]OMVAV, 0)
 
 	// 使用されていなかった:

@@ -31,7 +31,7 @@ const (
 
 /*    熱伝達率に関する計算  */
 
-func Htrcf(alc, alo *float64, alotype AloType, Exs []EXSF, Tr float64, N int, alr []float64, _Sd []RMSRF, RMmrk *rune, Wd *WDAT) {
+func Htrcf(alc, alo *float64, alotype AloType, Exs []*EXSF, Tr float64, N int, alr []float64, _Sd []RMSRF, RMmrk *rune, Wd *WDAT) {
 	var n int
 	var alic float64
 	var hc *float64

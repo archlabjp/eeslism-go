@@ -59,11 +59,10 @@ func xprtwallinit(Nmwall int, M []*MWALL) {
 
 /* -------------------------------------------- */
 
-func xprsolrd(Nexs int, E []EXSF) {
+func xprsolrd(E []*EXSF) {
 	if DEBUG {
 		fmt.Println("--- xprsolrd")
-		for i := 0; i < Nexs; i++ {
-			Exs := &E[i]
+		for i, Exs := range E {
 			fmt.Printf("EXSF[%2d]=%s  Id=%.0f  Idif=%.0f  Iw=%.0f RN=%.0f cinc=%.3f\n",
 				i, Exs.Name, Exs.Idre, Exs.Idf, Exs.Iw, Exs.Rn, Exs.Cinc)
 		}
@@ -72,8 +71,7 @@ func xprsolrd(Nexs int, E []EXSF) {
 	if Ferr != nil {
 		fmt.Fprintln(Ferr, "--- xprsolrd")
 		fmt.Fprintln(Ferr, "\tNo.\tName\tId\tIdif\tIw\tRN\tcinc")
-		for i := 0; i < Nexs; i++ {
-			Exs := &E[i]
+		for i, Exs := range E {
 			fmt.Fprintf(Ferr, "\t%d\t%s\t%.0f\t%.0f\t%.0f\t%.0f\t%.3f\n",
 				i, Exs.Name, Exs.Idre, Exs.Idf, Exs.Iw, Exs.Rn, Exs.Cinc)
 		}

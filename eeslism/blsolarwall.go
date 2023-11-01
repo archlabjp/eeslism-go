@@ -49,7 +49,7 @@ func FNTcoleContrl(Sd *RMSRF, Wd *WDAT, Exsfs *EXSFS) float64 {
 
 	if Sd.mw.wall.ColType != "" {
 		Wall = Sd.mw.wall
-		Exs = &Exsfs.Exs[Sd.exs]
+		Exs = Exsfs.Exs[Sd.exs]
 		Glsc = 1.0
 		Cidf = 1.0
 		if Sd.mw.wall.ColType != "" &&
@@ -150,7 +150,7 @@ func FNSolarWallao(Wd *WDAT, Sd *RMSRF, Exsfs *EXSFS) float64 {
 	dblar = Sd.Eo * 4.0 * Sgm * math.Pow((Wd.T+Sd.Tg)/2.0+273.15, 3.0)
 
 	// 対流熱伝達率
-	Exs = &Exsfs.Exs[Sd.exs]
+	Exs = Exsfs.Exs[Sd.exs]
 
 	// 外部風向の計算（南面0゜に換算）
 	dblWdre = Wd.Wdre*22.5 - 180.0
@@ -216,7 +216,7 @@ func FNKc(Wd *WDAT, Exsfs *EXSFS, Sd *RMSRF) {
 	M_rad := math.Pi / 180.0
 
 	Wall := Sd.mw.wall
-	Exs := &Exsfs.Exs[Sd.exs]
+	Exs := Exsfs.Exs[Sd.exs]
 	rad := M_rad
 
 	// 外表面の総合熱伝達率の計算
@@ -286,7 +286,7 @@ func FNTsuTsd(Sd *RMSRF, Wd *WDAT, Exsfs *EXSFS) {
 	//var dblTf float64 // 集熱空気の平均温度
 	Rdpnl := Sd.rpnl
 	Wall := Sd.mw.wall
-	Exs := &Exsfs.Exs[Sd.exs]
+	Exs := Exsfs.Exs[Sd.exs]
 	cG := Sd.rpnl.cG
 
 	if Wall.chrRinput {

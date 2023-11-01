@@ -104,14 +104,14 @@ func Pumpdata(cattype string, s string, Pumpca *PUMPCA, pfcmp []PFCMP) int {
 
 /* 太陽電池ポンプの太陽電池パネルの方位設定　*/
 
-func Pumpint(Pump []PUMP, Nexsf int, Exs []EXSF) {
+func Pumpint(Pump []PUMP, Exs []*EXSF) {
 	for i := range Pump {
 		p := &Pump[i]
 		if p.Cat.Type == "P" {
 			p.Sol = nil
-			for j := 0; j < Nexsf; j++ {
+			for j := 0; j < len(Exs); j++ {
 				if p.Cmp.Exsname == Exs[j].Name {
-					p.Sol = &Exs[j]
+					p.Sol = Exs[j]
 					break
 				}
 			}

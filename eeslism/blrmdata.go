@@ -30,7 +30,7 @@ import (
 
 /*  室構成部材の入力  */
 
-func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SCHDL, Simc *SIMCONTL) {
+func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SCHDL, Simc *SIMCONTL) {
 	// var Wall, w *WALL
 	// var Window, W *WINDOW
 	// var Snbk, S *SNBK
@@ -471,8 +471,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 							}
 						} else if strings.HasPrefix(s, "e=") {
 							// 外表面の検索
-							for j := range Exs {
-								e := &Exs[j]
+							for j, e := range Exs {
 								if e.Name == s[st+1:] {
 									Sd.exs = j
 									break
@@ -602,8 +601,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []EXSF, dfwl *DFWL, Rmvls *RM
 						os.Exit(1)
 					}
 
-					for j := 0; j < Nexs; j++ {
-						e := &Exs[j]
+					for j, e := range Exs {
 						if e.Name == dexsname {
 							Sd.exs = j
 							break

@@ -46,7 +46,7 @@ func PVwallPreCalc(PVwallcat *PVWALLCAT) {
 // 太陽電池温度の計算
 func FNTPV(Sd *RMSRF, Wd *WDAT, Exsfs *EXSFS) float64 {
 	wall := Sd.mw.wall
-	Exs := &Exsfs.Exs[Sd.exs]
+	Exs := Exsfs.Exs[Sd.exs]
 	Ipv := (wall.tra - Sd.PVwall.Eff) * Sd.Iwall
 
 	var TPV float64

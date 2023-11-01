@@ -623,7 +623,7 @@ func NewCOLL() COLL {
 	}
 }
 
-func NewPV() PV {
+func NewPV() *PV {
 	PV := PV{
 		PVcap: -999.,
 		Area:  -999.,
@@ -636,7 +636,7 @@ func NewPV() PV {
 		I:     nil,
 	}
 	MtEdayinit(&PV.mtEdy)
-	return PV
+	return &PV
 }
 
 func NewOMVAV() OMVAV {

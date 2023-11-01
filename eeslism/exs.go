@@ -60,8 +60,7 @@ type EXSF struct {
 
 // 外表面方位デ－タ
 type EXSFS struct {
-	Nexs int
-	Exs  []EXSF // 外表面方位デ－タ
+	Exs []*EXSF // 外表面方位デ－タ
 
 	// ---- 外表面熱伝達率 ----
 

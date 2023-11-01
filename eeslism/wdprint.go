@@ -8,9 +8,8 @@ import (
 var __Wdtsum_oldday, __Wdtsum_hrs, __Wdtsum_oldMon, __Wdtsum_hrsm int
 var __Wdtsum_cffWh float64
 
-func Wdtsum(Mon int, Day int, Nday int, ttmm int, Wd *WDAT, Nexs int, Exs []EXSF,
+func Wdtsum(Mon int, Day int, Nday int, ttmm int, Wd *WDAT, Exs []*EXSF,
 	Wdd *WDAT, Wdm *WDAT, Soldy []float64, Solmon []float64, Simc *SIMCONTL) {
-	var e EXSF
 
 	// 日集計の初期化
 	if Nday != __Wdtsum_oldday {
@@ -23,7 +22,7 @@ func Wdtsum(Mon int, Day int, Nday int, ttmm int, Wd *WDAT, Nexs int, Exs []EXSF
 		Wdd.Isky = 0.0
 		Wdd.RN = 0.0
 
-		for i := 0; i < Nexs; i++ {
+		for i := 0; i < len(Soldy); i++ {
 			Soldy[i] = 0.0
 		}
 
@@ -41,7 +40,7 @@ func Wdtsum(Mon int, Day int, Nday int, ttmm int, Wd *WDAT, Nexs int, Exs []EXSF
 		Wdm.Isky = 0.0
 		Wdm.RN = 0.0
 
-		for i := 0; i < Nexs; i++ {
+		for i := 0; i < len(Solmon); i++ {
 			Solmon[i] = 0.0
 		}
 
@@ -57,9 +56,7 @@ func Wdtsum(Mon int, Day int, Nday int, ttmm int, Wd *WDAT, Nexs int, Exs []EXSF
 	Wdd.Isky += Wd.Isky
 	Wdd.RN += Wd.RN
 
-	for i := 0; i < Nexs; i++ {
-		e = Exs[i]
-
+	for i, e := range Exs {
 		if e.Typ != 'E' && e.Typ != 'e' {
 			Soldy[i] += e.Iw
 		} else {
@@ -76,9 +73,7 @@ func Wdtsum(Mon int, Day int, Nday int, ttmm int, Wd *WDAT, Nexs int, Exs []EXSF
 	Wdm.Isky += Wd.Isky
 	Wdm.RN += Wd.RN
 
-	for i := 0; i < Nexs; i++ {
-		e = Exs[i]
-
+	for i, e := range Exs {
 		if e.Typ != 'E' && e.Typ != 'e' {
 			Solmon[i] += e.Iw
 		} else {
@@ -94,8 +89,7 @@ func Wdtsum(Mon int, Day int, Nday int, ttmm int, Wd *WDAT, Nexs int, Exs []EXSF
 		Wdd.Isky *= __Wdtsum_cffWh
 		Wdd.RN *= __Wdtsum_cffWh
 
-		for i := 0; i < Nexs; i++ {
-			e = Exs[i]
+		for i, e := range Exs {
 			if e.Typ != 'E' && e.Typ != 'e' {
 				Soldy[i] *= __Wdtsum_cffWh
 			} else {
@@ -111,8 +105,7 @@ func Wdtsum(Mon int, Day int, Nday int, ttmm int, Wd *WDAT, Nexs int, Exs []EXSF
 		Wdm.Isky *= __Wdtsum_cffWh
 		Wdm.RN *= __Wdtsum_cffWh
 
-		for i := 0; i < Nexs; i++ {
-			e = Exs[i]
+		for i, e := range Exs {
 			if e.Typ != 'E' && e.Typ != 'e' {
 				Soldy[i] *= __Wdtsum_cffWh
 			} else {
@@ -125,14 +118,13 @@ func Wdtsum(Mon int, Day int, Nday int, ttmm int, Wd *WDAT, Nexs int, Exs []EXSF
 var __Wdtdprint_ic int
 
 /* 気象データ日集計値出力 */
-func Wdtdprint(fo io.Writer, title string, Mon int, Day int, Wdd *WDAT, Nexs int, Exs []EXSF, Soldy []float64) {
+func Wdtdprint(fo io.Writer, title string, Mon int, Day int, Wdd *WDAT, Exs []*EXSF, Soldy []float64) {
 	if __Wdtdprint_ic == 0 {
 		__Wdtdprint_ic++
-		fmt.Fprintf(fo, "%s;\n %d\n", title, Nexs)
+		fmt.Fprintf(fo, "%s;\n %d\n", title, len(Exs))
 
 		fmt.Fprintf(fo, "Mo\tNd\tWd_T\tWd_x\tWd_Wv\tWd_RN\tWd_Idn\tWd_Isky\t")
-		for i := 0; i < Nexs; i++ {
-			e := Exs[i]
+		for _, e := range Exs {
 			fmt.Fprintf(fo, "%s[%c]\t", e.Name, e.Typ)
 		}
 		fmt.Fprintf(fo, "\n")
@@ -141,9 +133,8 @@ func Wdtdprint(fo io.Writer, title string, Mon int, Day int, Wdd *WDAT, Nexs int
 	fmt.Fprintf(fo, "%d\t%d\t", Mon, Day)
 	fmt.Fprintf(fo, "%.1f\t%.4f\t%.1f\t%.2f\t%.2f\t%4.2f", Wdd.T, Wdd.X, Wdd.Wv, Wdd.RN/1000., Wdd.Idn/1000., Wdd.Isky/1000.)
 
-	for i := 0; i < Nexs; i++ {
-		e := Exs[i]
-		if e.Typ != 'E' && e.Typ != 'e' {
+	for i, e := range Exs {
+		if e.Typ != EXSFType_E && e.Typ != EXSFType_e {
 			fmt.Fprintf(fo, "\t%.2f", Soldy[i]/1000.)
 		} else {
 			fmt.Fprintf(fo, "\t%.1f", Soldy[i])
@@ -157,7 +148,7 @@ var __Wdtprint_ic int
 // 気象データの出力
 func Wdtprint(fo io.Writer, title string, Mon, Day int, time float64, Wd *WDAT, Exsfst *EXSFS) {
 	var Nexs, i int
-	Nexs = Exsfst.Nexs
+	Nexs = len(Exsfst.Exs)
 
 	if DEBUG {
 		fmt.Printf("N=%d\t%d/%d\t%.2f\n", Nexs, Mon, Day, time)
@@ -192,10 +183,12 @@ func Wdtprint(fo io.Writer, title string, Mon, Day int, time float64, Wd *WDAT, 
 	// 外表面の全日射・地中温度の出力
 	for i = 0; i < Nexs; i++ {
 		e := Exsfst.Exs[i]
-		if e.Typ != 'E' && e.Typ != 'e' {
-			fmt.Fprintf(fo, "%.0f\t", e.Iw)
+		if e.Typ != EXSFType_E && e.Typ != EXSFType_e {
+			// 一般外表面
+			fmt.Fprintf(fo, "%.0f\t", e.Iw) // 全日射
 		} else {
-			fmt.Fprintf(fo, "%.1f\t", e.Tearth)
+			// 地下・地表面
+			fmt.Fprintf(fo, "%.1f\t", e.Tearth) // 地中温度
 		}
 	}
 	fmt.Fprintf(fo, "\n")
@@ -204,10 +197,10 @@ func Wdtprint(fo io.Writer, title string, Mon, Day int, time float64, Wd *WDAT, 
 var __Wdtmprint_ic int
 
 // 気象データの出力
-func Wdtmprint(fo io.Writer, title string, Mon, Day int, Wdm *WDAT, Nexs int, Exs []EXSF, Solmon []float64) {
+func Wdtmprint(fo io.Writer, title string, Mon, Day int, Wdm *WDAT, Exs []*EXSF, Solmon []float64) {
 	if __Wdtmprint_ic == 0 {
 		__Wdtmprint_ic++
-		fmt.Fprintf(fo, "%s;\n%d\n", title, Nexs)
+		fmt.Fprintf(fo, "%s;\n%d\n", title, len(Exs))
 
 		fmt.Fprintf(fo, "Mo\tNd\tWd_T\tWd_x\tWd_Wv\tWd_RN\tWd_Idn\tWd_Isky\t")
 		for _, e := range Exs {

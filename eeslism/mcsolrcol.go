@@ -78,12 +78,11 @@ func Colldata(typeStr EqpType, s string, Collca *COLLCA) int {
 
 /*  初期設定 */
 
-func Collint(Coll []COLL, Nexsf int, Exs []EXSF, Wd *WDAT) {
+func Collint(Coll []COLL, Exs []*EXSF, Wd *WDAT) {
 	for i := range Coll {
 		Coll[i].Ta = &Wd.T
 		Coll[i].sol = nil
-		for j := 0; j < Nexsf; j++ {
-			exs := &Exs[j]
+		for _, exs := range Exs {
 			if Coll[i].Cmp.Exsname == exs.Name {
 				Coll[i].sol = exs
 			}

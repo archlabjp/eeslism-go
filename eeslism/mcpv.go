@@ -105,15 +105,14 @@ func PVcadata(s string, PVca *PVCA) int {
 
 /*  初期設定 */
 
-func PVint(PV []PV, Nexsf int, Exs []EXSF, Wd *WDAT) {
+func PVint(PV []*PV, Exs []*EXSF, Wd *WDAT) {
 	Err := ""
 
 	for i := range PV {
 		PV[i].Ta = &Wd.T
 		PV[i].V = &Wd.Wv
 
-		for j := 0; j < Nexsf; j++ {
-			exs := &Exs[j]
+		for _, exs := range Exs {
 			if PV[i].Cmp.Exsname == exs.Name {
 				PV[i].Sol = exs
 				PV[i].I = &PV[i].Sol.Iw
@@ -175,7 +174,7 @@ func PVint(PV []PV, Nexsf int, Exs []EXSF, Wd *WDAT) {
 
 /*  集熱量の計算 */
 
-func PVene(PV []PV) {
+func PVene(PV []*PV) {
 	for i := range PV {
 		// 太陽電池アレイの計算（JIS C 8907:2005　P21による）
 		PV[i].TPV = *PV[i].Ta + (PV[i].Cat.A/(PV[i].Cat.B*math.Pow(*PV[i].V, 0.8)+1.0)+2.0)**PV[i].I/1000.0 - 2.0
@@ -198,7 +197,7 @@ func PVene(PV []PV) {
 
 /* ------------------------------------------------------------- */
 
-func PVprint(fo io.Writer, id int, PV []PV) {
+func PVprint(fo io.Writer, id int, PV []*PV) {
 	switch id {
 	case 0:
 		if len(PV) > 0 {
@@ -229,21 +228,21 @@ func PVprint(fo io.Writer, id int, PV []PV) {
 
 /* 日積算値に関する処理 */
 
-func PVdyint(PV []PV) {
+func PVdyint(PV []*PV) {
 	for i := range PV {
 		qdyint(&PV[i].Edy)
 		edyint(&PV[i].Soldy)
 	}
 }
 
-func PVmonint(PV []PV) {
+func PVmonint(PV []*PV) {
 	for i := range PV {
 		qdyint(&PV[i].mEdy)
 		edyint(&PV[i].mSoldy)
 	}
 }
 
-func PVday(Mon int, Day int, ttmm int, PV []PV, Nday int, SimDayend int) {
+func PVday(Mon int, Day int, ttmm int, PV []*PV, Nday int, SimDayend int) {
 	Mo := Mon - 1
 	tt := ConvertHour(ttmm)
 
@@ -286,7 +285,7 @@ func PVday(Mon int, Day int, ttmm int, PV []PV, Nday int, SimDayend int) {
 	}
 }
 
-func PVdyprt(fo io.Writer, id int, PV []PV) {
+func PVdyprt(fo io.Writer, id int, PV []*PV) {
 	switch id {
 	case 0:
 		if len(PV) > 0 {
@@ -312,7 +311,7 @@ func PVdyprt(fo io.Writer, id int, PV []PV) {
 	}
 }
 
-func PVmonprt(fo io.Writer, id int, PV []PV) {
+func PVmonprt(fo io.Writer, id int, PV []*PV) {
 	switch id {
 	case 0:
 		if len(PV) > 0 {
@@ -338,7 +337,7 @@ func PVmonprt(fo io.Writer, id int, PV []PV) {
 	}
 }
 
-func PVmtprt(fo io.Writer, id int, PV []PV, Mo int, tt int) {
+func PVmtprt(fo io.Writer, id int, PV []*PV, Mo int, tt int) {
 	switch id {
 	case 0:
 		if len(PV) > 0 {

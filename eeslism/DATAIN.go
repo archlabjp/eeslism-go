@@ -670,8 +670,7 @@ func bdpdata(fi *EeTokens, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
 
 				//外表面の検索
 				id := false
-				for i := 0; i < Exsf.Nexs; i++ {
-					Exs := Exsf.Exs[i]
+				for _, Exs := range Exsf.Exs {
 					if bbdp.exsfname == Exs.Name {
 						bbdp.Wa = Exs.Wa
 						bbdp.Wb = Exs.Wb

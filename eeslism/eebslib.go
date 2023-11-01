@@ -14,7 +14,6 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 	//var st *string
 	var dt, dfrg, wa, wb, swa, cwa, swb, cwb float64
 	var i, j, k int
-	var ex *EXSF
 	var err error
 
 	s = dsn
@@ -23,13 +22,13 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 		Nd = 1
 	}
 
-	var exs []EXSF
+	var exs []*EXSF
 	if Nd > 0 {
-		exs = make([]EXSF, 0, Nd+1)
+		exs = make([]*EXSF, 0, Nd+1)
 
 		s = fmt.Sprintf("%f", ALO)
 		Exsf.Alosch = envptr(s, Simc, nil, nil, nil)
-		Exsf.Alotype = 'F' // 固定値
+		Exsf.Alotype = Alotype_Fix // 固定値
 	}
 
 	line := section.GetLogicalLine()
@@ -37,14 +36,14 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 	for _, s := range line {
 		if strings.HasPrefix(s, "alo=") {
 			if s[4:] == "Calc" {
-				Exsf.Alotype = 'V'
+				Exsf.Alotype = Alotype_V
 			} else if k, err = idsch(s[4:], Schdl.Sch, ""); err == nil {
 				Exsf.Alosch = &Schdl.Val[k]
-				Exsf.Alotype = 'S'
+				Exsf.Alotype = Alotype_Schedule
 			} else {
 				Exsf.Alosch = envptr(s[4:], Simc, nil, nil, nil)
 				if Exsf.Alosch != nil {
-					Exsf.Alotype = 'S'
+					Exsf.Alotype = Alotype_Schedule
 				}
 			}
 		} else if strings.HasPrefix(s, "r=") {
@@ -107,8 +106,7 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 						ename = s[2:]
 					}
 
-					for j := range exs {
-						exj := &exs[j]
+					for _, exj := range exs {
 						if exj.Name == ename {
 							if dir == '+' {
 								ex.Wa = exj.Wa + dt
@@ -160,7 +158,7 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 			}
 		}
 
-		exs = append(exs, *ex)
+		exs = append(exs, ex)
 	}
 
 	// 外表面熱伝達率の設定
@@ -171,13 +169,10 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 		Exsf.Exs = exs
 	}
 
-	Exsf.Nexs = i
-
-	for i = 0; i < Exsf.Nexs; i++ {
-		ex = &Exsf.Exs[i]
+	for _, ex := range Exsf.Exs {
 
 		// 一般外表面 の場合は、日射に関するパラメータを計算する
-		if ex.Typ == 'S' {
+		if ex.Typ == EXSFType_S {
 			const rad = PI / 180.
 			wa = ex.Wa * rad          // 方位角	[rad]
 			wb = ex.Wb * rad          // 傾斜角	[rad]
@@ -199,15 +194,10 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 }
 
 /*  外表面入射日射量の計算    */
-func Exsfsol(Nexs int, Wd *WDAT, Exs []EXSF) {
-	if Nexs != len(Exs) {
-		panic("Nexs != len(Exs)")
-	}
+func Exsfsol(Wd *WDAT, Exs []*EXSF) {
+	for _, ex := range Exs {
 
-	for i := range Exs {
-		ex := &Exs[i]
-
-		if ex.Typ == 'S' {
+		if ex.Typ == EXSFType_S {
 			// 入射角のcos
 			cinc := Wd.Sh*ex.Wz + Wd.Sw*ex.Ww + Wd.Ss*ex.Ws
 

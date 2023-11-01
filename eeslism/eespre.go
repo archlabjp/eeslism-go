@@ -143,6 +143,7 @@ func Eespre(bdata0 string, Ipath string, key *int) (string, string, string, stri
 
 			Fbmlist = s[8:]
 		} else if s == "WEEK" {
+			*key = 1
 			line := tokens.GetLogicalLine()
 			for _, item := range line {
 				fmt.Fprintf(fw, "%s ", item)

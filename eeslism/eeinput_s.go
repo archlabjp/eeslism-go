@@ -253,13 +253,12 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 	// -------------------------------------------------------
 	// 曜日設定ファイルの読み取り
 	// -------------------------------------------------------
-	var fi_dayweek *os.File
-	if fi_dayweek, err = os.Open("dayweek.efl"); err != nil {
+	var fi_dayweek []byte
+	if fi_dayweek, err = ioutil.ReadFile("dayweek.efl"); err != nil {
 		Eprint("<Eeinput>", "dayweek.efl")
 		os.Exit(EXIT_DAYWEK)
 	}
-	Dayweek(fi_dayweek, week, Simc.Daywk, key)
-	fi_dayweek.Close()
+	Dayweek(string(fi_dayweek), week, Simc.Daywk, key)
 
 	if DEBUG {
 		dprdayweek(Simc.Daywk)

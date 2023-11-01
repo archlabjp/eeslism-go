@@ -134,7 +134,7 @@ func Entry(InFile string) {
 
 	// スケジュ－ルデ－タの作成
 	EWKFile := strings.TrimSuffix(s, filepath.Ext(s))
-	bdata, schtba, schnma, week := Eespre(bdata0, EWKFile, &key)
+	bdata, schtba, schnma, week := Eespre(bdata0, EWKFile, &key) //key=`WEEK`が含まれているかどうか
 
 	Simc.File = InFile
 	Simc.Loc = &Loc

@@ -20,7 +20,6 @@ package eeslism
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"regexp"
 	"strconv"
 	"strings"
@@ -28,15 +27,14 @@ import (
 
 /* 曜日の設定  */
 
-func Dayweek(fi io.Reader, week string, daywk []int, key int) {
+func Dayweek(fi string, week string, daywk []int, key int) {
 	var s string
-	var ce int
-	var ds, de, dd, d, id, M, D int
+	var d, id, M, D int
 
 	var DAYweek = [8]string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", ""}
 
 	if key == 0 {
-		n, err := fmt.Fscanf(fi, "%d/%d=%s", &M, &D, &s)
+		n, err := fmt.Sscanf(fi, "%d/%d=%s", &M, &D, &s)
 		if n != 3 || err != nil {
 			panic(err)
 		}
@@ -63,15 +61,17 @@ func Dayweek(fi io.Reader, week string, daywk []int, key int) {
 		Eprint("<Dayweek>", s)
 	}
 
-	ds = FNNday(M, D)
-	de = ds + 365
+	// 開始日と終了日
+	ds := FNNday(M, D)
+	de := ds + 365
 
-	for dd = ds; dd < de; dd++ {
+	// 1日ごとのループ
+	for dd := ds; dd < de; dd++ {
 		d = dd
 		if dd > 365 {
 			d = dd - 365
 		}
-		daywk[d] = id
+		daywk[d] = id // 曜日の記録
 		id++
 
 		if id > 6 {
@@ -79,25 +79,22 @@ func Dayweek(fi io.Reader, week string, daywk []int, key int) {
 		}
 	}
 
+	// `dayweek.efl`から祝日を読み取る
+	tokens := NewEeTokens(fi)
+
 	for {
-		_, err := fmt.Fscanf(fi, "%s", &s)
-		if err != nil || s[0] == ';' {
+		s = tokens.GetToken()
+		if s == "" || s == ";" {
 			break
 		}
-		var s1 string
-		if ce = strings.IndexRune(s, ';'); ce != -1 {
-			s1, _ = s[:ce], s[ce+1:]
-		} else {
-			s1, _ = s, ""
-		}
 
-		if ce = strings.IndexRune(s1, '/'); ce != -1 {
-			//var s1_1, s1_2 string
-			//s1_1, s1_2 := s1[:ce], s1[ce+1:]
-			_, err = fmt.Sscanf(s1, "%d/%d", &M, &D)
-			if err != nil {
-				panic(err)
-			}
+		re := regexp.MustCompile(`^(\d+)/(\d+)$`)
+		matches := re.FindStringSubmatch(s)
+
+		if matches != nil && len(matches) == 3 {
+			M, _ = strconv.Atoi(matches[1])
+			D, _ = strconv.Atoi(matches[2])
+			fmt.Printf("%d/%d\n", M, D)
 			d = FNNday(M, D)
 			daywk[d] = 7
 		}

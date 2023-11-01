@@ -102,7 +102,7 @@ func Eeprintd(Daytm *DAYTM, Simc *SIMCONTL, flout []*FLOUT, Rmvls *RMVLS, Nexs i
 					__Eeprintd_ic = 1
 				}
 
-				fmt.Fprintf(flo.F, "%2d %2d %3d %s\n", Mon, Day, Daytm.DayOfYear, DAYweek[Simc.Daywk[Daytm.Day]])
+				fmt.Fprintf(flo.F, "%2d %2d %3d %s\n", Mon, Day, Daytm.DayOfYear, DAYweek[Simc.Daywk[Daytm.DayOfYear]])
 			case PRTDYCOMP:
 				// システム要素機器の日集計結果出力
 				Compodyprt(flo.F, string(PRTDYCOMP), Simc, Mon, Day, Eqsys, Rmvls.Rdpnl)

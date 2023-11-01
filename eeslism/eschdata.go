@@ -147,7 +147,6 @@ func Schtable(schtba string, Schdl *SCHDL) {
 				Sn.sday[i] = FNNday(Ms, Ds)
 				Sn.eday[i] = FNNday(Me, De)
 			}
-			Sn.N = n
 
 			Schdl.Seasn = append(Schdl.Seasn, Sn)
 
@@ -163,11 +162,10 @@ func Schtable(schtba string, Schdl *SCHDL) {
 			}
 
 			// 対応する曜日のフラグを埋める
-			wday := Wk.wday
 			for i := 0; i < n; i++ {
 				for j := 0; j < 8; j++ {
 					if fields[i+1] == DAYweek[j] {
-						wday[j] = 1
+						Wk.wday[j] = true
 						break
 					}
 				}
@@ -256,20 +254,7 @@ func Schtable(schtba string, Schdl *SCHDL) {
 func Schdata(schnma string, dsn string, daywk []int, Schdl *SCHDL) {
 	fi := strings.NewReader(schnma)
 
-	var (
-		s      string
-		dmod   rune
-		ce     *rune
-		dname  string
-		k      int
-		N, d   int
-		ds, de int
-		day    int
-		is, iw int
-		sc, sw int
-		err    error
-	)
-
+	var err error
 	const dmax = 366
 
 	Seasn := Schdl.Seasn
@@ -285,35 +270,40 @@ func Schdata(schnma string, dsn string, daywk []int, Schdl *SCHDL) {
 		}
 		fields := strings.Fields(line)
 
+		// 定義の種類
+		var dmod rune
 		if fields[0] == "-v" || fields[0] == "VL" {
 			// 設定値名
 			dmod = 'v'
-		} else {
+		} else if fields[0] == "-s" || fields[0] == "SW" {
 			// 切換設定名
 			dmod = 'w'
+		} else {
+			panic(fields[0])
 		}
-
-		s = fields[1]
 
 		// 年間スケジュールの初期化
 		S := SCH{
-			name: string(s),
+			name: fields[1], // 設定値名 or 切替設定名
 		}
 		for d := range S.day {
 			S.day[d] = -1
 		}
 
+		// ';' まで繰り返す
 		for _, field := range fields[2:] {
-			if ce = new(rune); strings.ContainsRune(field, ';') {
-				*ce = ';'
-				*ce = '\000'
+
+			if field == ";" {
+				break
 			}
+
+			var dname string
 			var sname string
 			var wname string
-			is = -1
-			iw = -1
-			sc = -1
-			sw = -1
+			is := -1
+			var wkday *WKDY = nil
+			sc := -1
+			sw := -1
 
 			// 正規表現パターン
 			pattern := `^(\w+)(?::(\w*))?(?:-(\w+))?`
@@ -324,86 +314,111 @@ func Schdata(schnma string, dsn string, daywk []int, Schdl *SCHDL) {
 
 			// 3つの部分を取り出し
 			if len(match) >= 2 {
-				dname = match[1]
-			} else if len(match) >= 3 {
-				sname = match[2]
-			} else if len(match) >= 4 {
-				sname = match[3]
-			} else {
-				panic("一致する部分が見つかりませんでした")
+				// ex) `TrsetC`
+				dname = match[1] // 参照する1日の設定名
+			}
+			if len(match) >= 3 {
+				// ex) `TrsetH:Winter`
+				sname = match[2] // 季節設定名 ex)Summer
+			}
+			if len(match) >= 4 {
+				// ex) `ACSWLDwd:Summer-Weekday`
+				// ex) `ACSWLDwd:-Weekday`
+				wname = match[3] // 曜日設定名 ex)Weekday
 			}
 
 			if sname != "" {
-				is, err = idssn(string(sname), Seasn)
+				// 季節設定の検索
+				is, err = idssn(sname, Seasn)
 				if err != nil {
 					panic(err)
 				}
 			}
 			if wname != "" {
-				iw, err = idwkd(string(wname), Wkdy)
+				// 曜日設定の検索
+				iw, err := idwkd(wname, Wkdy)
 				if err != nil {
 					panic(err)
 				}
+				wkday = &Wkdy[iw]
 			}
 			if dname != "" {
 				if dmod == 'v' {
-					sc, err = iddsc(string(dname), Dsch)
+					// 一日の設定値スケジュ－ルの検索
+					sc, err = iddsc(dname, Dsch)
 					if err != nil {
 						panic(err)
 					}
-				} else {
+				} else if dmod == 'w' {
+					// 一日の切り替えスケジュ－ルの検索
 					sw, err = iddsw(string(dname), Dscw)
 					if err != nil {
 						panic(err)
 					}
+				} else {
+					panic(dmod)
 				}
 			}
+
+			// ループ回数
+			var N int
 			if is >= 0 {
+				// ** 季節設定がある場合 **
 				N = Seasn[is].N
 			} else {
+				// ** 季節設定がない場合 **
 				N = 1
 			}
 
-			for k = 0; k < N; k++ {
+			// 年間スケジュールの作成ループ
+			for k := 0; k < N; k++ {
+				var ds, de int
 				if is >= 0 {
+					// ** 季節設定がある場合 **
+					// ex) `TrsetC:Winter`
+					// ex) `ACSWLDwd:Winter-Weekday`
 					Sn := Seasn[is]
-					ds = Sn.sday[k]
-					de = Sn.eday[k]
+					ds = Sn.sday[k] //開始日
+					de = Sn.eday[k] //終了日
 
 					if ds > de {
-						de += 365
+						de += 365 // 年末跨ぎ
 					}
 				} else {
-					ds = 1
-					de = dmax
+					// ** 季節設定がない場合場合 **
+					// ex) `TrsetC`
+					// ex) `ACSWLDwd:-Weekday`
+					ds = 1    // 開始日 NOTE: 配列インデックス1-366を想定 (Fortran譲りか)
+					de = dmax // 終了日
 				}
 
-				for day = ds; day <= de; day++ {
-					d = day
+				for day := ds; day <= de; day++ {
+					d := day
 					if day > 365 {
-						d = day - 365
+						d = day - 365 // NOTE: d=1に戻る条件になっている
 					}
 
-					if iw < 0 || Wkdy[iw].wday[daywk[d]] == 1 {
+					// 曜日指定が無い or 指定曜日であることを確認
+					if wkday == nil || wkday.wday[daywk[d]] {
 						if dmod == 'v' {
 							S.day[d] = sc
-						} else {
+						} else if dmod == 'w' {
 							S.day[d] = sw
+						} else {
+							panic(dmod)
 						}
 					}
 				}
 			}
+		}
 
-			// 年間スケジュールに追加
-			if dmod == 'v' {
-				Schdl.Sch = append(Schdl.Sch, S)
-			} else {
-				Schdl.Scw = append(Schdl.Scw, S)
-			}
-
-			if ce != nil {
-				break
-			}
+		// 年間スケジュールに追加
+		if dmod == 'v' {
+			Schdl.Sch = append(Schdl.Sch, S)
+		} else if dmod == 'w' {
+			Schdl.Scw = append(Schdl.Scw, S)
+		} else {
+			panic(dmod)
 		}
 	}
 
@@ -440,4 +455,8 @@ func Schname(schdl *SCHDL) {
 
 		schdl.Scw = append(schdl.Scw, scw)
 	}
+
+	// Val, Isw の領域確保
+	schdl.Val = make([]float64, len(schdl.Sch))
+	schdl.Isw = make([]ControlSWType, len(schdl.Scw))
 }

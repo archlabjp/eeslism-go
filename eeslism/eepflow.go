@@ -12,7 +12,7 @@ import (
 
 func Pflow(_Mpath []*MPATH, Wd *WDAT) {
 	var i, j, n, NG int
-	var mpi *MPATH
+	//var mpi *MPATH
 	var pl *PLIST
 	var eli *ELIN
 	var elo *ELOUT
@@ -127,13 +127,7 @@ func Pflow(_Mpath []*MPATH, Wd *WDAT) {
 					}
 
 					if Plist.Pelm != nil {
-						var l int
-						for l = 0; l < len(mpi.Plist); l++ {
-							if mpi.Plist[l] == Plist {
-								break
-							}
-						}
-						Err = fmt.Sprintf("Mpath=%s  lpath=%d  elm=%s  Go=%f\n", Mpath.Name, l, Plist.Pelm[0].Cmp.Name, Go)
+						Err = fmt.Sprintf("Mpath=%s  lpath=%d  elm=%s  Go=%f\n", Mpath.Name, 0, Plist.Pelm[0].Cmp.Name, Go)
 					}
 				}
 			}

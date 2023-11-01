@@ -580,7 +580,7 @@ type ACHIR struct {
 	rm   int
 	sch  int
 	room *ROOM
-	Gvr  float64
+	Gvr  float64 // 室間相互換気量
 }
 
 // 隣室

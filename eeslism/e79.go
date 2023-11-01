@@ -471,7 +471,7 @@ func Entry(InFile string) {
 			fmt.Fprintf(Ferr, "\n\n\t===== Dayly Loop =====\n\n")
 		}
 
-		day := nday % 365
+		day := ((nday - 1) % 365) + 1
 		if Simc.Perio == 'y' {
 			day = Simc.Daystart
 		}

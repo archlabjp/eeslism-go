@@ -74,23 +74,19 @@ func eloutfprint(id int, E []*ELOUT, cmp []*COMPNT) {
 }
 
 func elinprint(id int, C []*COMPNT, eo []*ELOUT, ei []*ELIN) {
-	var E *ELIN
-	var Eo []*ELOUT
-	var o, v int
 
 	if id == 1 {
 		fmt.Printf("ELIN\n  n  id   upo  upv\n")
 	}
 
 	for i := range C {
-		Ci := C[i]
-		Eo = Ci.Elouts
+		for ii := 0; ii < C[i].Nout; ii++ {
+			Eo := C[i].Elouts[ii]
 
-		for ii := 0; ii < Ci.Nout; ii++ {
-			Eoii := Eo[ii]
+			for j := 0; j < Eo.Ni; j++ {
+				var o, v int
 
-			for j := 0; j < Eoii.Ni; j++ {
-				E = Eoii.Elins[j]
+				E := Eo.Elins[j]
 
 				if E.Upo != nil && eo != nil {
 					Upo_idx := 0
@@ -123,7 +119,7 @@ func elinprint(id int, C []*COMPNT, eo []*ELOUT, ei []*ELIN) {
 					}
 				}
 				fmt.Printf("%3d (%-6s) %c   %3d   %3d",
-					l, Ci.Name, E.Id, o, v)
+					l, C[i].Name, E.Id, o, v)
 				if E.Upo != nil {
 					fmt.Printf(" upo=(%-6s)", E.Upo.Cmp.Name)
 				}

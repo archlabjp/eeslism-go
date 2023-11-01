@@ -161,7 +161,7 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []EXSF, Snbk []SNBK
 		for nn := 0; nn < rm.N; nn++ {
 			Sdn = &Sd[n]
 
-			if Sdn.ble == BLE_InnerWall {
+			if Sdn.ble == BLE_InnerWall || Sdn.ble == BLE_InnerFloor || Sdn.ble == BLE_Ceil {
 				continue
 			}
 

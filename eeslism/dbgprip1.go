@@ -72,8 +72,8 @@ func dprschtable(Ssn []SEASN, Wkd []WKDY, Dh []DSCH, Dw []DSCW) {
 			fmt.Printf("\n- %s", Wkdy.name)
 
 			for j := 0; j < 8; j++ {
-				wday := &Wkdy.wday[j]
-				fmt.Printf("   %d", *wday)
+				wday := Wkdy.wday[j]
+				fmt.Printf("   %d", wday)
 			}
 		}
 
@@ -126,8 +126,8 @@ func dprschtable(Ssn []SEASN, Wkd []WKDY, Dh []DSCH, Dw []DSCW) {
 			fmt.Fprintf(Ferr, "\n%s", Wkdy.name)
 
 			for j := 0; j < 8; j++ {
-				wday := &Wkdy.wday[j]
-				fmt.Fprintf(Ferr, "\t%d", *wday)
+				wday := Wkdy.wday[j]
+				fmt.Fprintf(Ferr, "\t%d", wday)
 			}
 		}
 

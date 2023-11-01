@@ -862,9 +862,9 @@ func hcldprint(fo io.Writer, id int, _Hcload []HCLOAD) {
 
 			fmt.Fprintf(fo, "%c %.4f %.4f %3.0f %.2f ",
 				el.Control, Hcload.Xain, el.Sysv, RHout, Hcload.Ql)
-			el = Hcload.Cmp.Elouts[2]
 
 			if Hcload.Type == 'W' {
+				el = Hcload.Cmp.Elouts[2]
 				fmt.Fprintf(fo, "%c %6.4g %4.1f %4.1f",
 					el.Control, Hcload.Gw, Hcload.Twin, el.Sysv)
 			}

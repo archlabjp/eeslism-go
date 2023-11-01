@@ -3,20 +3,20 @@ package eeslism
 // 季節設定
 type SEASN struct {
 	name       string // 季節名 (sname)
-	N          int
-	sday, eday []int // 開始日・終了日(通日)
+	N          int    // sday, edayの配列の長さ
+	sday, eday []int  // 開始日・終了日(通日)
 }
 
 // 曜日設定
 type WKDY struct {
-	name string  // 曜日名 (wname)
-	wday [15]int //TODO:たぶん長さ8で十分
+	name string // 曜日名 (wname)
+	wday [8]bool
 }
 
-// 一日の設定量スケジュ－ル
+// 一日の設定値スケジュ－ル
 type DSCH struct {
-	name         string // 設定値名 (vdname)
-	N            int
+	name         string    // 設定値名 (vdname)
+	N            int       // stime, etimeの配列の長さ
 	stime, etime []int     // 開始時分, 終了時分
 	val          []float64 // 設定値
 }
@@ -35,7 +35,7 @@ type SCH struct /*スケジュ－ル*/
 {
 	name string
 	Type rune
-	day  [366]int
+	day  [366]int //インデックス0は使用しない
 }
 
 // 一日の設定値、切換スケジュールおよび季節、曜日の指定

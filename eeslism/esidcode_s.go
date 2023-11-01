@@ -25,6 +25,7 @@ import (
 /*  スケジュ－ル名からスケジュ－ル番号の検索   */
 /* --------------------------------------------*/
 
+// 季節設定の検索
 func idssn(code string, _Seasn []SEASN) (int, error) {
 	N := len(_Seasn)
 
@@ -40,14 +41,9 @@ func idssn(code string, _Seasn []SEASN) (int, error) {
 
 /* ---------------------------------------- */
 
+// 曜日設定の検索
 func idwkd(code string, Wkdy []WKDY) (int, error) {
-	N := len(Wkdy)
-
-	if N != len(Wkdy) {
-		panic("N != len(Wkdy)")
-	}
-
-	for j := 0; j < N; j++ {
+	for j := 0; j < len(Wkdy); j++ {
 		_Wkdy := &Wkdy[j]
 		if code == _Wkdy.name {
 			return j, nil
@@ -59,6 +55,7 @@ func idwkd(code string, Wkdy []WKDY) (int, error) {
 
 /* ---------------------------------------- */
 
+// 一日の設定値スケジュ－ルの検索
 func iddsc(code string, Dsch []DSCH) (int, error) {
 	N := len(Dsch)
 
@@ -74,6 +71,7 @@ func iddsc(code string, Dsch []DSCH) (int, error) {
 
 /* ---------------------------------------- */
 
+// 一日の切り替えスケジュ－ルの検索
 func iddsw(code string, Dscw []DSCW) (int, error) {
 	N := len(Dscw)
 

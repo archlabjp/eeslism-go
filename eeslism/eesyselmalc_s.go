@@ -445,7 +445,7 @@ func Elmalloc(
 				Elout := NewElout()
 				Elout.Cmp = Compnt
 				Elout.Ni = Compnt.Nin
-				Elout.Elins = NewElinSlice(1)
+				Elout.Elins = NewElinSlice(Elout.Ni)
 				Elout.Id = Compnt.Ido[i]
 
 				*Elo = append(*Elo, Elout)

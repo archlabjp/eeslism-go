@@ -102,57 +102,47 @@ func Roomvar(_Room []ROOM, _Rdpnl []RDPNL) {
 		elout.Coeffo = Room.RMt
 		elout.Co = Room.RMC
 
+		// 室間相互換気量
 		for j := 0; j < Room.Nachr; j++ {
-			achr := &Room.achr[j]
-			// elin := compnt.Elins[j]
-
-			elout.Coeffin[j] = -(Ca * achr.Gvr)
-			elout.Coeffo += (Ca * achr.Gvr)
+			Gvr := Ca * Room.achr[j].Gvr
+			elout.Coeffin[j] -= Gvr
+			elout.Coeffo += Gvr
 		}
-		off := Room.Nachr
 
+		// ARN
 		for j := 0; j < Room.Ntr; j++ {
-			// cfin := &elout.Coeffin[j+off]
-			// elin := compnt.Elins[j+off]
-
-			elout.Coeffin[j+off] = -Room.ARN[j]
+			elout.Coeffin[j+Room.Nachr] = -Room.ARN[j]
 		}
-		off += Room.Ntr
 
+		// RMP
 		for j := 0; j < Room.Nrp; j++ {
-			elout.Coeffin[j+off] = -Room.RMP[j]
+			elout.Coeffin[j+Room.Nachr+Room.Ntr] = -Room.RMP[j]
 		}
-		off += Room.Nrp
 
+		// 流量
 		for j := 0; j < Room.Nasup; j++ {
-			elin := compnt.Elins[j+off]
-			elout.Coeffin[j+off] = -(Ca * elin.Lpath.G)
-			elout.Coeffo += (Ca * elin.Lpath.G)
+			G := Ca * compnt.Elins[j+Room.Nachr+Room.Ntr+Room.Nrp].Lpath.G
+			elout.Coeffin[j+Room.Nachr+Room.Ntr+Room.Nrp] -= G
+			elout.Coeffo += G
 		}
-		off += Room.Nasup
 
 		elout = compnt.Elouts[1]
 		elout.Coeffo = Room.RMx
 		elout.Co = Room.RMXC
 
+		// 室間相互換気量
 		for j := 0; j < Room.Nachr; j++ {
-			achr := Room.achr[j]
-			// cfin := &elout.Coeffin[j+off]
-			// elin := compnt.Elins[j+off]
-
-			elout.Coeffin[j+off] = -(achr.Gvr)
-			elout.Coeffo += achr.Gvr
+			Gvr := Room.achr[j].Gvr
+			elout.Coeffin[j] -= Gvr
+			elout.Coeffo += Gvr
 		}
-		off += Room.Nachr
 
+		// 流量
 		for j := 0; j < Room.Nasup; j++ {
-			// cfin := &elout.Coeffin[j+off]
-			elin := compnt.Elins[j+off]
-
-			elout.Coeffin[j+off] = -(elin.Lpath.G)
-			elout.Coeffo += elin.Lpath.G
+			G := compnt.Elins[j+Room.Nachr+Room.Ntr+Room.Nrp+Room.Nachr].Lpath.G
+			elout.Coeffin[j+Room.Nachr] -= G
+			elout.Coeffo += G
 		}
-		off += Room.Nasup
 	}
 
 	for i := range _Rdpnl {

@@ -4,51 +4,51 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"strconv"
 	"strings"
 )
 
 // 外表面方位デ－タの入力
 func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SIMCONTL) {
-	var s, ename string
+	var ename string
 	//var st *string
-	var dt, dfrg, wa, wb, swa, cwa, swb, cwb float64
-	var i, j, k int
+	var dt, wa, wb, swa, cwa, swb, cwb float64
+	var k int
 	var err error
 
-	s = dsn
-	Nd := ExsfCount(section)
-	if Nd == 0 {
-		Nd = 1
-	}
+	// 外表面総合伝達率のデフォルト値
+	Exsf.Alosch = envptr(fmt.Sprintf("%f", ALO), Simc, nil, nil, nil)
+	Exsf.Alotype = Alotype_Fix // 固定値
+	Exsf.Exs = make([]*EXSF, 0)
 
-	var exs []*EXSF
-	if Nd > 0 {
-		exs = make([]*EXSF, 0, Nd+1)
+	var dfrg float64 // 全面地物の日射反射率（デフォルト値）
 
-		s = fmt.Sprintf("%f", ALO)
-		Exsf.Alosch = envptr(s, Simc, nil, nil, nil)
-		Exsf.Alotype = Alotype_Fix // 固定値
-	}
-
+	// 最初の行: 全体に対する設定
 	line := section.GetLogicalLine()
-
 	for _, s := range line {
 		if strings.HasPrefix(s, "alo=") {
-			if s[4:] == "Calc" {
+			// 外表面総合伝達率[W/m2K]
+			//
+			value := s[4:]
+			if value == "Calc" {
+				// 風速から計算する
 				Exsf.Alotype = Alotype_V
-			} else if k, err = idsch(s[4:], Schdl.Sch, ""); err == nil {
+			} else if k, err = idsch(value, Schdl.Sch, ""); err == nil {
+				// スケジュールに基づいて値を変化させる
 				Exsf.Alosch = &Schdl.Val[k]
 				Exsf.Alotype = Alotype_Schedule
 			} else {
-				Exsf.Alosch = envptr(s[4:], Simc, nil, nil, nil)
+				// 数値 or 内部変数名
+				Exsf.Alosch = envptr(value, Simc, nil, nil, nil)
 				if Exsf.Alosch != nil {
 					Exsf.Alotype = Alotype_Schedule
 				}
 			}
 		} else if strings.HasPrefix(s, "r=") {
-			dfrg, _ = strconv.ParseFloat(s[2:], 64)
-			if dfrg < 0.0 || dfrg > 1.0 {
+			// 全面地物の日射反射率[-]
+			//
+			value := s[2:]
+			dfrg, err = readFloat(value)
+			if err != nil || dfrg < 0.0 || dfrg > 1.0 {
 				fmt.Fprintf(os.Stderr, "%s の設置値が不適切です", s)
 				os.Exit(1)
 			}
@@ -56,33 +56,49 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 	}
 
 	for section.IsEnd() == false {
-
+		// 論理行を取得
 		line = section.GetLogicalLine()
+
+		// "*"が出てきたら終了
 		if line[0] == "*" {
 			break
 		}
 
+		// 外表面データの初期化
 		ex := new(EXSF)
 		Exsfinit(ex)
+		ex.Name = line[0]         // 外表面名
+		ex.Alotype = Exsf.Alotype // 外表面総合伝達率の設定方法=デフォルト値
+		ex.Alo = Exsf.Alosch      // 外表面総合伝達率=デフォルト値
 
-		i++
-		ex.Name = line[0]
-		ex.Alotype = Exsf.Alotype
-		ex.Alo = Exsf.Alosch
-		if s == "Hor" {
+		// 特殊名 Hor, EarchSf への対応
+		if line[0] == "Hor" {
+			// 水平面なので、傾斜角は0
 			ex.Wb = 0.0
-		} else if s == "EarthSf" {
+		} else if line[0] == "EarthSf" {
+			// 地表面境界を含むことをフラグに書き込む
 			Exsf.EarthSrfFlg = true
-			ex.Typ = 'e'
+
+			// 種別: 地表面
+			ex.Typ = EXSFType_e
 		} else {
-			ex.Wb = 90.0
-			ex.Rg = dfrg
+			// 通常の表面の定義
+			ex.Wb = 90.0 // 傾斜角=90°
+			ex.Rg = dfrg // 日射反射率=デフォルト値
 		}
 
 		for _, s := range line[1:] {
-			if strings.HasPrefix(s, "a=") {
+			st := strings.IndexRune(s, '=')
+
+			key := s[:st]
+			value := s[st+1:]
+
+			if key == "a" {
+				// *** 方位角 a***
+				//
 				var err error
-				if dt, err = strconv.ParseFloat(s[2:], 64); err == nil {
+				if dt, err = readFloat(value); err == nil {
+					// 数値指定
 					ex.Wa = dt
 				} else {
 					var dir rune = ' '
@@ -90,7 +106,8 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 						st := strings.IndexRune(s, '+')
 						dir = '+'
 						ename = s[2:st]
-						dt, err = strconv.ParseFloat(s[st+1:], 64)
+						offvalue := s[st+1:]
+						dt, err = readFloat(offvalue)
 						if err != nil {
 							panic(err)
 						}
@@ -98,7 +115,8 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 						st := strings.IndexRune(s, '-')
 						dir = '-'
 						ename = s[2:st]
-						dt, err = strconv.ParseFloat(s[st+1:], 64)
+						offvalue := s[st+1:]
+						dt, err = readFloat(offvalue)
 						if err != nil {
 							panic(err)
 						}
@@ -106,7 +124,8 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 						ename = s[2:]
 					}
 
-					for _, exj := range exs {
+					var found_flag = false
+					for _, exj := range Exsf.Exs {
 						if exj.Name == ename {
 							if dir == '+' {
 								ex.Wa = exj.Wa + dt
@@ -115,59 +134,66 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 							} else {
 								ex.Wa = exj.Wa
 							}
+							found_flag = true
 							break
 						}
 					}
-					if j == i+1 {
+					if !found_flag {
 						Eprint("<Exsfdata>", s)
 					}
 				}
-			} else {
-				st := strings.IndexRune(s, '=')
-
-				if strings.HasPrefix(s, "alo") {
-					// *** 外表面熱伝達率 alo ***
-					if s[st+1:] == "Calc" {
-						// 風速から計算
-						ex.Alotype = Alotype_V
-					} else {
-						// スケジュール
-						ex.Alotype = Alotype_Schedule
-						if k, err = idsch(s[st+1:], Schdl.Sch, ""); err == nil {
-							ex.Alo = &Schdl.Val[k]
-						} else {
-							ex.Alo = envptr(s[st+1:], Simc, nil, nil, nil)
-						}
-					}
+			} else if key == "alo" {
+				// *** 外表面熱伝達率 alo ***
+				//
+				if value == "Calc" {
+					// 風速から計算
+					ex.Alotype = Alotype_V
 				} else {
-					dt, _ = readFloat(s[st+1:])
-					switch s[0] {
-					case 't':
-						ex.Wb = dt
-					case 'r':
-						ex.Rg = dt
-					case 'Z':
-						ex.Z = dt
-						ex.Typ = 'E'
-					case 'd':
-						ex.Erdff = dt
-					default:
-						Eprint("<Exsfdata>", s)
+					// スケジュール
+					ex.Alotype = Alotype_Schedule
+					if k, err = idsch(value, Schdl.Sch, ""); err == nil {
+						ex.Alo = &Schdl.Val[k]
+					} else {
+						ex.Alo = envptr(value, Simc, nil, nil, nil)
 					}
+				}
+			} else {
+				// *** 傾斜角 t,日射反射率 r,地中深さ Z,土の熱拡散率 d ***
+				//
+				dt, err = readFloat(value)
+				if err != nil {
+					panic(s)
+				}
+				switch key {
+				case "t":
+					// 傾斜角[°]
+					ex.Wb = dt
+				case "r":
+					// 全面地物の日射反射率[-]
+					ex.Rg = dt
+				case "Z":
+					// 地中深さ [m]
+					ex.Z = dt
+					ex.Typ = EXSFType_E // 地下扱いにする
+				case "d":
+					// 土の熱拡散率 [m2/s]
+					ex.Erdff = dt
+				default:
+					Eprint("<Exsfdata>", s)
 				}
 			}
 		}
 
-		exs = append(exs, ex)
+		Exsf.Exs = append(Exsf.Exs, ex)
 	}
 
 	// 外表面熱伝達率の設定
-	if Nd > 0 {
-		s = strconv.FormatFloat(ALO, 'f', -1, 64)
-		Exsf.Alosch = envptr(s, Simc, nil, nil, nil)
-		Exsf.Alotype = Alotype_Fix // 固定値
-		Exsf.Exs = exs
-	}
+	// if len(Exsf.Exs) > 0 {
+	// 	s = strconv.FormatFloat(ALO, 'f', -1, 64)
+	// 	Exsf.Alosch = envptr(s, Simc, nil, nil, nil)
+	// 	Exsf.Alotype = Alotype_Fix // 固定値
+	// 	Exsf.Exs = exs
+	// }
 
 	for _, ex := range Exsf.Exs {
 

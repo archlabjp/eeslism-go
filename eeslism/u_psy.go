@@ -54,13 +54,13 @@ func FNPws(T float64) float64 {
 		fmt.Printf("xxxx ゼロ割が発生しています Tabs=%f\n", Tabs)
 	}
 
-	if T > 0 {
+	if T > 0.0 {
 		Temp = 6.5459673*math.Log(Tabs) - 5800.2206/Tabs + 1.3914993 + Tabs*(-0.048640239+
 			Tabs*(4.1764768e-5-1.4452093e-8*Tabs))
 		Pws = math.Exp(Temp)
 	} else {
-		Pws = math.Exp(-5674.5359/Tabs+6.3925247+Tabs*(-9.677843e-3+
-			Tabs*(6.2215701e-7+Tabs*(2.0747825e-9-9.484024e-13*Tabs)))) + 4.1635019*math.Log(Tabs)
+		Pws = math.Exp(-5674.5359/Tabs + 6.3925247 + Tabs*(-9.677843e-3+
+			Tabs*(6.2215701e-7+Tabs*(2.0747825e-9-9.484024e-13*Tabs))) + 4.1635019*math.Log(Tabs))
 	}
 
 	//fmt.Printf("Tabs=%f Temp=%f Pws=%f\n", Tabs, Temp, Pws)

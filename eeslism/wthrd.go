@@ -19,7 +19,7 @@ type LOCAT struct {
 type WDAT struct {
 	T              float64 // 気温
 	X              float64 // 絶対湿度  [kg/kg]
-	RH             float64
+	RH             float64 // 相対湿度 [%]
 	H              float64 // エンタルピ [J/kg]
 	Idn            float64 // 法線面直逹日射 [W/m2]
 	Isky           float64 // 水平面天空日射 [W/m2]

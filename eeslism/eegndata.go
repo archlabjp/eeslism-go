@@ -118,31 +118,32 @@ func Gdata(section *EeTokens, dsn string, File string, wfname *string,
 						panic(err)
 					}
 				} else if st := strings.IndexRune(s, '='); st != -1 {
-					s = s[st+1:]
+					key := s[:st]
+					value := s[st+1:]
 
-					if s == "dTime" {
+					if key == "dTime" {
 						// For `dTime=3600`
-						*dtm, err = strconv.Atoi(s)
+						*dtm, err = strconv.Atoi(value)
 						if err != nil {
 							panic(err)
 						}
-					} else if s == "Stime" {
+					} else if key == "Stime" {
 						// For `Stime=0`
-						*sttmm, err = strconv.Atoi(s)
+						*sttmm, err = strconv.Atoi(value)
 						if err != nil {
 							panic(err)
 						}
 						*sttmm *= 100
-					} else if s == "MaxIterate" {
+					} else if key == "MaxIterate" {
 						// For `MaxIterate=100`
-						*MaxIterate, err = strconv.Atoi(s)
+						*MaxIterate, err = strconv.Atoi(value)
 						if err != nil {
 							panic(err)
 						}
-					} else if s == "RepeatDays" { // 周期定常計算の繰り返し日数の取得
+					} else if key == "RepeatDays" { // 周期定常計算の繰り返し日数の取得
 						// For `RepeatDays=365`
 						var Ndays int
-						Ndays, err = strconv.Atoi(s)
+						Ndays, err = strconv.Atoi(value)
 						if err != nil {
 							panic(err)
 						}
@@ -152,6 +153,8 @@ func Gdata(section *EeTokens, dsn string, File string, wfname *string,
 						}
 
 						*daye = *days + Ndays - 1
+					} else {
+						panic(s)
 					}
 				} else if s[0] == '(' {
 					// For `(1/1)`

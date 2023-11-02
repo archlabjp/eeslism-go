@@ -25,14 +25,14 @@ import (
 var __Roomday_oldday = -999
 var __Roomday_oldMon = -999
 
-func Roomday(Mon int, Day int, Nday int, ttmm int, Rm []ROOM, Rdp []RDPNL, Simdayend int) {
+func Roomday(Mon int, Day int, Nday int, ttmm int, Rm []*ROOM, Rdp []*RDPNL, Simdayend int) {
 	Mo := Mon - 1
 	tt := ConvertHour(ttmm)
 
 	// 日集計
 	if Nday != __Roomday_oldday {
 		for i := range Rm {
-			Room := &Rm[i]
+			Room := Rm[i]
 
 			svdyint(&Room.Trdy)
 			svdyint(&Room.xrdy)
@@ -47,21 +47,21 @@ func Roomday(Mon int, Day int, Nday int, ttmm int, Rm []ROOM, Rdp []RDPNL, Simda
 			}
 
 			for j := 0; j < Room.Nasup; j++ {
-				A := &Room.Arsp[j]
+				A := Room.Arsp[j]
 				qdyint(&A.Qdys)
 				qdyint(&A.Qdyl)
 				qdyint(&A.Qdyt)
 			}
 
 			for j := 0; j < Room.N; j++ {
-				Sd := &Room.rsrf[j]
+				Sd := Room.rsrf[j]
 				qdyint(&Sd.SQi)
 				svdyint(&Sd.Tsdy)
 			}
 		}
 
 		for i := range Rdp {
-			Rdpnl := &Rdp[i]
+			Rdpnl := Rdp[i]
 			svdyint(&Rdpnl.Tpody)
 			svdyint(&Rdpnl.Tpidy)
 			qdyint(&Rdpnl.Qdy)
@@ -77,7 +77,7 @@ func Roomday(Mon int, Day int, Nday int, ttmm int, Rm []ROOM, Rdp []RDPNL, Simda
 	if Mon != __Roomday_oldMon {
 		//printf("リセット\n") ;
 		for i := range Rm {
-			Room := &Rm[i]
+			Room := Rm[i]
 
 			svdyint(&Room.mTrdy)
 			svdyint(&Room.mxrdy)
@@ -92,21 +92,21 @@ func Roomday(Mon int, Day int, Nday int, ttmm int, Rm []ROOM, Rdp []RDPNL, Simda
 			}
 
 			for j := 0; j < Room.Nasup; j++ {
-				A := &Room.Arsp[j]
+				A := Room.Arsp[j]
 				qdyint(&A.mQdys)
 				qdyint(&A.mQdyl)
 				qdyint(&A.mQdyt)
 			}
 
 			for j := 0; j < Room.N; j++ {
-				Sd := &Room.rsrf[j]
+				Sd := Room.rsrf[j]
 				qdyint(&Sd.mSQi)
 				svdyint(&Sd.mTsdy)
 			}
 		}
 
 		for i := range Rdp {
-			Rdpnl := &Rdp[i]
+			Rdpnl := Rdp[i]
 			svdyint(&Rdpnl.mTpody)
 			svdyint(&Rdpnl.mTpidy)
 			qdyint(&Rdpnl.mQdy)
@@ -120,7 +120,7 @@ func Roomday(Mon int, Day int, Nday int, ttmm int, Rm []ROOM, Rdp []RDPNL, Simda
 
 	// 日集計
 	for i := range Rm {
-		Room := &Rm[i]
+		Room := Rm[i]
 		svdaysum(int64(ttmm), ON_SW, Room.Tr, &Room.Trdy)
 		svdaysum(int64(ttmm), ON_SW, Room.xr, &Room.xrdy)
 		svdaysum(int64(ttmm), ON_SW, Room.RH, &Room.RHdy)
@@ -133,21 +133,21 @@ func Roomday(Mon int, Day int, Nday int, ttmm int, Rm []ROOM, Rdp []RDPNL, Simda
 			qdaysum(int64(ttmm), ON_SW, R.Qt, &R.Qdyt)
 		}
 		for j := 0; j < Room.Nasup; j++ {
-			A := &Room.Arsp[j]
+			A := Room.Arsp[j]
 			qdaysum(int64(ttmm), ON_SW, A.Qs, &A.Qdys)
 			qdaysum(int64(ttmm), ON_SW, A.Ql, &A.Qdyl)
 			qdaysum(int64(ttmm), ON_SW, A.Qt, &A.Qdyt)
 		}
 
 		for j := 0; j < Room.N; j++ {
-			Sd := &Room.rsrf[j]
+			Sd := Room.rsrf[j]
 			svdaysum(int64(ttmm), ON_SW, Sd.Ts, &Sd.Tsdy)
 			qdaysum(int64(ttmm), ON_SW, Sd.Qi, &Sd.SQi)
 		}
 	}
 
 	for i := range Rdp {
-		Rdpnl := &Rdp[i]
+		Rdpnl := Rdp[i]
 
 		svdaysum(int64(ttmm), Rdpnl.cmp.Control, Rdpnl.Tpo, &Rdpnl.Tpody)
 		svdaysum(int64(ttmm), Rdpnl.cmp.Control, Rdpnl.Tpi, &Rdpnl.Tpidy)
@@ -166,7 +166,7 @@ func Roomday(Mon int, Day int, Nday int, ttmm int, Rm []ROOM, Rdp []RDPNL, Simda
 	// 月集計
 	//printf("Mon=%d Day=%d ttmm=%d\n", Mon, Day, ttmm ) ;
 	for i := range Rm {
-		Room := &Rm[i]
+		Room := Rm[i]
 
 		svmonsum(Mon, Day, ttmm, ON_SW, Room.Tr, &Room.mTrdy, Nday, Simdayend)
 		svmonsum(Mon, Day, ttmm, ON_SW, Room.xr, &Room.mxrdy, Nday, Simdayend)
@@ -180,21 +180,21 @@ func Roomday(Mon int, Day int, Nday int, ttmm int, Rm []ROOM, Rdp []RDPNL, Simda
 			qmonsum(Mon, Day, ttmm, ON_SW, R.Qt, &R.mQdyt, Nday, Simdayend)
 		}
 		for j := 0; j < Room.Nasup; j++ {
-			A := &Room.Arsp[j]
+			A := Room.Arsp[j]
 			qmonsum(Mon, Day, ttmm, ON_SW, A.Qs, &A.mQdys, Nday, Simdayend)
 			qmonsum(Mon, Day, ttmm, ON_SW, A.Ql, &A.mQdyl, Nday, Simdayend)
 			qmonsum(Mon, Day, ttmm, ON_SW, A.Qt, &A.mQdyt, Nday, Simdayend)
 		}
 
 		for j := 0; j < Room.N; j++ {
-			Sd := &Room.rsrf[j]
+			Sd := Room.rsrf[j]
 			svmonsum(Mon, Day, ttmm, ON_SW, Sd.Ts, &Sd.mTsdy, Nday, Simdayend)
 			qmonsum(Mon, Day, ttmm, ON_SW, Sd.Qi, &Sd.mSQi, Nday, Simdayend)
 		}
 	}
 
 	for i := range Rdp {
-		Rdpnl := &Rdp[i]
+		Rdpnl := Rdp[i]
 
 		svmonsum(Mon, Day, ttmm, Rdpnl.cmp.Control, Rdpnl.Tpo, &Rdpnl.mTpody, Nday, Simdayend)
 		svmonsum(Mon, Day, ttmm, Rdpnl.cmp.Control, Rdpnl.Tpi, &Rdpnl.mTpidy, Nday, Simdayend)
@@ -218,7 +218,7 @@ func Roomday(Mon int, Day int, Nday int, ttmm int, Rm []ROOM, Rdp []RDPNL, Simda
 
 var __Rmdyprint_id int = 0
 
-func Rmdyprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []ROOM) {
+func Rmdyprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []*ROOM) {
 	if __Rmdyprint_id == 0 && len(Rm) > 0 {
 		__Rmdyprint_id++
 
@@ -227,7 +227,7 @@ func Rmdyprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []ROOM
 		fmt.Fprintf(fo, "%s %d\n", ROOM_TYPE, len(Rm))
 
 		for i := range Rm {
-			Room := &Rm[i]
+			Room := Rm[i]
 
 			var Nload int
 			if Room.rmld != nil {
@@ -247,7 +247,7 @@ func Rmdyprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []ROOM
 		__Rmdyprint_id++
 
 		for i := range Rm {
-			Room := &Rm[i]
+			Room := Rm[i]
 
 			fmt.Fprintf(fo, "%s_Ht H d %s_Tr T f %s_ttn h d %s_Trn t f %s_ttm h d %s_Trm t f\n",
 				Room.Name, Room.Name, Room.Name, Room.Name, Room.Name, Room.Name)
@@ -297,7 +297,7 @@ func Rmdyprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []ROOM
 				}
 			}
 			for j := 0; j < Room.Nrp; j++ {
-				rpnl := &Room.rmpnl[j]
+				rpnl := Room.rmpnl[j]
 				fmt.Fprintf(fo, "%s:%s_Qh Q f %s:%s_Qc Q f ", Room.Name, rpnl.pnl.Name,
 					Room.Name, rpnl.pnl.Name)
 			}
@@ -308,7 +308,7 @@ func Rmdyprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []ROOM
 	fmt.Fprintf(fo, "%02d %02d\n", mon, day)
 
 	for i := range Rm {
-		Room := &Rm[i]
+		Room := Rm[i]
 
 		fmt.Fprintf(fo, "%1d %4.2f %1d %4.2f %1d %4.2f ",
 			Room.Trdy.Hrs, Room.Trdy.M, Room.Trdy.Mntime,
@@ -342,7 +342,7 @@ func Rmdyprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []ROOM
 		}
 		if Room.Nasup > 0 {
 			for j := 0; j < Room.Nasup; j++ {
-				A := &Room.Arsp[j]
+				A := Room.Arsp[j]
 				fmt.Fprintf(fo, "%3.1f %.2f ", A.Qdys.H, A.Qdys.C)
 				fmt.Fprintf(fo, "%3.1f %.2f ", A.Qdyl.H, A.Qdyl.C)
 				fmt.Fprintf(fo, "%3.1f %.2f ", A.Qdyt.H, A.Qdyt.C)
@@ -351,7 +351,7 @@ func Rmdyprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []ROOM
 		}
 		if Room.Nrp > 0 {
 			for j := 0; j < Room.Nrp; j++ {
-				rpnl := &Room.rmpnl[j]
+				rpnl := Room.rmpnl[j]
 				fmt.Fprintf(fo, "%.2f %.2f\n", -rpnl.pnl.Qdy.C, -rpnl.pnl.Qdy.H)
 			}
 		}
@@ -362,7 +362,7 @@ func Rmdyprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []ROOM
 // 月集計結果の出力
 var __Rmmonprint_id int
 
-func Rmmonprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []ROOM) {
+func Rmmonprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []*ROOM) {
 
 	Nroom := len(Rm)
 
@@ -374,7 +374,7 @@ func Rmmonprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []ROO
 		fmt.Fprintf(fo, "%s %d\n", ROOM_TYPE, Nroom)
 
 		for i := 0; i < Nroom; i++ {
-			Room := &Rm[i]
+			Room := Rm[i]
 
 			var Nload int
 			if Room.rmld != nil {
@@ -393,7 +393,7 @@ func Rmmonprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []ROO
 		__Rmmonprint_id++
 
 		for i := 0; i < Nroom; i++ {
-			Room := &Rm[i]
+			Room := Rm[i]
 
 			fmt.Fprintf(fo, "%s_Ht H d %s_Tr T f %s_ttn h d %s_Trn t f %s_ttm h d %s_Trm t f\n",
 				Room.Name, Room.Name, Room.Name, Room.Name, Room.Name, Room.Name)
@@ -443,7 +443,7 @@ func Rmmonprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []ROO
 				}
 			}
 			for j := 0; j < Room.Nrp; j++ {
-				rpnl := &Room.rmpnl[j]
+				rpnl := Room.rmpnl[j]
 				fmt.Fprintf(fo, "%s:%s_Qh Q f %s:%s_Qc Q f ", Room.Name, rpnl.pnl.Name,
 					Room.Name, rpnl.pnl.Name)
 			}
@@ -454,7 +454,7 @@ func Rmmonprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []ROO
 	fmt.Fprintf(fo, "%02d %02d\n", mon, day)
 
 	for i := 0; i < Nroom; i++ {
-		Room := &Rm[i]
+		Room := Rm[i]
 
 		fmt.Fprintf(fo, "%1d %4.2f %1d %4.2f %1d %4.2f ",
 			Room.mTrdy.Hrs, Room.mTrdy.M, Room.mTrdy.Mntime,
@@ -488,7 +488,7 @@ func Rmmonprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []ROO
 		}
 		if Room.Nasup > 0 {
 			for j := 0; j < Room.Nasup; j++ {
-				A := &Room.Arsp[j]
+				A := Room.Arsp[j]
 				fmt.Fprintf(fo, "%3.1f %3.1f ", A.mQdys.H, A.mQdys.C)
 				fmt.Fprintf(fo, "%3.1f %3.1f ", A.mQdyl.H, A.mQdyl.C)
 				fmt.Fprintf(fo, "%3.1f %3.1f ", A.mQdyt.H, A.mQdyt.C)
@@ -497,7 +497,7 @@ func Rmmonprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []ROO
 		}
 		if Room.Nrp > 0 {
 			for j := 0; j < Room.Nrp; j++ {
-				rpnl := &Room.rmpnl[j]
+				rpnl := Room.rmpnl[j]
 				fmt.Fprintf(fo, "%3.1f %3.1f\n", -rpnl.pnl.mQdy.C, -rpnl.pnl.mQdy.H)
 			}
 		}
@@ -507,7 +507,7 @@ func Rmmonprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []ROO
 
 /* -------------------------------------------- */
 
-func paneldyprt(fo io.Writer, id int, _Rdpnl []RDPNL) {
+func paneldyprt(fo io.Writer, id int, _Rdpnl []*RDPNL) {
 	switch id {
 	case 0:
 		if len(_Rdpnl) > 0 {
@@ -515,7 +515,7 @@ func paneldyprt(fo io.Writer, id int, _Rdpnl []RDPNL) {
 		}
 
 		for i := range _Rdpnl {
-			Rdpnl := &_Rdpnl[i]
+			Rdpnl := _Rdpnl[i]
 			Wall := Rdpnl.sd[0].mw.wall
 
 			if Wall.WallType == WallType_P {
@@ -533,7 +533,7 @@ func paneldyprt(fo io.Writer, id int, _Rdpnl []RDPNL) {
 
 	case 1:
 		for i := range _Rdpnl {
-			Rdpnl := &_Rdpnl[i]
+			Rdpnl := _Rdpnl[i]
 			Wall := Rdpnl.sd[0].mw.wall
 
 			fmt.Fprintf(fo, "%s_Hto H d %s_To T f ", Rdpnl.Name, Rdpnl.Name)
@@ -565,7 +565,7 @@ func paneldyprt(fo io.Writer, id int, _Rdpnl []RDPNL) {
 
 	default:
 		for i := range _Rdpnl {
-			Rdpnl := &_Rdpnl[i]
+			Rdpnl := _Rdpnl[i]
 			Wall := Rdpnl.sd[0].mw.wall
 
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
@@ -597,7 +597,7 @@ func paneldyprt(fo io.Writer, id int, _Rdpnl []RDPNL) {
 	}
 }
 
-func panelmonprt(fo io.Writer, id int, _Rdpnl []RDPNL) {
+func panelmonprt(fo io.Writer, id int, _Rdpnl []*RDPNL) {
 
 	switch id {
 	case 0:
@@ -606,7 +606,7 @@ func panelmonprt(fo io.Writer, id int, _Rdpnl []RDPNL) {
 		}
 
 		for i := range _Rdpnl {
-			Rdpnl := &_Rdpnl[i]
+			Rdpnl := _Rdpnl[i]
 			Wall := Rdpnl.sd[0].mw.wall
 
 			if Wall.WallType == WallType_P {
@@ -623,7 +623,7 @@ func panelmonprt(fo io.Writer, id int, _Rdpnl []RDPNL) {
 
 	case 1:
 		for i := range _Rdpnl {
-			Rdpnl := &_Rdpnl[i]
+			Rdpnl := _Rdpnl[i]
 			Wall := Rdpnl.sd[0].mw.wall
 
 			fmt.Fprintf(fo, "%s_Hto H d %s_To T f ", Rdpnl.Name, Rdpnl.Name)
@@ -655,7 +655,7 @@ func panelmonprt(fo io.Writer, id int, _Rdpnl []RDPNL) {
 
 	default:
 		for i := range _Rdpnl {
-			Rdpnl := &_Rdpnl[i]
+			Rdpnl := _Rdpnl[i]
 			Wall := Rdpnl.sd[0].mw.wall
 
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
@@ -687,24 +687,24 @@ func panelmonprt(fo io.Writer, id int, _Rdpnl []RDPNL) {
 	}
 }
 
-func panelmtprt(fo io.Writer, id int, Rdpnl []RDPNL, Mo int, tt int) {
+func panelmtprt(fo io.Writer, id int, Rdpnl []*RDPNL, Mo int, tt int) {
 	switch id {
 	case 0:
 		if len(Rdpnl) > 0 {
 			fmt.Fprintf(fo, "%s %d\n", RDPANEL_TYPE, len(Rdpnl))
 		}
 		for i := range Rdpnl {
-			Rdpnl := &Rdpnl[i]
+			Rdpnl := Rdpnl[i]
 			fmt.Fprintf(fo, " %s 1 1\n", Rdpnl.Name)
 		}
 	case 1:
 		for i := range Rdpnl {
-			Rdpnl := &Rdpnl[i]
+			Rdpnl := Rdpnl[i]
 			fmt.Fprintf(fo, "%s_E E f \n", Rdpnl.Name)
 		}
 	default:
 		for i := range Rdpnl {
-			Rdpnl := &Rdpnl[i]
+			Rdpnl := Rdpnl[i]
 			fmt.Fprintf(fo, " %.2f \n", Rdpnl.mtPVdy[Mo-1][tt-1].D*Cff_kWh)
 		}
 	}

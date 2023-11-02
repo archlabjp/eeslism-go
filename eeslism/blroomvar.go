@@ -21,18 +21,18 @@ package eeslism
 
 /* 室間換気、放射パネルとシステム入力要素への割り付け */
 
-func Roomelm(Room []ROOM, _Rdpnl []RDPNL) {
+func Roomelm(Room []*ROOM, _Rdpnl []*RDPNL) {
 
 	for n := range Room {
 
-		room := &Room[n]
+		room := Room[n]
 		compnt := room.cmp
 		var elin_idx = 0
 
 		for i := 0; i < room.Nachr; i++ {
 			var elin *ELIN = compnt.Elins[elin_idx]
 			var elinx *ELIN = compnt.Elins[elin_idx+compnt.Elouts[0].Ni]
-			var achr *ACHIR = &room.achr[i]
+			var achr *ACHIR = room.achr[i]
 
 			cmp := achr.room.cmp
 
@@ -45,7 +45,7 @@ func Roomelm(Room []ROOM, _Rdpnl []RDPNL) {
 		for i := 0; i < room.Ntr; i++ {
 
 			var elin *ELIN = compnt.Elins[elin_idx]
-			trnx := &room.trnx[i]
+			trnx := room.trnx[i]
 
 			cmp := trnx.nextroom.cmp
 			elin.Upo, elin.Upv = cmp.Elouts[0], cmp.Elouts[0]
@@ -55,7 +55,7 @@ func Roomelm(Room []ROOM, _Rdpnl []RDPNL) {
 
 		for i := 0; i < room.Nrp; i++ {
 			var elin *ELIN = compnt.Elins[elin_idx]
-			rmpnl := &room.rmpnl[i]
+			rmpnl := room.rmpnl[i]
 
 			elip := rmpnl.pnl.cmp.Elins[0]
 
@@ -66,7 +66,7 @@ func Roomelm(Room []ROOM, _Rdpnl []RDPNL) {
 	}
 
 	for n := range _Rdpnl {
-		Rdpnl := &_Rdpnl[n]
+		Rdpnl := _Rdpnl[n]
 		elin_idx := 1
 
 		for m := 0; m < Rdpnl.MC; m++ {
@@ -75,7 +75,7 @@ func Roomelm(Room []ROOM, _Rdpnl []RDPNL) {
 			elin.Upo, elin.Upv = room.cmp.Elouts[0], room.cmp.Elouts[0]
 
 			for i := 0; i < Rdpnl.Ntrm[m]; i++ {
-				trnx := &room.trnx[i]
+				trnx := room.trnx[i]
 				elin := Rdpnl.cmp.Elins[elin_idx]
 
 				cmp := trnx.nextroom.cmp
@@ -92,9 +92,9 @@ func Roomelm(Room []ROOM, _Rdpnl []RDPNL) {
 
 /* 室、放射パネルのシステム方程式作成 */
 
-func Roomvar(_Room []ROOM, _Rdpnl []RDPNL) {
+func Roomvar(_Room []*ROOM, _Rdpnl []*RDPNL) {
 	for i := range _Room {
-		Room := &_Room[i]
+		Room := _Room[i]
 
 		compnt := Room.cmp
 		elout := compnt.Elouts[0]
@@ -146,7 +146,7 @@ func Roomvar(_Room []ROOM, _Rdpnl []RDPNL) {
 	}
 
 	for i := range _Rdpnl {
-		Rdpnl := &_Rdpnl[i]
+		Rdpnl := _Rdpnl[i]
 
 		compnt := Rdpnl.cmp
 		G := compnt.Elouts[0].Lpath.G

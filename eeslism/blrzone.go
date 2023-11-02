@@ -24,7 +24,7 @@ import (
 
 /* ゾーン集計実施室の指定  */
 
-func Rzonedata(fi io.Reader, dsn string, Nroom int, Room []ROOM, Nrzone *int, _Rzone []RZONE) {
+func Rzonedata(fi io.Reader, dsn string, Nroom int, Room []*ROOM, Nrzone *int, _Rzone []*RZONE) {
 	scanner := bufio.NewScanner(fi)
 
 	for scanner.Scan() {
@@ -35,14 +35,14 @@ func Rzonedata(fi io.Reader, dsn string, Nroom int, Room []ROOM, Nrzone *int, _R
 
 		fields := strings.Fields(line)
 
-		Rzone := &_Rzone[*Nrzone]
+		Rzone := _Rzone[*Nrzone]
 		Rzone.name = fields[0]
 		Rzone.Nroom = 0
 		Rzone.Afloor = 0.0
 
 		for _, s := range fields[1:] {
 			if i, err := idroom(s, Room, ""); err != nil {
-				Rm := &Room[i]
+				Rm := Room[i]
 				Rzone.rm = append(Rzone.rm, Rm)
 				Rzone.Nroom++
 				Rzone.Afloor += Rm.FArea

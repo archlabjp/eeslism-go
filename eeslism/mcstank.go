@@ -216,36 +216,35 @@ func Stankmemloc(errkey string, Stank *STANK) {
 
 /* 蓄熱槽初期設定 */
 
-func Stankint(Stank []STANK, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT) {
+func Stankint(Stank []*STANK, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT) {
 	var s, ss, Err, E string
 	var mrk rune
 	var Tso float64
 
 	E = "Stankint"
 
-	for i := range Stank {
-		Stank := &Stank[i]
+	for _, stank := range Stank {
 
 		// 内蔵熱交換器の熱伝達率計算用温度の初期化
-		Stank.DblTa = 20.0
-		Stank.DblTw = 20.0
+		stank.DblTa = 20.0
+		stank.DblTw = 20.0
 
-		s = Stank.Cmp.Tparm
+		s = stank.Cmp.Tparm
 		if s != "" {
 			if s[0] == '(' {
 				s = s[1:]
-				for j := 0; j < Stank.Ndiv; j++ {
+				for j := 0; j < stank.Ndiv; j++ {
 					_, err := fmt.Sscanf(s, " %s ", &ss)
 					if err != nil {
 						panic(err)
 					}
 
 					if ss[0] == TANK_EMPTY {
-						Stank.DtankF[j] = TANK_EMPTY
-						Stank.Tssold[j] = TANK_EMPTMP
+						stank.DtankF[j] = TANK_EMPTY
+						stank.Tssold[j] = TANK_EMPTMP
 					} else {
-						Stank.DtankF[j] = TANK_FULL
-						Stank.Tssold[j], err = strconv.ParseFloat(ss, 64)
+						stank.DtankF[j] = TANK_FULL
+						stank.Tssold[j], err = strconv.ParseFloat(ss, 64)
 						if err != nil {
 							panic(err)
 						}
@@ -267,31 +266,31 @@ func Stankint(Stank []STANK, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT) {
 						panic(err)
 					}
 				}
-				for j := 0; j < Stank.Ndiv; j++ {
-					Stank.DtankF[j] = mrk
-					Stank.Tssold[j] = Tso
+				for j := 0; j < stank.Ndiv; j++ {
+					stank.DtankF[j] = mrk
+					stank.Tssold[j] = Tso
 				}
 			}
 		}
 
-		Stank.Tenv = envptr(Stank.Cmp.Envname, Simc, Compnt, Wd, nil)
-		stoint(Stank.Ndiv, Stank.Cat.Vol, Stank.Cat.KAside, Stank.Cat.KAtop, Stank.Cat.KAbtm,
-			Stank.Dvol, Stank.Mdt, Stank.KS, Stank.Tss, Stank.Tssold, &Stank.Jva, &Stank.Jvb)
+		stank.Tenv = envptr(stank.Cmp.Envname, Simc, Compnt, Wd, nil)
+		stoint(stank.Ndiv, stank.Cat.Vol, stank.Cat.KAside, stank.Cat.KAtop, stank.Cat.KAbtm,
+			stank.Dvol, stank.Mdt, stank.KS, stank.Tss, stank.Tssold, &stank.Jva, &stank.Jvb)
 
-		if Stank.Cat.Vol < 0.0 {
-			Err = fmt.Sprintf("Name=%s  Vol=%.4g", Stank.Cmp.Name, Stank.Cat.Vol)
+		if stank.Cat.Vol < 0.0 {
+			Err = fmt.Sprintf("Name=%s  Vol=%.4g", stank.Cmp.Name, stank.Cat.Vol)
 			Eprint(E, Err)
 		}
-		if Stank.Cat.KAside < 0.0 {
-			Err = fmt.Sprintf("Name=%s  KAside=%.4g", Stank.Cmp.Name, Stank.Cat.KAside)
+		if stank.Cat.KAside < 0.0 {
+			Err = fmt.Sprintf("Name=%s  KAside=%.4g", stank.Cmp.Name, stank.Cat.KAside)
 			Eprint(E, Err)
 		}
-		if Stank.Cat.KAtop < 0.0 {
-			Err = fmt.Sprintf("Name=%s  KAtop=%.4g", Stank.Cmp.Name, Stank.Cat.KAtop)
+		if stank.Cat.KAtop < 0.0 {
+			Err = fmt.Sprintf("Name=%s  KAtop=%.4g", stank.Cmp.Name, stank.Cat.KAtop)
 			Eprint(E, Err)
 		}
-		if Stank.Cat.KAbtm < 0.0 {
-			Err = fmt.Sprintf("Name=%s  KAbtm=%.4g", Stank.Cmp.Name, Stank.Cat.KAbtm)
+		if stank.Cat.KAbtm < 0.0 {
+			Err = fmt.Sprintf("Name=%s  KAbtm=%.4g", stank.Cmp.Name, stank.Cat.KAbtm)
 			Eprint(E, Err)
 		}
 	}
@@ -306,16 +305,14 @@ func Stankint(Stank []STANK, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT) {
 //    | STANK |  --->  ....
 //    +-------+  ---> [OUT N]
 //
-func Stankcfv(Stank []STANK) {
-	for i := range Stank {
-		Stank := &Stank[i]
-
-		for j := 0; j < Stank.Nin; j++ {
-			elin := Stank.Cmp.Elins[j]
-			cGwin := &Stank.CGwin[j]
-			EGwin := &Stank.EGwin[j]
-			ihxeff := &Stank.Ihxeff[j]
-			ihex := &Stank.Ihex[j]
+func Stankcfv(Stank []*STANK) {
+	for _, stank := range Stank {
+		for j := 0; j < stank.Nin; j++ {
+			elin := stank.Cmp.Elins[j]
+			cGwin := &stank.CGwin[j]
+			EGwin := &stank.EGwin[j]
+			ihxeff := &stank.Ihxeff[j]
+			ihex := &stank.Ihex[j]
 
 			if elin.Lpath.Batch {
 				*cGwin = 0.0
@@ -326,37 +323,37 @@ func Stankcfv(Stank []STANK) {
 			// 内蔵熱交のKAが入力されている場合
 			if *ihex == 'y' && *cGwin > 0.0 {
 				// 内蔵熱交換器の内径、管長が入力されている場合
-				if Stank.KAinput[j] == 'C' {
-					dblT := (Stank.DblTa + Stank.DblTw) / 2.0
+				if stank.KAinput[j] == 'C' {
+					dblT := (stank.DblTa + stank.DblTw) / 2.0
 					// 内蔵熱交換器の表面温度は内外流体の平均温度で代用
-					ho := FNhoutpipe(Stank.Dbld0, dblT, Stank.DblTw)
+					ho := FNhoutpipe(stank.Dbld0, dblT, stank.DblTw)
 					// 流速の計算
-					dblv := elin.Lpath.G / Row / (math.Pi * math.Pow(Stank.Dbld0/2.0, 2.0))
-					hi := FNhinpipe(Stank.Dbld0, Stank.DblL, dblv, dblT)
-					Stank.KA[j] = 1.0 / (1.0/ho + 1.0/hi) * math.Pi * Stank.Dbld0 * Stank.DblL
+					dblv := elin.Lpath.G / Row / (math.Pi * math.Pow(stank.Dbld0/2.0, 2.0))
+					hi := FNhinpipe(stank.Dbld0, stank.DblL, dblv, dblT)
+					stank.KA[j] = 1.0 / (1.0/ho + 1.0/hi) * math.Pi * stank.Dbld0 * stank.DblL
 				}
-				if Stank.KAinput[j] == 'Y' || Stank.KAinput[j] == 'C' {
-					NTU := Stank.KA[j] / *cGwin
+				if stank.KAinput[j] == 'Y' || stank.KAinput[j] == 'C' {
+					NTU := stank.KA[j] / *cGwin
 					*ihxeff = 1.0 - math.Exp(-NTU)
 				}
 			}
 			*EGwin = *cGwin * *ihxeff
 		}
 
-		stofc(Stank.Ndiv, Stank.Nin, Stank.Jin,
-			Stank.Jout, Stank.Ihex, Stank.Ihxeff, Stank.Jva, Stank.Jvb,
-			Stank.Mdt, Stank.KS, Stank.Cat.gxr, Stank.Tenv,
-			Stank.Tssold, Stank.CGwin, Stank.EGwin, Stank.B, Stank.R, Stank.D, Stank.Fg)
+		stofc(stank.Ndiv, stank.Nin, stank.Jin,
+			stank.Jout, stank.Ihex, stank.Ihxeff, stank.Jva, stank.Jvb,
+			stank.Mdt, stank.KS, stank.Cat.gxr, stank.Tenv,
+			stank.Tssold, stank.CGwin, stank.EGwin, stank.B, stank.R, stank.D, stank.Fg)
 
 		fgIdx := 0
 		cfinIdx := 0
-		for j := 0; j < Stank.Nin; j++ {
-			Eo := Stank.Cmp.Elouts[j]
+		for j := 0; j < stank.Nin; j++ {
+			Eo := stank.Cmp.Elouts[j]
 			Eo.Coeffo = 1.0
-			Eo.Co = Stank.D[Stank.Jout[j]]
+			Eo.Co = stank.D[stank.Jout[j]]
 
-			for k := 0; k < Stank.Nin; k++ {
-				Eo.Coeffin[cfinIdx] = -Stank.Fg[fgIdx]
+			for k := 0; k < stank.Nin; k++ {
+				Eo.Coeffin[cfinIdx] = -stank.Fg[fgIdx]
 				cfinIdx++
 				fgIdx++
 			}
@@ -403,21 +400,21 @@ func stankvptr(key []string, Stank *STANK) (VPTR, error) {
 
 /* 槽内水温、水温分布逆転の検討 */
 
-func Stanktss(Stank []STANK, TKreset *int) {
-	for i := range Stank {
+func Stanktss(Stank []*STANK, TKreset *int) {
+	for _, stank := range Stank {
 
-		for j := 0; j < Stank[i].Nin; j++ {
-			eli := Stank[i].Cmp.Elins[j]
-			Stank[i].Twin[j] = eli.Sysvin
+		for j := 0; j < stank.Nin; j++ {
+			eli := stank.Cmp.Elins[j]
+			stank.Twin[j] = eli.Sysvin
 		}
 
-		stotss(Stank[i].Ndiv, Stank[i].Nin, Stank[i].Jin, Stank[i].B, Stank[i].R, Stank[i].EGwin, Stank[i].Twin,
-			Stank[i].Tss)
+		stotss(stank.Ndiv, stank.Nin, stank.Jin, stank.B, stank.R, stank.EGwin, stank.Twin,
+			stank.Tss)
 
-		stotsexm(Stank[i].Ndiv, Stank[i].Tss, &Stank[i].Jva, &Stank[i].Jvb,
-			Stank[i].DtankF, &Stank[i].Cfcalc)
+		stotsexm(stank.Ndiv, stank.Tss, &stank.Jva, &stank.Jvb,
+			stank.DtankF, &stank.Cfcalc)
 
-		if Stank[i].Cfcalc == 'y' {
+		if stank.Cfcalc == 'y' {
 			*TKreset = 1
 		}
 	}
@@ -427,63 +424,63 @@ func Stanktss(Stank []STANK, TKreset *int) {
 
 /* 供給熱量、損失熱量計算、水温前時間値の置換 */
 
-func Stankene(Stank []STANK) {
-	for i := range Stank {
+func Stankene(Stank []*STANK) {
+	for _, stank := range Stank {
 		// バッチモードチェック（各層が空かどうかをチェック）
-		for k := 0; k < Stank[i].Ndiv; k++ {
-			if Stank[i].DtankF[k] == TANK_EMPTY {
-				Stank[i].Tss[k] = TANK_EMPTMP
+		for k := 0; k < stank.Ndiv; k++ {
+			if stank.DtankF[k] == TANK_EMPTY {
+				stank.Tss[k] = TANK_EMPTMP
 			}
 		}
 
 		// バッチモードの水供給
-		if Stank[i].Batchop == BTFILL {
+		if stank.Batchop == BTFILL {
 			Tsm := 0.0
-			for k := 0; k < Stank[i].Ndiv; k++ {
-				if Stank[i].DtankF[k] == TANK_EMPTY {
-					Stank[i].DtankF[k] = TANK_FULL
-					for j := 0; j < Stank[i].Nin; j++ {
-						if Stank[i].Batchcon[j] == BTFILL {
-							Stank[i].Tss[k] = Stank[i].Twin[j]
+			for k := 0; k < stank.Ndiv; k++ {
+				if stank.DtankF[k] == TANK_EMPTY {
+					stank.DtankF[k] = TANK_FULL
+					for j := 0; j < stank.Nin; j++ {
+						if stank.Batchcon[j] == BTFILL {
+							stank.Tss[k] = stank.Twin[j]
 						}
 					}
 				}
-				Tsm += Stank[i].Tss[k]
+				Tsm += stank.Tss[k]
 			}
-			Tsm /= float64(Stank[i].Ndiv)
-			for k := 0; k < Stank[i].Ndiv; k++ {
-				Stank[i].Tss[k] = Tsm
+			Tsm /= float64(stank.Ndiv)
+			for k := 0; k < stank.Ndiv; k++ {
+				stank.Tss[k] = Tsm
 			}
 		}
 
-		for j := 0; j < Stank[i].Nin; j++ {
-			Jo := Stank[i].Jout[j]
-			Q := &Stank[i].Q[j]
-			EGwin := Stank[i].EGwin[j]
-			Twin := Stank[i].Twin[j]
-			// ihex := Stank[i].Ihex[j]
+		for j := 0; j < stank.Nin; j++ {
+			Jo := stank.Jout[j]
+			Q := &stank.Q[j]
+			EGwin := stank.EGwin[j]
+			Twin := stank.Twin[j]
+			// ihex := stank.Ihex[j]
 
-			*Q = EGwin * (Stank[i].Tss[Jo] - Twin)
+			*Q = EGwin * (stank.Tss[Jo] - Twin)
 
 			// // 内蔵熱交換器の場合
-			if Stank[i].KAinput[j] == 'C' {
-				Stank[i].DblTa = Stank[i].Tss[Jo]
+			if stank.KAinput[j] == 'C' {
+				stank.DblTa = stank.Tss[Jo]
 				if EGwin > 0.0 {
-					Stank[i].DblTw = Twin
+					stank.DblTw = Twin
 				}
 			}
 		}
 
-		Stank[i].Qloss = 0.0
-		Stank[i].Qsto = 0.0
-		for j := 0; j < Stank[i].Ndiv; j++ {
-			if Stank[i].DtankF[j] == TANK_FULL {
-				Stank[i].Qloss += Stank[i].KS[j] * (Stank[i].Tss[j] - *Stank[i].Tenv)
-				if Stank[i].Tssold[j] > -273.0 {
-					Stank[i].Qsto += Stank[i].Mdt[j] * (Stank[i].Tss[j] - Stank[i].Tssold[j])
+		stank.Qloss = 0.0
+		stank.Qsto = 0.0
+		for j := 0; j < stank.Ndiv; j++ {
+			if stank.DtankF[j] == TANK_FULL {
+				stank.Qloss += stank.KS[j] * (stank.Tss[j] - *stank.Tenv)
+				if stank.Tssold[j] > -273.0 {
+					stank.Qsto += stank.Mdt[j] * (stank.Tss[j] - stank.Tssold[j])
 				}
 			}
-			Stank[i].Tssold[j] = Stank[i].Tss[j]
+			stank.Tssold[j] = stank.Tss[j]
 		}
 	}
 }
@@ -491,15 +488,14 @@ func Stankene(Stank []STANK) {
 /* ------------------------------------------------------- */
 
 // 代表日の出力
-func stankcmpprt(fo io.Writer, id int, Stank []STANK) {
+func stankcmpprt(fo io.Writer, id int, Stank []*STANK) {
 	switch id {
 	case 0:
 		if len(Stank) > 0 {
 			fmt.Fprintf(fo, "%s %d\n", STANK_TYPE, len(Stank))
 		}
 
-		for m := range Stank {
-			stank := &Stank[m]
+		for _, stank := range Stank {
 			fmt.Fprintf(fo, "%s:%d", stank.Name, stank.Nin)
 			for i := 0; i < stank.Nin; i++ {
 				fmt.Fprintf(fo, "%c", stank.Cmp.Idi[i])
@@ -508,8 +504,7 @@ func stankcmpprt(fo io.Writer, id int, Stank []STANK) {
 			fmt.Fprintf(fo, " 1 %d\n", stank.Nin*5+2+stank.Ndiv+stank.Ncalcihex)
 		}
 	case 1:
-		for m := range Stank {
-			stank := &Stank[m]
+		for _, stank := range Stank {
 			for i := 0; i < stank.Nin; i++ {
 				c := stank.Cmp.Idi[i]
 				fmt.Fprintf(fo, "%s:%c_c c c %s:%c_G m f %s:%c_Ti t f %s:%c_To t f %s:%c_Q q f  ",
@@ -526,8 +521,7 @@ func stankcmpprt(fo io.Writer, id int, Stank []STANK) {
 			fmt.Fprintln(fo)
 		}
 	default:
-		for m := range Stank {
-			stank := &Stank[m]
+		for _, stank := range Stank {
 			Tss := &stank.Tss[0]
 			for i := 0; i < stank.Nin; i++ {
 				Ei := stank.Cmp.Elins[i]
@@ -557,15 +551,13 @@ func stankcmpprt(fo io.Writer, id int, Stank []STANK) {
 }
 
 /* ------------------------------------------------------- */
-func stankivprt(fo io.Writer, id int, Stank []STANK) {
+func stankivprt(fo io.Writer, id int, Stank []*STANK) {
 	if id == 0 && len(Stank) > 0 {
-		for m := range Stank {
-			stank := &Stank[m]
+		for m, stank := range Stank {
 			fmt.Fprintf(fo, "m=%d  %s  %d\n", m, stank.Name, stank.Ndiv)
 		}
 	} else {
-		for m := range Stank {
-			stank := &Stank[m]
+		for m, stank := range Stank {
 			fmt.Fprintf(fo, "m=%d  ", m)
 
 			for i := 0; i < stank.Ndiv; i++ {
@@ -580,9 +572,8 @@ func stankivprt(fo io.Writer, id int, Stank []STANK) {
 
 /* 日積算値に関する処理 */
 
-func stankdyint(Stank []STANK) {
-	for i := range Stank {
-		stank := &Stank[i]
+func stankdyint(Stank []*STANK) {
+	for _, stank := range Stank {
 		stank.Qlossdy = 0.0
 		stank.Qstody = 0.0
 
@@ -595,9 +586,8 @@ func stankdyint(Stank []STANK) {
 	}
 }
 
-func stankmonint(Stank []STANK) {
-	for i := range Stank {
-		stank := &Stank[i]
+func stankmonint(Stank []*STANK) {
+	for _, stank := range Stank {
 		stank.MQlossdy = 0.0
 		stank.MQstody = 0.0
 
@@ -611,9 +601,8 @@ func stankmonint(Stank []STANK) {
 }
 
 // 日集計、月集計
-func stankday(Mon, Day, ttmm int, Stank []STANK, Nday, SimDayend int) {
-	for i := range Stank {
-		stank := &Stank[i]
+func stankday(Mon, Day, ttmm int, Stank []*STANK, Nday, SimDayend int) {
+	for _, stank := range Stank {
 
 		// 日集計
 		Ts := 0.0
@@ -651,15 +640,14 @@ func stankday(Mon, Day, ttmm int, Stank []STANK, Nday, SimDayend int) {
 }
 
 // 日集計の出力
-func stankdyprt(fo io.Writer, id int, Stank []STANK) {
+func stankdyprt(fo io.Writer, id int, Stank []*STANK) {
 	switch id {
 	case 0:
 		if len(Stank) > 0 {
 			fmt.Fprintf(fo, "%s %d\n", STANK_TYPE, len(Stank))
 		}
 
-		for m := range Stank {
-			stank := &Stank[m]
+		for _, stank := range Stank {
 			fmt.Fprintf(fo, "%s:%d", stank.Name, stank.Nin)
 
 			for i := 0; i < stank.Nin; i++ {
@@ -670,8 +658,7 @@ func stankdyprt(fo io.Writer, id int, Stank []STANK) {
 		}
 
 	case 1:
-		for m := range Stank {
-			stank := &Stank[m]
+		for _, stank := range Stank {
 			fmt.Fprintf(fo, "%s_Ts t f \n", stank.Name)
 
 			for i := 0; i < stank.Nin; i++ {
@@ -712,15 +699,14 @@ func stankdyprt(fo io.Writer, id int, Stank []STANK) {
 }
 
 // 月集計の出力
-func stankmonprt(fo io.Writer, id int, Stank []STANK) {
+func stankmonprt(fo io.Writer, id int, Stank []*STANK) {
 	switch id {
 	case 0:
 		if len(Stank) > 0 {
 			fmt.Fprintf(fo, "%s %d\n", STANK_TYPE, len(Stank))
 		}
 
-		for m := range Stank {
-			stank := &Stank[m]
+		for _, stank := range Stank {
 			fmt.Fprintf(fo, "%s:%d", stank.Name, stank.Nin)
 
 			for i := 0; i < stank.Nin; i++ {
@@ -731,8 +717,7 @@ func stankmonprt(fo io.Writer, id int, Stank []STANK) {
 		}
 
 	case 1:
-		for m := range Stank {
-			stank := &Stank[m]
+		for _, stank := range Stank {
 			fmt.Fprintf(fo, "%s_Ts t f \n", stank.Name)
 
 			for i := 0; i < stank.Nin; i++ {

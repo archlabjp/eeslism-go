@@ -26,7 +26,7 @@ import (
 /* 室温・湿度計算結果代入、室供給熱量計算
 およびパネル入口温度代入、パネル供給熱量計算 */
 
-func Roomene(Rmvls *RMVLS, Room []ROOM, Rdpnl []RDPNL, Exsfs *EXSFS, Wd *WDAT) {
+func Roomene(Rmvls *RMVLS, Room []*ROOM, Rdpnl []*RDPNL, Exsfs *EXSFS, Wd *WDAT) {
 	var j int
 	var E *ELOUT
 	var ca, ro float64
@@ -42,7 +42,7 @@ func Roomene(Rmvls *RMVLS, Room []ROOM, Rdpnl []RDPNL, Exsfs *EXSFS, Wd *WDAT) {
 		if Room[i].Arsp != nil {
 
 			for j = 0; j < Room[i].Nasup; j++ {
-				A := &Room[i].Arsp[j]
+				A := Room[i].Arsp[j]
 				elin := Room[i].elinasup[j]
 				elix := Room[i].elinasupx[j]
 
@@ -123,7 +123,7 @@ func PCMwlchk(counter int, Rmvls *RMVLS, Exsfs *EXSFS, Wd *WDAT, LDreset *int) {
 	Rmwlcreset = 0
 	// 室温の仮計算
 	for i := range Rmvls.Room {
-		Rm := &Rmvls.Room[i]
+		Rm := Rmvls.Room[i]
 		Eo := Rm.cmp.Elouts[0]
 		Rm.Tr = Eo.Sysv
 	}
@@ -136,11 +136,11 @@ func PCMwlchk(counter int, Rmvls *RMVLS, Exsfs *EXSFS, Wd *WDAT, LDreset *int) {
 
 	// PCM温度の収束判定
 	for i := range Rmvls.Room {
-		Rm := &Rmvls.Room[i]
+		Rm := Rmvls.Room[i]
 
 		// 部位でのループ
 		for j := 0; j < Rm.N; j++ {
-			Sd := &Rm.rsrf[j]
+			Sd := Rm.rsrf[j]
 			if Sd.PCMflg {
 				mw := Sd.mw
 				Wall := mw.wall
@@ -239,7 +239,7 @@ func PCMwlchk(counter int, Rmvls *RMVLS, Exsfs *EXSFS, Wd *WDAT, LDreset *int) {
 }
 
 // PCM内蔵家具のPCM温度収束判定
-func PCMfunchk(Room []ROOM, Wd *WDAT, LDreset *int) {
+func PCMfunchk(Room []*ROOM, Wd *WDAT, LDreset *int) {
 	//var intI int
 	var tempTM float64
 
@@ -254,7 +254,7 @@ func PCMfunchk(Room []ROOM, Wd *WDAT, LDreset *int) {
 				} else {
 					Room[intI].TM = (tempTM + Room[intI].TM) / 2.0
 				}
-				FunCoeff(&Room[intI])
+				FunCoeff(Room[intI])
 
 				if Room[intI].FunHcap > 0.0 {
 					dblTemp := DTM / Room[intI].FunHcap
@@ -278,11 +278,11 @@ func PCMfunchk(Room []ROOM, Wd *WDAT, LDreset *int) {
 
 /* 室負荷の計算 */
 
-func Roomload(Room []ROOM, LDreset *int) {
+func Roomload(Room []*ROOM, LDreset *int) {
 	var reset, resetl int
 
 	for i := range Room {
-		rm := &Room[i]
+		rm := Room[i]
 		if rm.rmld != nil {
 			rmld := rm.rmld
 			rmld.Qs = 0.0
@@ -294,12 +294,12 @@ func Roomload(Room []ROOM, LDreset *int) {
 				rmld.Qs = rm.RMt*rm.Tr - rm.RMC
 
 				for j := 0; j < rm.Ntr; j++ {
-					trnx := &rm.trnx[j]
+					trnx := rm.trnx[j]
 					arn := rm.ARN[j]
 					rmld.Qs -= arn * trnx.nextroom.Tr
 				}
 				for j := 0; j < rm.Nrp; j++ {
-					rmpnl := &rm.rmpnl[j]
+					rmpnl := rm.rmpnl[j]
 					rmp := rm.RMP[j]
 					rmld.Qs -= rmp * rmpnl.pnl.Tpi
 				}
@@ -328,7 +328,7 @@ func Roomload(Room []ROOM, LDreset *int) {
 				rmld.Ql = Ro * (rm.RMx*rm.xr - rm.RMXC)
 				if rm.Arsp != nil {
 					for j := 0; j < rm.Nasup; j++ {
-						A := &rm.Arsp[j]
+						A := rm.Arsp[j]
 						rmld.Ql -= A.Ql
 					}
 				}
@@ -356,7 +356,7 @@ func Roomload(Room []ROOM, LDreset *int) {
 
 /* 室供給熱量の出力 */
 
-func rmqaprint(fo io.Writer, id int, Room []ROOM) {
+func rmqaprint(fo io.Writer, id int, Room []*ROOM) {
 	var Nload, Nfnt int
 	//var rpnl *RPANEL
 
@@ -417,7 +417,7 @@ func rmqaprint(fo io.Writer, id int, Room []ROOM) {
 			}
 
 			for j := 0; j < Room[i].Nrp; j++ {
-				rpnl := &Room[i].rmpnl[j]
+				rpnl := Room[i].rmpnl[j]
 				fmt.Fprintf(fo, "%s:%s_Qp q f ", Room[i].Name, rpnl.pnl.Name)
 			}
 
@@ -448,7 +448,7 @@ func rmqaprint(fo io.Writer, id int, Room []ROOM) {
 			}
 
 			for j := 0; j < Room[i].Nrp; j++ {
-				rpnl := &Room[i].rmpnl[j]
+				rpnl := Room[i].rmpnl[j]
 				fmt.Fprintf(fo, " %.2f", -rpnl.pnl.Q)
 			}
 
@@ -461,7 +461,7 @@ func rmqaprint(fo io.Writer, id int, Room []ROOM) {
 
 /* 放射パネルに関する出力 */
 
-func panelprint(fo io.Writer, id int, Rdpnl []RDPNL) {
+func panelprint(fo io.Writer, id int, Rdpnl []*RDPNL) {
 	var ld int
 	var Wall *WALL
 

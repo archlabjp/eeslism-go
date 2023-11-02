@@ -91,11 +91,11 @@ func xprschval(val []float64, isw []ControlSWType) {
 
 /* --------------------------------------------- */
 
-func xprqin(Room []ROOM) {
+func xprqin(Room []*ROOM) {
 	fmt.Printf("--- xprqin  Nroom=%d\n", len(Room))
 
 	for i := range Room {
-		r := &Room[i]
+		r := Room[i]
 		fmt.Printf("[%d] Hc=%f Hr=%f HL=%f Lc=%f Lr=%f Ac=%f Ar=%f AL=%f\n",
 			i, r.Hc, r.Hr, r.HL, r.Lc, r.Lr, r.Ac, r.Ar, r.AL)
 	}
@@ -103,7 +103,7 @@ func xprqin(Room []ROOM) {
 
 /* --------------------------------------------- */
 
-func xprvent(R []ROOM) {
+func xprvent(R []*ROOM) {
 	var j int
 	var A *ACHIR
 	var Room *ROOM
@@ -112,11 +112,11 @@ func xprvent(R []ROOM) {
 		fmt.Println("--- xprvent")
 
 		for i := range R {
-			Room = &R[i]
+			Room = R[i]
 			fmt.Printf("[%d] %-10s  Gvent=%f  -- Gvr:", i, Room.Name, Room.Gvent)
 
 			for j = 0; j < Room.Nachr; j++ {
-				A = &Room.achr[j]
+				A = Room.achr[j]
 				fmt.Printf(" <%d>=%f", A.rm, A.Gvr)
 			}
 			fmt.Println()
@@ -127,11 +127,11 @@ func xprvent(R []ROOM) {
 		fmt.Fprintln(Ferr, "\n\n--- xprvent")
 
 		for i := range R {
-			Room = &R[i]
+			Room = R[i]
 			fmt.Fprintf(Ferr, "\t[%d]\t%s\tGvent=%.3g\n\t\t", i, Room.Name, Room.Gvent)
 
 			for j = 0; j < Room.Nachr; j++ {
-				A = &Room.achr[j]
+				A = Room.achr[j]
 				fmt.Fprintf(Ferr, "\t<%d>=%.2g", A.rm, A.Gvr)
 			}
 			fmt.Fprintln(Ferr)

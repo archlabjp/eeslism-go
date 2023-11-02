@@ -28,9 +28,9 @@ func helmrmsrt(Room *ROOM, Ta float64) {
 	}
 
 	for i := 0; i < Room.N; i++ {
-		Sd := &Room.rsrf[i]
-		Rmsb := &Room.rmqe.rmsb[i]
-		WSC := &Room.rmqe.WSCwk[i]
+		Sd := Room.rsrf[i]
+		Rmsb := Room.rmqe.rmsb[i]
+		WSC := Room.rmqe.WSCwk[i]
 
 		helmclear(WSC)
 
@@ -65,7 +65,7 @@ func helmrmsrt(Room *ROOM, Ta float64) {
 	}
 
 	for i := 0; i < Room.N; i++ {
-		Rmsb := &Room.rmqe.rmsb[i]
+		Rmsb := Room.rmqe.rmsb[i]
 		XA := Room.XA[Room.N*i : Room.N*(i+1)]
 		Ts := &Rmsb.Ts
 		helmclear(Ts)
@@ -85,8 +85,8 @@ func helmwall(Room *ROOM, Ta float64) {
 
 	for i := 0; i < Room.N; i++ {
 		alr := Room.alr[Room.N*i : Room.N*(i+1)]
-		Sd := &Room.rsrf[i]
-		rmsb := &Room.rmqe.rmsb[i]
+		Sd := Room.rsrf[i]
+		rmsb := Room.rmqe.rmsb[i]
 
 		if Mw := Sd.mw; Mw != nil {
 			var Tie, Te, Tpe BHELM
@@ -124,11 +124,11 @@ func helmwall(Room *ROOM, Ta float64) {
 			Tie.in += Sd.RSin
 			helmdiv(&Tie, Sd.ali)
 
-			helmwlt(Mw.M, Mw.mp, Mw.UX, Mw.uo, Mw.um, Mw.Pc, []BHELM{Tie}, []BHELM{Te}, []BHELM{Tpe}, rmsb.Told, rmsb.Tw)
+			helmwlt(Mw.M, Mw.mp, Mw.UX, Mw.uo, Mw.um, Mw.Pc, []*BHELM{&Tie}, []*BHELM{&Te}, []*BHELM{&Tpe}, rmsb.Told, rmsb.Tw)
 
 			for m := 0; m < Mw.M; m++ {
-				Told := &rmsb.Told[m]
-				Tw := &rmsb.Tw[m]
+				Told := rmsb.Told[m]
+				Tw := rmsb.Tw[m]
 				helmcpy(Tw, Told)
 			}
 		}
@@ -139,7 +139,7 @@ func helmwall(Room *ROOM, Ta float64) {
 
 /* 面 i についての平均表面温度 */
 
-func helmwlsft(i, N int, alr []float64, rmsb []RMSB, Tm *BHELM) {
+func helmwlsft(i, N int, alr []float64, rmsb []*RMSB, Tm *BHELM) {
 	Ralr := alr[i]
 
 	helmclear(Tm)
@@ -155,17 +155,17 @@ func helmwlsft(i, N int, alr []float64, rmsb []RMSB, Tm *BHELM) {
 
 /* ---------------------------------------------- */
 
-func helmwlt(M, mp int, UX []float64, uo, um, Pc float64, Tie, Te, Tpe, Told, Tw []BHELM) {
-	helmsumpd(1, []float64{uo}, Tie, &Told[0])
-	helmsumpd(1, []float64{um}, Te, &Told[M-1])
+func helmwlt(M, mp int, UX []float64, uo, um, Pc float64, Tie, Te, Tpe, Told, Tw []*BHELM) {
+	helmsumpd(1, []float64{uo}, Tie, Told[0])
+	helmsumpd(1, []float64{um}, Te, Told[M-1])
 
 	if Pc > 0.0 {
-		helmsumpd(1, []float64{Pc}, Tpe, &Told[mp])
+		helmsumpd(1, []float64{Pc}, Tpe, Told[mp])
 	}
 
 	for m := 0; m < M; m++ {
-		helmclear(&Tw[m])
-		helmsumpd(M, UX, Told, &Tw[m])
+		helmclear(Tw[m])
+		helmsumpd(M, UX, Told, Tw[m])
 		UX = UX[M:]
 	}
 }
@@ -177,7 +177,7 @@ func helmwlt(M, mp int, UX []float64, uo, um, Pc float64, Tie, Te, Tpe, Told, Tw
 // 入力値:
 //  外気温度 Ta [C]
 //  絶対湿度 xa [kg/kg]
-func helmq(_Room []ROOM, Ta, xa float64) {
+func helmq(_Room []*ROOM, Ta, xa float64) {
 	var q, Ts *BHELM
 	var qh *QHELM
 	var Sd *RMSRF
@@ -185,7 +185,7 @@ func helmq(_Room []ROOM, Ta, xa float64) {
 	var achr *ACHIR
 	var Aalc, qloss float64
 
-	Room := &_Room[0]
+	Room := _Room[0]
 
 	qelmclear(&Room.rmqe.qelm)
 	q = &Room.rmqe.qelm.qe
@@ -210,8 +210,8 @@ func helmq(_Room []ROOM, Ta, xa float64) {
 	}
 
 	for i := 0; i < Room.N; i++ {
-		Sd = &Room.rsrf[i]
-		rmsb = &Room.rmqe.rmsb[i]
+		Sd = Room.rsrf[i]
+		rmsb = Room.rmqe.rmsb[i]
 
 		Aalc = Sd.A * Sd.alic
 		Ts = &rmsb.Ts
@@ -257,7 +257,7 @@ func helmq(_Room []ROOM, Ta, xa float64) {
 	qh.vr = 0.0
 	qh.vrl = 0.0
 	for j := 0; j < Room.Nachr; j++ {
-		achr = &Room.achr[j]
+		achr = Room.achr[j]
 		qh.vr += Ca * achr.Gvr * (_Room[achr.rm].Tr - Room.Tr)
 		qh.vrl += Ro * achr.Gvr * (_Room[achr.rm].xr - Room.xr)
 	}
@@ -342,7 +342,7 @@ func helmclear(b *BHELM) {
 /* ---------------------------------------------- */
 
 // Mutiply a by u(vector) and add to b
-func helmsumpd(N int, u []float64, a []BHELM, b *BHELM) {
+func helmsumpd(N int, u []float64, a []*BHELM, b *BHELM) {
 	for i := 0; i < N; i++ {
 		b.trs += u[i] * a[i].trs
 		b.so += u[i] * a[i].so

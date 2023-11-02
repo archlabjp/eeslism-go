@@ -246,11 +246,11 @@ func dprachv(Room []ROOM) {
 		fmt.Fprintln(Ferr, "\n*** dprachv***")
 
 		for i := range Room {
-			Rm := &Room[i]
+			Rm := Room[i]
 			fmt.Fprintf(Ferr, "to rm: %-10s   from rms(sch):", Rm.Name)
 
 			for j := 0; j < Rm.Nachr; j++ {
-				A := &Rm.achr[j]
+				A := Rm.achr[j]
 				fmt.Fprintf(Ferr, "  %-10s (%3d)", Room[A.rm].Name, A.sch)
 			}
 			fmt.Fprintln(Ferr)
@@ -294,12 +294,12 @@ func dprexsf(E []*EXSF) {
 
 /* ----------------------------------------------------------------- */
 
-func dprwwdata(Wa []WALL, Wi []WINDOW) {
+func dprwwdata(Wa []*WALL, Wi []*WINDOW) {
 	if DEBUG {
 		fmt.Printf("\n*** dprwwdata ***\nWALLdata\n")
 
 		for i := range Wa {
-			Wall := &Wa[i]
+			Wall := Wa[i]
 			fmt.Printf("\nWall i=%d %s R=%5.3f IP=%d Ei=%4.2f Eo=%4.2f as=%4.2f\n", i, Wall.name, Wall.Rwall, Wall.Ip, Wall.Ei, Wall.Eo, Wall.as)
 
 			for j := 0; j < Wall.N; j++ {
@@ -311,7 +311,7 @@ func dprwwdata(Wa []WALL, Wi []WINDOW) {
 		fmt.Printf("\nWINDOWdata\n")
 
 		for i := range Wi {
-			Window := &Wi[i]
+			Window := Wi[i]
 			fmt.Printf("windows  %s\n", Window.Name)
 			fmt.Printf(" R=%f t=%f B=%f  Ei=%f Eo=%f\n", Window.Rwall, Window.tgtn, Window.Bn, Window.Ei, Window.Eo)
 		}
@@ -321,7 +321,7 @@ func dprwwdata(Wa []WALL, Wi []WINDOW) {
 		fmt.Fprintf(Ferr, "\n*** dprwwdata ***\nWALLdata\n")
 
 		for i := range Wa {
-			Wall := &Wa[i]
+			Wall := Wa[i]
 			fmt.Fprintf(Ferr, "\nWall[%d]\t%s\tR=%.3g\tIP=%d\tEi=%.2g\tEo=%.2g\tas=%.2g\n", i, Wall.name, Wall.Rwall, Wall.Ip, Wall.Ei, Wall.Eo, Wall.as)
 
 			fmt.Fprintf(Ferr, "\tNo.\tcode\tL\tND\n")
@@ -335,7 +335,7 @@ func dprwwdata(Wa []WALL, Wi []WINDOW) {
 		fmt.Fprintf(Ferr, "\nWINDOWdata\n")
 
 		for i := range Wi {
-			Window := &Wi[i]
+			Window := Wi[i]
 			fmt.Fprintf(Ferr, "windows[%d]\t%s\n", i, Window.Name)
 			fmt.Fprintf(Ferr, "\tR=%.3g\tt=%.2g\tB=%.2g\tEi=%.2g\tEo=%.2g\n", Window.Rwall,
 				Window.tgtn, Window.Bn, Window.Ei, Window.Eo)
@@ -345,12 +345,12 @@ func dprwwdata(Wa []WALL, Wi []WINDOW) {
 
 /* ----------------------------------------------------------------- */
 
-func dprroomdata(R []ROOM, S []RMSRF) {
+func dprroomdata(R []*ROOM, S []*RMSRF) {
 	if DEBUG {
 		fmt.Printf("\n*** dprroomdata ***\n")
 
 		for i := range R {
-			Room := &R[i]
+			Room := R[i]
 
 			fmt.Printf("\n==room=(%d)    %s   N=%d  Ntr=%d Nrp=%d  V=%8.1f   MRM=%10.4e\n",
 				i, Room.Name, Room.N, Room.Ntr, Room.Nrp, Room.VRM, Room.MRM)
@@ -366,7 +366,7 @@ func dprroomdata(R []ROOM, S []RMSRF) {
 			fmt.Printf("  Apl=%f \n", Room.Apl)
 
 			for j := 0; j < Room.N; j++ {
-				Sdd := &S[Room.Brs+j]
+				Sdd := S[Room.Brs+j]
 				fmt.Printf(" %2d  ble=%c typ=%c name=%8s exs=%2d nxrm=%2d nxn=%2d ",
 					Room.Brs+j, Sdd.ble, Sdd.typ, Sdd.Name, Sdd.exs, Sdd.nxrm, Sdd.nxn)
 				fmt.Printf("wd=%2d Nfn=%2d A=%5.1f mwside=%c mwtype=%c Ei=%.2f Eo=%.2f\n",
@@ -379,7 +379,7 @@ func dprroomdata(R []ROOM, S []RMSRF) {
 		fmt.Fprintf(Ferr, "\n*** dprroomdata ***\n")
 
 		for i := range R {
-			Room := &R[i]
+			Room := R[i]
 
 			fmt.Fprintf(Ferr, "\n==room=(%d)\t%s\tN=%d\tNtr=%d\tNrp=%d\tV=%.3g\tMRM=%.2g\n",
 				i, Room.Name, Room.N, Room.Ntr, Room.Nrp, Room.VRM, Room.MRM)
@@ -395,7 +395,7 @@ func dprroomdata(R []ROOM, S []RMSRF) {
 			fmt.Fprintf(Ferr, "wd\tNfn\tA\tmwside\tmwtype\tEi\tEo\n")
 
 			for j := 0; j < Room.N; j++ {
-				Sdd := &S[Room.Brs+j]
+				Sdd := S[Room.Brs+j]
 				fmt.Fprintf(Ferr, "\t%d\t%c\t%c\t%s\t%d\t%d\t%d\t", Room.Brs+j, Sdd.ble, Sdd.typ, Sdd.Name, Sdd.exs, Sdd.nxrm, Sdd.nxn)
 				fmt.Fprintf(Ferr, "%d\t%d\t%.3g\t%c\t%c\t%.2f\t%.2f\n", Sdd.wd, Sdd.Nfn, Sdd.A, Sdd.mwside, Sdd.mwtype, Sdd.Ei, Sdd.Eo)
 			}
@@ -405,13 +405,13 @@ func dprroomdata(R []ROOM, S []RMSRF) {
 
 /* ----------------------------------------------------------------- */
 
-func dprballoc(M []MWALL, S []RMSRF) {
+func dprballoc(M []*MWALL, S []*RMSRF) {
 
 	if DEBUG {
 		fmt.Println("\n*** dprballoc ***")
 
 		for mw := range M {
-			Mw := &M[mw]
+			Mw := M[mw]
 			id := S[Mw.ns].wd
 			fmt.Printf(" %2d n=%2d  rm=%2d  nxrm=%2d wd=%2d wall=%s M=%2d A=%.2f\n",
 				mw, Mw.ns, Mw.rm, Mw.nxrm, id, Mw.wall.name, Mw.M, Mw.sd.A)
@@ -422,7 +422,7 @@ func dprballoc(M []MWALL, S []RMSRF) {
 		fmt.Fprintln(Ferr, "\tNo.\tn\trm\tnxrm\twd\twall\tM\tA")
 
 		for mw := range M {
-			Mw := &M[mw]
+			Mw := M[mw]
 			id := S[Mw.ns].wd
 			fmt.Fprintf(Ferr, "\t%d\t%d\t%d\t%d\t%d\t%s\t%d\t%.2g\n",
 				mw, Mw.ns, Mw.rm, Mw.nxrm, id, Mw.wall.name, Mw.M, Mw.sd.A)

@@ -58,9 +58,8 @@ func Hccdata(s string, Hccca *HCCCA) int {
 }
 
 /* ------------------------------------------ */
-func Hccdwint(_hcc []HCC) {
-	for i := range _hcc {
-		hcc := &_hcc[i]
+func Hccdwint(_hcc []*HCC) {
+	for _, hcc := range _hcc {
 
 		// 乾きコイルと湿りコイルの判定
 		if hcc.Cat.eh > 1.0e-10 {
@@ -93,10 +92,8 @@ func Hccdwint(_hcc []HCC) {
 // [IN 2] ----> | HCC | ----> [OUT 2] 空気の絶対湿度
 // [IN 3] ----> +-----+ ----> [OUT 3] 水の温度
 //
-func Hcccfv(_hcc []HCC) {
-	for i := range _hcc {
-		hcc := &_hcc[i]
-
+func Hcccfv(_hcc []*HCC) {
+	for _, hcc := range _hcc {
 		hcc.Ga = 0.0
 		hcc.Gw = 0.0
 		hcc.et = 0.0
@@ -177,10 +174,8 @@ func Hcccfv(_hcc []HCC) {
 
 /* 供給熱量の計算 */
 
-func Hccdwreset(Hcc []HCC, DWreset *int) {
-	for i := range Hcc {
-		hcc := &Hcc[i] // Get the address of the current element
-
+func Hccdwreset(Hcc []*HCC, DWreset *int) {
+	for i, hcc := range Hcc {
 		xain := hcc.Cmp.Elins[1].Sysvin
 		Twin := hcc.Cmp.Elins[2].Sysvin
 
@@ -207,10 +202,8 @@ func Hccdwreset(Hcc []HCC, DWreset *int) {
 
 /* 供給熱量の計算 */
 
-func Hccene(Hcc []HCC) {
-	for i := range Hcc {
-		hcc := &Hcc[i] // Get the address of the current element
-
+func Hccene(Hcc []*HCC) {
+	for _, hcc := range Hcc {
 		hcc.Tain = hcc.Cmp.Elins[0].Sysvin
 		hcc.Xain = hcc.Cmp.Elins[1].Sysvin
 		hcc.Twin = hcc.Cmp.Elins[2].Sysvin
@@ -236,40 +229,40 @@ func Hccene(Hcc []HCC) {
 
 /* ------------------------------------------ */
 
-func hccprint(fo io.Writer, id int, Hcc []HCC) {
+func hccprint(fo io.Writer, id int, Hcc []*HCC) {
 	switch id {
 	case 0:
 		if len(Hcc) > 0 {
 			fmt.Fprintf(fo, "%s %d\n", HCCOIL_TYPE, len(Hcc))
 		}
-		for i := range Hcc {
-			fmt.Fprintf(fo, " %s 1 16\n", Hcc[i].Name)
+		for _, hcc := range Hcc {
+			fmt.Fprintf(fo, " %s 1 16\n", hcc.Name)
 		}
 	case 1:
-		for i := range Hcc {
+		for _, hcc := range Hcc {
 			fmt.Fprintf(fo, "%s_ca c c %s_Ga m f %s_Ti t f %s_To t f %s_Qs q f\n",
-				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name, hcc.Name, hcc.Name, hcc.Name)
 			fmt.Fprintf(fo, "%s_cx c c %s_xi x f %s_xo x f %s_Ql q f\n",
-				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name, hcc.Name, hcc.Name)
 			fmt.Fprintf(fo, "%s_cw c c %s_Gw m f %s_Twi t f %s_Two t f %s_Qt q f\n",
-				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name, hcc.Name, hcc.Name, hcc.Name)
 			fmt.Fprintf(fo, "%s_et m f %s_eh m f\n\n",
-				Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name)
 		}
 	default:
-		for i := range Hcc {
-			el := Hcc[i].Cmp.Elouts[0] // Get the address of the first element
+		for _, hcc := range Hcc {
+			el := hcc.Cmp.Elouts[0] // Get the address of the first element
 			fmt.Fprintf(fo, "%c %6.4g %4.1f %4.1f %2.0f ",
-				el.Control, Hcc[i].Ga, Hcc[i].Tain, el.Sysv, Hcc[i].Qs)
-			el = Hcc[i].Cmp.Elouts[1] // Get the address of the second element
+				el.Control, hcc.Ga, hcc.Tain, el.Sysv, hcc.Qs)
+			el = hcc.Cmp.Elouts[1] // Get the address of the second element
 			fmt.Fprintf(fo, "%c %5.3f %5.3f %2.0f ",
-				el.Control, Hcc[i].Xain, el.Sysv, Hcc[i].Ql)
-			el = Hcc[i].Cmp.Elouts[2] // Get the address of the third element
+				el.Control, hcc.Xain, el.Sysv, hcc.Ql)
+			el = hcc.Cmp.Elouts[2] // Get the address of the third element
 			fmt.Fprintf(fo, "%c %6.4g %4.1f %4.1f %2.0f ",
-				el.Control, Hcc[i].Gw, Hcc[i].Twin, el.Sysv, Hcc[i].Qt)
+				el.Control, hcc.Gw, hcc.Twin, el.Sysv, hcc.Qt)
 
 			fmt.Fprintf(fo, "%6.4g %6.4g\n",
-				Hcc[i].et, Hcc[i].eh)
+				hcc.et, hcc.eh)
 		}
 	}
 }
@@ -278,178 +271,178 @@ func hccprint(fo io.Writer, id int, Hcc []HCC) {
 
 /* 日積算値に関する処理 */
 
-func hccdyint(Hcc []HCC) {
-	for i := range Hcc {
-		svdyint(&Hcc[i].Taidy)
-		svdyint(&Hcc[i].xaidy)
-		svdyint(&Hcc[i].Twidy)
-		qdyint(&Hcc[i].Qdys)
-		qdyint(&Hcc[i].Qdyl)
-		qdyint(&Hcc[i].Qdyt)
+func hccdyint(Hcc []*HCC) {
+	for _, hcc := range Hcc {
+		svdyint(&hcc.Taidy)
+		svdyint(&hcc.xaidy)
+		svdyint(&hcc.Twidy)
+		qdyint(&hcc.Qdys)
+		qdyint(&hcc.Qdyl)
+		qdyint(&hcc.Qdyt)
 	}
 }
 
-func hccmonint(Hcc []HCC) {
-	for i := range Hcc {
-		svdyint(&Hcc[i].mTaidy)
-		svdyint(&Hcc[i].mxaidy)
-		svdyint(&Hcc[i].mTwidy)
-		qdyint(&Hcc[i].mQdys)
-		qdyint(&Hcc[i].mQdyl)
-		qdyint(&Hcc[i].mQdyt)
+func hccmonint(Hcc []*HCC) {
+	for _, hcc := range Hcc {
+		svdyint(&hcc.mTaidy)
+		svdyint(&hcc.mxaidy)
+		svdyint(&hcc.mTwidy)
+		qdyint(&hcc.mQdys)
+		qdyint(&hcc.mQdyl)
+		qdyint(&hcc.mQdyt)
 	}
 }
 
-func hccday(Mon, Day, ttmm int, Hcc []HCC, Nday, SimDayend int) {
-	for i := range Hcc {
+func hccday(Mon, Day, ttmm int, Hcc []*HCC, Nday, SimDayend int) {
+	for _, hcc := range Hcc {
 		// 日集計
-		svdaysum(int64(ttmm), Hcc[i].Cmp.Control, Hcc[i].Tain, &Hcc[i].Taidy)
-		svdaysum(int64(ttmm), Hcc[i].Cmp.Control, Hcc[i].Xain, &Hcc[i].xaidy)
-		svdaysum(int64(ttmm), Hcc[i].Cmp.Control, Hcc[i].Twin, &Hcc[i].Twidy)
-		qdaysum(int64(ttmm), Hcc[i].Cmp.Control, Hcc[i].Qs, &Hcc[i].Qdys)
-		qdaysum(int64(ttmm), Hcc[i].Cmp.Control, Hcc[i].Ql, &Hcc[i].Qdyl)
-		qdaysum(int64(ttmm), Hcc[i].Cmp.Control, Hcc[i].Qt, &Hcc[i].Qdyt)
+		svdaysum(int64(ttmm), hcc.Cmp.Control, hcc.Tain, &hcc.Taidy)
+		svdaysum(int64(ttmm), hcc.Cmp.Control, hcc.Xain, &hcc.xaidy)
+		svdaysum(int64(ttmm), hcc.Cmp.Control, hcc.Twin, &hcc.Twidy)
+		qdaysum(int64(ttmm), hcc.Cmp.Control, hcc.Qs, &hcc.Qdys)
+		qdaysum(int64(ttmm), hcc.Cmp.Control, hcc.Ql, &hcc.Qdyl)
+		qdaysum(int64(ttmm), hcc.Cmp.Control, hcc.Qt, &hcc.Qdyt)
 
 		// 月集計
-		svmonsum(Mon, Day, ttmm, Hcc[i].Cmp.Control, Hcc[i].Tain, &Hcc[i].mTaidy, Nday, SimDayend)
-		svmonsum(Mon, Day, ttmm, Hcc[i].Cmp.Control, Hcc[i].Xain, &Hcc[i].mxaidy, Nday, SimDayend)
-		svmonsum(Mon, Day, ttmm, Hcc[i].Cmp.Control, Hcc[i].Twin, &Hcc[i].mTwidy, Nday, SimDayend)
-		qmonsum(Mon, Day, ttmm, Hcc[i].Cmp.Control, Hcc[i].Qs, &Hcc[i].mQdys, Nday, SimDayend)
-		qmonsum(Mon, Day, ttmm, Hcc[i].Cmp.Control, Hcc[i].Ql, &Hcc[i].mQdyl, Nday, SimDayend)
-		qmonsum(Mon, Day, ttmm, Hcc[i].Cmp.Control, Hcc[i].Qt, &Hcc[i].mQdyt, Nday, SimDayend)
+		svmonsum(Mon, Day, ttmm, hcc.Cmp.Control, hcc.Tain, &hcc.mTaidy, Nday, SimDayend)
+		svmonsum(Mon, Day, ttmm, hcc.Cmp.Control, hcc.Xain, &hcc.mxaidy, Nday, SimDayend)
+		svmonsum(Mon, Day, ttmm, hcc.Cmp.Control, hcc.Twin, &hcc.mTwidy, Nday, SimDayend)
+		qmonsum(Mon, Day, ttmm, hcc.Cmp.Control, hcc.Qs, &hcc.mQdys, Nday, SimDayend)
+		qmonsum(Mon, Day, ttmm, hcc.Cmp.Control, hcc.Ql, &hcc.mQdyl, Nday, SimDayend)
+		qmonsum(Mon, Day, ttmm, hcc.Cmp.Control, hcc.Qt, &hcc.mQdyt, Nday, SimDayend)
 	}
 }
 
-func hccdyprt(fo io.Writer, id int, Hcc []HCC) {
+func hccdyprt(fo io.Writer, id int, Hcc []*HCC) {
 	switch id {
 	case 0:
 		if len(Hcc) > 0 {
 			fmt.Fprintf(fo, "%s %d\n", HCCOIL_TYPE, len(Hcc))
 		}
-		for i := range Hcc {
-			fmt.Fprintf(fo, "%s 4 42 14 14 14\n", Hcc[i].Name)
+		for _, hcc := range Hcc {
+			fmt.Fprintf(fo, "%s 4 42 14 14 14\n", hcc.Name)
 		}
 	case 1:
-		for i := range Hcc {
-			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", Hcc[i].Name, Hcc[i].Name)
+		for _, hcc := range Hcc {
+			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", hcc.Name, hcc.Name)
 			fmt.Fprintf(fo, "%s_ttn h d %s_Tn t f %s_ttm h d %s_Tm t f\n",
-				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name, hcc.Name, hcc.Name)
 			fmt.Fprintf(fo, "%s_Hsh H d %s_Qsh Q f %s_Hsc H d %s_Qsc Q f\n",
-				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name, hcc.Name, hcc.Name)
 			fmt.Fprintf(fo, "%s_tsh h d %s_qsh q f %s_tsc h d %s_qsc q f\n",
-				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name, hcc.Name, hcc.Name)
 
-			fmt.Fprintf(fo, "%s_Hx H d %s_x X f ", Hcc[i].Name, Hcc[i].Name)
+			fmt.Fprintf(fo, "%s_Hx H d %s_x X f ", hcc.Name, hcc.Name)
 			fmt.Fprintf(fo, "%s_txn h d %s_xn x f %s_txm h d %s_xm c f\n",
-				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name, hcc.Name, hcc.Name)
 			fmt.Fprintf(fo, "%s_Hlh H d %s_Qlh Q f %s_Hlc H d %s_Qlc Q f\n",
-				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name, hcc.Name, hcc.Name)
 			fmt.Fprintf(fo, "%s_tlh h d %s_qlh q f %s_tlc h d %s_qlc q f\n",
-				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name, hcc.Name, hcc.Name)
 
-			fmt.Fprintf(fo, "%s_Htw H d %s_Tw T f ", Hcc[i].Name, Hcc[i].Name)
+			fmt.Fprintf(fo, "%s_Htw H d %s_Tw T f ", hcc.Name, hcc.Name)
 			fmt.Fprintf(fo, "%s_ttwn h d %s_Twn t f %s_ttwm h d %s_Twm t f\n",
-				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name, hcc.Name, hcc.Name)
 			fmt.Fprintf(fo, "%s_Hth H d %s_Qth Q f %s_Htc H d %s_Qtc Q f\n",
-				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name, hcc.Name, hcc.Name)
 			fmt.Fprintf(fo, "%s_tth h d %s_qth q f %s_ttc h d %s_qtc q f\n\n",
-				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name, hcc.Name, hcc.Name)
 		}
 	default:
-		for i := range Hcc {
+		for _, hcc := range Hcc {
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
-				Hcc[i].Taidy.Hrs, Hcc[i].Taidy.M,
-				Hcc[i].Taidy.Mntime, Hcc[i].Taidy.Mn,
-				Hcc[i].Taidy.Mxtime, Hcc[i].Taidy.Mx)
-			fmt.Fprintf(fo, "%1d %3.1f ", Hcc[i].Qdys.Hhr, Hcc[i].Qdys.H)
-			fmt.Fprintf(fo, "%1d %3.1f ", Hcc[i].Qdys.Chr, Hcc[i].Qdys.C)
-			fmt.Fprintf(fo, "%1d %2.0f ", Hcc[i].Qdys.Hmxtime, Hcc[i].Qdys.Hmx)
-			fmt.Fprintf(fo, "%1d %2.0f ", Hcc[i].Qdys.Cmxtime, Hcc[i].Qdys.Cmx)
+				hcc.Taidy.Hrs, hcc.Taidy.M,
+				hcc.Taidy.Mntime, hcc.Taidy.Mn,
+				hcc.Taidy.Mxtime, hcc.Taidy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", hcc.Qdys.Hhr, hcc.Qdys.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", hcc.Qdys.Chr, hcc.Qdys.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", hcc.Qdys.Hmxtime, hcc.Qdys.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f ", hcc.Qdys.Cmxtime, hcc.Qdys.Cmx)
 
 			fmt.Fprintf(fo, "%1d %5.4f %1d %5.4f %1d %5.4f ",
-				Hcc[i].xaidy.Hrs, Hcc[i].xaidy.M,
-				Hcc[i].xaidy.Mntime, Hcc[i].xaidy.Mn,
-				Hcc[i].xaidy.Mxtime, Hcc[i].xaidy.Mx)
-			fmt.Fprintf(fo, "%1d %3.1f ", Hcc[i].Qdyl.Hhr, Hcc[i].Qdyl.H)
-			fmt.Fprintf(fo, "%1d %3.1f ", Hcc[i].Qdyl.Chr, Hcc[i].Qdyl.C)
-			fmt.Fprintf(fo, "%1d %2.0f ", Hcc[i].Qdyl.Hmxtime, Hcc[i].Qdyl.Hmx)
-			fmt.Fprintf(fo, "%1d %2.0f ", Hcc[i].Qdyl.Cmxtime, Hcc[i].Qdyl.Cmx)
+				hcc.xaidy.Hrs, hcc.xaidy.M,
+				hcc.xaidy.Mntime, hcc.xaidy.Mn,
+				hcc.xaidy.Mxtime, hcc.xaidy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", hcc.Qdyl.Hhr, hcc.Qdyl.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", hcc.Qdyl.Chr, hcc.Qdyl.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", hcc.Qdyl.Hmxtime, hcc.Qdyl.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f ", hcc.Qdyl.Cmxtime, hcc.Qdyl.Cmx)
 
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
-				Hcc[i].Twidy.Hrs, Hcc[i].Twidy.M,
-				Hcc[i].Twidy.Mntime, Hcc[i].Twidy.Mn,
-				Hcc[i].Twidy.Mxtime, Hcc[i].Twidy.Mx)
-			fmt.Fprintf(fo, "%1d %3.1f ", Hcc[i].Qdyt.Hhr, Hcc[i].Qdyt.H)
-			fmt.Fprintf(fo, "%1d %3.1f ", Hcc[i].Qdyt.Chr, Hcc[i].Qdyt.C)
-			fmt.Fprintf(fo, "%1d %2.0f ", Hcc[i].Qdyt.Hmxtime, Hcc[i].Qdyt.Hmx)
-			fmt.Fprintf(fo, "%1d %2.0f\n", Hcc[i].Qdyt.Cmxtime, Hcc[i].Qdyt.Cmx)
+				hcc.Twidy.Hrs, hcc.Twidy.M,
+				hcc.Twidy.Mntime, hcc.Twidy.Mn,
+				hcc.Twidy.Mxtime, hcc.Twidy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", hcc.Qdyt.Hhr, hcc.Qdyt.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", hcc.Qdyt.Chr, hcc.Qdyt.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", hcc.Qdyt.Hmxtime, hcc.Qdyt.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f\n", hcc.Qdyt.Cmxtime, hcc.Qdyt.Cmx)
 		}
 	}
 }
 
-func hccmonprt(fo io.Writer, id int, Hcc []HCC) {
+func hccmonprt(fo io.Writer, id int, Hcc []*HCC) {
 	switch id {
 	case 0:
 		if len(Hcc) > 0 {
 			fmt.Fprintf(fo, "%s %d\n", HCCOIL_TYPE, len(Hcc))
 		}
-		for i := range Hcc {
-			fmt.Fprintf(fo, "%s 4 42 14 14 14\n", Hcc[i].Name)
+		for _, hcc := range Hcc {
+			fmt.Fprintf(fo, "%s 4 42 14 14 14\n", hcc.Name)
 		}
 	case 1:
-		for i := range Hcc {
-			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", Hcc[i].Name, Hcc[i].Name)
+		for _, hcc := range Hcc {
+			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", hcc.Name, hcc.Name)
 			fmt.Fprintf(fo, "%s_ttn h d %s_Tn t f %s_ttm h d %s_Tm t f\n",
-				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name, hcc.Name, hcc.Name)
 			fmt.Fprintf(fo, "%s_Hsh H d %s_Qsh Q f %s_Hsc H d %s_Qsc Q f\n",
-				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name, hcc.Name, hcc.Name)
 			fmt.Fprintf(fo, "%s_tsh h d %s_qsh q f %s_tsc h d %s_qsc q f\n",
-				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name, hcc.Name, hcc.Name)
 
-			fmt.Fprintf(fo, "%s_Hx H d %s_x X f ", Hcc[i].Name, Hcc[i].Name)
+			fmt.Fprintf(fo, "%s_Hx H d %s_x X f ", hcc.Name, hcc.Name)
 			fmt.Fprintf(fo, "%s_txn h d %s_xn x f %s_txm h d %s_xm c f\n",
-				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name, hcc.Name, hcc.Name)
 			fmt.Fprintf(fo, "%s_Hlh H d %s_Qlh Q f %s_Hlc H d %s_Qlc Q f\n",
-				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name, hcc.Name, hcc.Name)
 			fmt.Fprintf(fo, "%s_tlh h d %s_qlh q f %s_tlc h d %s_qlc q f\n",
-				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name, hcc.Name, hcc.Name)
 
-			fmt.Fprintf(fo, "%s_Htw H d %s_Tw T f ", Hcc[i].Name, Hcc[i].Name)
+			fmt.Fprintf(fo, "%s_Htw H d %s_Tw T f ", hcc.Name, hcc.Name)
 			fmt.Fprintf(fo, "%s_ttwn h d %s_Twn t f %s_ttwm h d %s_Twm t f\n",
-				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name, hcc.Name, hcc.Name)
 			fmt.Fprintf(fo, "%s_Hth H d %s_Qth Q f %s_Htc H d %s_Qtc Q f\n",
-				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name, hcc.Name, hcc.Name)
 			fmt.Fprintf(fo, "%s_tth h d %s_qth q f %s_ttc h d %s_qtc q f\n\n",
-				Hcc[i].Name, Hcc[i].Name, Hcc[i].Name, Hcc[i].Name)
+				hcc.Name, hcc.Name, hcc.Name, hcc.Name)
 		}
 	default:
-		for i := range Hcc {
+		for _, hcc := range Hcc {
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
-				Hcc[i].mTaidy.Hrs, Hcc[i].mTaidy.M,
-				Hcc[i].mTaidy.Mntime, Hcc[i].mTaidy.Mn,
-				Hcc[i].mTaidy.Mxtime, Hcc[i].mTaidy.Mx)
-			fmt.Fprintf(fo, "%1d %3.1f ", Hcc[i].mQdys.Hhr, Hcc[i].mQdys.H)
-			fmt.Fprintf(fo, "%1d %3.1f ", Hcc[i].mQdys.Chr, Hcc[i].mQdys.C)
-			fmt.Fprintf(fo, "%1d %2.0f ", Hcc[i].mQdys.Hmxtime, Hcc[i].mQdys.Hmx)
-			fmt.Fprintf(fo, "%1d %2.0f ", Hcc[i].mQdys.Cmxtime, Hcc[i].mQdys.Cmx)
+				hcc.mTaidy.Hrs, hcc.mTaidy.M,
+				hcc.mTaidy.Mntime, hcc.mTaidy.Mn,
+				hcc.mTaidy.Mxtime, hcc.mTaidy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", hcc.mQdys.Hhr, hcc.mQdys.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", hcc.mQdys.Chr, hcc.mQdys.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", hcc.mQdys.Hmxtime, hcc.mQdys.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f ", hcc.mQdys.Cmxtime, hcc.mQdys.Cmx)
 
 			fmt.Fprintf(fo, "%1d %5.4f %1d %5.4f %1d %5.4f ",
-				Hcc[i].mxaidy.Hrs, Hcc[i].mxaidy.M,
-				Hcc[i].mxaidy.Mntime, Hcc[i].mxaidy.Mn,
-				Hcc[i].mxaidy.Mxtime, Hcc[i].mxaidy.Mx)
-			fmt.Fprintf(fo, "%1d %3.1f ", Hcc[i].mQdyl.Hhr, Hcc[i].mQdyl.H)
-			fmt.Fprintf(fo, "%1d %3.1f ", Hcc[i].mQdyl.Chr, Hcc[i].mQdyl.C)
-			fmt.Fprintf(fo, "%1d %2.0f ", Hcc[i].mQdyl.Hmxtime, Hcc[i].mQdyl.Hmx)
-			fmt.Fprintf(fo, "%1d %2.0f ", Hcc[i].mQdyl.Cmxtime, Hcc[i].mQdyl.Cmx)
+				hcc.mxaidy.Hrs, hcc.mxaidy.M,
+				hcc.mxaidy.Mntime, hcc.mxaidy.Mn,
+				hcc.mxaidy.Mxtime, hcc.mxaidy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", hcc.mQdyl.Hhr, hcc.mQdyl.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", hcc.mQdyl.Chr, hcc.mQdyl.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", hcc.mQdyl.Hmxtime, hcc.mQdyl.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f ", hcc.mQdyl.Cmxtime, hcc.mQdyl.Cmx)
 
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
-				Hcc[i].mTwidy.Hrs, Hcc[i].mTwidy.M,
-				Hcc[i].mTwidy.Mntime, Hcc[i].mTwidy.Mn,
-				Hcc[i].mTwidy.Mxtime, Hcc[i].mTwidy.Mx)
-			fmt.Fprintf(fo, "%1d %3.1f ", Hcc[i].mQdyt.Hhr, Hcc[i].mQdyt.H)
-			fmt.Fprintf(fo, "%1d %3.1f ", Hcc[i].mQdyt.Chr, Hcc[i].mQdyt.C)
-			fmt.Fprintf(fo, "%1d %2.0f ", Hcc[i].mQdyt.Hmxtime, Hcc[i].mQdyt.Hmx)
-			fmt.Fprintf(fo, "%1d %2.0f\n", Hcc[i].mQdyt.Cmxtime, Hcc[i].mQdyt.Cmx)
+				hcc.mTwidy.Hrs, hcc.mTwidy.M,
+				hcc.mTwidy.Mntime, hcc.mTwidy.Mn,
+				hcc.mTwidy.Mxtime, hcc.mTwidy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", hcc.mQdyt.Hhr, hcc.mQdyt.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", hcc.mQdyt.Chr, hcc.mQdyt.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", hcc.mQdyt.Hmxtime, hcc.mQdyt.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f\n", hcc.mQdyt.Cmxtime, hcc.mQdyt.Cmx)
 		}
 	}
 }

@@ -29,11 +29,10 @@ import (
 
 /* 機器仕様入力　　　　　　*/
 
-func Pumpdata(cattype string, s string, Pumpca *PUMPCA, pfcmp []PFCMP) int {
+func Pumpdata(cattype string, s string, Pumpca *PUMPCA, pfcmp []*PFCMP) int {
 	st := strings.IndexByte(s, '=')
 	var dt float64
 	var id int
-	var i int
 
 	if st == -1 {
 		Pumpca.name = s
@@ -59,8 +58,7 @@ func Pumpdata(cattype string, s string, Pumpca *PUMPCA, pfcmp []PFCMP) int {
 				Pumpca.val = make([]float64, 4)
 			}
 
-			for i = 0; i < len(pfcmp); i++ {
-				pfc := &pfcmp[i]
+			for _, pfc := range pfcmp {
 				if Pumpca.pftype == pfc.pftype && Pumpca.Type == pfc.Type {
 					Pumpca.pfcmp = pfc
 					break
@@ -104,9 +102,8 @@ func Pumpdata(cattype string, s string, Pumpca *PUMPCA, pfcmp []PFCMP) int {
 
 /* 太陽電池ポンプの太陽電池パネルの方位設定　*/
 
-func Pumpint(Pump []PUMP, Exs []*EXSF) {
-	for i := range Pump {
-		p := &Pump[i]
+func Pumpint(Pump []*PUMP, Exs []*EXSF) {
+	for _, p := range Pump {
 		if p.Cat.Type == "P" {
 			p.Sol = nil
 			for j := 0; j < len(Exs); j++ {
@@ -126,9 +123,8 @@ func Pumpint(Pump []PUMP, Exs []*EXSF) {
 
 /* ポンプ流量設定（太陽電池ポンプのみ） */
 
-func Pumpflow(Pump []PUMP) {
-	for i := range Pump {
-		p := &Pump[i]
+func Pumpflow(Pump []*PUMP) {
+	for i, p := range Pump {
 		if p.Cat.Type == "P" {
 			S := p.Sol.Iw
 
@@ -171,9 +167,8 @@ func Pumpflow(Pump []PUMP) {
 //  | PUMP |
 //  +------+ ---> [OUT 2] 湿度? (FAN_PFのみ)
 //
-func Pumpcfv(Pump []PUMP) {
-	for i := range Pump {
-		p := &Pump[i]
+func Pumpcfv(Pump []*PUMP) {
+	for _, p := range Pump {
 		if p.Cmp.Control != OFF_SW {
 			Eo1 := p.Cmp.Elouts[0]
 			cG := Spcheat(Eo1.Fluid) * Eo1.G
@@ -226,22 +221,22 @@ func PumpFanPLC(XQ float64, Pump *PUMP) float64 {
 
 /*  供給熱量、エネルギーの計算 */
 
-func Pumpene(Pump []PUMP) {
-	for i := range Pump {
-		Pump[i].Tin = Pump[i].Cmp.Elins[0].Sysvin
-		Eo := Pump[i].Cmp.Elouts[0]
+func Pumpene(Pump []*PUMP) {
+	for _, p := range Pump {
+		p.Tin = p.Cmp.Elins[0].Sysvin
+		Eo := p.Cmp.Elouts[0]
 
 		if Eo.Control != OFF_SW {
-			Pump[i].Q = Pump[i].CG * (Eo.Sysv - Pump[i].Tin)
+			p.Q = p.CG * (Eo.Sysv - p.Tin)
 		} else {
-			Pump[i].Q = 0.0
+			p.Q = 0.0
 		}
 	}
 }
 
 /* --------------------------- */
 
-func pumpprint(fo io.Writer, id int, Pump []PUMP) {
+func pumpprint(fo io.Writer, id int, Pump []*PUMP) {
 	var G float64
 
 	switch id {
@@ -249,23 +244,23 @@ func pumpprint(fo io.Writer, id int, Pump []PUMP) {
 		if len(Pump) > 0 {
 			fmt.Fprintf(fo, "%s  %d\n", PUMP_TYPE, len(Pump))
 		}
-		for i := range Pump {
-			fmt.Fprintf(fo, " %s 1 6\n", Pump[i].Name)
+		for _, p := range Pump {
+			fmt.Fprintf(fo, " %s 1 6\n", p.Name)
 		}
 	case 1:
-		for i := range Pump {
-			fmt.Fprintf(fo, "%s_c c c %s_Ti t f %s_To t f ", Pump[i].Name, Pump[i].Name, Pump[i].Name)
-			fmt.Fprintf(fo, "%s_Q q f  %s_E e f %s_G m f\n", Pump[i].Name, Pump[i].Name, Pump[i].Name)
+		for _, p := range Pump {
+			fmt.Fprintf(fo, "%s_c c c %s_Ti t f %s_To t f ", p.Name, p.Name, p.Name)
+			fmt.Fprintf(fo, "%s_Q q f  %s_E e f %s_G m f\n", p.Name, p.Name, p.Name)
 		}
 	default:
-		for i := range Pump {
-			if Pump[i].Cmp.Elouts[0].G > 0.0 && Pump[i].Cmp.Elouts[0].Control != OFF_SW {
-				G = Pump[i].Cmp.Elouts[0].G
+		for _, p := range Pump {
+			if p.Cmp.Elouts[0].G > 0.0 && p.Cmp.Elouts[0].Control != OFF_SW {
+				G = p.Cmp.Elouts[0].G
 			} else {
 				G = 0.0
 			}
-			fmt.Fprintf(fo, "%c %4.1f %4.1f %4.0f %4.0f %.5g\n", Pump[i].Cmp.Elouts[0].Control,
-				Pump[i].Tin, Pump[i].Cmp.Elouts[0].Sysv, Pump[i].Q, Pump[i].E*Pump[i].PLC, G)
+			fmt.Fprintf(fo, "%c %4.1f %4.1f %4.0f %4.0f %.5g\n", p.Cmp.Elouts[0].Control,
+				p.Tin, p.Cmp.Elouts[0].Sysv, p.Q, p.E*p.PLC, G)
 		}
 	}
 }
@@ -274,122 +269,122 @@ func pumpprint(fo io.Writer, id int, Pump []PUMP) {
 
 /* 日積算値に関する処理 */
 
-func pumpdyint(Pump []PUMP) {
-	for i := range Pump {
-		edyint(&Pump[i].Qdy)
-		edyint(&Pump[i].Edy)
-		edyint(&Pump[i].Gdy)
+func pumpdyint(Pump []*PUMP) {
+	for _, p := range Pump {
+		edyint(&p.Qdy)
+		edyint(&p.Edy)
+		edyint(&p.Gdy)
 	}
 }
 
-func pumpmonint(Pump []PUMP) {
-	for i := range Pump {
-		edyint(&Pump[i].MQdy)
-		edyint(&Pump[i].MEdy)
-		edyint(&Pump[i].MGdy)
+func pumpmonint(Pump []*PUMP) {
+	for _, p := range Pump {
+		edyint(&p.MQdy)
+		edyint(&p.MEdy)
+		edyint(&p.MGdy)
 	}
 }
 
-func pumpday(Mon, Day, ttmm int, Pump []PUMP, Nday, SimDayend int) {
+func pumpday(Mon, Day, ttmm int, Pump []*PUMP, Nday, SimDayend int) {
 	Mo := Mon - 1
 	tt := ConvertHour(ttmm)
 
-	for i := range Pump {
+	for _, p := range Pump {
 		// 日集計
-		edaysum(ttmm, Pump[i].Cmp.Elouts[0].Control, Pump[i].Q, &Pump[i].Qdy)
-		edaysum(ttmm, Pump[i].Cmp.Elouts[0].Control, Pump[i].E, &Pump[i].Edy)
-		edaysum(ttmm, Pump[i].Cmp.Elouts[0].Control, Pump[i].G, &Pump[i].Gdy)
+		edaysum(ttmm, p.Cmp.Elouts[0].Control, p.Q, &p.Qdy)
+		edaysum(ttmm, p.Cmp.Elouts[0].Control, p.E, &p.Edy)
+		edaysum(ttmm, p.Cmp.Elouts[0].Control, p.G, &p.Gdy)
 
 		// 月集計
-		emonsum(Mon, Day, ttmm, Pump[i].Cmp.Elouts[0].Control, Pump[i].Q, &Pump[i].MQdy, Nday, SimDayend)
-		emonsum(Mon, Day, ttmm, Pump[i].Cmp.Elouts[0].Control, Pump[i].E, &Pump[i].MEdy, Nday, SimDayend)
-		emonsum(Mon, Day, ttmm, Pump[i].Cmp.Elouts[0].Control, Pump[i].G, &Pump[i].MGdy, Nday, SimDayend)
+		emonsum(Mon, Day, ttmm, p.Cmp.Elouts[0].Control, p.Q, &p.MQdy, Nday, SimDayend)
+		emonsum(Mon, Day, ttmm, p.Cmp.Elouts[0].Control, p.E, &p.MEdy, Nday, SimDayend)
+		emonsum(Mon, Day, ttmm, p.Cmp.Elouts[0].Control, p.G, &p.MGdy, Nday, SimDayend)
 
 		// 月・時刻のクロス集計
-		emtsum(Mon, Day, ttmm, Pump[i].Cmp.Elouts[0].Control, Pump[i].E, &Pump[i].MtEdy[Mo][tt])
+		emtsum(Mon, Day, ttmm, p.Cmp.Elouts[0].Control, p.E, &p.MtEdy[Mo][tt])
 	}
 }
 
-func pumpdyprt(fo io.Writer, id int, Pump []PUMP) {
+func pumpdyprt(fo io.Writer, id int, Pump []*PUMP) {
 	switch id {
 	case 0:
 		if len(Pump) > 0 {
 			fmt.Fprintf(fo, "%s  %d\n", PUMP_TYPE, len(Pump))
 		}
-		for i := range Pump {
-			fmt.Fprintf(fo, " %s 1 12\n", Pump[i].Name)
+		for _, p := range Pump {
+			fmt.Fprintf(fo, " %s 1 12\n", p.Name)
 		}
 	case 1:
-		for i := range Pump {
+		for _, p := range Pump {
 			fmt.Fprintf(fo, "%s_Hq H d %s_Q Q f %s_tq h d %s_Qm q f\n",
-				Pump[i].Name, Pump[i].Name, Pump[i].Name, Pump[i].Name)
+				p.Name, p.Name, p.Name, p.Name)
 			fmt.Fprintf(fo, "%s_He H d %s_E E f %s_te h d %s_Em e f\n",
-				Pump[i].Name, Pump[i].Name, Pump[i].Name, Pump[i].Name)
+				p.Name, p.Name, p.Name, p.Name)
 			fmt.Fprintf(fo, "%s_Hg H d %s_G M f %s_tg h d %s_Gm m f\n\n",
-				Pump[i].Name, Pump[i].Name, Pump[i].Name, Pump[i].Name)
+				p.Name, p.Name, p.Name, p.Name)
 		}
 	default:
-		for i := range Pump {
-			fmt.Fprintf(fo, "%1d %3.1f ", Pump[i].Qdy.Hrs, Pump[i].Qdy.D)
-			fmt.Fprintf(fo, "%1d %2.0f ", Pump[i].Qdy.Mxtime, Pump[i].Qdy.Mx)
-			fmt.Fprintf(fo, "%1d %3.1f ", Pump[i].Edy.Hrs, Pump[i].Edy.D)
-			fmt.Fprintf(fo, "%1d %2.0f ", Pump[i].Edy.Mxtime, Pump[i].Edy.Mx)
-			fmt.Fprintf(fo, "%1d %3.1f ", Pump[i].Gdy.Hrs, Pump[i].Gdy.D)
-			fmt.Fprintf(fo, "%1d %2.0f\n", Pump[i].Gdy.Mxtime, Pump[i].Gdy.Mx)
+		for _, p := range Pump {
+			fmt.Fprintf(fo, "%1d %3.1f ", p.Qdy.Hrs, p.Qdy.D)
+			fmt.Fprintf(fo, "%1d %2.0f ", p.Qdy.Mxtime, p.Qdy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", p.Edy.Hrs, p.Edy.D)
+			fmt.Fprintf(fo, "%1d %2.0f ", p.Edy.Mxtime, p.Edy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", p.Gdy.Hrs, p.Gdy.D)
+			fmt.Fprintf(fo, "%1d %2.0f\n", p.Gdy.Mxtime, p.Gdy.Mx)
 		}
 	}
 }
 
-func pumpmonprt(fo io.Writer, id int, Pump []PUMP) {
+func pumpmonprt(fo io.Writer, id int, Pump []*PUMP) {
 	switch id {
 	case 0:
 		if len(Pump) > 0 {
 			fmt.Fprintf(fo, "%s  %d\n", PUMP_TYPE, len(Pump))
 		}
-		for i := range Pump {
-			fmt.Fprintf(fo, " %s 1 12\n", Pump[i].Name)
+		for _, p := range Pump {
+			fmt.Fprintf(fo, " %s 1 12\n", p.Name)
 		}
 	case 1:
-		for i := range Pump {
+		for _, p := range Pump {
 			fmt.Fprintf(fo, "%s_Hq H d %s_Q Q f %s_tq h d %s_Qm q f\n",
-				Pump[i].Name, Pump[i].Name, Pump[i].Name, Pump[i].Name)
+				p.Name, p.Name, p.Name, p.Name)
 			fmt.Fprintf(fo, "%s_He H d %s_E E f %s_te h d %s_Em e f\n",
-				Pump[i].Name, Pump[i].Name, Pump[i].Name, Pump[i].Name)
+				p.Name, p.Name, p.Name, p.Name)
 			fmt.Fprintf(fo, "%s_Hg H d %s_G M f %s_tg h d %s_Gm m f\n\n",
-				Pump[i].Name, Pump[i].Name, Pump[i].Name, Pump[i].Name)
+				p.Name, p.Name, p.Name, p.Name)
 		}
 	default:
-		for i := range Pump {
-			fmt.Fprintf(fo, "%1d %3.1f ", Pump[i].MQdy.Hrs, Pump[i].MQdy.D)
-			fmt.Fprintf(fo, "%1d %2.0f ", Pump[i].MQdy.Mxtime, Pump[i].MQdy.Mx)
-			fmt.Fprintf(fo, "%1d %3.1f ", Pump[i].MEdy.Hrs, Pump[i].MEdy.D)
-			fmt.Fprintf(fo, "%1d %2.0f ", Pump[i].MEdy.Mxtime, Pump[i].MEdy.Mx)
-			fmt.Fprintf(fo, "%1d %3.1f ", Pump[i].MGdy.Hrs, Pump[i].MGdy.D)
-			fmt.Fprintf(fo, "%1d %2.0f\n", Pump[i].MGdy.Mxtime, Pump[i].MGdy.Mx)
+		for _, p := range Pump {
+			fmt.Fprintf(fo, "%1d %3.1f ", p.MQdy.Hrs, p.MQdy.D)
+			fmt.Fprintf(fo, "%1d %2.0f ", p.MQdy.Mxtime, p.MQdy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", p.MEdy.Hrs, p.MEdy.D)
+			fmt.Fprintf(fo, "%1d %2.0f ", p.MEdy.Mxtime, p.MEdy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", p.MGdy.Hrs, p.MGdy.D)
+			fmt.Fprintf(fo, "%1d %2.0f\n", p.MGdy.Mxtime, p.MGdy.Mx)
 		}
 	}
 }
-func pumpmtprt(fo io.Writer, id int, Pump []PUMP, Mo, tt int) {
+func pumpmtprt(fo io.Writer, id int, Pump []*PUMP, Mo, tt int) {
 	switch id {
 	case 0:
 		if len(Pump) > 0 {
 			fmt.Fprintf(fo, "%s %d\n", PUMP_TYPE, len(Pump))
 		}
-		for i := range Pump {
-			fmt.Fprintf(fo, " %s 1 1\n", Pump[i].Name)
+		for _, p := range Pump {
+			fmt.Fprintf(fo, " %s 1 1\n", p.Name)
 		}
 	case 1:
-		for i := range Pump {
-			fmt.Fprintf(fo, "%s_E E f \n", Pump[i].Name)
+		for _, p := range Pump {
+			fmt.Fprintf(fo, "%s_E E f \n", p.Name)
 		}
 	default:
-		for i := range Pump {
-			fmt.Fprintf(fo, " %.2f \n", Pump[i].MtEdy[Mo-1][tt-1].D*Cff_kWh)
+		for _, p := range Pump {
+			fmt.Fprintf(fo, " %.2f \n", p.MtEdy[Mo-1][tt-1].D*Cff_kWh)
 		}
 	}
 }
 
-func PFcmpInit(N int, Pfcmp []PFCMP) {
+func PFcmpInit(N int, Pfcmp []*PFCMP) {
 	for i := 0; i < N; i++ {
 		Pfcmp[i].pftype = ' '
 		Pfcmp[i].Type = ""
@@ -397,7 +392,7 @@ func PFcmpInit(N int, Pfcmp []PFCMP) {
 	}
 }
 
-func PFcmpdata(fl io.Reader, Pfcmp *[]PFCMP) {
+func PFcmpdata(fl io.Reader, Pfcmp *[]*PFCMP) {
 	var s string
 	var c byte
 	var i int
@@ -416,7 +411,7 @@ func PFcmpdata(fl io.Reader, Pfcmp *[]PFCMP) {
 				}
 			}
 		} else {
-			pfcmp := PFCMP{}
+			pfcmp := new(PFCMP)
 
 			if s == PUMP_TYPE {
 				pfcmp.pftype = PUMP_PF

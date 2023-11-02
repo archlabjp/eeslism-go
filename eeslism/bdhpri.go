@@ -43,7 +43,7 @@ func bdhpri(ofile string, rmvls RMVLS, exs *EXSFS) {
 	fmt.Fprintf(fp, "%d\n", Nroom)
 
 	for i := 0; i < Nroom; i++ {
-		room := &rmvls.Room[i]
+		room := rmvls.Room[i]
 		fmt.Fprintf(fp, "%s\t", room.Name)
 		fmt.Fprintf(fp, "%d\t", room.N)
 		fmt.Fprintf(fp, "%.3f\t", room.FArea)

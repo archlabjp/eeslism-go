@@ -27,7 +27,7 @@ import (
 
 /*  圧縮式冷凍機定格特性入力    */
 
-func Refcmpdat(frf io.Reader, Rfcmp *[]RFCMP) {
+func Refcmpdat(frf io.Reader, Rfcmp *[]*RFCMP) {
 	scanner := bufio.NewScanner(frf)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -37,7 +37,7 @@ func Refcmpdat(frf io.Reader, Rfcmp *[]RFCMP) {
 
 		fields := strings.Fields(line)
 
-		rfcmp := RFCMP{}
+		rfcmp := new(RFCMP)
 		rfcmp.name = fields[0]
 		rfcmp.cname = fields[1]
 

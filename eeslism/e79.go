@@ -168,7 +168,7 @@ func Entry(InFile string) {
 
 	// 動的カーテンの展開
 	for i := 0; i < Rmvls.Nsrf; i++ {
-		Sd := &Rmvls.Sd[i]
+		Sd := Rmvls.Sd[i]
 		if Sd.DynamicCode != "" {
 			ctifdecode(Sd.DynamicCode, Sd.Ctlif, &Simc, Compnt, Mpath, &Wd, &Exsf, Schdl)
 		}
@@ -381,7 +381,7 @@ func Entry(InFile string) {
 	Cff_kWh = DTM / 3600.0 / 1000.0
 
 	for rm := range Rmvls.Room {
-		Rm := &Rmvls.Room[rm]
+		Rm := Rmvls.Room[rm]
 		Rm.Qeqp = 0.0
 	}
 

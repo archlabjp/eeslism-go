@@ -91,9 +91,8 @@ func Evacdata(s string, Evacca *EVACCA) int {
 
 /* ------------------------------------------------------ */
 // 初期設定（入力漏れのチェック、変数用メモリの確保）
-func Evacint(Evac []EVAC) {
-	for i := range Evac {
-		evac := &Evac[i]
+func Evacint(Evac []*EVAC) {
+	for _, evac := range Evac {
 		cat := evac.Cat
 
 		// 入力漏れのチェック
@@ -184,12 +183,12 @@ func FNXs(T float64) float64 {
 }
 
 /*  気化冷却器出口空気温湿度に関する変数割当  */
-func Evacelm(Evac []EVAC) {
-	for i := range Evac {
-		EoTdry := Evac[i].Cmp.Elouts[0] // Tdryoutの出口温度計算用
-		Eoxdry := Evac[i].Cmp.Elouts[1] // xdryoutの出口温度計算用
-		EoTwet := Evac[i].Cmp.Elouts[2] // Twetoutの出口温度計算用
-		Eoxwet := Evac[i].Cmp.Elouts[3] // xwetoutの出口温度計算用
+func Evacelm(Evac []*EVAC) {
+	for _, evac := range Evac {
+		EoTdry := evac.Cmp.Elouts[0] // Tdryoutの出口温度計算用
+		Eoxdry := evac.Cmp.Elouts[1] // xdryoutの出口温度計算用
+		EoTwet := evac.Cmp.Elouts[2] // Twetoutの出口温度計算用
+		Eoxwet := evac.Cmp.Elouts[3] // xwetoutの出口温度計算用
 
 		EoTdry.Elins[0].Upo = Eoxdry.Elins[0].Upo
 		EoTdry.Elins[0].Upv = Eoxdry.Elins[0].Upo
@@ -275,21 +274,21 @@ func EvacNu(AR, Re float64) float64 {
 }
 
 // 要素方程式の係数計算
-func Evaccfv(Evac []EVAC) {
-	for i := range Evac {
-		EvpFlg := make([]float64, Evac[i].Cat.N)
-		if Evac[i].Cmp.Control != OFF_SW {
-			EoTdry := Evac[i].Cmp.Elouts[0] // Tdryoutの出口温度計算用
-			Eoxdry := Evac[i].Cmp.Elouts[1] // xdryoutの出口温度計算用
-			EoTwet := Evac[i].Cmp.Elouts[2] // Twetoutの出口温度計算用
-			Eoxwet := Evac[i].Cmp.Elouts[3] // xwetoutの出口温度計算用
+func Evaccfv(Evac []*EVAC) {
+	for _, evac := range Evac {
+		EvpFlg := make([]float64, evac.Cat.N)
+		if evac.Cmp.Control != OFF_SW {
+			EoTdry := evac.Cmp.Elouts[0] // Tdryoutの出口温度計算用
+			Eoxdry := evac.Cmp.Elouts[1] // xdryoutの出口温度計算用
+			EoTwet := evac.Cmp.Elouts[2] // Twetoutの出口温度計算用
+			Eoxwet := evac.Cmp.Elouts[3] // xwetoutの出口温度計算用
 
-			cat := Evac[i].Cat
+			cat := evac.Cat
 			Gdry := EoTdry.G
 			Gwet := EoTwet.G
 
 			if cat.Nlayer > 0 {
-				Ts := Evac[i].Ts
+				Ts := evac.Ts
 				Tsave := 0.0
 				for ii := 0; ii < cat.N; ii++ {
 					Tsave += Ts[ii] / float64(cat.N)
@@ -308,10 +307,10 @@ func Evaccfv(Evac []EVAC) {
 
 			PreFlg := 1.0
 			for ii := cat.N - 1; ii >= 0; ii-- {
-				Ts := &Evac[i].Ts[ii]
-				xwet := &Evac[i].Xwet[ii]
-				RHwet := &Evac[i].RHwet[ii]
-				//kx := &Evac[i].Kx[ii]
+				Ts := &evac.Ts[ii]
+				xwet := &evac.Xwet[ii]
+				RHwet := &evac.RHwet[ii]
+				//kx := &evac.Kx[ii]
 				EF := &EvpFlg[ii]
 
 				a[ii], b[ii] = LinearSatx(*Ts) // 境界層温度における飽和絶対湿度計算用係数の取得
@@ -323,11 +322,11 @@ func Evaccfv(Evac []EVAC) {
 			}
 
 			for ii := 0; ii < cat.N; ii++ {
-				Ts := &Evac[i].Ts[ii]
-				xs := &Evac[i].Xs[ii]
-				// xwet := &Evac[i].Xwet[ii]
-				// RHwet := &Evac[i].RHwet[ii]
-				kx := &Evac[i].Kx[ii]
+				Ts := &evac.Ts[ii]
+				xs := &evac.Xs[ii]
+				// xwet := &evac.Xwet[ii]
+				// RHwet := &evac.RHwet[ii]
+				kx := &evac.Kx[ii]
 				EF := &EvpFlg[ii]
 
 				*kx = cat.hwet / (Ca + Cv**xs) * *EF // 物質移動係数の計算
@@ -370,94 +369,93 @@ func Evaccfv(Evac []EVAC) {
 			}
 
 			Matinv(U, N, N, "Evaccfv U") // 行列Uの逆行列を計算
-			matinit(Evac[i].UX, N2)      // 行列の初期化
-			matcpy(U, Evac[i].UX, N2)    // 行列のコピー
+			matinit(evac.UX, N2)         // 行列の初期化
+			matcpy(U, evac.UX, N2)       // 行列のコピー
 
-			matinit(Evac[i].UXC, N) // 行列UXCの初期化
+			matinit(evac.UXC, N) // 行列UXCの初期化
 			for ii := 0; ii < N; ii++ {
 				for jj := 0; jj < N; jj++ {
-					Evac[i].UXC[ii] += Evac[i].UX[ii*N+jj] * C[jj] // 行列UXとベクトルCの積の計算
+					evac.UXC[ii] += evac.UX[ii*N+jj] * C[jj] // 行列UXとベクトルCの積の計算
 				}
 			}
 
 			Row := N * (5*(cat.N-1) + 3)
 
-			EoTdry.Coeffo = -1.0                                               // Tdryoutの要素方程式
-			EoTdry.Co = -Evac[i].UXC[5*(cat.N-1)+3]                            // 定数の項
-			EoTdry.Coeffin[0] = -Evac[i].UX[Row+(5*(cat.N-1)+3)] * (Ca * Gdry) // Tdryinの項
-			EoTdry.Coeffin[1] = -Evac[i].UX[Row+(5*(1-1)+4)] * -1.0            // xdryinの項
-			EoTdry.Coeffin[2] = -Evac[i].UX[Row+(5*(cat.N-1)+0)] * (Ca * Gwet) // Twetinの項
-			EoTdry.Coeffin[3] = -Evac[i].UX[Row+(5*(cat.N-1)+1)] * (Gwet)      // xwetinの項
+			EoTdry.Coeffo = -1.0                                            // Tdryoutの要素方程式
+			EoTdry.Co = -evac.UXC[5*(cat.N-1)+3]                            // 定数の項
+			EoTdry.Coeffin[0] = -evac.UX[Row+(5*(cat.N-1)+3)] * (Ca * Gdry) // Tdryinの項
+			EoTdry.Coeffin[1] = -evac.UX[Row+(5*(1-1)+4)] * -1.0            // xdryinの項
+			EoTdry.Coeffin[2] = -evac.UX[Row+(5*(cat.N-1)+0)] * (Ca * Gwet) // Twetinの項
+			EoTdry.Coeffin[3] = -evac.UX[Row+(5*(cat.N-1)+1)] * (Gwet)      // xwetinの項
 
-			Eoxdry.Coeffo = -1.0                                               // xdryoutの要素方程式
-			Eoxdry.Co = -Evac[i].UXC[5*(cat.N-1)+4]                            // 定数の項
-			Eoxdry.Coeffin[0] = -Evac[i].UX[Row+(5*(1-1)+4)] * -1.0            // xdryinの項
-			Eoxdry.Coeffin[1] = -Evac[i].UX[Row+(5*(1-1)+3)] * (Ca * Gdry)     // Tdryinの項
-			Eoxdry.Coeffin[2] = -Evac[i].UX[Row+(5*(cat.N-1)+0)] * (Ca * Gwet) // Twetinの項
-			Eoxdry.Coeffin[3] = -Evac[i].UX[Row+(5*(cat.N-1)+1)] * (Gwet)      // xwetinの項
+			Eoxdry.Coeffo = -1.0                                            // xdryoutの要素方程式
+			Eoxdry.Co = -evac.UXC[5*(cat.N-1)+4]                            // 定数の項
+			Eoxdry.Coeffin[0] = -evac.UX[Row+(5*(1-1)+4)] * -1.0            // xdryinの項
+			Eoxdry.Coeffin[1] = -evac.UX[Row+(5*(1-1)+3)] * (Ca * Gdry)     // Tdryinの項
+			Eoxdry.Coeffin[2] = -evac.UX[Row+(5*(cat.N-1)+0)] * (Ca * Gwet) // Twetinの項
+			Eoxdry.Coeffin[3] = -evac.UX[Row+(5*(cat.N-1)+1)] * (Gwet)      // xwetinの項
 
 			Row = N * (5*(1-1) + 0)
-			EoTwet.Coeffo = -1.0                                               // Twetoutの要素方程式
-			EoTwet.Co = -Evac[i].UXC[5*(1-1)+0]                                // 定数の項
-			EoTwet.Coeffin[0] = -Evac[i].UX[Row+(5*(cat.N-1)+0)] * (Ca * Gwet) // Twetinの項
-			EoTwet.Coeffin[1] = -Evac[i].UX[Row+(5*(1-1)+3)] * (Ca * Gdry)     // Tdryinの項
-			EoTwet.Coeffin[2] = -Evac[i].UX[Row+(5*(1-1)+4)] * -1.0            // xdryinの項
-			EoTwet.Coeffin[3] = -Evac[i].UX[Row+(5*(cat.N-1)+1)] * (Gwet)      // xwetinの項
+			EoTwet.Coeffo = -1.0                                            // Twetoutの要素方程式
+			EoTwet.Co = -evac.UXC[5*(1-1)+0]                                // 定数の項
+			EoTwet.Coeffin[0] = -evac.UX[Row+(5*(cat.N-1)+0)] * (Ca * Gwet) // Twetinの項
+			EoTwet.Coeffin[1] = -evac.UX[Row+(5*(1-1)+3)] * (Ca * Gdry)     // Tdryinの項
+			EoTwet.Coeffin[2] = -evac.UX[Row+(5*(1-1)+4)] * -1.0            // xdryinの項
+			EoTwet.Coeffin[3] = -evac.UX[Row+(5*(cat.N-1)+1)] * (Gwet)      // xwetinの項
 
 			Row = N * (5*(1-1) + 1)
-			Eoxwet.Coeffo = -1.0                                               // xwetoutの要素方程式
-			Eoxwet.Co = -Evac[i].UXC[5*(1-1)+1]                                // 定数の項
-			Eoxwet.Coeffin[0] = -Evac[i].UX[Row+(5*(cat.N-1)+1)] * (Gwet)      // xwetinの項
-			Eoxwet.Coeffin[1] = -Evac[i].UX[Row+(5*(1-1)+3)] * (Ca * Gdry)     // Tdryinの項
-			Eoxwet.Coeffin[2] = -Evac[i].UX[Row+(5*(1-1)+4)] * -1.0            // xdryinの項
-			Eoxwet.Coeffin[3] = -Evac[i].UX[Row+(5*(cat.N-1)+0)] * (Ca * Gwet) // Twetinの項
+			Eoxwet.Coeffo = -1.0                                            // xwetoutの要素方程式
+			Eoxwet.Co = -evac.UXC[5*(1-1)+1]                                // 定数の項
+			Eoxwet.Coeffin[0] = -evac.UX[Row+(5*(cat.N-1)+1)] * (Gwet)      // xwetinの項
+			Eoxwet.Coeffin[1] = -evac.UX[Row+(5*(1-1)+3)] * (Ca * Gdry)     // Tdryinの項
+			Eoxwet.Coeffin[2] = -evac.UX[Row+(5*(1-1)+4)] * -1.0            // xdryinの項
+			Eoxwet.Coeffin[3] = -evac.UX[Row+(5*(cat.N-1)+0)] * (Ca * Gwet) // Twetinの項
 		}
 	}
 }
 
 // 内部温度、熱量の計算
-func Evacene(Evac []EVAC, Evacreset *int) {
-	for i := range Evac {
-		Evac := &Evac[i]
-		cat := Evac.Cat
-		if Evac.Cmp.Control != OFF_SW {
+func Evacene(Evac []*EVAC, Evacreset *int) {
+	for _, evac := range Evac {
+		cat := evac.Cat
+		if evac.Cmp.Control != OFF_SW {
 			var Gdry, Gwet float64
 			var Tdry, Twet, xdry, xwet, Ts, xs, RHwet, RHdry, M, kx []float64
 			var Sin, Stat, Scmp []float64
 			//var elin *ELIN
 
-			EoTdry := Evac.Cmp.Elouts[0] //Tdryoutの出口温度計算用
-			Eoxdry := Evac.Cmp.Elouts[1] //xdryoutの出口温度計算用
-			EoTwet := Evac.Cmp.Elouts[2] //Twetoutの出口温度計算用
-			Eoxwet := Evac.Cmp.Elouts[3] //xwetoutの出口温度計算用
+			EoTdry := evac.Cmp.Elouts[0] //Tdryoutの出口温度計算用
+			Eoxdry := evac.Cmp.Elouts[1] //xdryoutの出口温度計算用
+			EoTwet := evac.Cmp.Elouts[2] //Twetoutの出口温度計算用
+			Eoxwet := evac.Cmp.Elouts[3] //xwetoutの出口温度計算用
 
 			// 出入口状態値の取得
-			Evac.Tdryi = EoTdry.Elins[0].Sysvin
-			Evac.Xdryi = EoTdry.Elins[1].Sysvin
-			Evac.Tweti = EoTdry.Elins[2].Sysvin
-			Evac.Xweti = EoTdry.Elins[3].Sysvin
+			evac.Tdryi = EoTdry.Elins[0].Sysvin
+			evac.Xdryi = EoTdry.Elins[1].Sysvin
+			evac.Tweti = EoTdry.Elins[2].Sysvin
+			evac.Xweti = EoTdry.Elins[3].Sysvin
 
-			Evac.Tdryo = EoTdry.Sysv
-			Evac.Xdryo = Eoxdry.Sysv
-			Evac.Tweto = EoTwet.Sysv
-			Evac.Xweto = Eoxwet.Sysv
+			evac.Tdryo = EoTdry.Sysv
+			evac.Xdryo = Eoxdry.Sysv
+			evac.Tweto = EoTwet.Sysv
+			evac.Xweto = Eoxwet.Sysv
 
 			Gdry = EoTdry.G
 			Gwet = EoTwet.G
 
 			// 相対湿度の計算
-			Evac.RHdryi = FNRhtx(Evac.Tdryi, Evac.Xdryi)
-			Evac.RHdryo = FNRhtx(Evac.Tdryo, Evac.Xdryo)
-			Evac.RHweti = FNRhtx(Evac.Tweti, Evac.Xweti)
-			Evac.RHweto = FNRhtx(Evac.Tweto, Evac.Xweto)
+			evac.RHdryi = FNRhtx(evac.Tdryi, evac.Xdryi)
+			evac.RHdryo = FNRhtx(evac.Tdryo, evac.Xdryo)
+			evac.RHweti = FNRhtx(evac.Tweti, evac.Xweti)
+			evac.RHweto = FNRhtx(evac.Tweto, evac.Xweto)
 
 			// 熱量の計算
-			Evac.Qsdry = Ca * Gdry * (Evac.Tdryo - Evac.Tdryi)
-			Evac.Qldry = Ro * Gdry * (Evac.Xdryo - Evac.Xdryi)
-			Evac.Qtdry = Evac.Qsdry + Evac.Qldry
-			Evac.Qswet = Ca * Gwet * (Evac.Tweto - Evac.Tweti)
-			Evac.Qlwet = Ro * Gwet * (Evac.Xweto - Evac.Xweti)
-			Evac.Qtwet = Evac.Qswet + Evac.Qlwet
+			evac.Qsdry = Ca * Gdry * (evac.Tdryo - evac.Tdryi)
+			evac.Qldry = Ro * Gdry * (evac.Xdryo - evac.Xdryi)
+			evac.Qtdry = evac.Qsdry + evac.Qldry
+			evac.Qswet = Ca * Gwet * (evac.Tweto - evac.Tweti)
+			evac.Qlwet = Ro * Gwet * (evac.Xweto - evac.Xweti)
+			evac.Qtwet = evac.Qswet + evac.Qlwet
 
 			N := cat.N * 5
 			//N2 := N * N
@@ -465,31 +463,31 @@ func Evacene(Evac []EVAC, Evacreset *int) {
 			Sin = make([]float64, N)
 			Stat = make([]float64, N)
 
-			Sin[5*(1-1)+3] = Ca * Gdry * Evac.Tdryi
-			Sin[5*(1-1)+4] = -Evac.Xdryi
-			Sin[5*(cat.N-1)+0] = Ca * Gwet * Evac.Tweti
-			Sin[5*(cat.N-1)+1] = Gwet * Evac.Xweti
+			Sin[5*(1-1)+3] = Ca * Gdry * evac.Tdryi
+			Sin[5*(1-1)+4] = -evac.Xdryi
+			Sin[5*(cat.N-1)+0] = Ca * Gwet * evac.Tweti
+			Sin[5*(cat.N-1)+1] = Gwet * evac.Xweti
 
 			for ii := 0; ii < N; ii++ {
 				for jj := 0; jj < N; jj++ {
 					// 内部変数の計算
-					Stat[ii] += -Evac.UX[ii*N+jj] * Sin[jj]
+					Stat[ii] += -evac.UX[ii*N+jj] * Sin[jj]
 				}
-				Stat[ii] += Evac.UXC[ii]
+				Stat[ii] += evac.UXC[ii]
 			}
 
 			// 内部変数計算結果の格納
-			Tdry = Evac.Tdry
-			xdry = Evac.Xdry
-			Twet = Evac.Twet
-			xwet = Evac.Xwet
-			Ts = Evac.Ts
-			xs = Evac.Xs
-			RHdry = Evac.RHdry
-			RHwet = Evac.RHwet
-			M = Evac.M
+			Tdry = evac.Tdry
+			xdry = evac.Xdry
+			Twet = evac.Twet
+			xwet = evac.Xwet
+			Ts = evac.Ts
+			xs = evac.Xs
+			RHdry = evac.RHdry
+			RHwet = evac.RHwet
+			M = evac.M
 			Scmp = Stat
-			kx = Evac.Kx
+			kx = evac.Kx
 			for ii := 0; ii < cat.N; ii++ {
 				Twet[ii] = Scmp[0]
 				xwet[ii] = Scmp[1]
@@ -508,89 +506,87 @@ func Evacene(Evac []EVAC, Evacreset *int) {
 				Scmp = Scmp[5:]
 			}
 		} else {
-			Evac.Qsdry = 0.0
-			Evac.Qldry = 0.0
-			Evac.Qtdry = 0.0
-			Evac.Qswet = 0.0
-			Evac.Qlwet = 0.0
-			Evac.Qtwet = 0.0
-			Evac.Tdryi = 0.0
-			Evac.Tdryo = 0.0
-			Evac.Tweti = 0.0
-			Evac.Tweto = 0.0
-			Evac.Xdryi = 0.0
-			Evac.Xdryo = 0.0
-			Evac.Xweti = 0.0
-			Evac.Xweto = 0.0
-			matinit(Evac.M, cat.N)
+			evac.Qsdry = 0.0
+			evac.Qldry = 0.0
+			evac.Qtdry = 0.0
+			evac.Qswet = 0.0
+			evac.Qlwet = 0.0
+			evac.Qtwet = 0.0
+			evac.Tdryi = 0.0
+			evac.Tdryo = 0.0
+			evac.Tweti = 0.0
+			evac.Tweto = 0.0
+			evac.Xdryi = 0.0
+			evac.Xdryo = 0.0
+			evac.Xweti = 0.0
+			evac.Xweto = 0.0
+			matinit(evac.M, cat.N)
 		}
 
-		Evac.Count++
-		if Evac.Count > 0 {
+		evac.Count++
+		if evac.Count > 0 {
 			*Evacreset = 1
 		}
 	}
 }
 
 // カウンタのリセット
-func Evaccountreset(Evac []EVAC) {
-	for i := range Evac {
-		Evac[i].Count = 0
+func Evaccountreset(Evac []*EVAC) {
+	for _, evac := range Evac {
+		evac.Count = 0
 	}
 }
 
 // 代表日の計算結果出力
-func Evacprint(fo io.Writer, id int, Evac []EVAC) {
+func Evacprint(fo io.Writer, id int, Evac []*EVAC) {
 	switch id {
 	case 0:
 		if len(Evac) > 0 {
 			fmt.Fprintf(fo, "%s %d\n", EVAC_TYPE, len(Evac))
 		}
-		for i := range Evac {
-			fmt.Fprintf(fo, " %s 1 %d\n", Evac[i].Name, 18+8*Evac[i].Cat.N)
+		for _, evac := range Evac {
+			fmt.Fprintf(fo, " %s 1 %d\n", evac.Name, 18+8*evac.Cat.N)
 		}
 
 	case 1:
-		for i := range Evac {
-			Evac := &Evac[i]
+		for _, evac := range Evac {
 			// Wet側出力
 			fmt.Fprintf(fo, "%s_cw c c %s_Gw m f %s_Twi t f %s_Two t f %s_xwi x f %s_xwo x f\n",
-				Evac.Name, Evac.Name, Evac.Name, Evac.Name, Evac.Name, Evac.Name)
+				evac.Name, evac.Name, evac.Name, evac.Name, evac.Name, evac.Name)
 			fmt.Fprintf(fo, "%s_Qws q f %s_Qwl q f %s_Qwt q f\n",
-				Evac.Name, Evac.Name, Evac.Name)
+				evac.Name, evac.Name, evac.Name)
 			// Dry側出力
 			fmt.Fprintf(fo, "%s_cd c c %s_Gd m f %s_Tdi t f %s_Tdo t f %s_xdi x f %s_xdo x f\n",
-				Evac.Name, Evac.Name, Evac.Name, Evac.Name, Evac.Name, Evac.Name)
+				evac.Name, evac.Name, evac.Name, evac.Name, evac.Name, evac.Name)
 			fmt.Fprintf(fo, "%s_Qds q f %s_Qdl q f %s_Qdt q f\n",
-				Evac.Name, Evac.Name, Evac.Name)
+				evac.Name, evac.Name, evac.Name)
 			// 内部変数
-			for ii := 0; ii < Evac.Cat.N; ii++ {
+			for ii := 0; ii < evac.Cat.N; ii++ {
 				fmt.Fprintf(fo, "%s_Tw[%d] t f %s_xw[%d] x f %s_RHw[%d] r f %s_Ts[%d] t f %s_Td[%d] t f %s_xd[%d] x f %s_RHd[%d] r f %s_M[%d] m f\n",
-					Evac.Name, ii, Evac.Name, ii, Evac.Name, ii, Evac.Name, ii, Evac.Name, ii, Evac.Name, ii, Evac.Name, ii, Evac.Name, ii)
+					evac.Name, ii, evac.Name, ii, evac.Name, ii, evac.Name, ii, evac.Name, ii, evac.Name, ii, evac.Name, ii, evac.Name, ii)
 			}
 		}
 
 	default:
-		for i := range Evac {
-			Evac := &Evac[i]
+		for _, evac := range Evac {
 			// Wet側出力
-			elo := Evac.Cmp.Elouts[2]
+			elo := evac.Cmp.Elouts[2]
 			fmt.Fprintf(fo, "%c %g %.1f %.1f %.3f %.3f %.1f %.1f %.1f\n",
-				elo.Control, elo.G, Evac.Tweti, Evac.Tweto, Evac.Xweti, Evac.Xweto, Evac.Qswet, Evac.Qlwet, Evac.Qtwet)
+				elo.Control, elo.G, evac.Tweti, evac.Tweto, evac.Xweti, evac.Xweto, evac.Qswet, evac.Qlwet, evac.Qtwet)
 			// Dry側出力
-			elo = Evac.Cmp.Elouts[0]
+			elo = evac.Cmp.Elouts[0]
 			fmt.Fprintf(fo, "%c %g %.1f %.1f %.3f %.3f %.1f %.1f %.1f\n",
-				elo.Control, elo.G, Evac.Tdryi, Evac.Tdryo, Evac.Xdryi, Evac.Xdryo, Evac.Qsdry, Evac.Qldry, Evac.Qtdry)
+				elo.Control, elo.G, evac.Tdryi, evac.Tdryo, evac.Xdryi, evac.Xdryo, evac.Qsdry, evac.Qldry, evac.Qtdry)
 			// 内部変数
-			Tdry := Evac.Tdry
-			xdry := Evac.Xdry
-			Twet := Evac.Twet
-			xwet := Evac.Xwet
-			Ts := Evac.Ts
-			RHdry := Evac.RHdry
-			RHwet := Evac.RHwet
-			M := Evac.M
-			for ii := 0; ii < Evac.Cat.N; ii++ {
+			Tdry := evac.Tdry
+			xdry := evac.Xdry
+			Twet := evac.Twet
+			xwet := evac.Xwet
+			Ts := evac.Ts
+			RHdry := evac.RHdry
+			RHwet := evac.RHwet
+			M := evac.M
+			for ii := 0; ii < evac.Cat.N; ii++ {
 				fmt.Fprintf(fo, "%.1f %.3f %.0f %.1f %.1f %.3f %.0f %.3e\n",
 					Twet[ii], xwet[ii], RHwet[ii], Ts[ii], Tdry[ii], xdry[ii], RHdry[ii], M[ii])
 			}

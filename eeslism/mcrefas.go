@@ -31,7 +31,7 @@ import (
 機器仕様入力          */
 var __Refadata_hpch *HPCH
 
-func Refadata(s string, Refaca *REFACA, Rfcmp []RFCMP) int {
+func Refadata(s string, Refaca *REFACA, Rfcmp []*RFCMP) int {
 	var c ControlSWType
 	var dt float64
 	var id int
@@ -56,7 +56,7 @@ func Refadata(s string, Refaca *REFACA, Rfcmp []RFCMP) int {
 			var i int
 			Nrfcmp := len(Rfcmp)
 			for i = 0; i < Nrfcmp; i++ {
-				rfc := &Rfcmp[i]
+				rfc := Rfcmp[i]
 				if strings.Compare(s[1:], rfc.cname) == 0 {
 					Refaca.rfc = rfc
 					break
@@ -113,68 +113,68 @@ func Refadata(s string, Refaca *REFACA, Rfcmp []RFCMP) int {
 
 /*  冷凍機／ヒ－トポンプの圧縮機特性設定   */
 
-func Refaint(Refa []REFA, Wd *WDAT, Compnt []*COMPNT) {
+func Refaint(Refa []*REFA, Wd *WDAT, Compnt []*COMPNT) {
 	var Cmp *RFCMP
 	var Teo, Tco, cGex, Qeo, Qco float64
 	var Qes, Qcs, Ws, ke, kc, kw, E float64
 	var i int
 
-	for k := range Refa {
-		Refa[k].Ta = &Wd.T
+	for _, refa := range Refa {
+		refa.Ta = &Wd.T
 
-		if Refa[k].Cat.awtyp != 'a' {
-			fmt.Printf("Refcfi   awtyp=%c\n", Refa[k].Cat.awtyp)
+		if refa.Cat.awtyp != 'a' {
+			fmt.Printf("Refcfi   awtyp=%c\n", refa.Cat.awtyp)
 		}
-		if Refa[k].Cmp.Roomname != "" {
-			Refa[k].Room = roomptr(Refa[k].Cmp.Roomname, Compnt)
-			fmt.Printf("RefaRoom=%s\n", Refa[k].Cmp.Roomname)
+		if refa.Cmp.Roomname != "" {
+			refa.Room = roomptr(refa.Cmp.Roomname, Compnt)
+			fmt.Printf("RefaRoom=%s\n", refa.Cmp.Roomname)
 		}
 
-		for m := 0; m < Refa[k].Cat.Nmode; m++ {
-			if Refa[k].Cat.mode[m] == COOLING_SW {
-				cGex = Ca * Refa[k].Cat.cool.Gex
-				E = (1.0 - Refa[k].Cat.cool.eo) / Refa[k].Cat.cool.eo
-				Qeo = Refa[k].Cat.cool.Qo
-				Qco = Refa[k].Cat.cool.Qex
-				Teo = Qeo*E/(Cw*Refa[k].Cat.cool.Go) + Refa[k].Cat.cool.Two
-				Tco = Qco/(Refa[k].Cat.cool.eex*cGex) + Refa[k].Cat.cool.Tex
-			} else if Refa[k].Cat.mode[m] == HEATING_SW {
-				cGex = Ca * Refa[k].Cat.heat.Gex
-				E = (1.0 - Refa[k].Cat.heat.eo) / Refa[k].Cat.heat.eo
-				Qeo = Refa[k].Cat.heat.Qex
-				Qco = Refa[k].Cat.heat.Qo
-				Tco = Qco*E/(Cw*Refa[k].Cat.heat.Go) + Refa[k].Cat.heat.Two
-				Teo = Qeo/(Refa[k].Cat.heat.eex*cGex) + Refa[k].Cat.heat.Tex
+		for m := 0; m < refa.Cat.Nmode; m++ {
+			if refa.Cat.mode[m] == COOLING_SW {
+				cGex = Ca * refa.Cat.cool.Gex
+				E = (1.0 - refa.Cat.cool.eo) / refa.Cat.cool.eo
+				Qeo = refa.Cat.cool.Qo
+				Qco = refa.Cat.cool.Qex
+				Teo = Qeo*E/(Cw*refa.Cat.cool.Go) + refa.Cat.cool.Two
+				Tco = Qco/(refa.Cat.cool.eex*cGex) + refa.Cat.cool.Tex
+			} else if refa.Cat.mode[m] == HEATING_SW {
+				cGex = Ca * refa.Cat.heat.Gex
+				E = (1.0 - refa.Cat.heat.eo) / refa.Cat.heat.eo
+				Qeo = refa.Cat.heat.Qex
+				Qco = refa.Cat.heat.Qo
+				Tco = Qco*E/(Cw*refa.Cat.heat.Go) + refa.Cat.heat.Two
+				Teo = Qeo/(refa.Cat.heat.eex*cGex) + refa.Cat.heat.Tex
 			}
 
-			Cmp = Refa[k].Cat.rfc
+			Cmp = refa.Cat.rfc
 			Qes = Cmp.e[0] + Cmp.e[1]*Teo + Cmp.e[2]*Tco + Cmp.e[3]*Teo*Tco
 			Qcs = Cmp.d[0] + Cmp.d[1]*Teo + Cmp.d[2]*Tco + Cmp.d[3]*Teo*Tco
 			Ws = Cmp.w[0] + Cmp.w[1]*Teo + Cmp.w[2]*Tco + Cmp.w[3]*Teo*Tco
 			ke = Qeo / Qes
 			kc = Qco / Qcs
-			if Refa[k].Cat.mode[m] == COOLING_SW {
-				kw = Refa[k].Cat.cool.Wo / Ws
-			} else if Refa[k].Cat.mode[m] == HEATING_SW {
-				kw = Refa[k].Cat.heat.Wo / Ws
+			if refa.Cat.mode[m] == COOLING_SW {
+				kw = refa.Cat.cool.Wo / Ws
+			} else if refa.Cat.mode[m] == HEATING_SW {
+				kw = refa.Cat.heat.Wo / Ws
 			}
 
-			if Refa[k].Cat.mode[m] == COOLING_SW {
+			if refa.Cat.mode[m] == COOLING_SW {
 				for i = 0; i < 4; i++ {
-					Refa[k].c_e[i] = ke * Cmp.e[i]
-					Refa[k].c_d[i] = kc * Cmp.d[i]
-					Refa[k].c_w[i] = kw * Cmp.w[i]
+					refa.c_e[i] = ke * Cmp.e[i]
+					refa.c_d[i] = kc * Cmp.d[i]
+					refa.c_w[i] = kw * Cmp.w[i]
 				}
-			} else if Refa[k].Cat.mode[m] == HEATING_SW {
+			} else if refa.Cat.mode[m] == HEATING_SW {
 				for i = 0; i < 4; i++ {
-					Refa[k].h_e[i] = ke * Cmp.e[i]
-					Refa[k].h_d[i] = kc * Cmp.d[i]
-					Refa[k].h_w[i] = kw * Cmp.w[i]
+					refa.h_e[i] = ke * Cmp.e[i]
+					refa.h_d[i] = kc * Cmp.d[i]
+					refa.h_w[i] = kw * Cmp.w[i]
 				}
 			}
 		}
-		if Refa[k].Cat.Nmode == 1 {
-			Refa[k].Chmode = Refa[k].Cat.mode[0]
+		if refa.Cat.Nmode == 1 {
+			refa.Chmode = refa.Cat.mode[0]
 		}
 	}
 }
@@ -188,13 +188,13 @@ func Refaint(Refa []REFA, Wd *WDAT, Compnt []*COMPNT) {
 // [IN 1] ---> | REFA | --> [OUT 1]
 //             +------+
 //
-func Refacfv(Refa []REFA) {
-	for i := range Refa {
-		if Refa[i].Cmp.Control != OFF_SW {
-			Eo1 := Refa[i].Cmp.Elouts[0]
+func Refacfv(Refa []*REFA) {
+	for _, refa := range Refa {
+		if refa.Cmp.Control != OFF_SW {
+			Eo1 := refa.Cmp.Elouts[0]
 
 			cG := Spcheat(Eo1.Fluid) * Eo1.G
-			Refa[i].cG = cG
+			refa.cG = cG
 			Eo1.Coeffo = cG
 
 			if Eo1.Control != OFF_SW {
@@ -203,13 +203,13 @@ func Refacfv(Refa []REFA) {
 					Eo1.Coeffin[0] = -cG
 				} else {
 					var err int
-					refacoeff(&Refa[i], &err)
+					refacoeff(refa, &err)
 					if err == 0 {
-						Eo1.Co = Refa[i].Do
-						Eo1.Coeffin[0] = Refa[i].D1 - cG
+						Eo1.Co = refa.Do
+						Eo1.Coeffin[0] = refa.D1 - cG
 					} else {
 						s := fmt.Sprintf("xxxxx refacoeff xxx stop xx  %s chmode=%c  monitor=%s",
-							Refa[i].Name, Refa[i].Chmode, Refa[i].Cmp.Elouts[0].Emonitr.Cmp.Name)
+							refa.Name, refa.Chmode, refa.Cmp.Elouts[0].Emonitr.Cmp.Name)
 						Eprint("<Refacfv>", s)
 						os.Exit(EXIT_REFA)
 					}
@@ -259,44 +259,44 @@ func refacoeff(Refa *REFA, err *int) {
 
 /*   冷却熱量/加熱量、エネルギーの計算 */
 
-func Refaene(Refa []REFA, LDreset *int) {
+func Refaene(Refa []*REFA, LDreset *int) {
 	var err, reset int
 	var Emax float64
 	var Eo *ELOUT
 
-	for i := range Refa {
-		Refa[i].Tin = Refa[i].Cmp.Elins[0].Sysvin
-		Eo = Refa[i].Cmp.Elouts[0]
-		Refa[i].E = 0.0
+	for i, refa := range Refa {
+		refa.Tin = refa.Cmp.Elins[0].Sysvin
+		Eo = refa.Cmp.Elouts[0]
+		refa.E = 0.0
 
 		if Eo.Control != OFF_SW {
-			Refa[i].Ph = Refa[i].Cat.Ph
-			Refa[i].Q = Refa[i].cG * (Eo.Sysv - Refa[i].Tin)
+			refa.Ph = refa.Cat.Ph
+			refa.Q = refa.cG * (Eo.Sysv - refa.Tin)
 
 			if Eo.Sysld == 'n' {
-				Refa[i].Qmax = Refa[i].Q
+				refa.Qmax = refa.Q
 
-				if Refa[i].Cat.Nmode > 0 {
-					Refa[i].E = Refpow(&Refa[i], Refa[i].Q) / Refa[i].Cat.rfc.Meff
+				if refa.Cat.Nmode > 0 {
+					refa.E = Refpow(refa, refa.Q) / refa.Cat.rfc.Meff
 				}
 
 			} else {
-				reset = chswreset(Refa[i].Q, Refa[i].Chmode, Eo)
+				reset = chswreset(refa.Q, refa.Chmode, Eo)
 
 				if reset != 0 {
 					(*LDreset)++
-					Refa[i].Cmp.Control = OFF_SW
+					refa.Cmp.Control = OFF_SW
 				} else {
-					if Refa[i].Cat.Nmode > 0 {
-						refacoeff(&Refa[i], &err)
+					if refa.Cat.Nmode > 0 {
+						refacoeff(refa, &err)
 
 						if err == 0 {
-							Refa[i].Qmax = Refa[i].Do - Refa[i].D1*Refa[i].Tin
-							Emax = Refpow(&Refa[i], Refa[i].Qmax) / Refa[i].Cat.rfc.Meff
-							Refa[i].E = (Refa[i].Q / Refa[i].Qmax) * Emax
+							refa.Qmax = refa.Do - refa.D1*refa.Tin
+							Emax = Refpow(refa, refa.Qmax) / refa.Cat.rfc.Meff
+							refa.E = (refa.Q / refa.Qmax) * Emax
 
-							if Refa[i].Cat.unlimcap == 'n' {
-								reset = maxcapreset(Refa[i].Q, Refa[i].Qmax, Refa[i].Chmode, Eo)
+							if refa.Cat.unlimcap == 'n' {
+								reset = maxcapreset(refa.Q, refa.Qmax, refa.Chmode, Eo)
 							}
 							if reset != 0 {
 								Refacfv(Refa[i : i+1])
@@ -304,22 +304,22 @@ func Refaene(Refa []REFA, LDreset *int) {
 							}
 						}
 					} else {
-						Refa[i].Qmax = Refa[i].Q
+						refa.Qmax = refa.Q
 					}
 
 				}
 			}
 		} else {
-			Refa[i].Q = 0.0
-			Refa[i].Ph = 0.0
+			refa.Q = 0.0
+			refa.Ph = 0.0
 		}
 	}
 }
 
-func Refaene2(Refa []REFA) {
-	for i := range Refa {
-		if Refa[i].Room != nil {
-			Refa[i].Room.Qeqp += (Refa[i].Q * Refa[i].Cmp.Eqpeff)
+func Refaene2(Refa []*REFA) {
+	for _, refa := range Refa {
+		if refa.Room != nil {
+			refa.Room.Qeqp += (refa.Q * refa.Cmp.Eqpeff)
 		}
 	}
 }
@@ -378,27 +378,27 @@ func refaldschd(Refa *REFA) {
 
 /* --------------------------- */
 
-func refaprint(fo io.Writer, id int, Refa []REFA) {
+func refaprint(fo io.Writer, id int, Refa []*REFA) {
 	switch id {
 	case 0:
 		if len(Refa) > 0 {
 			fmt.Fprintf(fo, "%s %d\n", REFACOMP_TYPE, len(Refa))
 		}
-		for i := range Refa {
-			fmt.Fprintf(fo, " %s 1 7\n", Refa[i].Name)
+		for _, refa := range Refa {
+			fmt.Fprintf(fo, " %s 1 7\n", refa.Name)
 		}
 	case 1:
-		for i := range Refa {
+		for _, refa := range Refa {
 			fmt.Fprintf(fo, "%s_c c c %s_G m f %s_Ti t f %s_To t f ",
-				Refa[i].Name, Refa[i].Name, Refa[i].Name, Refa[i].Name)
+				refa.Name, refa.Name, refa.Name, refa.Name)
 			fmt.Fprintf(fo, "%s_Q q f  %s_E e f %s_P e f\n",
-				Refa[i].Name, Refa[i].Name, Refa[i].Name)
+				refa.Name, refa.Name, refa.Name)
 		}
 	default:
-		for i := range Refa {
+		for _, refa := range Refa {
 			fmt.Fprintf(fo, "%c %6.4g %4.1f %4.1f %3.0f %3.0f %2.0f\n",
-				Refa[i].Cmp.Elouts[0].Control, Refa[i].Cmp.Elouts[0].G, Refa[i].Tin,
-				Refa[i].Cmp.Elouts[0].Sysv, Refa[i].Q, Refa[i].E, Refa[i].Ph)
+				refa.Cmp.Elouts[0].Control, refa.Cmp.Elouts[0].G, refa.Tin,
+				refa.Cmp.Elouts[0].Sysv, refa.Q, refa.E, refa.Ph)
 		}
 	}
 }
@@ -407,61 +407,58 @@ func refaprint(fo io.Writer, id int, Refa []REFA) {
 
 /* 日積算値に関する処理 */
 
-func refadyint(Refa []REFA) {
-	for i := range Refa {
-		svdyint(&Refa[i].Tidy)
-		qdyint(&Refa[i].Qdy)
-		edyint(&Refa[i].Edy)
-		edyint(&Refa[i].Phdy)
+func refadyint(Refa []*REFA) {
+	for _, refa := range Refa {
+		svdyint(&refa.Tidy)
+		qdyint(&refa.Qdy)
+		edyint(&refa.Edy)
+		edyint(&refa.Phdy)
 	}
 }
 
-func refamonint(Refa []REFA) {
-	for i := range Refa {
-		svdyint(&Refa[i].mTidy)
-		qdyint(&Refa[i].mQdy)
-		edyint(&Refa[i].mEdy)
-		edyint(&Refa[i].mPhdy)
+func refamonint(Refa []*REFA) {
+	for _, refa := range Refa {
+		svdyint(&refa.mTidy)
+		qdyint(&refa.mQdy)
+		edyint(&refa.mEdy)
+		edyint(&refa.mPhdy)
 	}
 }
 
-func refaday(Mon int, Day int, ttmm int, Refa []REFA, Nday int, SimDayend int) {
+func refaday(Mon int, Day int, ttmm int, Refa []*REFA, Nday int, SimDayend int) {
 	Mo := Mon - 1
 	tt := ConvertHour(ttmm)
-	for i := range Refa {
-		Refa := &Refa[i]
+	for _, refa := range Refa {
 
 		// 日集計
-		svdaysum(int64(ttmm), Refa.Cmp.Control, Refa.Tin, &Refa.Tidy)
-		qdaysum(int64(ttmm), Refa.Cmp.Control, Refa.Q, &Refa.Qdy)
-		edaysum(ttmm, Refa.Cmp.Control, Refa.E, &Refa.Edy)
-		edaysum(ttmm, Refa.Cmp.Control, Refa.Ph, &Refa.Phdy)
+		svdaysum(int64(ttmm), refa.Cmp.Control, refa.Tin, &refa.Tidy)
+		qdaysum(int64(ttmm), refa.Cmp.Control, refa.Q, &refa.Qdy)
+		edaysum(ttmm, refa.Cmp.Control, refa.E, &refa.Edy)
+		edaysum(ttmm, refa.Cmp.Control, refa.Ph, &refa.Phdy)
 
 		// 月集計
-		svmonsum(Mon, Day, ttmm, Refa.Cmp.Control, Refa.Tin, &Refa.mTidy, Nday, SimDayend)
-		qmonsum(Mon, Day, ttmm, Refa.Cmp.Control, Refa.Q, &Refa.mQdy, Nday, SimDayend)
-		emonsum(Mon, Day, ttmm, Refa.Cmp.Control, Refa.E, &Refa.mEdy, Nday, SimDayend)
-		emonsum(Mon, Day, ttmm, Refa.Cmp.Control, Refa.Ph, &Refa.mPhdy, Nday, SimDayend)
+		svmonsum(Mon, Day, ttmm, refa.Cmp.Control, refa.Tin, &refa.mTidy, Nday, SimDayend)
+		qmonsum(Mon, Day, ttmm, refa.Cmp.Control, refa.Q, &refa.mQdy, Nday, SimDayend)
+		emonsum(Mon, Day, ttmm, refa.Cmp.Control, refa.E, &refa.mEdy, Nday, SimDayend)
+		emonsum(Mon, Day, ttmm, refa.Cmp.Control, refa.Ph, &refa.mPhdy, Nday, SimDayend)
 
 		// 月・時刻のクロス集計
-		emtsum(Mon, Day, ttmm, Refa.Cmp.Control, Refa.E, &Refa.mtEdy[Mo][tt])
-		emtsum(Mon, Day, ttmm, Refa.Cmp.Control, Refa.E, &Refa.mtPhdy[Mo][tt])
+		emtsum(Mon, Day, ttmm, refa.Cmp.Control, refa.E, &refa.mtEdy[Mo][tt])
+		emtsum(Mon, Day, ttmm, refa.Cmp.Control, refa.E, &refa.mtPhdy[Mo][tt])
 	}
 }
 
-func refadyprt(fo io.Writer, id int, Refa []REFA) {
+func refadyprt(fo io.Writer, id int, Refa []*REFA) {
 	switch id {
 	case 0:
 		if len(Refa) > 0 {
 			fmt.Fprintf(fo, "%s %d\n", REFACOMP_TYPE, len(Refa))
 		}
-		for i := range Refa {
-			refa := &Refa[i]
+		for _, refa := range Refa {
 			fmt.Fprintf(fo, " %s 1 22\n", refa.Name)
 		}
 	case 1:
-		for i := range Refa {
-			refa := &Refa[i]
+		for _, refa := range Refa {
 			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", refa.Name, refa.Name)
 			fmt.Fprintf(fo, "%s_ttn h d %s_Tn t f %s_ttm h d %s_Tm t f\n",
 				refa.Name, refa.Name, refa.Name, refa.Name)
@@ -475,8 +472,7 @@ func refadyprt(fo io.Writer, id int, Refa []REFA) {
 				refa.Name, refa.Name, refa.Name, refa.Name)
 		}
 	default:
-		for i := range Refa {
-			refa := &Refa[i]
+		for _, refa := range Refa {
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				refa.Tidy.Hrs, refa.Tidy.M,
 				refa.Tidy.Mntime, refa.Tidy.Mn,
@@ -496,19 +492,17 @@ func refadyprt(fo io.Writer, id int, Refa []REFA) {
 	}
 }
 
-func refamonprt(fo io.Writer, id int, Refa []REFA) {
+func refamonprt(fo io.Writer, id int, Refa []*REFA) {
 	switch id {
 	case 0:
 		if len(Refa) > 0 {
 			fmt.Fprintf(fo, "%s %d\n", REFACOMP_TYPE, len(Refa))
 		}
-		for i := range Refa {
-			refa := &Refa[i]
+		for _, refa := range Refa {
 			fmt.Fprintf(fo, " %s 1 22\n", refa.Name)
 		}
 	case 1:
-		for i := range Refa {
-			refa := &Refa[i]
+		for _, refa := range Refa {
 			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", refa.Name, refa.Name)
 			fmt.Fprintf(fo, "%s_ttn h d %s_Tn t f %s_ttm h d %s_Tm t f\n",
 				refa.Name, refa.Name, refa.Name, refa.Name)
@@ -522,8 +516,7 @@ func refamonprt(fo io.Writer, id int, Refa []REFA) {
 				refa.Name, refa.Name, refa.Name, refa.Name)
 		}
 	default:
-		for i := range Refa {
-			refa := &Refa[i]
+		for _, refa := range Refa {
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
 				refa.mTidy.Hrs, refa.mTidy.M,
 				refa.mTidy.Mntime, refa.mTidy.Mn,
@@ -543,24 +536,21 @@ func refamonprt(fo io.Writer, id int, Refa []REFA) {
 	}
 }
 
-func refamtprt(fo io.Writer, id int, Refa []REFA, Mo int, tt int) {
+func refamtprt(fo io.Writer, id int, Refa []*REFA, Mo int, tt int) {
 	switch id {
 	case 0:
 		if len(Refa) > 0 {
 			fmt.Fprintf(fo, "%s %d\n", REFACOMP_TYPE, len(Refa))
 		}
-		for i := range Refa {
-			refa := &Refa[i]
+		for _, refa := range Refa {
 			fmt.Fprintf(fo, " %s 1 2\n", refa.Name)
 		}
 	case 1:
-		for i := range Refa {
-			refa := &Refa[i]
+		for _, refa := range Refa {
 			fmt.Fprintf(fo, "%s_E E f %s_Ph E f \n", refa.Name, refa.Name)
 		}
 	default:
-		for i := range Refa {
-			refa := &Refa[i]
+		for _, refa := range Refa {
 			fmt.Fprintf(fo, " %.2f %.2f\n", refa.mtEdy[Mo-1][tt-1].D*Cff_kWh, refa.mtPhdy[Mo-1][tt-1].D*Cff_kWh)
 		}
 	}

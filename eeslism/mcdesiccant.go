@@ -29,9 +29,8 @@ import (
 /* ------------------------------------------ */
 
 // 要素方程式の変数のためのメモリの割り当て
-func Desielm(Desi []DESI) {
-	for i := range Desi {
-		desi := &Desi[i]
+func Desielm(Desi []*DESI) {
+	for _, desi := range Desi {
 		Eot := desi.Cmp.Elouts[0] // 空気温度出口
 		Eox := desi.Cmp.Elouts[1] // 空気湿度出口
 
@@ -91,20 +90,19 @@ func Desiccantdata(s string, desica *DESICA) int {
 
 /*  管長・ダクト長、周囲温度設定 */
 
-func Desiint(_Desi []DESI, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT) {
+func Desiint(Desi []*DESI, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT) {
 	var Err string
 	var Desica *DESICA
 
-	for i := range _Desi {
-		Desi := &_Desi[i]
+	for _, desi := range Desi {
 
-		if Desi.Cmp.Envname != "" {
-			Desi.Tenv = envptr(Desi.Cmp.Envname, Simc, Compnt, Wd, nil)
+		if desi.Cmp.Envname != "" {
+			desi.Tenv = envptr(desi.Cmp.Envname, Simc, Compnt, Wd, nil)
 		} else {
-			Desi.Room = roomptr(Desi.Cmp.Roomname, Compnt)
+			desi.Room = roomptr(desi.Cmp.Roomname, Compnt)
 		}
 
-		Desica = Desi.Cat
+		Desica = desi.Cat
 
 		if Desica.Uad < 0.0 {
 			Err = fmt.Sprintf("Name=%s  Uad=%.4g", Desica.name, Desica.Uad)
@@ -128,25 +126,25 @@ func Desiint(_Desi []DESI, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT) {
 		}
 
 		// 初期温度、出入口温度の初期化
-		Desi.Tsold = 20.0
-		Desi.Xsold = FNXtr(Desi.Tsold, 50.0)
-		Desi.Tain = Desi.Tsold
-		Desi.Taout = Desi.Tsold
-		Desi.Xain = Desi.Xsold
-		Desi.Xaout = Desi.Xsold
+		desi.Tsold = 20.0
+		desi.Xsold = FNXtr(desi.Tsold, 50.0)
+		desi.Tain = desi.Tsold
+		desi.Taout = desi.Tsold
+		desi.Xain = desi.Xsold
+		desi.Xaout = desi.Xsold
 
 		// デシカント槽熱損失係数の計算
-		Desi.UA = Desica.Uad * Desica.A
+		desi.UA = Desica.Uad * Desica.A
 
 		// 吸湿量の初期化
-		Desi.Pold = Desica.P0
+		desi.Pold = Desica.P0
 
 		// シリカゲルと槽内空気の熱伝達面積[m2]
-		Desi.Asa = 3.0 * Desica.ms * 1000.0 * (1.0 - Desica.eps) / (1.0e4 * (Desica.r / 10.0) * Desica.rows)
+		desi.Asa = 3.0 * Desica.ms * 1000.0 * (1.0 - Desica.eps) / (1.0e4 * (Desica.r / 10.0) * Desica.rows)
 
 		// 逆行列
-		Desi.UX = make([]float64, 5*5)
-		Desi.UXC = make([]float64, 5)
+		desi.UX = make([]float64, 5*5)
+		desi.UXC = make([]float64, 5)
 	}
 }
 
@@ -159,7 +157,7 @@ func Desiint(_Desi []DESI, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT) {
 //                 | DESI |
 // 湿度 [IN 2] --> +------+ --> [OUT 2] 出口湿度
 //
-func Desicfv(Desi []DESI) {
+func Desicfv(Desi []*DESI) {
 	var Eo1 *ELOUT
 	var h, i, j float64
 	var Te, hsa, hsad, hAsa, hdAsa float64
@@ -168,24 +166,23 @@ func Desicfv(Desi []DESI) {
 
 	N := 5
 	N2 := N * N
-	for inti := range Desi {
-		Desi := &Desi[inti]
-		Desica = Desi.Cat
+	for _, desi := range Desi {
+		Desica = desi.Cat
 
 		// 係数行列のメモリ確保
 		U = make([]float64, N2)
 		// 定数行列のメモリ確保
 		C = make([]float64, N)
 
-		if Desi.Cmp.Envname != "" {
-			Te = *Desi.Tenv
+		if desi.Cmp.Envname != "" {
+			Te = *desi.Tenv
 		} else {
-			Te = Desi.Room.Tot
+			Te = desi.Room.Tot
 		}
 
-		Eo1 = Desi.Cmp.Elouts[0]
+		Eo1 = desi.Cmp.Elouts[0]
 		// 熱容量流量の計算
-		Desi.CG = Spcheat(Eo1.Fluid) * Eo1.G
+		desi.CG = Spcheat(Eo1.Fluid) * Eo1.G
 
 		// シリカゲルと槽内空気の対流熱伝達率の計算
 		if Eo1.Cmp.Control == OFF_SW {
@@ -197,10 +194,10 @@ func Desicfv(Desi []DESI) {
 		// シリカゲルと槽内空気の湿気伝達率の計算
 		hsad = hsa / Ca
 
-		hAsa = hsa * Desi.Asa
-		hdAsa = hsad * Desi.Asa
+		hAsa = hsa * desi.Asa
+		hdAsa = hsad * desi.Asa
 
-		if Desi.Pold >= 0.25 {
+		if desi.Pold >= 0.25 {
 			h = 0.001319
 			i = 0.103335
 			j = -0.05416
@@ -212,9 +209,9 @@ func Desicfv(Desi []DESI) {
 
 		// 定数行列Cの作成
 		Cmat = C
-		Cmat[0] = Desica.ms * Desica.cps / DTM * Desi.Tsold
-		Cmat[1] = Desi.UA * Te
-		Cmat[3] = Desica.ms / DTM * Desi.Pold
+		Cmat[0] = Desica.ms * Desica.cps / DTM * desi.Tsold
+		Cmat[1] = desi.UA * Te
+		Cmat[3] = Desica.ms / DTM * desi.Pold
 		Cmat[4] = -j
 
 		// 係数行列の作成
@@ -223,7 +220,7 @@ func Desicfv(Desi []DESI) {
 		U[0*N+2] = -hdAsa * Ro
 		U[0*N+3] = hdAsa * Ro
 		U[1*N+0] = -hAsa
-		U[1*N+1] = Ca*Eo1.G + hAsa + Desi.UA
+		U[1*N+1] = Ca*Eo1.G + hAsa + desi.UA
 		U[2*N+2] = Eo1.G + hdAsa
 		U[2*N+3] = -hdAsa
 		U[3*N+2] = -hdAsa
@@ -237,29 +234,29 @@ func Desicfv(Desi []DESI) {
 		Matinv(U, N, N, "<Desicfv U>")
 
 		// 行列のコピー
-		matinit(Desi.UX, N2)
-		matcpy(U, Desi.UX, N2)
+		matinit(desi.UX, N2)
+		matcpy(U, desi.UX, N2)
 
 		// {UXC}=[UX]*{C}の作成
-		matinit(Desi.UXC, N)
+		matinit(desi.UXC, N)
 		for ii := 0; ii < N; ii++ {
 			for jj := 0; jj < N; jj++ {
-				Desi.UXC[ii] += Desi.UX[ii*N+jj] * C[jj]
+				desi.UXC[ii] += desi.UX[ii*N+jj] * C[jj]
 			}
 		}
 
 		// 出口温度の要素方程式
 		Eo1.Coeffo = -1.0
-		Eo1.Co = -Desi.UXC[1]
-		Eo1.Coeffin[0] = Desi.UX[1*N+1] * Eo1.G * Ca
-		Eo1.Coeffin[1] = Desi.UX[1*N+2] * Eo1.G
+		Eo1.Co = -desi.UXC[1]
+		Eo1.Coeffin[0] = desi.UX[1*N+1] * Eo1.G * Ca
+		Eo1.Coeffin[1] = desi.UX[1*N+2] * Eo1.G
 
 		// 出口湿度の要素方程式
-		Eo2 := Desi.Cmp.Elouts[1]
+		Eo2 := desi.Cmp.Elouts[1]
 		Eo2.Coeffo = -1.0
-		Eo2.Co = -Desi.UXC[2]
-		Eo2.Coeffin[0] = Desi.UX[2*N+2] * Eo2.G
-		Eo2.Coeffin[1] = Desi.UX[2*N+1] * Eo2.G * Ca
+		Eo2.Co = -desi.UXC[2]
+		Eo2.Coeffin[0] = desi.UX[2*N+2] * Eo2.G
+		Eo2.Coeffin[1] = desi.UX[2*N+1] * Eo2.G * Ca
 	}
 }
 
@@ -267,61 +264,60 @@ func Desicfv(Desi []DESI) {
 //
 ///* 取得熱量の計算 */
 //
-func Desiene(_Desi []DESI) {
+func Desiene(Desi []*DESI) {
 	Sin := make([]float64, 5)
 	S := make([]float64, 5)
 
 	N := 5
 	//N2 := N * N
-	for i := range _Desi {
-		Desi := &_Desi[i]
+	for _, desi := range Desi {
 		matinit(Sin, N)
 		matinit(S, N)
-		elo := Desi.Cmp.Elouts[0]
-		elox := Desi.Cmp.Elouts[1]
+		elo := desi.Cmp.Elouts[0]
+		elox := desi.Cmp.Elouts[1]
 		elix := elo.Elins[1]
-		Desi.Tain = elo.Elins[0].Sysvin
-		Desi.Xain = elix.Sysvin
+		desi.Tain = elo.Elins[0].Sysvin
+		desi.Xain = elix.Sysvin
 
 		var Te float64
-		if Desi.Cmp.Envname != "" {
-			Te = *Desi.Tenv
+		if desi.Cmp.Envname != "" {
+			Te = *desi.Tenv
 		} else {
-			Te = Desi.Room.Tot
+			Te = desi.Room.Tot
 		}
 
-		Desi.Taout = elo.Sysv
-		Desi.Xaout = elox.Sysv
+		desi.Taout = elo.Sysv
+		desi.Xaout = elox.Sysv
 
 		// 入口状態行列Sinの作成
-		Sin[1] = Ca * elo.G * Desi.Tain
-		Sin[2] = elo.G * Desi.Xain
+		Sin[1] = Ca * elo.G * desi.Tain
+		Sin[2] = elo.G * desi.Xain
 		// 内部状態値の計算
 		for ii := 0; ii < N; ii++ {
 			for jj := 0; jj < N; jj++ {
-				S[ii] += Desi.UX[ii*N+jj] * Sin[jj]
+				S[ii] += desi.UX[ii*N+jj] * Sin[jj]
 			}
-			S[ii] += Desi.UXC[ii]
+			S[ii] += desi.UXC[ii]
 		}
 		// 変数への格納
-		Desi.Tsold = S[0]
-		Desi.Ta = S[1]
-		Desi.Xa = S[2]
-		Desi.Xsold = S[3]
-		Desi.Pold = S[4]
-		Desi.RHold = FNRhtx(Desi.Tsold, Desi.Xsold)
+		desi.Tsold = S[0]
+		desi.Ta = S[1]
+		desi.Xa = S[2]
+		desi.Xsold = S[3]
+		desi.Pold = S[4]
+		desi.RHold = FNRhtx(desi.Tsold, desi.Xsold)
 
 		// 顕熱の計算
-		Desi.Qs = Desi.CG * (Desi.Taout - Desi.Tain)
-		Desi.Ql = elo.G * Ro * (Desi.Xaout - Desi.Xain)
-		Desi.Qt = Desi.Qs + Desi.Ql
+		desi.Qs = desi.CG * (desi.Taout - desi.Tain)
+		desi.Ql = elo.G * Ro * (desi.Xaout - desi.Xain)
+		desi.Qt = desi.Qs + desi.Ql
 
 		// デシカント槽からの熱損失の計算
-		Desi.Qloss = Desi.UA * (Te - Desi.Ta)
+		desi.Qloss = desi.UA * (Te - desi.Ta)
 
 		// 設置室内部発熱の計算
-		if Desi.Room != nil {
-			Desi.Room.Qeqp += (-Desi.Qloss)
+		if desi.Room != nil {
+			desi.Room.Qeqp += (-desi.Qloss)
 		}
 	}
 }
@@ -350,29 +346,26 @@ func Desivptr(key []string, Desi *DESI) (VPTR, error) {
 
 ///* ---------------------------*/
 //
-func Desiprint(fo io.Writer, id int, _Desi []DESI) {
+func Desiprint(fo io.Writer, id int, Desi []*DESI) {
 	switch id {
 	case 0:
-		if len(_Desi) > 0 {
-			fmt.Fprintf(fo, "%s %d\n", DESI_TYPE, len(_Desi))
+		if len(Desi) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", DESI_TYPE, len(Desi))
 		}
-		for i := range _Desi {
-			Desi := &_Desi[i]
-			fmt.Fprintf(fo, " %s 1 14\n", Desi.Name)
+		for _, desi := range Desi {
+			fmt.Fprintf(fo, " %s 1 14\n", desi.Name)
 		}
 	case 1:
-		for i := range _Desi {
-			Desi := &_Desi[i]
-			fmt.Fprintf(fo, "%s_c c c %s_G m f %s_Ts t f %s_Ti t f %s_To t f %s_Qs q f ", Desi.Name, Desi.Name, Desi.Name, Desi.Name, Desi.Name, Desi.Name)
-			fmt.Fprintf(fo, "%s_xs x f %s_RHs r f %s_xi x f %s_xo x f %s_Ql q f %s_Qt q f ", Desi.Name, Desi.Name, Desi.Name, Desi.Name, Desi.Name, Desi.Name)
-			fmt.Fprintf(fo, "%s_Qls q f %s_P m f\n", Desi.Name, Desi.Name)
+		for _, desi := range Desi {
+			fmt.Fprintf(fo, "%s_c c c %s_G m f %s_Ts t f %s_Ti t f %s_To t f %s_Qs q f ", desi.Name, desi.Name, desi.Name, desi.Name, desi.Name, desi.Name)
+			fmt.Fprintf(fo, "%s_xs x f %s_RHs r f %s_xi x f %s_xo x f %s_Ql q f %s_Qt q f ", desi.Name, desi.Name, desi.Name, desi.Name, desi.Name, desi.Name)
+			fmt.Fprintf(fo, "%s_Qls q f %s_P m f\n", desi.Name, desi.Name)
 		}
 	default:
-		for i := range _Desi {
-			Desi := &_Desi[i]
-			fmt.Fprintf(fo, "%c %6.4g %4.1f %4.1f %4.1f %2.0f  ", Desi.Cmp.Elouts[0].Control, Desi.Cmp.Elouts[0].G, Desi.Tsold, Desi.Tain, Desi.Taout, Desi.Qs)
-			fmt.Fprintf(fo, "%.3f %.0f %.3f %.3f %2.0f %2.0f  ", Desi.Xsold, Desi.RHold, Desi.Xain, Desi.Xaout, Desi.Ql, Desi.Qt)
-			fmt.Fprintf(fo, "%.0f %.3f\n", Desi.Qloss, Desi.Pold)
+		for _, desi := range Desi {
+			fmt.Fprintf(fo, "%c %6.4g %4.1f %4.1f %4.1f %2.0f  ", desi.Cmp.Elouts[0].Control, desi.Cmp.Elouts[0].G, desi.Tsold, desi.Tain, desi.Taout, desi.Qs)
+			fmt.Fprintf(fo, "%.3f %.0f %.3f %.3f %2.0f %2.0f  ", desi.Xsold, desi.RHold, desi.Xain, desi.Xaout, desi.Ql, desi.Qt)
+			fmt.Fprintf(fo, "%.0f %.3f\n", desi.Qloss, desi.Pold)
 		}
 	}
 }
@@ -382,116 +375,111 @@ func Desiprint(fo io.Writer, id int, _Desi []DESI) {
 ///* 日積算値に関する処理 */
 //
 ///*******************/
-func Desidyint(_Desi []DESI) {
-	for i := range _Desi {
-		Desi := &_Desi[i]
-		svdyint(&Desi.Tidy)
-		svdyint(&Desi.Tsdy)
-		svdyint(&Desi.Tody)
-		svdyint(&Desi.xidy)
-		svdyint(&Desi.xsdy)
-		svdyint(&Desi.xody)
-		qdyint(&Desi.Qsdy)
-		qdyint(&Desi.Qldy)
-		qdyint(&Desi.Qtdy)
-		qdyint(&Desi.Qlsdy)
+func Desidyint(Desi []*DESI) {
+	for _, desi := range Desi {
+		svdyint(&desi.Tidy)
+		svdyint(&desi.Tsdy)
+		svdyint(&desi.Tody)
+		svdyint(&desi.xidy)
+		svdyint(&desi.xsdy)
+		svdyint(&desi.xody)
+		qdyint(&desi.Qsdy)
+		qdyint(&desi.Qldy)
+		qdyint(&desi.Qtdy)
+		qdyint(&desi.Qlsdy)
 	}
 }
 
-func Desiday(Mon, Day, ttmm int, _Desi []DESI, Nday, SimDayend int) {
+func Desiday(Mon, Day, ttmm int, Desi []*DESI, Nday, SimDayend int) {
 	// Mo := Mon - 1
 	// tt := ConvertHour(ttmm)
 
-	for i := range _Desi {
-		Desi := &_Desi[i]
+	for _, desi := range Desi {
 		// 日集計
-		svdaysum(int64(ttmm), Desi.Cmp.Control, Desi.Tain, &Desi.Tidy)
-		svdaysum(int64(ttmm), Desi.Cmp.Control, Desi.Taout, &Desi.Tody)
-		svdaysum(int64(ttmm), Desi.Cmp.Control, Desi.Tsold, &Desi.Tsdy)
-		svdaysum(int64(ttmm), Desi.Cmp.Control, Desi.Xain, &Desi.xidy)
-		svdaysum(int64(ttmm), Desi.Cmp.Control, Desi.Xaout, &Desi.xody)
-		svdaysum(int64(ttmm), Desi.Cmp.Control, Desi.Xsold, &Desi.xsdy)
-		qdaysum(int64(ttmm), Desi.Cmp.Control, Desi.Qs, &Desi.Qsdy)
-		qdaysum(int64(ttmm), Desi.Cmp.Control, Desi.Ql, &Desi.Qldy)
-		qdaysum(int64(ttmm), Desi.Cmp.Control, Desi.Qt, &Desi.Qtdy)
-		qdaysum(int64(ttmm), Desi.Cmp.Control, Desi.Qloss, &Desi.Qlsdy)
+		svdaysum(int64(ttmm), desi.Cmp.Control, desi.Tain, &desi.Tidy)
+		svdaysum(int64(ttmm), desi.Cmp.Control, desi.Taout, &desi.Tody)
+		svdaysum(int64(ttmm), desi.Cmp.Control, desi.Tsold, &desi.Tsdy)
+		svdaysum(int64(ttmm), desi.Cmp.Control, desi.Xain, &desi.xidy)
+		svdaysum(int64(ttmm), desi.Cmp.Control, desi.Xaout, &desi.xody)
+		svdaysum(int64(ttmm), desi.Cmp.Control, desi.Xsold, &desi.xsdy)
+		qdaysum(int64(ttmm), desi.Cmp.Control, desi.Qs, &desi.Qsdy)
+		qdaysum(int64(ttmm), desi.Cmp.Control, desi.Ql, &desi.Qldy)
+		qdaysum(int64(ttmm), desi.Cmp.Control, desi.Qt, &desi.Qtdy)
+		qdaysum(int64(ttmm), desi.Cmp.Control, desi.Qloss, &desi.Qlsdy)
 	}
 }
 
-func Desidyprt(fo io.Writer, id int, _Desi []DESI) {
+func Desidyprt(fo io.Writer, id int, Desi []*DESI) {
 	switch id {
 	case 0:
-		if len(_Desi) > 0 {
-			fmt.Fprintf(fo, "%s %d\n", DESI_TYPE, len(_Desi))
+		if len(Desi) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", DESI_TYPE, len(Desi))
 		}
-		for i := range _Desi {
-			Desi := &_Desi[i]
-			fmt.Fprintf(fo, " %s 1 68\n", Desi.Name)
+		for _, desi := range Desi {
+			fmt.Fprintf(fo, " %s 1 68\n", desi.Name)
 		}
 	case 1:
-		for i := range _Desi {
-			Desi := &_Desi[i]
+		for _, desi := range Desi {
 
-			fmt.Fprintf(fo, "%s_Ht H d %s_Ti T f ", Desi.Name, Desi.Name)
-			fmt.Fprintf(fo, "%s_ttn h d %s_Tin t f %s_ttm h d %s_Tim t f\n", Desi.Name, Desi.Name, Desi.Name, Desi.Name)
+			fmt.Fprintf(fo, "%s_Ht H d %s_Ti T f ", desi.Name, desi.Name)
+			fmt.Fprintf(fo, "%s_ttn h d %s_Tin t f %s_ttm h d %s_Tim t f\n", desi.Name, desi.Name, desi.Name, desi.Name)
 
-			fmt.Fprintf(fo, "%s_Ht H d %s_To T f ", Desi.Name, Desi.Name)
-			fmt.Fprintf(fo, "%s_ttn h d %s_Ton t f %s_ttm h d %s_Tom t f\n", Desi.Name, Desi.Name, Desi.Name, Desi.Name)
+			fmt.Fprintf(fo, "%s_Ht H d %s_To T f ", desi.Name, desi.Name)
+			fmt.Fprintf(fo, "%s_ttn h d %s_Ton t f %s_ttm h d %s_Tom t f\n", desi.Name, desi.Name, desi.Name, desi.Name)
 
-			fmt.Fprintf(fo, "%s_Ht H d %s_Ts T f ", Desi.Name, Desi.Name)
-			fmt.Fprintf(fo, "%s_ttn h d %s_Tsn t f %s_ttm h d %s_Tsm t f\n", Desi.Name, Desi.Name, Desi.Name, Desi.Name)
+			fmt.Fprintf(fo, "%s_Ht H d %s_Ts T f ", desi.Name, desi.Name)
+			fmt.Fprintf(fo, "%s_ttn h d %s_Tsn t f %s_ttm h d %s_Tsm t f\n", desi.Name, desi.Name, desi.Name, desi.Name)
 
-			fmt.Fprintf(fo, "%s_Ht H d %s_xi T f ", Desi.Name, Desi.Name)
-			fmt.Fprintf(fo, "%s_ttn h d %s_xin t f %s_ttm h d %s_xim t f\n", Desi.Name, Desi.Name, Desi.Name, Desi.Name)
+			fmt.Fprintf(fo, "%s_Ht H d %s_xi T f ", desi.Name, desi.Name)
+			fmt.Fprintf(fo, "%s_ttn h d %s_xin t f %s_ttm h d %s_xim t f\n", desi.Name, desi.Name, desi.Name, desi.Name)
 
-			fmt.Fprintf(fo, "%s_Ht H d %s_xo T f ", Desi.Name, Desi.Name)
-			fmt.Fprintf(fo, "%s_ttn h d %s_xon t f %s_ttm h d %s_xom t f\n", Desi.Name, Desi.Name, Desi.Name, Desi.Name)
+			fmt.Fprintf(fo, "%s_Ht H d %s_xo T f ", desi.Name, desi.Name)
+			fmt.Fprintf(fo, "%s_ttn h d %s_xon t f %s_ttm h d %s_xom t f\n", desi.Name, desi.Name, desi.Name, desi.Name)
 
-			fmt.Fprintf(fo, "%s_Ht H d %s_xs T f ", Desi.Name, Desi.Name)
-			fmt.Fprintf(fo, "%s_ttn h d %s_xsn t f %s_ttm h d %s_xsm t f\n", Desi.Name, Desi.Name, Desi.Name, Desi.Name)
+			fmt.Fprintf(fo, "%s_Ht H d %s_xs T f ", desi.Name, desi.Name)
+			fmt.Fprintf(fo, "%s_ttn h d %s_xsn t f %s_ttm h d %s_xsm t f\n", desi.Name, desi.Name, desi.Name, desi.Name)
 
-			fmt.Fprintf(fo, "%s_Hsh H d %s_Qsh Q f %s_Hsc H d %s_Qsc Q f\n", Desi.Name, Desi.Name, Desi.Name, Desi.Name)
-			fmt.Fprintf(fo, "%s_tsh h d %s_qsh q f %s_tsc h d %s_qsc q f\n", Desi.Name, Desi.Name, Desi.Name, Desi.Name)
+			fmt.Fprintf(fo, "%s_Hsh H d %s_Qsh Q f %s_Hsc H d %s_Qsc Q f\n", desi.Name, desi.Name, desi.Name, desi.Name)
+			fmt.Fprintf(fo, "%s_tsh h d %s_qsh q f %s_tsc h d %s_qsc q f\n", desi.Name, desi.Name, desi.Name, desi.Name)
 
-			fmt.Fprintf(fo, "%s_Hlh H d %s_Qlh Q f %s_Hlc H d %s_Qlc Q f\n", Desi.Name, Desi.Name, Desi.Name, Desi.Name)
-			fmt.Fprintf(fo, "%s_tlh h d %s_qlh q f %s_tlc h d %s_qlc q f\n", Desi.Name, Desi.Name, Desi.Name, Desi.Name)
+			fmt.Fprintf(fo, "%s_Hlh H d %s_Qlh Q f %s_Hlc H d %s_Qlc Q f\n", desi.Name, desi.Name, desi.Name, desi.Name)
+			fmt.Fprintf(fo, "%s_tlh h d %s_qlh q f %s_tlc h d %s_qlc q f\n", desi.Name, desi.Name, desi.Name, desi.Name)
 
-			fmt.Fprintf(fo, "%s_Hth H d %s_Qth Q f %s_Htc H d %s_Qtc Q f\n", Desi.Name, Desi.Name, Desi.Name, Desi.Name)
-			fmt.Fprintf(fo, "%s_tth h d %s_qth q f %s_ttc h d %s_qtc q f\n", Desi.Name, Desi.Name, Desi.Name, Desi.Name)
+			fmt.Fprintf(fo, "%s_Hth H d %s_Qth Q f %s_Htc H d %s_Qtc Q f\n", desi.Name, desi.Name, desi.Name, desi.Name)
+			fmt.Fprintf(fo, "%s_tth h d %s_qth q f %s_ttc h d %s_qtc q f\n", desi.Name, desi.Name, desi.Name, desi.Name)
 
-			fmt.Fprintf(fo, "%s_Hlsh H d %s_Qlsh Q f %s_Hlsc H d %s_Qlsc Q f\n", Desi.Name, Desi.Name, Desi.Name, Desi.Name)
-			fmt.Fprintf(fo, "%s_tlsh h d %s_qlsh q f %s_tlsc h d %s_qlsc q f\n", Desi.Name, Desi.Name, Desi.Name, Desi.Name)
+			fmt.Fprintf(fo, "%s_Hlsh H d %s_Qlsh Q f %s_Hlsc H d %s_Qlsc Q f\n", desi.Name, desi.Name, desi.Name, desi.Name)
+			fmt.Fprintf(fo, "%s_tlsh h d %s_qlsh q f %s_tlsc h d %s_qlsc q f\n", desi.Name, desi.Name, desi.Name, desi.Name)
 		}
 	default:
-		for i := range _Desi {
-			Desi := &_Desi[i]
-			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ", Desi.Tidy.Hrs, Desi.Tidy.M, Desi.Tidy.Mntime, Desi.Tidy.Mn, Desi.Tidy.Mxtime, Desi.Tidy.Mx)
-			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ", Desi.Tody.Hrs, Desi.Tody.M, Desi.Tody.Mntime, Desi.Tody.Mn, Desi.Tody.Mxtime, Desi.Tody.Mx)
-			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ", Desi.Tsdy.Hrs, Desi.Tsdy.M, Desi.Tsdy.Mntime, Desi.Tsdy.Mn, Desi.Tsdy.Mxtime, Desi.Tsdy.Mx)
+		for _, desi := range Desi {
+			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ", desi.Tidy.Hrs, desi.Tidy.M, desi.Tidy.Mntime, desi.Tidy.Mn, desi.Tidy.Mxtime, desi.Tidy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ", desi.Tody.Hrs, desi.Tody.M, desi.Tody.Mntime, desi.Tody.Mn, desi.Tody.Mxtime, desi.Tody.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ", desi.Tsdy.Hrs, desi.Tsdy.M, desi.Tsdy.Mntime, desi.Tsdy.Mn, desi.Tsdy.Mxtime, desi.Tsdy.Mx)
 
-			fmt.Fprintf(fo, "%1d %.4f %1d %.4f %1d %.4f ", Desi.xidy.Hrs, Desi.xidy.M, Desi.xidy.Mntime, Desi.xidy.Mn, Desi.xidy.Mxtime, Desi.xidy.Mx)
-			fmt.Fprintf(fo, "%1d %.4f %1d %.4f %1d %.4f ", Desi.xody.Hrs, Desi.xody.M, Desi.xody.Mntime, Desi.xody.Mn, Desi.xody.Mxtime, Desi.xody.Mx)
-			fmt.Fprintf(fo, "%1d %.4f %1d %.4f %1d %.4f ", Desi.xsdy.Hrs, Desi.xsdy.M, Desi.xsdy.Mntime, Desi.xsdy.Mn, Desi.xsdy.Mxtime, Desi.xsdy.Mx)
+			fmt.Fprintf(fo, "%1d %.4f %1d %.4f %1d %.4f ", desi.xidy.Hrs, desi.xidy.M, desi.xidy.Mntime, desi.xidy.Mn, desi.xidy.Mxtime, desi.xidy.Mx)
+			fmt.Fprintf(fo, "%1d %.4f %1d %.4f %1d %.4f ", desi.xody.Hrs, desi.xody.M, desi.xody.Mntime, desi.xody.Mn, desi.xody.Mxtime, desi.xody.Mx)
+			fmt.Fprintf(fo, "%1d %.4f %1d %.4f %1d %.4f ", desi.xsdy.Hrs, desi.xsdy.M, desi.xsdy.Mntime, desi.xsdy.Mn, desi.xsdy.Mxtime, desi.xsdy.Mx)
 
-			fmt.Fprintf(fo, "%1d %3.1f ", Desi.Qsdy.Hhr, Desi.Qsdy.H)
-			fmt.Fprintf(fo, "%1d %3.1f ", Desi.Qsdy.Chr, Desi.Qsdy.C)
-			fmt.Fprintf(fo, "%1d %2.0f ", Desi.Qsdy.Hmxtime, Desi.Qsdy.Hmx)
-			fmt.Fprintf(fo, "%1d %2.0f ", Desi.Qsdy.Cmxtime, Desi.Qsdy.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", desi.Qsdy.Hhr, desi.Qsdy.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", desi.Qsdy.Chr, desi.Qsdy.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", desi.Qsdy.Hmxtime, desi.Qsdy.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f ", desi.Qsdy.Cmxtime, desi.Qsdy.Cmx)
 
-			fmt.Fprintf(fo, "%1d %3.1f ", Desi.Qldy.Hhr, Desi.Qldy.H)
-			fmt.Fprintf(fo, "%1d %3.1f ", Desi.Qldy.Chr, Desi.Qldy.C)
-			fmt.Fprintf(fo, "%1d %2.0f ", Desi.Qldy.Hmxtime, Desi.Qldy.Hmx)
-			fmt.Fprintf(fo, "%1d %2.0f ", Desi.Qldy.Cmxtime, Desi.Qldy.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", desi.Qldy.Hhr, desi.Qldy.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", desi.Qldy.Chr, desi.Qldy.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", desi.Qldy.Hmxtime, desi.Qldy.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f ", desi.Qldy.Cmxtime, desi.Qldy.Cmx)
 
-			fmt.Fprintf(fo, "%1d %3.1f ", Desi.Qtdy.Hhr, Desi.Qtdy.H)
-			fmt.Fprintf(fo, "%1d %3.1f ", Desi.Qtdy.Chr, Desi.Qtdy.C)
-			fmt.Fprintf(fo, "%1d %2.0f ", Desi.Qtdy.Hmxtime, Desi.Qtdy.Hmx)
-			fmt.Fprintf(fo, "%1d %2.0f ", Desi.Qtdy.Cmxtime, Desi.Qtdy.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", desi.Qtdy.Hhr, desi.Qtdy.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", desi.Qtdy.Chr, desi.Qtdy.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", desi.Qtdy.Hmxtime, desi.Qtdy.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f ", desi.Qtdy.Cmxtime, desi.Qtdy.Cmx)
 
-			fmt.Fprintf(fo, "%1d %3.1f ", Desi.Qlsdy.Hhr, Desi.Qlsdy.H)
-			fmt.Fprintf(fo, "%1d %3.1f ", Desi.Qlsdy.Chr, Desi.Qlsdy.C)
-			fmt.Fprintf(fo, "%1d %2.0f ", Desi.Qlsdy.Hmxtime, Desi.Qlsdy.Hmx)
-			fmt.Fprintf(fo, "%1d %2.0f\n", Desi.Qlsdy.Cmxtime, Desi.Qlsdy.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", desi.Qlsdy.Hhr, desi.Qlsdy.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", desi.Qlsdy.Chr, desi.Qlsdy.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", desi.Qlsdy.Hmxtime, desi.Qlsdy.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f\n", desi.Qlsdy.Cmxtime, desi.Qlsdy.Cmx)
 		}
 	}
 }

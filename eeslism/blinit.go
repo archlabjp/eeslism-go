@@ -26,7 +26,7 @@ import (
 /*  壁体デ－タの入力  */
 
 // WALLデータセットの読み取り
-func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]WALL, Nwall *int, dfwl *DFWL, pcm []PCM, Npcm int) {
+func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]*WALL, Nwall *int, dfwl *DFWL, pcm []*PCM, Npcm int) {
 	var s string
 	var i = -1
 	var j, jj, jw, Nlyr, k = 0, 0, 0, 0, -1
@@ -376,7 +376,7 @@ func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]WALL, Nwall
 		Wa.N = jw + 1
 		Walli(Nbm, W, Wa, pcm, Npcm)
 
-		*Wall = append(*Wall, *Wa)
+		*Wall = append(*Wall, Wa)
 		i++
 	}
 
@@ -388,7 +388,7 @@ func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]WALL, Nwall
 /*  窓デ－タの入力     */
 
 // WINDOWデータセットの読み取り
-func Windowdata(section *EeTokens, dsn string, Window *[]WINDOW, Nwindow *int) {
+func Windowdata(section *EeTokens, dsn string, Window *[]*WINDOW, Nwindow *int) {
 	E := fmt.Sprintf(ERRFMT, dsn)
 
 	var N int
@@ -401,10 +401,10 @@ func Windowdata(section *EeTokens, dsn string, Window *[]WINDOW, Nwindow *int) {
 	section.Reset()
 
 	if N > 0 {
-		*Window = make([]WINDOW, N)
+		*Window = make([]*WINDOW, N)
 
 		for j := 0; j < N; j++ {
-			(*Window)[j] = *NewWINDOW()
+			(*Window)[j] = NewWINDOW()
 		}
 	}
 
@@ -416,14 +416,14 @@ func Windowdata(section *EeTokens, dsn string, Window *[]WINDOW, Nwindow *int) {
 			break
 		}
 
-		W := &(*Window)[i]
+		W := (*Window)[i]
 
 		// 名称
 		W.Name = line[0]
 
 		// 名前の重複確認
 		for k := 0; k < i; k++ {
-			Wc := &(*Window)[k]
+			Wc := (*Window)[k]
 			if W.Name == Wc.Name {
 				ss := fmt.Sprintf("<WINDOW>  WindowName Already Defined  (%s)", W.Name)
 				Eprint("<Windowdata>", ss)
@@ -489,7 +489,7 @@ func Windowdata(section *EeTokens, dsn string, Window *[]WINDOW, Nwindow *int) {
 
 /* --------------------------------------------------- */
 
-func Snbkdata(section *EeTokens, dsn string, Snbk *[]SNBK) {
+func Snbkdata(section *EeTokens, dsn string, Snbk *[]*SNBK) {
 	// 入力チェック用パターン文字列
 	typstr := []string{
 		"HWDTLR.", // 庇
@@ -513,10 +513,10 @@ func Snbkdata(section *EeTokens, dsn string, Snbk *[]SNBK) {
 	section.Reset()
 
 	if N > 0 {
-		*Snbk = make([]SNBK, N)
+		*Snbk = make([]*SNBK, N)
 
 		for j := 0; j < N; j++ {
-			S := &(*Snbk)[j]
+			S := new(SNBK)
 			S.Name = ""
 			S.W = 0.0
 			S.H = 0.0
@@ -527,10 +527,12 @@ func Snbkdata(section *EeTokens, dsn string, Snbk *[]SNBK) {
 			S.H2 = 0.0
 			S.Type = 0
 			S.Ksi = 0
+
+			(*Snbk)[j] = S
 		}
 	}
 
-	S := &(*Snbk)[0]
+	S := (*Snbk)[0]
 	i := 0
 	for section.IsEnd() == false {
 
@@ -676,7 +678,7 @@ func Snbkdata(section *EeTokens, dsn string, Snbk *[]SNBK) {
 			}
 		}
 
-		S = &(*Snbk)[i]
+		S = (*Snbk)[i]
 	}
 }
 

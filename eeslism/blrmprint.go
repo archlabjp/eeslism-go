@@ -27,13 +27,13 @@ import (
 
 var __Rmsfprint_ic int
 
-func Rmsfprint(fo io.Writer, title string, Mon, Day int, time float64, Room []ROOM, Sd []RMSRF) {
+func Rmsfprint(fo io.Writer, title string, Mon, Day int, time float64, Room []*ROOM, Sd []*RMSRF) {
 	if __Rmsfprint_ic == 0 {
 		__Rmsfprint_ic++
 
 		var n int
 		for i := range Room {
-			Rm := &Room[i]
+			Rm := Room[i]
 			if Rm.sfpri {
 				n++
 			}
@@ -43,12 +43,12 @@ func Rmsfprint(fo io.Writer, title string, Mon, Day int, time float64, Room []RO
 		fmt.Fprint(fo, "Mo\tNd\ttime\t")
 
 		for i := range Room {
-			Rm := &Room[i]
+			Rm := Room[i]
 			if Rm.sfpri {
 				fmt.Fprintf(fo, "%s\t", Rm.Name)
 
 				for n := 0; n < Rm.N; n++ {
-					S := &Sd[Rm.Brs+n]
+					S := Sd[Rm.Brs+n]
 					if S.Name == "" {
 						fmt.Fprintf(fo, "%d-%c_Ts\t", n-Rm.Brs, S.ble)
 					} else {
@@ -62,12 +62,12 @@ func Rmsfprint(fo io.Writer, title string, Mon, Day int, time float64, Room []RO
 	fmt.Fprintf(fo, "%d\t%d\t%.2f\t", Mon, Day, time)
 
 	for i := range Room {
-		Rm := &Room[i]
+		Rm := Room[i]
 		if Rm.sfpri {
 			fmt.Fprint(fo, "\t")
 
 			for n := 0; n < Rm.N; n++ {
-				S := &Sd[Rm.Brs+n]
+				S := Sd[Rm.Brs+n]
 				fmt.Fprintf(fo, "%.1f\t", S.Ts)
 			}
 		}
@@ -80,13 +80,13 @@ func Rmsfprint(fo io.Writer, title string, Mon, Day int, time float64, Room []RO
 
 var __Rmsfqprint_ic int
 
-func Rmsfqprint(fo io.Writer, title string, Mon, Day int, time float64, Room []ROOM, Sd []RMSRF) {
+func Rmsfqprint(fo io.Writer, title string, Mon, Day int, time float64, Room []*ROOM, Sd []*RMSRF) {
 	if __Rmsfqprint_ic == 0 {
 		__Rmsfqprint_ic++
 
 		var n int
 		for i := range Room {
-			Rm := &Room[i]
+			Rm := Room[i]
 			if Rm.sfpri {
 				n++
 			}
@@ -96,12 +96,12 @@ func Rmsfqprint(fo io.Writer, title string, Mon, Day int, time float64, Room []R
 		fmt.Fprint(fo, "Mo\tNd\ttime\t")
 
 		for i := range Room {
-			Rm := &Room[i]
+			Rm := Room[i]
 			if Rm.sfpri {
 				fmt.Fprintf(fo, "%s\t", Rm.Name)
 
 				for n := 0; n < Rm.N; n++ {
-					S := &Sd[Rm.Brs+n]
+					S := Sd[Rm.Brs+n]
 					if S.Name == "" {
 						fmt.Fprintf(fo, "%d-%c_Qc\t%d-%c_Qr\t%d-%c_RS\t%d-%c_Qi\t%d-%c_RSsol\t%d-%c_RSli\t%d-%c_tsol\t%d-%c_asol\t%d-%c_rn\t",
 							n, S.ble, n, S.ble, n, S.ble,
@@ -118,13 +118,13 @@ func Rmsfqprint(fo io.Writer, title string, Mon, Day int, time float64, Room []R
 	fmt.Fprintf(fo, "%d\t%d\t%.2f\t", Mon, Day, time)
 
 	for i := range Room {
-		Rm := &Room[i]
+		Rm := Room[i]
 		if Rm.sfpri {
 			fmt.Fprint(fo, "\t")
 
 			// 2003/9/10　表面熱取得を負とするために短波長成分RSの符号を変更した。
 			for n := 0; n < Rm.N; n++ {
-				S := &Sd[Rm.Brs+n]
+				S := Sd[Rm.Brs+n]
 				fmt.Fprintf(fo, "%.4e\t%.4e\t%.4e\t%.4e\t%.4e\t%.4e\t%.4e\t%.4e\t%.4e\t", S.Qc, S.Qr,
 					-S.RS*S.A, S.Qi, -S.RSsol*S.A, -S.RSli*S.A, S.Qgt, S.Qga, S.Qrn)
 			}
@@ -138,13 +138,13 @@ func Rmsfqprint(fo io.Writer, title string, Mon, Day int, time float64, Room []R
 
 var __Rmsfaprint_ic int
 
-func Rmsfaprint(fo io.Writer, title string, Mon, Day int, time float64, Room []ROOM, Sd []RMSRF) {
+func Rmsfaprint(fo io.Writer, title string, Mon, Day int, time float64, Room []*ROOM, Sd []*RMSRF) {
 	if __Rmsfaprint_ic == 0 {
 		__Rmsfaprint_ic++
 
 		var n int
 		for i := range Room {
-			Rm := &Room[i]
+			Rm := Room[i]
 			if Rm.sfpri {
 				n++
 			}
@@ -154,12 +154,12 @@ func Rmsfaprint(fo io.Writer, title string, Mon, Day int, time float64, Room []R
 		fmt.Fprint(fo, "Mo\tNd\ttime\t")
 
 		for i := range Room {
-			Rm := &Room[i]
+			Rm := Room[i]
 			if Rm.sfpri {
 				fmt.Fprintf(fo, "%s\t", Rm.Name)
 
 				for nn := 0; nn < Rm.N; nn++ {
-					S := &Sd[Rm.Brs+nn]
+					S := Sd[Rm.Brs+nn]
 					if S.Name == "" {
 						fmt.Fprintf(fo, "%d-%c_K\t%d-%c_alc\t%d-%c_alr\t",
 							n-Rm.Brs, S.ble, n-Rm.Brs, S.ble, n-Rm.Brs, S.ble)
@@ -175,12 +175,12 @@ func Rmsfaprint(fo io.Writer, title string, Mon, Day int, time float64, Room []R
 	fmt.Fprintf(fo, "%d\t%d\t%.2f\t", Mon, Day, time)
 
 	for i := range Room {
-		Rm := &Room[i]
+		Rm := Room[i]
 		if Rm.sfpri {
 			fmt.Fprint(fo, "\t")
 
 			for nn := 0; nn < Rm.N; nn++ {
-				S := &Sd[Rm.Brs+nn]
+				S := Sd[Rm.Brs+nn]
 				fmt.Fprintf(fo, "%.3g\t%.3g\t%.3g\t", S.K, S.alic, S.alir)
 			}
 		}
@@ -191,13 +191,13 @@ func Rmsfaprint(fo io.Writer, title string, Mon, Day int, time float64, Room []R
 /* 日積算壁体貫流熱取得の出力 */
 var __Dysfprint_ic int
 
-func Dysfprint(fo io.Writer, title string, Mon, Day int, Room []ROOM) {
+func Dysfprint(fo io.Writer, title string, Mon, Day int, Room []*ROOM) {
 	if __Dysfprint_ic == 0 {
 		__Dysfprint_ic++
 
 		var n int
 		for i := range Room {
-			Rm := &Room[i]
+			Rm := Room[i]
 			if Rm.sfpri {
 				n++
 			}
@@ -207,12 +207,12 @@ func Dysfprint(fo io.Writer, title string, Mon, Day int, Room []ROOM) {
 		fmt.Fprint(fo, "Mo\tNd\t")
 
 		for i := range Room {
-			Rm := &Room[i]
+			Rm := Room[i]
 			if Rm.sfpri {
 				fmt.Fprintf(fo, "%s\t", Rm.Name)
 
 				for n := 0; n < Rm.N; n++ {
-					Sd := &Rm.rsrf[n]
+					Sd := Rm.rsrf[n]
 					if Sd.Name == "" {
 						fmt.Fprintf(fo, "%d-%c_Ts\t%d-%c_Tsmax\t%d-%c_Tsmin\t%d-%c_Qih\t%d-%c_Qic\t",
 							n, Sd.ble, n, Sd.ble, n, Sd.ble, n, Sd.ble, n, Sd.ble)
@@ -229,12 +229,12 @@ func Dysfprint(fo io.Writer, title string, Mon, Day int, Room []ROOM) {
 	fmt.Fprintf(fo, "%d\t%d\t", Mon, Day)
 
 	for i := range Room {
-		Rm := &Room[i]
+		Rm := Room[i]
 		if Rm.sfpri {
 			fmt.Fprint(fo, "\t")
 
 			for n := 0; n < Rm.N; n++ {
-				Sd := &Rm.rsrf[n]
+				Sd := Rm.rsrf[n]
 				fmt.Fprintf(fo, "%.2f\t%.2f\t%.2f\t%.3g\t%.3g\t",
 					Sd.Tsdy.M, Sd.Tsdy.Mx, Sd.Tsdy.Mn, Sd.SQi.H, Sd.SQi.C)
 			}
@@ -250,13 +250,13 @@ func Dysfprint(fo io.Writer, title string, Mon, Day int, Room []ROOM) {
 
 var __Shdprint_ic int
 
-func Shdprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, Sd []RMSRF) {
+func Shdprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, Sd []*RMSRF) {
 	if __Shdprint_ic == 0 {
 		__Shdprint_ic++
 
 		var m int
 		for i := 0; i < Nsrf; i++ {
-			Sdd := &Sd[i]
+			Sdd := Sd[i]
 			if Sdd.shdpri && Sdd.sb >= 0 {
 				m++
 			}
@@ -265,7 +265,7 @@ func Shdprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, 
 		fmt.Fprintf(fo, "%s;\n %d\n", title, m)
 
 		for i := 0; i < Nsrf; i++ {
-			Sdd := &Sd[i]
+			Sdd := Sd[i]
 			if Sdd.shdpri && Sdd.sb >= 0 {
 				fmt.Fprintf(fo, "%s\t%d:%s\n", Sdd.room.Name, i-Sdd.room.Brs, Sdd.Name)
 			}
@@ -275,7 +275,7 @@ func Shdprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, 
 	fmt.Fprintf(fo, "%d\t%d\t%.2f\t", Mon, Day, time)
 
 	for i := 0; i < Nsrf; i++ {
-		Sdd := &Sd[i]
+		Sdd := Sd[i]
 		if Sdd.shdpri && Sdd.sb >= 0 {
 			fmt.Fprintf(fo, "%.2f\t", Sdd.Fsdworg)
 		}
@@ -290,12 +290,12 @@ func Shdprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, 
 
 var __Wallprint_ic int
 
-func Wallprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, Sd []RMSRF) {
+func Wallprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, Sd []*RMSRF) {
 	if __Wallprint_ic == 0 {
 		__Wallprint_ic++
 		var m int
 		for i := 0; i < Nsrf; i++ {
-			Sdd := &Sd[i]
+			Sdd := Sd[i]
 			if Sdd.wlpri && Sdd.wd >= 0 {
 				m++
 			}
@@ -304,7 +304,7 @@ func Wallprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int,
 		fmt.Fprintf(fo, "%s;\n %d\n", title, m)
 
 		for i := 0; i < Nsrf; i++ {
-			Sdd := &Sd[i]
+			Sdd := Sd[i]
 			if Sdd.wlpri && Sdd.wd >= 0 {
 				fmt.Fprintf(fo, "%s\t%d-%c:%s\t%d\n", Sdd.room.Name, i-Sdd.room.Brs, Sdd.ble, Sdd.Name, Sdd.mw.M)
 			}
@@ -314,7 +314,7 @@ func Wallprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int,
 	fmt.Fprintf(fo, "%d\t%d\t%.2f\t", Mon, Day, time)
 
 	for i := 0; i < Nsrf; i++ {
-		Sdd := &Sd[i]
+		Sdd := Sd[i]
 		if Sdd.wlpri && Sdd.wd >= 0 {
 			Mw := Sdd.mw
 
@@ -341,20 +341,20 @@ func Wallprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int,
 /* 潜熱蓄熱材の状態値の出力 */
 var __PCMprint_ic int
 
-func PCMprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, Sd []RMSRF) {
+func PCMprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, Sd []*RMSRF) {
 	var Sdd *RMSRF
 	var pcmstate *PCMSTATE
 
 	if __PCMprint_ic == 0 {
 		__PCMprint_ic++
 
-		Sdd = &Sd[0]
+		Sdd = Sd[0]
 		m := 0
 		for i := 0; i < Nsrf; i++ {
 			if Sdd.pcmpri && Sdd.wd >= 0 {
 				m += Sdd.Npcm
 			}
-			Sdd = &Sd[i]
+			Sdd = Sd[i]
 		}
 
 		fmt.Fprintf(fo, "%s;\n %d\n", title, m)
@@ -376,7 +376,7 @@ func PCMprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, 
 
 	fmt.Fprintf(fo, "%d\t%d\t%.2f\t", Mon, Day, time)
 
-	Sdd = &Sd[0]
+	Sdd = Sd[0]
 	for i := 0; i < Nsrf; i++ {
 		if Sdd.pcmpri && Sdd.wd >= 0 {
 			Mw := Sdd.mw
@@ -406,14 +406,14 @@ func PCMprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, 
 
 var __Qrmprint_ic int
 
-func Qrmprint(fo io.Writer, title string, Mon, Day int, time float64, Room []ROOM, Qrm []QRM) {
+func Qrmprint(fo io.Writer, title string, Mon, Day int, time float64, Room []*ROOM, Qrm []*QRM) {
 	if __Qrmprint_ic == 0 {
 		__Qrmprint_ic++
 
 		// 日射、室内発熱取得出力指定の部屋数を数える
 		var n int
 		for i := range Room {
-			Rm := &Room[i]
+			Rm := Room[i]
 			if Rm.eqpri {
 				n++
 			}
@@ -426,7 +426,7 @@ func Qrmprint(fo io.Writer, title string, Mon, Day int, time float64, Room []ROO
 			"huml", "apll", "Qeqp", "Qis", "Qil", "Qsto", "Qstol", "AE", "AG"}
 
 		for i := range Room {
-			Rm := &Room[i]
+			Rm := Room[i]
 			if Rm.eqpri {
 				for j := 0; j < 16; j++ {
 					fmt.Fprintf(fo, "%s_%s\t", Rm.Name, key[j])
@@ -440,9 +440,9 @@ func Qrmprint(fo io.Writer, title string, Mon, Day int, time float64, Room []ROO
 	fmt.Fprintf(fo, "%d\t%d\t%.2f\t", Mon, Day, time)
 
 	for i := range Room {
-		Rm := &Room[i]
+		Rm := Room[i]
 		if Rm.eqpri {
-			Q := &Qrm[i]
+			Q := Qrm[i]
 			fmt.Fprintf(fo, "%.5g\t%.5g\t%.5g\t%.5g\t%.5g\t%.5g\t%.5g\t%.5g\t%.5g\t%.5g\t%.5g\t%.5g\t",
 				Q.Tsol, Q.Asol, Q.Arn, Q.Hums, Q.Light, Q.Apls, Q.Huml, Q.Apll, Q.Qeqp, Rm.QM, Q.Qinfs, Q.Qinfl)
 			fmt.Fprintf(fo, "%.5g\t%.5g\t", Q.Qsto, Q.Qstol)
@@ -459,14 +459,14 @@ func Qrmprint(fo io.Writer, title string, Mon, Day int, time float64, Room []ROO
 
 var __Dyqrmprint_ic int
 
-func Dyqrmprint(fo io.Writer, title string, Mon int, Day int, Room []ROOM, Trdav []float64, Qrmd []QRM) {
+func Dyqrmprint(fo io.Writer, title string, Mon int, Day int, Room []*ROOM, Trdav []float64, Qrmd []*QRM) {
 	if __Dyqrmprint_ic == 0 {
 		__Dyqrmprint_ic++
 
 		var n int
 
 		for i := range Room {
-			Rm := &Room[i]
+			Rm := Room[i]
 			if Rm.eqpri {
 				n++
 			}
@@ -479,7 +479,7 @@ func Dyqrmprint(fo io.Writer, title string, Mon int, Day int, Room []ROOM, Trdav
 			"huml", "apll", "Qeqp", "Qis", "Qil", "Qsto", "Qstol", "AE", "AG"}
 
 		for i := range Room {
-			Rm := &Room[i]
+			Rm := Room[i]
 			if Rm.eqpri {
 				for j := 0; j < 16; j++ {
 					fmt.Fprintf(fo, "%s_%s\t", Rm.Name, key[j])
@@ -494,7 +494,7 @@ func Dyqrmprint(fo io.Writer, title string, Mon int, Day int, Room []ROOM, Trdav
 
 	for i := range Room {
 		if Room[i].eqpri {
-			Q := &Qrmd[i]
+			Q := Qrmd[i]
 			fmt.Fprintf(fo,
 				"%.1f\t%.4g\t%.4g\t%.4g\t%.4g\t%.4g\t%.4g\t%.4g\t%.4g\t%.4g\t%.4g\t%.4g\t%.4g\t%.4g\t%.4g\t%.4g\t",
 				Trdav[i], Q.Tsol, Q.Asol, Q.Arn, Q.Hums, Q.Light, Q.Apls, Q.Huml, Q.Apll,
@@ -509,10 +509,10 @@ func Dyqrmprint(fo io.Writer, title string, Mon int, Day int, Room []ROOM, Trdav
 
 var __Qrmsum_oldday int
 
-func Qrmsum(Day int, _Room []ROOM, Qrm []QRM, Trdav []float64, Qrmd []QRM) {
+func Qrmsum(Day int, _Room []*ROOM, Qrm []*QRM, Trdav []float64, Qrmd []*QRM) {
 	if Day != __Qrmsum_oldday {
 		for i := range _Room {
-			Q := &Qrmd[i]
+			Q := Qrmd[i]
 			T := &Trdav[i]
 
 			*T = 0.0
@@ -536,10 +536,10 @@ func Qrmsum(Day int, _Room []ROOM, Qrm []QRM, Trdav []float64, Qrmd []QRM) {
 	}
 
 	for i := range _Room {
-		Q := &Qrmd[i]
-		Qr := &Qrm[i]
+		Q := Qrmd[i]
+		Qr := Qrm[i]
 		T := &Trdav[i]
-		Room := &_Room[i]
+		Room := _Room[i]
 
 		scale := DTM / 3600.0
 

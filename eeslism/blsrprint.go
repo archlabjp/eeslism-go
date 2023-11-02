@@ -26,11 +26,11 @@ import (
 
 var __Pmvprint_count = 0
 
-func Pmvprint(fpout io.Writer, title string, Room []ROOM, Mon, Day int, time float64) {
+func Pmvprint(fpout io.Writer, title string, Room []*ROOM, Mon, Day int, time float64) {
 	var Nr int
 	if __Pmvprint_count == 0 && Room != nil {
 		for i := range Room {
-			Rm := &Room[i]
+			Rm := Room[i]
 			if Rm.Metsch != nil {
 				Nr++
 			}
@@ -40,7 +40,7 @@ func Pmvprint(fpout io.Writer, title string, Room []ROOM, Mon, Day int, time flo
 		fmt.Fprintf(fpout, "%d ", Nr)
 
 		for i := range Room {
-			Rm := &Room[i]
+			Rm := Room[i]
 			if Rm.Metsch != nil {
 				fmt.Fprintf(fpout, "  %s ", Rm.Name)
 			}
@@ -54,7 +54,7 @@ func Pmvprint(fpout io.Writer, title string, Room []ROOM, Mon, Day int, time flo
 	fmt.Fprintf(fpout, "%02d %02d %5.2f ", Mon, Day, time)
 
 	for i := range Room {
-		Rm := &Room[i]
+		Rm := Room[i]
 		if Rm.Metsch != nil {
 			fmt.Fprintf(fpout, " %4.3f ", Rm.PMV)
 		}
@@ -69,13 +69,13 @@ func Pmvprint(fpout io.Writer, title string, Room []ROOM, Mon, Day int, time flo
 
 var __Rmevprint_count = 0
 
-func Rmevprint(fpout io.Writer, title string, Room []ROOM, Mon, Day int, time float64) {
+func Rmevprint(fpout io.Writer, title string, Room []*ROOM, Mon, Day int, time float64) {
 	if __Rmevprint_count == 0 {
 		fmt.Fprintf(fpout, "%s ;\n", title)
 		fmt.Fprintf(fpout, "%d室\t\t\t", len(Room))
 
 		for i := range Room {
-			Rm := &Room[i]
+			Rm := Room[i]
 			fmt.Fprintf(fpout, "%s\t\t\t\t", Rm.Name)
 		}
 		fmt.Fprintf(fpout, "\n")
@@ -86,7 +86,7 @@ func Rmevprint(fpout io.Writer, title string, Room []ROOM, Mon, Day int, time fl
 	fmt.Fprintf(fpout, "%d\t%d\t%.2f\t", Mon, Day, time)
 
 	for i := range Room {
-		Rm := &Room[i]
+		Rm := Room[i]
 		fmt.Fprintf(fpout, "%.1f\t%.4f\t%.1f\t%.0f\t", Rm.Tr, Rm.xr, Rm.Tsav, Rm.RH)
 	}
 

@@ -70,7 +70,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 	//printf ( "Nroom=%d\n", N ) ;
 
 	if N > 0 {
-		Rmvls.Room = make([]ROOM, N)
+		Rmvls.Room = make([]*ROOM, N)
 
 		Roominit(N, Rmvls.Room)
 	}
@@ -81,7 +81,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 	//printf ( "Nsrf=%d\n", N ) ;
 
 	if Nnxrm > 0 {
-		Rmvls.Sd = make([]RMSRF, 0, Nnxrm)
+		Rmvls.Sd = make([]*RMSRF, 0, Nnxrm)
 	}
 
 	//Wall := Rmvls.Wall
@@ -119,13 +119,13 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 
 		i++
 		RmIdx++
-		Rm := &Rmvls.Room[RmIdx]
+		Rm := Rmvls.Room[RmIdx]
 
 		Rm.Name = s
 
 		// Check duplication of room names
 		for l = 0; l < i-1; l++ {
-			Rmchk := &Rmvls.Room[l]
+			Rmchk := Rmvls.Room[l]
 			if Rm.Name == Rmchk.Name {
 				RmnameEr = fmt.Sprintf("Room=%s is already defined name", Rm.Name)
 				Eprint("<Roomdata>", RmnameEr)
@@ -218,7 +218,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 						// Read the True case window
 						s = tokens.GetToken()
 						for j := range Rmvls.Window {
-							W := &Rmvls.Window[j]
+							W := Rmvls.Window[j]
 							if W.Name == s {
 								Sd.ifwin = W
 								Sd.Rwall = W.Rwall
@@ -308,7 +308,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 							}
 
 							for j := range Rmvls.Window {
-								W := &Rmvls.Window[j]
+								W := Rmvls.Window[j]
 								if W.Name == stt {
 									Sd.window = W
 									Sd.fnd[nf] = j
@@ -326,7 +326,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 							}
 						} else {
 							for j := range Rmvls.Wall {
-								w := &Rmvls.Wall[j]
+								w := Rmvls.Wall[j]
 
 								if DEBUG {
 									fmt.Printf("!!!!Wall.name=%s  s=%s!!!!\n", w.name, s)
@@ -439,7 +439,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 							}
 
 							for kk := 0; kk < Rmvls.Npcm; kk++ {
-								PCM := &Rmvls.PCM[kk]
+								PCM := Rmvls.PCM[kk]
 								if Rm.PCMfurnname == PCM.Name {
 									Rm.PCM = PCM
 								}
@@ -486,7 +486,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 						} else if strings.HasPrefix(s, "sb=") {
 							// 日よけの検索
 							for j := range Rmvls.Snbk {
-								S := &Rmvls.Snbk[j]
+								S := Rmvls.Snbk[j]
 								if S.Name == s[st+1:] {
 									Sd.sb = j
 									break
@@ -707,7 +707,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 	//Room = Rmvls.Room
 
 	for n := 0; n < Nsrf; n++ {
-		Sd := &Rmvls.Sd[n]
+		Sd := Rmvls.Sd[n]
 		if Sd.nxrmname != "" {
 			err := fmt.Sprintf("%s%s", Er, Sd.nxrmname)
 			var err2 error
@@ -715,16 +715,16 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 			if err2 != nil {
 				panic(err2)
 			}
-			Sd.nextroom = &Rmvls.Room[Sd.nxrm]
+			Sd.nextroom = Rmvls.Room[Sd.nxrm]
 		}
 	}
 
 	/******* 個別内壁 *****/
 
 	for n := 0; n < Nsrf; n++ {
-		Sd := &Rmvls.Sd[n]
+		Sd := Rmvls.Sd[n]
 		if i := Sd.nxrm; i >= 0 {
-			Room := &Rmvls.Room[i]
+			Room := Rmvls.Room[i]
 			brs := Room.Brs
 			bre := brs + Room.N
 
@@ -732,7 +732,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 			case BLE_InnerWall:
 				// 内壁
 				for j := brs; j < bre; j++ {
-					Sdj := &Rmvls.Sd[j]
+					Sdj := Rmvls.Sd[j]
 					if Sdj.nxrm == Sd.rm && Sdj.ble == BLE_InnerWall {
 						Sd.nxn = j
 					}
@@ -740,7 +740,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 			case BLE_Ceil:
 				// 天井(内部)
 				for j := brs; j < bre; j++ {
-					Sdj := &Rmvls.Sd[j]
+					Sdj := Rmvls.Sd[j]
 					if Sdj.nxrm == Sd.rm && Sdj.ble == BLE_InnerFloor {
 						Sd.nxn = j
 					}
@@ -748,7 +748,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 			case BLE_InnerFloor:
 				// 床(内部)
 				for j := brs; j < bre; j++ {
-					Sdj := &Rmvls.Sd[j]
+					Sdj := Rmvls.Sd[j]
 					if Sdj.nxrm == Sd.rm && Sdj.ble == BLE_Ceil {
 						Sd.nxn = j
 					}
@@ -760,13 +760,13 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 	/***** 共用内壁 ******/
 
 	for n := 0; n < Nsrf; n++ {
-		rsd := &Rmvls.Sd[n]
+		rsd := Rmvls.Sd[n]
 
 		if (rsd.ble == BLE_InnerWall || rsd.ble == BLE_Ceil || rsd.ble == BLE_InnerFloor) && rsd.mwtype != RMSRFMwType_C {
 			if rsd.Name != "" {
 				if rsd.wd >= 0 && rsd.A > 0.0 {
 					for i := 0; i < Nsrf; i++ {
-						nxsd := &Rmvls.Sd[i]
+						nxsd := Rmvls.Sd[i]
 						if nxsd.Name != "" && nxsd.A < 0.0 {
 							if rsd.Name == nxsd.Name && rsd != nxsd {
 								rsd.room.Ntr++
@@ -835,7 +835,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 
 	// 面積入力のチェック
 	for i := 0; i < Nsrf; i++ {
-		rsd := &Rmvls.Sd[i]
+		rsd := Rmvls.Sd[i]
 		if rsd.A <= 0.0 {
 			fmt.Printf("Room=%s  ble=%c  A=%f\n", rsd.room.Name, rsd.ble, rsd.A)
 			os.Exit(1)
@@ -846,9 +846,9 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 
 	var Nairflow, Nrdpnl int
 	for i := 0; i < Nsrf; i++ {
-		rsd := &Rmvls.Sd[i]
+		rsd := Rmvls.Sd[i]
 		if rsd.ble != BLE_Window {
-			w := &Rmvls.Wall[rsd.wd]
+			w := Rmvls.Wall[rsd.wd]
 			if w.Ip >= 0 {
 				rsd.room.Nrp++
 
@@ -863,17 +863,19 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 	}
 
 	for i := 0; i < Nroom; i++ {
-		room := &Rmvls.Room[i]
+		room := Rmvls.Room[i]
 		N := room.Ntr
 		if N > 0 {
-			room.trnx = make([]TRNX, N)
+			room.trnx = make([]*TRNX, N)
 		}
 
 		if room.trnx != nil {
 			for sk := 0; sk < N; sk++ {
-				Tn := &room.trnx[sk]
+				Tn := new(TRNX)
 				Tn.nextroom = nil
 				Tn.sd = nil
+
+				room.trnx[sk] = Tn
 			}
 		}
 
@@ -881,15 +883,17 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 
 		N = room.Nrp
 		if N > 0 {
-			room.rmpnl = make([]RPANEL, N)
+			room.rmpnl = make([]*RPANEL, N)
 		}
 
 		if room.rmpnl != nil {
 			for sk := 0; sk < N; sk++ {
-				Rp := &room.rmpnl[sk]
+				Rp := new(RPANEL)
 				Rp.pnl = nil
 				Rp.sd = nil
 				Rp.elinpnl = 0
+
+				room.rmpnl[sk] = Rp
 			}
 		}
 
@@ -897,13 +901,13 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 	}
 
 	if Nrdpnl > 0 {
-		Rmvls.Rdpnl = make([]RDPNL, Nrdpnl)
+		Rmvls.Rdpnl = make([]*RDPNL, Nrdpnl)
 	}
 
 	if Rmvls.Rdpnl != nil {
 
 		for sk := 0; sk < Nrdpnl; sk++ {
-			Rd := &Rmvls.Rdpnl[sk]
+			Rd := new(RDPNL)
 			Rd.Name = ""
 			Rd.cmp = nil
 			Rd.MC = 0
@@ -923,38 +927,40 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 				Rd.Nrp[si] = 0.0
 				Rd.elinpnl[si] = 0
 			}
+
+			Rmvls.Rdpnl[sk] = Rd
 		}
 	}
 
 	for i := 0; i < Nsrf; i++ {
-		rsd := &Rmvls.Sd[i]
+		rsd := Rmvls.Sd[i]
 		rsd.WSRN = make([]float64, rsd.room.Ntr)
 		rsd.WSPL = make([]float64, rsd.room.Nrp)
 	}
 
 	rdpnlIdx := 0
 	for i := 0; i < Nroom; i++ {
-		room := &Rmvls.Room[i]
+		room := Rmvls.Room[i]
 		room.Nisidermpnl = 0
 
 		trnxIdx := 0
 		rmpnlIdx := 0
 		for n := 0; n < room.N; n++ {
-			rsd := &room.rsrf[n]
+			rsd := room.rsrf[n]
 
 			// 共用壁の場合
 			if rsd.mwtype == RMSRFMwType_C {
-				trnx := &room.trnx[trnxIdx]
+				trnx := room.trnx[trnxIdx]
 				trnx.nextroom = rsd.nextroom
 				trnx.sd = rsd
 				trnxIdx++
 			}
 
 			if rsd.ble != BLE_Window {
-				w := &Rmvls.Wall[rsd.wd]
+				w := Rmvls.Wall[rsd.wd]
 				if w.Ip >= 0 {
 					if rsd.mwside == 'i' {
-						rdpnl := &Rmvls.Rdpnl[rdpnlIdx]
+						rdpnl := Rmvls.Rdpnl[rdpnlIdx]
 
 						if w.tra > 0. {
 							rdpnl.Type = 'C'
@@ -971,7 +977,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 						rdpnl.Ntrm[0] = rsd.room.Ntr
 						rdpnl.Nrp[0] = rsd.room.Nrp
 
-						rmpnl := &room.rmpnl[rmpnlIdx]
+						rmpnl := room.rmpnl[rmpnlIdx]
 						rmpnl.pnl = rdpnl
 						rmpnl.sd = rsd
 
@@ -1005,13 +1011,13 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 	}
 
 	for i := 0; i < Nroom; i++ {
-		room := &Rmvls.Room[i]
+		room := Rmvls.Room[i]
 		rmpnlIdx := room.Nisidermpnl
 		for n := 0; n < room.N; n++ {
-			rsd := &room.rsrf[n]
+			rsd := room.rsrf[n]
 
 			if rsd.ble != BLE_Window {
-				w := &Rmvls.Wall[rsd.wd]
+				w := Rmvls.Wall[rsd.wd]
 				if w.Ip > 0 && rsd.mwside == 'M' {
 					rsd.rpnl = rsd.nxsd.rpnl
 
@@ -1026,12 +1032,12 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 	}
 
 	for i := 0; i < Nroom; i++ {
-		Rm := &Rmvls.Room[i]
+		Rm := Rmvls.Room[i]
 
 		// 室間相互換気
-		Rm.achr = make([]ACHIR, 0, Nroom)
+		Rm.achr = make([]*ACHIR, 0, Nroom)
 		for sk := range Rm.achr {
-			Ac := &Rm.achr[sk]
+			Ac := Rm.achr[sk]
 			Ac.rm = 0
 			Ac.sch = 0
 			Ac.room = nil
@@ -1044,7 +1050,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 		Rm.FArea = 0.0
 
 		for j := 0; j < Rm.N; j++ {
-			rsd := &Rm.rsrf[j]
+			rsd := Rm.rsrf[j]
 			Area += rsd.A
 			if rsd.ble == BLE_Floor || rsd.ble == BLE_InnerFloor {
 				Rm.Nflr++
@@ -1064,9 +1070,14 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 
 	if len(Rmvls.Room) > 0 {
 		N := len(Rmvls.Room)
-		Rmvls.Qrm = make([]QRM, N)
-		Rmvls.Qrmd = make([]QRM, N)
+		Rmvls.Qrm = make([]*QRM, N)
+		Rmvls.Qrmd = make([]*QRM, N)
 		Rmvls.Emrk = make([]rune, N)
+
+		for i := 0; i < N; i++ {
+			Rmvls.Qrm[i] = new(QRM)
+			Rmvls.Qrmd[i] = new(QRM)
+		}
 	}
 }
 
@@ -1107,20 +1118,20 @@ func readRoomVol(value string) (float64, error) {
 
 /*  重量壁体の計算準備      */
 
-func Balloc(N int, Sd []RMSRF, Wall []WALL, Mwall *[]MWALL, Nmwall *int) {
+func Balloc(N int, Sd []*RMSRF, Wall []*WALL, Mwall *[]*MWALL, Nmwall *int) {
 	var mw int
 	for n := 0; n < N; n++ {
-		ssd := &Sd[n]
+		ssd := Sd[n]
 		if id := ssd.wd; id >= 0 && ssd.mwside == 'i' {
 			mw++
 		}
 	}
 
 	if mw > 0 {
-		*Mwall = make([]MWALL, mw)
+		*Mwall = make([]*MWALL, mw)
 
 		for n := 0; n < mw; n++ {
-			(*Mwall)[n] = MWALL{
+			(*Mwall)[n] = &MWALL{
 				sd:   nil,
 				nxsd: nil,
 				wall: nil,
@@ -1145,12 +1156,12 @@ func Balloc(N int, Sd []RMSRF, Wall []WALL, Mwall *[]MWALL, Nmwall *int) {
 
 	mw = 0
 	for n := 0; n < N; n++ {
-		ssd := &Sd[n]
+		ssd := Sd[n]
 
 		if id := ssd.wd; id >= 0 && ssd.mwside == 'i' {
 			ssd.rmw = mw
-			mwl := &(*Mwall)[mw]
-			W := &Wall[id]
+			mwl := (*Mwall)[mw]
+			W := Wall[id]
 			ssd.mw = mwl // 壁体構造体のポインタ
 
 			mwl.wall = W
@@ -1248,7 +1259,7 @@ func Balloc(N int, Sd []RMSRF, Wall []WALL, Mwall *[]MWALL, Nmwall *int) {
 	*Nmwall = mw
 
 	for n := 0; n < N; n++ {
-		ssd := &Sd[n]
+		ssd := Sd[n]
 		if ssd.mwside == 'M' {
 			ssd.mw = ssd.nxsd.mw
 			M := ssd.mw.M
@@ -1274,9 +1285,9 @@ func Balloc(N int, Sd []RMSRF, Wall []WALL, Mwall *[]MWALL, Nmwall *int) {
 
 /*  壁体内部温度の初期値設定   */
 
-func Tinit(Tini float64, _Room []ROOM, Ns int, S []RMSRF, Nmwall int, Mw []MWALL) {
+func Tinit(Tini float64, _Room []*ROOM, Ns int, S []*RMSRF, Nmwall int, Mw []*MWALL) {
 	for i := range _Room {
-		rm := &_Room[i]
+		rm := _Room[i]
 		rm.Tr = Tini
 		rm.Trold = Tini
 		rm.Tsav = Tini
@@ -1291,13 +1302,13 @@ func Tinit(Tini float64, _Room []ROOM, Ns int, S []RMSRF, Nmwall int, Mw []MWALL
 	}
 
 	for i := 0; i < Ns; i++ {
-		Sd := &S[i]
+		Sd := S[i]
 		Sd.Ts = Tini
 		Sd.mrk = '*'
 	}
 
 	for i := 0; i < Nmwall; i++ {
-		mw := &Mw[i]
+		mw := Mw[i]
 		mw.Tw = make([]float64, mw.M)
 		mw.Told = make([]float64, mw.M)
 		mw.Toldd = make([]float64, mw.M)
@@ -1312,17 +1323,17 @@ func Tinit(Tini float64, _Room []ROOM, Ns int, S []RMSRF, Nmwall int, Mw []MWALL
 	}
 
 	for i := range _Room {
-		Room := &_Room[i]
+		Room := _Room[i]
 		if Room.rmqe == nil {
 			continue
 		}
 		for j := 0; j < Room.N; j++ {
-			rmsb := &Room.rmqe.rmsb[j]
-			Sd := &Room.rsrf[j]
+			rmsb := Room.rmqe.rmsb[j]
+			Sd := Room.rsrf[j]
 			if mw := Sd.mw; mw != nil {
 				for m := 0; m < mw.M; m++ {
-					Told := &rmsb.Told[m]
-					Tw := &rmsb.Tw[m]
+					Told := rmsb.Told[m]
+					Tw := rmsb.Tw[m]
 
 					helmclear(Told)
 					Told.trs = Tini
@@ -1358,9 +1369,9 @@ func Roomcount(tokens *EeTokens) int {
 
 /********************************************************************/
 
-func Roominit(N int, Room []ROOM) {
+func Roominit(N int, Room []*ROOM) {
 	for i := 0; i < N; i++ {
-		B := &Room[i]
+		B := new(ROOM)
 
 		B.Name = ""
 		B.PCM = nil
@@ -1473,6 +1484,8 @@ func Roominit(N int, Room []ROOM) {
 		B.oldTM = 15.0
 		B.SET = -999.
 		B.setpri = false
+
+		Room[i] = B
 	}
 }
 
@@ -1499,7 +1512,7 @@ func Rmsrfcount(tokens *EeTokens) int {
 
 /************************************************************************/
 
-func Rmsrfinit() RMSRF {
+func Rmsrfinit() *RMSRF {
 	S := new(RMSRF)
 	S.Ctlif = nil
 	S.ifwin = nil
@@ -1603,5 +1616,5 @@ func Rmsrfinit() RMSRF {
 		*g = 0
 	}
 
-	return *S
+	return S
 }

@@ -54,37 +54,37 @@ func Thexdata(s string, Thexca *THEXCA) int {
 
 /* ------------------------------------------------------ */
 
-func Thexint(Thex []THEX) {
-	for i := range Thex {
-		if Thex[i].Cat.eh < 0.0 {
-			Thex[i].Type = 't'
-			Thex[i].Cat.eh = 0.0
+func Thexint(Thex []*THEX) {
+	for _, thex := range Thex {
+		if thex.Cat.eh < 0.0 {
+			thex.Type = 't'
+			thex.Cat.eh = 0.0
 		} else {
-			Thex[i].Type = 'h'
+			thex.Type = 'h'
 		}
 
-		if Thex[i].Cat.et < 0.0 {
-			s := fmt.Sprintf("Name=%s catname=%s et=%f", Thex[i].Name, Thex[i].Cat.Name, Thex[i].Cat.et)
+		if thex.Cat.et < 0.0 {
+			s := fmt.Sprintf("Name=%s catname=%s et=%f", thex.Name, thex.Cat.Name, thex.Cat.et)
 			Eprint("<Thexint>", s)
 		}
 
-		Thex[i].Xeinold = FNXtr(26.0, 50.0)
-		Thex[i].Xeoutold = Thex[i].Xeinold
-		Thex[i].Xoinold = Thex[i].Xeinold
-		Thex[i].Xooutold = Thex[i].Xeinold
+		thex.Xeinold = FNXtr(26.0, 50.0)
+		thex.Xeoutold = thex.Xeinold
+		thex.Xoinold = thex.Xeinold
+		thex.Xooutold = thex.Xeinold
 	}
 }
 
 /*  全熱交換器出口空気温湿度に関する変数割当  */
-func Thexelm(Thex []THEX) {
+func Thexelm(Thex []*THEX) {
 	var E, E1, E2, E3 *ELOUT
 	var elin, elin2 *ELIN
 
-	for i := range Thex {
-		E = Thex[i].Cmp.Elouts[0]
-		E1 = Thex[i].Cmp.Elouts[1]
-		E2 = Thex[i].Cmp.Elouts[2]
-		E3 = Thex[i].Cmp.Elouts[3]
+	for _, thex := range Thex {
+		E = thex.Cmp.Elouts[0]
+		E1 = thex.Cmp.Elouts[1]
+		E2 = thex.Cmp.Elouts[2]
+		E3 = thex.Cmp.Elouts[3]
 
 		// Tein variable assignment
 		// E: Teout calculation, elin2: Tein
@@ -95,7 +95,7 @@ func Thexelm(Thex []THEX) {
 		elin.Upo = elin2.Upo
 		elin.Upv = elin2.Upv
 
-		if Thex[i].Cat.eh > 0.0 {
+		if thex.Cat.eh > 0.0 {
 			// E+1: xeout calculation, elin:
 			elin = E1.Elins[1]
 			elin.Upo = elin2.Upo
@@ -113,7 +113,7 @@ func Thexelm(Thex []THEX) {
 		elin.Upo = elin2.Upo
 		elin.Upv = elin2.Upv
 
-		if Thex[i].Cat.eh > 0.0 {
+		if thex.Cat.eh > 0.0 {
 			elin = E1.Elins[3]
 			elin.Upo = elin2.Upo
 			elin.Upv = elin2.Upv
@@ -156,69 +156,69 @@ func Thexelm(Thex []THEX) {
 //  [IN 3] --(O)-->  |      | --(O)--> [OUT 3] 給気系統（温度）
 //  [IN 4] --(o)-->  +------+ --(o)--> [OUT 4] 給気系統（エンタルピー）
 //
-func Thexcfv(Thex []THEX) {
+func Thexcfv(Thex []*THEX) {
 	var Eoet, Eoot, Eoex, Eoox *ELOUT
 	var etCGmin, ehGmin, Aeout, Aein, Aoout, Aoin float64
 
-	for i := range Thex {
-		if Thex[i].Cmp.Control != OFF_SW {
-			Thex[i].ET = Thex[i].Cat.et
-			Thex[i].EH = Thex[i].Cat.eh
+	for _, thex := range Thex {
+		if thex.Cmp.Control != OFF_SW {
+			thex.ET = thex.Cat.et
+			thex.EH = thex.Cat.eh
 
-			Eoet = Thex[i].Cmp.Elouts[0] // 排気系統（温度）
-			Eoex = Thex[i].Cmp.Elouts[1] // 排気系統（エンタルピー）
-			Eoot = Thex[i].Cmp.Elouts[2] // 給気系統（温度）
-			Eoox = Thex[i].Cmp.Elouts[3] // 給気系統（エンタルピー）
+			Eoet = thex.Cmp.Elouts[0] // 排気系統（温度）
+			Eoex = thex.Cmp.Elouts[1] // 排気系統（エンタルピー）
+			Eoot = thex.Cmp.Elouts[2] // 給気系統（温度）
+			Eoox = thex.Cmp.Elouts[3] // 給気系統（エンタルピー）
 
-			Thex[i].Ge = Eoet.G
-			Thex[i].Go = Eoot.G
+			thex.Ge = Eoet.G
+			thex.Go = Eoot.G
 
 			if DEBUG {
-				fmt.Printf("<Thexcfv>  %s Ge=%f Go=%f\n", Thex[i].Cmp.Name, Thex[i].Ge, Thex[i].Go)
+				fmt.Printf("<Thexcfv>  %s Ge=%f Go=%f\n", thex.Cmp.Name, thex.Ge, thex.Go)
 			}
 
-			Thex[i].CGe = Spcheat(Eoet.Fluid) * Thex[i].Ge
-			Thex[i].CGo = Spcheat(Eoot.Fluid) * Thex[i].Go
-			etCGmin = Thex[i].ET * math.Min(Thex[i].CGe, Thex[i].CGo)
-			ehGmin = Thex[i].EH * math.Min(Thex[i].Ge, Thex[i].Go)
+			thex.CGe = Spcheat(Eoet.Fluid) * thex.Ge
+			thex.CGo = Spcheat(Eoot.Fluid) * thex.Go
+			etCGmin = thex.ET * math.Min(thex.CGe, thex.CGo)
+			ehGmin = thex.EH * math.Min(thex.Ge, thex.Go)
 
-			Aein = Ca + Cv*Thex[i].Xeinold
-			Aeout = Ca + Cv*Thex[i].Xeoutold
-			Aoin = Ca + Cv*Thex[i].Xoinold
-			Aoout = Ca + Cv*Thex[i].Xooutold
+			Aein = Ca + Cv*thex.Xeinold
+			Aeout = Ca + Cv*thex.Xeoutold
+			Aoin = Ca + Cv*thex.Xoinold
+			Aoout = Ca + Cv*thex.Xooutold
 
 			// 排気系統（温度）の熱収支
-			Eoet.Coeffo = Thex[i].CGe
+			Eoet.Coeffo = thex.CGe
 			Eoet.Co = 0.0
 			cfin := Eoet.Coeffin
-			cfin[0] = etCGmin - Thex[i].CGe
+			cfin[0] = etCGmin - thex.CGe
 			cfin[1] = -etCGmin
 
 			// 給気系統（温度）の熱収支
-			Eoot.Coeffo = Thex[i].CGo
+			Eoot.Coeffo = thex.CGo
 			Eoot.Co = 0.0
 			cfin = Eoot.Coeffin
-			cfin[0] = etCGmin - Thex[i].CGo
+			cfin[0] = etCGmin - thex.CGo
 			cfin[1] = -etCGmin
 
-			if Thex[i].Type == 'h' {
+			if thex.Type == 'h' {
 				// 排気系統（エンタルピー）の熱収支
-				Eoex.Coeffo = Thex[i].Ge * Ro
+				Eoex.Coeffo = thex.Ge * Ro
 				Eoex.Co = 0.0
 				cfin = Eoex.Coeffin
-				cfin[0] = Ro * (ehGmin - Thex[i].Ge)
-				cfin[1] = Aein * (ehGmin - Thex[i].Ge)
-				cfin[2] = Aeout * Thex[i].Ge
+				cfin[0] = Ro * (ehGmin - thex.Ge)
+				cfin[1] = Aein * (ehGmin - thex.Ge)
+				cfin[2] = Aeout * thex.Ge
 				cfin[3] = -ehGmin * Aoin
 				cfin[4] = -ehGmin * Ro
 
 				// 給気系統（エンタルピー）の熱収支
-				Eoox.Coeffo = Thex[i].Go * Ro
+				Eoox.Coeffo = thex.Go * Ro
 				Eoox.Co = 0.0
 				cfin = Eoox.Coeffin
-				cfin[0] = Ro * (ehGmin - Thex[i].Go)
-				cfin[1] = Aoin * (ehGmin - Thex[i].Go)
-				cfin[2] = Thex[i].Go * Aoout
+				cfin[0] = Ro * (ehGmin - thex.Go)
+				cfin[1] = Aoin * (ehGmin - thex.Go)
+				cfin[2] = thex.Go * Aoout
 				cfin[3] = -ehGmin * Aein
 				cfin[4] = -ehGmin * Ro
 			} else {
@@ -232,69 +232,69 @@ func Thexcfv(Thex []THEX) {
 	}
 }
 
-func Thexene(Thex []THEX) {
-	for i := range Thex {
-		Eoet := Thex[i].Cmp.Elouts[0] // 排気系統（温度）
-		Eoex := Thex[i].Cmp.Elouts[1] // 排気系統（エンタルピー）
-		Eoot := Thex[i].Cmp.Elouts[2] // 給気系統（温度）
-		Eoox := Thex[i].Cmp.Elouts[3] // 給気系統（エンタルピー）
+func Thexene(Thex []*THEX) {
+	for _, thex := range Thex {
+		Eoet := thex.Cmp.Elouts[0] // 排気系統（温度）
+		Eoex := thex.Cmp.Elouts[1] // 排気系統（エンタルピー）
+		Eoot := thex.Cmp.Elouts[2] // 給気系統（温度）
+		Eoox := thex.Cmp.Elouts[3] // 給気系統（エンタルピー）
 
-		Thex[i].Tein = Eoet.Elins[0].Upo.Sysv
-		Thex[i].Teout = Eoet.Sysv
-		Thex[i].Xein = Eoex.Elins[0].Upo.Sysv
-		Thex[i].Xeout = Eoex.Sysv
+		thex.Tein = Eoet.Elins[0].Upo.Sysv
+		thex.Teout = Eoet.Sysv
+		thex.Xein = Eoex.Elins[0].Upo.Sysv
+		thex.Xeout = Eoex.Sysv
 
-		Thex[i].Toin = Eoot.Elins[0].Upo.Sysv
-		Thex[i].Toout = Eoot.Sysv
-		Thex[i].Xoin = Eoox.Elins[0].Upo.Sysv
-		Thex[i].Xoout = Eoox.Sysv
+		thex.Toin = Eoot.Elins[0].Upo.Sysv
+		thex.Toout = Eoot.Sysv
+		thex.Xoin = Eoox.Elins[0].Upo.Sysv
+		thex.Xoout = Eoox.Sysv
 
-		Thex[i].Hein = FNH(Thex[i].Tein, Thex[i].Xein)
-		Thex[i].Heout = FNH(Thex[i].Teout, Thex[i].Xeout)
-		Thex[i].Hoin = FNH(Thex[i].Toin, Thex[i].Xoin)
-		Thex[i].Hoout = FNH(Thex[i].Toout, Thex[i].Xoout)
+		thex.Hein = FNH(thex.Tein, thex.Xein)
+		thex.Heout = FNH(thex.Teout, thex.Xeout)
+		thex.Hoin = FNH(thex.Toin, thex.Xoin)
+		thex.Hoout = FNH(thex.Toout, thex.Xoout)
 
-		if Thex[i].Cmp.Control != OFF_SW {
+		if thex.Cmp.Control != OFF_SW {
 			// 交換熱量の計算
-			Thex[i].Qes = Ca * Thex[i].Ge * (Thex[i].Teout - Thex[i].Tein)
-			Thex[i].Qel = Ro * Thex[i].Ge * (Thex[i].Xeout - Thex[i].Xein)
-			Thex[i].Qet = Thex[i].Qes + Thex[i].Qel
+			thex.Qes = Ca * thex.Ge * (thex.Teout - thex.Tein)
+			thex.Qel = Ro * thex.Ge * (thex.Xeout - thex.Xein)
+			thex.Qet = thex.Qes + thex.Qel
 
-			Thex[i].Qos = Ca * Thex[i].Go * (Thex[i].Toout - Thex[i].Toin)
-			Thex[i].Qol = Ro * Thex[i].Go * (Thex[i].Xoout - Thex[i].Xoin)
-			Thex[i].Qot = Thex[i].Qos + Thex[i].Qol
+			thex.Qos = Ca * thex.Go * (thex.Toout - thex.Toin)
+			thex.Qol = Ro * thex.Go * (thex.Xoout - thex.Xoin)
+			thex.Qot = thex.Qos + thex.Qol
 
 			// 前時刻の絶対湿度の入れ替え
-			Thex[i].Xeinold = Thex[i].Xein
-			Thex[i].Xeoutold = Thex[i].Xeout
-			Thex[i].Xoinold = Thex[i].Xoin
-			Thex[i].Xooutold = Thex[i].Xoout
+			thex.Xeinold = thex.Xein
+			thex.Xeoutold = thex.Xeout
+			thex.Xoinold = thex.Xoin
+			thex.Xooutold = thex.Xoout
 		} else {
-			Thex[i].Qes = 0.0
-			Thex[i].Qel = 0.0
-			Thex[i].Qet = 0.0
-			Thex[i].Qos = 0.0
-			Thex[i].Qol = 0.0
-			Thex[i].Qot = 0.0
-			Thex[i].Ge = 0.0
-			Thex[i].Tein = 0.0
-			Thex[i].Teout = 0.0
-			Thex[i].Xein = 0.0
-			Thex[i].Xeout = 0.0
-			Thex[i].Hein = 0.0
-			Thex[i].Heout = 0.0
-			Thex[i].Go = 0.0
-			Thex[i].Toin = 0.0
-			Thex[i].Toout = 0.0
-			Thex[i].Xoin = 0.0
-			Thex[i].Xoout = 0.0
-			Thex[i].Hoin = 0.0
-			Thex[i].Hoout = 0.0
+			thex.Qes = 0.0
+			thex.Qel = 0.0
+			thex.Qet = 0.0
+			thex.Qos = 0.0
+			thex.Qol = 0.0
+			thex.Qot = 0.0
+			thex.Ge = 0.0
+			thex.Tein = 0.0
+			thex.Teout = 0.0
+			thex.Xein = 0.0
+			thex.Xeout = 0.0
+			thex.Hein = 0.0
+			thex.Heout = 0.0
+			thex.Go = 0.0
+			thex.Toin = 0.0
+			thex.Toout = 0.0
+			thex.Xoin = 0.0
+			thex.Xoout = 0.0
+			thex.Hoin = 0.0
+			thex.Hoout = 0.0
 		}
 	}
 }
 
-func Thexprint(fo io.Writer, id int, Thex []THEX) {
+func Thexprint(fo io.Writer, id int, Thex []*THEX) {
 	var el *ELOUT
 
 	switch id {
@@ -302,269 +302,269 @@ func Thexprint(fo io.Writer, id int, Thex []THEX) {
 		if len(Thex) > 0 {
 			fmt.Fprintf(fo, "%s %d\n", THEX_TYPE, len(Thex))
 		}
-		for i := range Thex {
-			fmt.Fprintf(fo, " %s 1 22\n", Thex[i].Name)
+		for _, thex := range Thex {
+			fmt.Fprintf(fo, " %s 1 22\n", thex.Name)
 		}
 
 	case 1:
-		for i := range Thex {
+		for _, thex := range Thex {
 			fmt.Fprintf(fo, "%s_ce c c %s_Ge m f %s_Tei t f %s_Teo t f %s_xei t f %s_xeo t f\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name, thex.Name, thex.Name)
 			fmt.Fprintf(fo, "%s_hei h f %s_heo h f %s_Qes q f %s_Qel q f %s_Qet q f\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name, thex.Name)
 
 			fmt.Fprintf(fo, "%s_co c c %s_Go m f %s_Toi t f %s_Too t f %s_xoi t f %s_xoo t f\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name, thex.Name, thex.Name)
 			fmt.Fprintf(fo, "%s_hoi h f %s_hoo h f %s_Qos q f %s_Qol q f %s_Qot q f\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name, thex.Name)
 		}
 
 	default:
-		for i := range Thex {
-			el = Thex[i].Cmp.Elouts[0]
+		for _, thex := range Thex {
+			el = thex.Cmp.Elouts[0]
 			fmt.Fprintf(fo, "%c %6.4g %4.2f %4.2f %.4f %.4f ",
-				el.Control, Thex[i].Ge, Thex[i].Tein, Thex[i].Teout, Thex[i].Xein, Thex[i].Xeout)
+				el.Control, thex.Ge, thex.Tein, thex.Teout, thex.Xein, thex.Xeout)
 			fmt.Fprintf(fo, "%.0f %.0f %.2f %.2f %.2f\n",
-				Thex[i].Hein, Thex[i].Heout, Thex[i].Qes, Thex[i].Qel, Thex[i].Qet)
+				thex.Hein, thex.Heout, thex.Qes, thex.Qel, thex.Qet)
 
-			el = Thex[i].Cmp.Elouts[2]
+			el = thex.Cmp.Elouts[2]
 			fmt.Fprintf(fo, "%c %6.4g %4.2f %4.2f %.4f %.4f ",
-				el.Control, Thex[i].Go, Thex[i].Toin, Thex[i].Toout, Thex[i].Xoin, Thex[i].Xoout)
+				el.Control, thex.Go, thex.Toin, thex.Toout, thex.Xoin, thex.Xoout)
 			fmt.Fprintf(fo, "%.0f %.0f %.2f %.2f %.2f\n",
-				Thex[i].Hoin, Thex[i].Hoout, Thex[i].Qos, Thex[i].Qol, Thex[i].Qot)
+				thex.Hoin, thex.Hoout, thex.Qos, thex.Qol, thex.Qot)
 		}
 	}
 }
 
-func Thexdyint(Thex []THEX) {
-	for i := range Thex {
-		svdyint(&Thex[i].Teidy)
-		svdyint(&Thex[i].Teody)
-		svdyint(&Thex[i].Xeidy)
-		svdyint(&Thex[i].Xeody)
+func Thexdyint(Thex []*THEX) {
+	for _, thex := range Thex {
+		svdyint(&thex.Teidy)
+		svdyint(&thex.Teody)
+		svdyint(&thex.Xeidy)
+		svdyint(&thex.Xeody)
 
-		svdyint(&Thex[i].Toidy)
-		svdyint(&Thex[i].Toody)
-		svdyint(&Thex[i].Xoidy)
-		svdyint(&Thex[i].Xoody)
+		svdyint(&thex.Toidy)
+		svdyint(&thex.Toody)
+		svdyint(&thex.Xoidy)
+		svdyint(&thex.Xoody)
 
-		qdyint(&Thex[i].Qdyes)
-		qdyint(&Thex[i].Qdyel)
-		qdyint(&Thex[i].Qdyet)
+		qdyint(&thex.Qdyes)
+		qdyint(&thex.Qdyel)
+		qdyint(&thex.Qdyet)
 
-		qdyint(&Thex[i].Qdyos)
-		qdyint(&Thex[i].Qdyol)
-		qdyint(&Thex[i].Qdyot)
+		qdyint(&thex.Qdyos)
+		qdyint(&thex.Qdyol)
+		qdyint(&thex.Qdyot)
 	}
 }
 
-func Thexmonint(Thex []THEX) {
-	for i := range Thex {
-		svdyint(&Thex[i].MTeidy)
-		svdyint(&Thex[i].MTeody)
-		svdyint(&Thex[i].MXeidy)
-		svdyint(&Thex[i].MXeody)
+func Thexmonint(Thex []*THEX) {
+	for _, thex := range Thex {
+		svdyint(&thex.MTeidy)
+		svdyint(&thex.MTeody)
+		svdyint(&thex.MXeidy)
+		svdyint(&thex.MXeody)
 
-		svdyint(&Thex[i].MToidy)
-		svdyint(&Thex[i].MToody)
-		svdyint(&Thex[i].MXoidy)
-		svdyint(&Thex[i].MXoody)
+		svdyint(&thex.MToidy)
+		svdyint(&thex.MToody)
+		svdyint(&thex.MXoidy)
+		svdyint(&thex.MXoody)
 
-		qdyint(&Thex[i].MQdyes)
-		qdyint(&Thex[i].MQdyel)
-		qdyint(&Thex[i].MQdyet)
+		qdyint(&thex.MQdyes)
+		qdyint(&thex.MQdyel)
+		qdyint(&thex.MQdyet)
 
-		qdyint(&Thex[i].MQdyos)
-		qdyint(&Thex[i].MQdyol)
-		qdyint(&Thex[i].MQdyot)
+		qdyint(&thex.MQdyos)
+		qdyint(&thex.MQdyol)
+		qdyint(&thex.MQdyot)
 	}
 }
 
-func Thexday(Mon, Day, ttmm int, Thex []THEX, Nday, SimDayend int) {
-	for i := range Thex {
+func Thexday(Mon, Day, ttmm int, Thex []*THEX, Nday, SimDayend int) {
+	for _, thex := range Thex {
 		// 日集計
-		svdaysum(int64(ttmm), Thex[i].Cmp.Control, Thex[i].Tein, &Thex[i].Teidy)
-		svdaysum(int64(ttmm), Thex[i].Cmp.Control, Thex[i].Teout, &Thex[i].Teody)
-		svdaysum(int64(ttmm), Thex[i].Cmp.Control, Thex[i].Xein, &Thex[i].Xeidy)
-		svdaysum(int64(ttmm), Thex[i].Cmp.Control, Thex[i].Xeout, &Thex[i].Xeody)
+		svdaysum(int64(ttmm), thex.Cmp.Control, thex.Tein, &thex.Teidy)
+		svdaysum(int64(ttmm), thex.Cmp.Control, thex.Teout, &thex.Teody)
+		svdaysum(int64(ttmm), thex.Cmp.Control, thex.Xein, &thex.Xeidy)
+		svdaysum(int64(ttmm), thex.Cmp.Control, thex.Xeout, &thex.Xeody)
 
-		svdaysum(int64(ttmm), Thex[i].Cmp.Control, Thex[i].Toin, &Thex[i].Toidy)
-		svdaysum(int64(ttmm), Thex[i].Cmp.Control, Thex[i].Toout, &Thex[i].Toody)
-		svdaysum(int64(ttmm), Thex[i].Cmp.Control, Thex[i].Xoin, &Thex[i].Xoidy)
-		svdaysum(int64(ttmm), Thex[i].Cmp.Control, Thex[i].Xoout, &Thex[i].Xoody)
+		svdaysum(int64(ttmm), thex.Cmp.Control, thex.Toin, &thex.Toidy)
+		svdaysum(int64(ttmm), thex.Cmp.Control, thex.Toout, &thex.Toody)
+		svdaysum(int64(ttmm), thex.Cmp.Control, thex.Xoin, &thex.Xoidy)
+		svdaysum(int64(ttmm), thex.Cmp.Control, thex.Xoout, &thex.Xoody)
 
-		qdaysum(int64(ttmm), Thex[i].Cmp.Control, Thex[i].Qes, &Thex[i].Qdyes)
-		qdaysum(int64(ttmm), Thex[i].Cmp.Control, Thex[i].Qel, &Thex[i].Qdyel)
-		qdaysum(int64(ttmm), Thex[i].Cmp.Control, Thex[i].Qet, &Thex[i].Qdyet)
+		qdaysum(int64(ttmm), thex.Cmp.Control, thex.Qes, &thex.Qdyes)
+		qdaysum(int64(ttmm), thex.Cmp.Control, thex.Qel, &thex.Qdyel)
+		qdaysum(int64(ttmm), thex.Cmp.Control, thex.Qet, &thex.Qdyet)
 
-		qdaysum(int64(ttmm), Thex[i].Cmp.Control, Thex[i].Qos, &Thex[i].Qdyos)
-		qdaysum(int64(ttmm), Thex[i].Cmp.Control, Thex[i].Qol, &Thex[i].Qdyol)
-		qdaysum(int64(ttmm), Thex[i].Cmp.Control, Thex[i].Qot, &Thex[i].Qdyot)
+		qdaysum(int64(ttmm), thex.Cmp.Control, thex.Qos, &thex.Qdyos)
+		qdaysum(int64(ttmm), thex.Cmp.Control, thex.Qol, &thex.Qdyol)
+		qdaysum(int64(ttmm), thex.Cmp.Control, thex.Qot, &thex.Qdyot)
 
 		// 月集計
-		svmonsum(Mon, Day, ttmm, Thex[i].Cmp.Control, Thex[i].Tein, &Thex[i].MTeidy, Nday, SimDayend)
-		svmonsum(Mon, Day, ttmm, Thex[i].Cmp.Control, Thex[i].Teout, &Thex[i].MTeody, Nday, SimDayend)
-		svmonsum(Mon, Day, ttmm, Thex[i].Cmp.Control, Thex[i].Xein, &Thex[i].MXeidy, Nday, SimDayend)
-		svmonsum(Mon, Day, ttmm, Thex[i].Cmp.Control, Thex[i].Xeout, &Thex[i].MXeody, Nday, SimDayend)
+		svmonsum(Mon, Day, ttmm, thex.Cmp.Control, thex.Tein, &thex.MTeidy, Nday, SimDayend)
+		svmonsum(Mon, Day, ttmm, thex.Cmp.Control, thex.Teout, &thex.MTeody, Nday, SimDayend)
+		svmonsum(Mon, Day, ttmm, thex.Cmp.Control, thex.Xein, &thex.MXeidy, Nday, SimDayend)
+		svmonsum(Mon, Day, ttmm, thex.Cmp.Control, thex.Xeout, &thex.MXeody, Nday, SimDayend)
 
-		svmonsum(Mon, Day, ttmm, Thex[i].Cmp.Control, Thex[i].Toin, &Thex[i].MToidy, Nday, SimDayend)
-		svmonsum(Mon, Day, ttmm, Thex[i].Cmp.Control, Thex[i].Toout, &Thex[i].MToody, Nday, SimDayend)
-		svmonsum(Mon, Day, ttmm, Thex[i].Cmp.Control, Thex[i].Xoin, &Thex[i].MXoidy, Nday, SimDayend)
-		svmonsum(Mon, Day, ttmm, Thex[i].Cmp.Control, Thex[i].Xoout, &Thex[i].MXoody, Nday, SimDayend)
+		svmonsum(Mon, Day, ttmm, thex.Cmp.Control, thex.Toin, &thex.MToidy, Nday, SimDayend)
+		svmonsum(Mon, Day, ttmm, thex.Cmp.Control, thex.Toout, &thex.MToody, Nday, SimDayend)
+		svmonsum(Mon, Day, ttmm, thex.Cmp.Control, thex.Xoin, &thex.MXoidy, Nday, SimDayend)
+		svmonsum(Mon, Day, ttmm, thex.Cmp.Control, thex.Xoout, &thex.MXoody, Nday, SimDayend)
 
-		qmonsum(Mon, Day, ttmm, Thex[i].Cmp.Control, Thex[i].Qes, &Thex[i].MQdyes, Nday, SimDayend)
-		qmonsum(Mon, Day, ttmm, Thex[i].Cmp.Control, Thex[i].Qel, &Thex[i].MQdyel, Nday, SimDayend)
-		qmonsum(Mon, Day, ttmm, Thex[i].Cmp.Control, Thex[i].Qet, &Thex[i].MQdyet, Nday, SimDayend)
+		qmonsum(Mon, Day, ttmm, thex.Cmp.Control, thex.Qes, &thex.MQdyes, Nday, SimDayend)
+		qmonsum(Mon, Day, ttmm, thex.Cmp.Control, thex.Qel, &thex.MQdyel, Nday, SimDayend)
+		qmonsum(Mon, Day, ttmm, thex.Cmp.Control, thex.Qet, &thex.MQdyet, Nday, SimDayend)
 
-		qmonsum(Mon, Day, ttmm, Thex[i].Cmp.Control, Thex[i].Qos, &Thex[i].MQdyos, Nday, SimDayend)
-		qmonsum(Mon, Day, ttmm, Thex[i].Cmp.Control, Thex[i].Qol, &Thex[i].MQdyol, Nday, SimDayend)
-		qmonsum(Mon, Day, ttmm, Thex[i].Cmp.Control, Thex[i].Qot, &Thex[i].MQdyot, Nday, SimDayend)
+		qmonsum(Mon, Day, ttmm, thex.Cmp.Control, thex.Qos, &thex.MQdyos, Nday, SimDayend)
+		qmonsum(Mon, Day, ttmm, thex.Cmp.Control, thex.Qol, &thex.MQdyol, Nday, SimDayend)
+		qmonsum(Mon, Day, ttmm, thex.Cmp.Control, thex.Qot, &thex.MQdyot, Nday, SimDayend)
 	}
 }
 
-func Thexdyprt(fo io.Writer, id int, Thex []THEX) {
+func Thexdyprt(fo io.Writer, id int, Thex []*THEX) {
 	switch id {
 	case 0:
 		if len(Thex) > 0 {
 			fmt.Fprintf(fo, "%s %d\n", THEX_TYPE, len(Thex))
 		}
-		for i := range Thex {
-			fmt.Fprintf(fo, " %s 1 48\n", Thex[i].Name)
+		for _, thex := range Thex {
+			fmt.Fprintf(fo, " %s 1 48\n", thex.Name)
 		}
 	case 1:
-		for i := range Thex {
-			fmt.Fprintf(fo, "%s_Hte H d %s_Te T f ", Thex[i].Name, Thex[i].Name)
+		for _, thex := range Thex {
+			fmt.Fprintf(fo, "%s_Hte H d %s_Te T f ", thex.Name, thex.Name)
 			fmt.Fprintf(fo, "%s_ttne h d %s_Ten t f %s_ttme h d %s_Tem t f\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
-			fmt.Fprintf(fo, "%s_Hto H d %s_To T f ", Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name)
+			fmt.Fprintf(fo, "%s_Hto H d %s_To T f ", thex.Name, thex.Name)
 			fmt.Fprintf(fo, "%s_ttno h d %s_Ton t f %s_ttmo h d %s_Tom t f\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name)
 
-			fmt.Fprintf(fo, "%s_Hxe H d %s_xe T f ", Thex[i].Name, Thex[i].Name)
+			fmt.Fprintf(fo, "%s_Hxe H d %s_xe T f ", thex.Name, thex.Name)
 			fmt.Fprintf(fo, "%s_txne h d %s_xen t f %s_txme h d %s_xem t f\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
-			fmt.Fprintf(fo, "%s_Hxo H d %s_xo T f ", Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name)
+			fmt.Fprintf(fo, "%s_Hxo H d %s_xo T f ", thex.Name, thex.Name)
 			fmt.Fprintf(fo, "%s_txno h d %s_xon t f %s_txmo h d %s_xom t f\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name)
 
 			fmt.Fprintf(fo, "%s_Hhs H d %s_Qsh Q f %s_Hcs H d %s_Qsc Q f\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name)
 			fmt.Fprintf(fo, "%s_ths h d %s_qsh q f %s_tcs h d %s_qsc q f\n\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name)
 			fmt.Fprintf(fo, "%s_Hhl H d %s_Qlh Q f %s_Hcl H d %s_Qlc Q f\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name)
 			fmt.Fprintf(fo, "%s_thl h d %s_qlh q f %s_tcl h d %s_qlc q f\n\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name)
 			fmt.Fprintf(fo, "%s_Hht H d %s_Qth Q f %s_Hct H d %s_Qtc Q f\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name)
 			fmt.Fprintf(fo, "%s_tht h d %s_qth q f %s_tct h d %s_qtc q f\n\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name)
 		}
 	default:
-		for i := range Thex {
+		for _, thex := range Thex {
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
-				Thex[i].Teidy.Hrs, Thex[i].Teidy.M,
-				Thex[i].Teidy.Mntime, Thex[i].Teidy.Mn,
-				Thex[i].Teidy.Mxtime, Thex[i].Teidy.Mx)
+				thex.Teidy.Hrs, thex.Teidy.M,
+				thex.Teidy.Mntime, thex.Teidy.Mn,
+				thex.Teidy.Mxtime, thex.Teidy.Mx)
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f\n",
-				Thex[i].Toidy.Hrs, Thex[i].Toidy.M,
-				Thex[i].Toidy.Mntime, Thex[i].Toidy.Mn,
-				Thex[i].Toidy.Mxtime, Thex[i].Toidy.Mx)
+				thex.Toidy.Hrs, thex.Toidy.M,
+				thex.Toidy.Mntime, thex.Toidy.Mn,
+				thex.Toidy.Mxtime, thex.Toidy.Mx)
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
-				Thex[i].Xeidy.Hrs, Thex[i].Xeidy.M,
-				Thex[i].Xeidy.Mntime, Thex[i].Xeidy.Mn,
-				Thex[i].Xeidy.Mxtime, Thex[i].Xeidy.Mx)
+				thex.Xeidy.Hrs, thex.Xeidy.M,
+				thex.Xeidy.Mntime, thex.Xeidy.Mn,
+				thex.Xeidy.Mxtime, thex.Xeidy.Mx)
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f\n",
-				Thex[i].Xoidy.Hrs, Thex[i].Xoidy.M,
-				Thex[i].Xoidy.Mntime, Thex[i].Xoidy.Mn,
-				Thex[i].Xoidy.Mxtime, Thex[i].Xoidy.Mx)
-			fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].Qdyes.Hhr, Thex[i].Qdyes.H)
-			fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].Qdyes.Chr, Thex[i].Qdyes.C)
-			fmt.Fprintf(fo, "%1d %2.0f ", Thex[i].Qdyes.Hmxtime, Thex[i].Qdyes.Hmx)
-			fmt.Fprintf(fo, "%1d %2.0f\n", Thex[i].Qdyes.Cmxtime, Thex[i].Qdyes.Cmx)
+				thex.Xoidy.Hrs, thex.Xoidy.M,
+				thex.Xoidy.Mntime, thex.Xoidy.Mn,
+				thex.Xoidy.Mxtime, thex.Xoidy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", thex.Qdyes.Hhr, thex.Qdyes.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", thex.Qdyes.Chr, thex.Qdyes.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", thex.Qdyes.Hmxtime, thex.Qdyes.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f\n", thex.Qdyes.Cmxtime, thex.Qdyes.Cmx)
 
-			fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].Qdyel.Hhr, Thex[i].Qdyel.H)
-			fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].Qdyel.Chr, Thex[i].Qdyel.C)
-			fmt.Fprintf(fo, "%1d %2.0f ", Thex[i].Qdyel.Hmxtime, Thex[i].Qdyel.Hmx)
-			fmt.Fprintf(fo, "%1d %2.0f\n", Thex[i].Qdyel.Cmxtime, Thex[i].Qdyel.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", thex.Qdyel.Hhr, thex.Qdyel.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", thex.Qdyel.Chr, thex.Qdyel.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", thex.Qdyel.Hmxtime, thex.Qdyel.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f\n", thex.Qdyel.Cmxtime, thex.Qdyel.Cmx)
 
-			fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].Qdyet.Hhr, Thex[i].Qdyet.H)
-			fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].Qdyet.Chr, Thex[i].Qdyet.C)
-			fmt.Fprintf(fo, "%1d %2.0f ", Thex[i].Qdyet.Hmxtime, Thex[i].Qdyet.Hmx)
-			fmt.Fprintf(fo, "%1d %2.0f\n", Thex[i].Qdyet.Cmxtime, Thex[i].Qdyet.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", thex.Qdyet.Hhr, thex.Qdyet.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", thex.Qdyet.Chr, thex.Qdyet.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", thex.Qdyet.Hmxtime, thex.Qdyet.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f\n", thex.Qdyet.Cmxtime, thex.Qdyet.Cmx)
 		}
 	}
 }
-func Thexmonprt(fo io.Writer, id int, Thex []THEX) {
+func Thexmonprt(fo io.Writer, id int, Thex []*THEX) {
 	switch id {
 	case 0:
 		if len(Thex) > 0 {
 			fmt.Fprintf(fo, "%s %d\n", THEX_TYPE, len(Thex))
 		}
-		for i := range Thex {
-			fmt.Fprintf(fo, " %s 1 48\n", Thex[i].Name)
+		for _, thex := range Thex {
+			fmt.Fprintf(fo, " %s 1 48\n", thex.Name)
 		}
 	case 1:
-		for i := range Thex {
-			fmt.Fprintf(fo, "%s_Hte H d %s_Te T f ", Thex[i].Name, Thex[i].Name)
+		for _, thex := range Thex {
+			fmt.Fprintf(fo, "%s_Hte H d %s_Te T f ", thex.Name, thex.Name)
 			fmt.Fprintf(fo, "%s_ttne h d %s_Ten t f %s_ttme h d %s_Tem t f\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
-			fmt.Fprintf(fo, "%s_Hto H d %s_To T f ", Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name)
+			fmt.Fprintf(fo, "%s_Hto H d %s_To T f ", thex.Name, thex.Name)
 			fmt.Fprintf(fo, "%s_ttno h d %s_Ton t f %s_ttmo h d %s_Tom t f\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name)
 
-			fmt.Fprintf(fo, "%s_Hxe H d %s_xe T f ", Thex[i].Name, Thex[i].Name)
+			fmt.Fprintf(fo, "%s_Hxe H d %s_xe T f ", thex.Name, thex.Name)
 			fmt.Fprintf(fo, "%s_txne h d %s_xen t f %s_txme h d %s_xem t f\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
-			fmt.Fprintf(fo, "%s_Hxo H d %s_xo T f ", Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name)
+			fmt.Fprintf(fo, "%s_Hxo H d %s_xo T f ", thex.Name, thex.Name)
 			fmt.Fprintf(fo, "%s_txno h d %s_xon t f %s_txmo h d %s_xom t f\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name)
 
 			fmt.Fprintf(fo, "%s_Hhs H d %s_Qsh Q f %s_Hcs H d %s_Qsc Q f\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name)
 			fmt.Fprintf(fo, "%s_ths h d %s_qsh q f %s_tcs h d %s_qsc q f\n\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name)
 			fmt.Fprintf(fo, "%s_Hhl H d %s_Qlh Q f %s_Hcl H d %s_Qlc Q f\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name)
 			fmt.Fprintf(fo, "%s_thl h d %s_qlh q f %s_tcl h d %s_qlc q f\n\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name)
 			fmt.Fprintf(fo, "%s_Hht H d %s_Qth Q f %s_Hct H d %s_Qtc Q f\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name)
 			fmt.Fprintf(fo, "%s_tht h d %s_qth q f %s_tct h d %s_qtc q f\n\n",
-				Thex[i].Name, Thex[i].Name, Thex[i].Name, Thex[i].Name)
+				thex.Name, thex.Name, thex.Name, thex.Name)
 		}
 	default:
-		for i := range Thex {
+		for _, thex := range Thex {
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
-				Thex[i].MTeidy.Hrs, Thex[i].MTeidy.M,
-				Thex[i].MTeidy.Mntime, Thex[i].MTeidy.Mn,
-				Thex[i].MTeidy.Mxtime, Thex[i].MTeidy.Mx)
+				thex.MTeidy.Hrs, thex.MTeidy.M,
+				thex.MTeidy.Mntime, thex.MTeidy.Mn,
+				thex.MTeidy.Mxtime, thex.MTeidy.Mx)
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f\n",
-				Thex[i].MToidy.Hrs, Thex[i].MToidy.M,
-				Thex[i].MToidy.Mntime, Thex[i].MToidy.Mn,
-				Thex[i].MToidy.Mxtime, Thex[i].MToidy.Mx)
+				thex.MToidy.Hrs, thex.MToidy.M,
+				thex.MToidy.Mntime, thex.MToidy.Mn,
+				thex.MToidy.Mxtime, thex.MToidy.Mx)
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
-				Thex[i].MXeidy.Hrs, Thex[i].MXeidy.M,
-				Thex[i].MXeidy.Mntime, Thex[i].MXeidy.Mn,
-				Thex[i].MXeidy.Mxtime, Thex[i].MXeidy.Mx)
+				thex.MXeidy.Hrs, thex.MXeidy.M,
+				thex.MXeidy.Mntime, thex.MXeidy.Mn,
+				thex.MXeidy.Mxtime, thex.MXeidy.Mx)
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f\n",
-				Thex[i].MXoidy.Hrs, Thex[i].MXoidy.M,
-				Thex[i].MXoidy.Mntime, Thex[i].MXoidy.Mn,
-				Thex[i].MXoidy.Mxtime, Thex[i].MXoidy.Mx)
-			fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].MQdyes.Hhr, Thex[i].MQdyes.H)
-			fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].MQdyes.Chr, Thex[i].MQdyes.C)
-			fmt.Fprintf(fo, "%1d %2.0f ", Thex[i].MQdyes.Hmxtime, Thex[i].MQdyes.Hmx)
-			fmt.Fprintf(fo, "%1d %2.0f\n", Thex[i].MQdyes.Cmxtime, Thex[i].MQdyes.Cmx)
+				thex.MXoidy.Hrs, thex.MXoidy.M,
+				thex.MXoidy.Mntime, thex.MXoidy.Mn,
+				thex.MXoidy.Mxtime, thex.MXoidy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", thex.MQdyes.Hhr, thex.MQdyes.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", thex.MQdyes.Chr, thex.MQdyes.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", thex.MQdyes.Hmxtime, thex.MQdyes.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f\n", thex.MQdyes.Cmxtime, thex.MQdyes.Cmx)
 
-			fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].MQdyel.Hhr, Thex[i].MQdyel.H)
-			fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].MQdyel.Chr, Thex[i].MQdyel.C)
-			fmt.Fprintf(fo, "%1d %2.0f ", Thex[i].MQdyel.Hmxtime, Thex[i].MQdyel.Hmx)
-			fmt.Fprintf(fo, "%1d %2.0f\n", Thex[i].MQdyel.Cmxtime, Thex[i].MQdyel.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", thex.MQdyel.Hhr, thex.MQdyel.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", thex.MQdyel.Chr, thex.MQdyel.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", thex.MQdyel.Hmxtime, thex.MQdyel.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f\n", thex.MQdyel.Cmxtime, thex.MQdyel.Cmx)
 
-			fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].MQdyet.Hhr, Thex[i].MQdyet.H)
-			fmt.Fprintf(fo, "%1d %3.1f ", Thex[i].MQdyet.Chr, Thex[i].MQdyet.C)
-			fmt.Fprintf(fo, "%1d %2.0f ", Thex[i].MQdyet.Hmxtime, Thex[i].MQdyet.Hmx)
-			fmt.Fprintf(fo, "%1d %2.0f\n", Thex[i].MQdyet.Cmxtime, Thex[i].MQdyet.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", thex.MQdyet.Hhr, thex.MQdyet.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", thex.MQdyet.Chr, thex.MQdyet.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", thex.MQdyet.Hmxtime, thex.MQdyet.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f\n", thex.MQdyet.Cmxtime, thex.MQdyet.Cmx)
 		}
 	}
 }

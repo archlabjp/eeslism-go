@@ -28,33 +28,33 @@ import (
 
 /* ------------------------------------------ */
 
-func Valvcountreset(Valv []VALV) {
-	for i := range Valv {
-		Valv[i].Count = 0
+func Valvcountreset(Valv []*VALV) {
+	for _, v := range Valv {
+		v.Count = 0
 	}
 }
 
 /***********************************************/
 
-func Valvcountinc(Valv []VALV) {
-	for i := range Valv {
-		Valv[i].Count++
+func Valvcountinc(Valv []*VALV) {
+	for _, v := range Valv {
+		v.Count++
 	}
 }
 
 // 通常はバルブの上流の流量に比率を乗じるが、基準となるOMvavが指定されている場合には、この流量に対する比率とする
 // OMvavが指定されているときだけの対応
-func Valvinit(Valv []VALV, Mpath []*MPATH) {
-	for k := range Valv {
-		if Valv[k].Cmp.MonPlistName != "" {
+func Valvinit(Valv []*VALV, Mpath []*MPATH) {
+	for _, v := range Valv {
+		if v.Cmp.MonPlistName != "" {
 			for _, mpath := range Mpath {
 				for _, Plist := range mpath.Plist {
-					if Valv[k].Cmp.MonPlistName == Plist.Plistname {
-						Valv[k].MonPlist = Plist
-						Valv[k].MGo = &Plist.G
+					if v.Cmp.MonPlistName == Plist.Plistname {
+						v.MonPlist = Plist
+						v.MGo = &Plist.G
 
-						if Valv[k].Cmb != nil {
-							CValv := Valv[k].Cmb.Eqp.(*VALV)
+						if v.Cmb != nil {
+							CValv := v.Cmb.Eqp.(*VALV)
 							CValv.MonPlist = Plist
 							CValv.MGo = &Plist.G
 						}
@@ -63,50 +63,50 @@ func Valvinit(Valv []VALV, Mpath []*MPATH) {
 				}
 			}
 		} else {
-			Pelm := Valv[k].Plist.Pelm[len(Valv[k].Plist.Pelm)-1]
-			Valv[k].MGo = Pelm.Cmp.Elouts[0].Lpath.Go
-			Valv[k].MonPlist = Pelm.Cmp.Elouts[0].Lpath
+			Pelm := v.Plist.Pelm[len(v.Plist.Pelm)-1]
+			v.MGo = Pelm.Cmp.Elouts[0].Lpath.Go
+			v.MonPlist = Pelm.Cmp.Elouts[0].Lpath
 
-			if Valv[k].Cmb != nil {
-				CValv := Valv[k].Cmb.Eqp.(*VALV)
-				CValv.MonPlist = Valv[k].MonPlist
-				CValv.MGo = &Valv[k].MonPlist.G
+			if v.Cmb != nil {
+				CValv := v.Cmb.Eqp.(*VALV)
+				CValv.MonPlist = v.MonPlist
+				CValv.MGo = &v.MonPlist.G
 			}
 		}
 	}
 }
 
-func Valvene(Valv []VALV, Valvreset *int) {
+func Valvene(Valv []*VALV, Valvreset *int) {
 	var etype EqpType
 	var T1, T2 float64
 	var Vcb *VALV
 	var r float64
 
-	for i := range Valv {
-		etype = Valv[i].Cmp.Eqptype
-		if etype == TVALV_TYPE && Valv[i].Org == 'y' {
-			if Valv[i].Mon.Elouts[0].Control != OFF_SW {
-				T1 = *Valv[i].Tin
-				Vcb = Valv[i].Cmb.Eqp.(*VALV)
+	for _, v := range Valv {
+		etype = v.Cmp.Eqptype
+		if etype == TVALV_TYPE && v.Org == 'y' {
+			if v.Mon.Elouts[0].Control != OFF_SW {
+				T1 = *v.Tin
+				Vcb = v.Cmb.Eqp.(*VALV)
 				T2 = *Vcb.Tin
 
-				if math.Abs(*Valv[i].Tout-*Valv[i].Tset) >= 1.0e-3 && math.Abs(T1-T2) >= 1.0e-3 {
-					r = (*Valv[i].Tset - T2) / (T1 - T2)
+				if math.Abs(*v.Tout-*v.Tset) >= 1.0e-3 && math.Abs(T1-T2) >= 1.0e-3 {
+					r = (*v.Tset - T2) / (T1 - T2)
 					r = math.Min(1.0, math.Max(r, 0.0))
-					Valv[i].X = r
+					v.X = r
 					Vcb.X = 1.0 - r
 
-					Valv[i].Plist.Gcalc = r * *Valv[i].MGo
-					Vcb.Plist.Gcalc = (1.0 - r) * *Valv[i].MGo
+					v.Plist.Gcalc = r * *v.MGo
+					Vcb.Plist.Gcalc = (1.0 - r) * *v.MGo
 					(*Valvreset)++
 
 					if DEBUG {
-						fmt.Printf("<Valvene> Valvname=%s G=%f\n", Valv[i].Name, Valv[i].Plist.G)
-						fmt.Printf("    T1=%.1f T2=%.1f Tset=%.1f\n", T1, T2, *Valv[i].Tset)
+						fmt.Printf("<Valvene> Valvname=%s G=%f\n", v.Name, v.Plist.G)
+						fmt.Printf("    T1=%.1f T2=%.1f Tset=%.1f\n", T1, T2, *v.Tset)
 					}
 				} else {
-					Valv[i].Plist.Gcalc = Valv[i].X * *Valv[i].MGo
-					Vcb.Plist.Gcalc = (1.0 - Valv[i].X) * *Valv[i].MGo
+					v.Plist.Gcalc = v.X * *v.MGo
+					Vcb.Plist.Gcalc = (1.0 - v.X) * *v.MGo
 					(*Valvreset)++
 				}
 			}

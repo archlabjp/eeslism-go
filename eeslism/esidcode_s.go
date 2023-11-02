@@ -140,9 +140,9 @@ func idscw(code string, Scw []SCH, err string) (int, error) {
 
 // 室名 `code` に一致する部屋を 部屋の一覧 `Room` から検索し、その番号を返す
 // ただし、検索しても見つからない場合はエラーを返す
-func idroom(code string, rooms []ROOM, err string) (int, error) {
+func idroom(code string, rooms []*ROOM, err string) (int, error) {
 	for j := range rooms {
-		_Room := &rooms[j]
+		_Room := rooms[j]
 		if code == _Room.Name {
 			return j, nil
 		}

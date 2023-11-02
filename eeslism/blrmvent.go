@@ -27,7 +27,7 @@ import (
 /*  外気導入量および室間相互換気量の設定スケジュ－ル入力   */
 
 // VENTデータセット
-func Ventdata(fi *EeTokens, dsn string, Schdl *SCHDL, Room []ROOM, Simc *SIMCONTL) {
+func Ventdata(fi *EeTokens, dsn string, Schdl *SCHDL, Room []*ROOM, Simc *SIMCONTL) {
 	var Rm *ROOM
 	var name1, ss, E string
 	var k int
@@ -47,7 +47,7 @@ func Ventdata(fi *EeTokens, dsn string, Schdl *SCHDL, Room []ROOM, Simc *SIMCONT
 		if err != nil {
 			panic(err)
 		}
-		Rm = &Room[i] //室の参照
+		Rm = Room[i] //室の参照
 
 		for _, s := range line[1:] {
 			_ss := strings.SplitN(s, "=", 2)
@@ -113,12 +113,12 @@ func Ventdata(fi *EeTokens, dsn string, Schdl *SCHDL, Room []ROOM, Simc *SIMCONT
 
 /*  室間相互換気量の設定   */
 
-func Aichschdlr(val []float64, rooms []ROOM) {
+func Aichschdlr(val []float64, rooms []*ROOM) {
 	for i := range rooms {
-		room := &rooms[i]
+		room := rooms[i]
 
 		for j := 0; j < room.Nachr; j++ {
-			achr := &room.achr[j]
+			achr := room.achr[j]
 			v := val[achr.sch]
 			if v > 0.0 {
 				achr.Gvr = v

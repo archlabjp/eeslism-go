@@ -72,7 +72,7 @@ func panelwp(rdpnl *RDPNL) {
 
 func Panelcf(rdpnl *RDPNL) {
 	var j, nn, m, mp, M, iup, nrp, n, N int
-	var alr, epr, epw *float64
+	var epr, epw *float64
 	var ew, kd float64
 	var rm *ROOM
 	var Sd, Sdd *RMSRF
@@ -112,10 +112,10 @@ func Panelcf(rdpnl *RDPNL) {
 				wall = Mw.wall
 				C1 = Sd.alic
 				for j = 0; j < N; j++ {
-					alr = &rm.alr[nn+j]
-					Sdd = &rm.rsrf[j]
+					alr := rm.alr[nn+j]
+					Sdd = rm.rsrf[j]
 					if j != nrp {
-						C1 += *alr * Sdd.WSR
+						C1 += alr * Sdd.WSR
 					}
 				}
 				C1 *= rdpnl.FIp[m] / Sd.ali
@@ -136,11 +136,11 @@ func Panelcf(rdpnl *RDPNL) {
 
 					*epr = 0.0
 					for n = 0; n < N; n++ {
-						alr = &rm.alr[nn+n]
-						Sdd = &rm.rsrf[n]
+						alr := rm.alr[nn+n]
+						Sdd := rm.rsrf[n]
 
 						if n != nrp {
-							*epr += *alr * Sdd.WSRN[j]
+							*epr += alr * Sdd.WSRN[j]
 						}
 					}
 					if wall.WallType == WallType_P {
@@ -180,11 +180,11 @@ func Panelcf(rdpnl *RDPNL) {
 
 					ew = 0.0
 					for n = 0; n < N; n++ {
-						alr = &rm.alr[nn+n]
-						Sdd = &rm.rsrf[n]
+						alr := rm.alr[nn+n]
+						Sdd := rm.rsrf[n]
 
 						if n != nrp {
-							ew += *alr * Sdd.WSPL[j]
+							ew += alr * Sdd.WSPL[j]
 						}
 					}
 
@@ -228,11 +228,10 @@ func Panelcf(rdpnl *RDPNL) {
 func Panelce(rdpnl *RDPNL) float64 {
 	var N int
 	var rm *ROOM
-	var Sd, Sdd *RMSRF
+	var Sd *RMSRF
 	var Mw *MWALL
 	var j, nn, m, mp, M, iup, nrp int
 	var CFp, C, CC, kd, ku float64
-	var alr *float64
 	var wall *WALL
 
 	Sd = nil
@@ -288,10 +287,10 @@ func Panelce(rdpnl *RDPNL) float64 {
 
 			C = 0.0
 			for j = 0; j < N; j++ {
-				alr = &rm.alr[nn+j]
-				Sdd = &rm.rsrf[j]
+				alr := rm.alr[nn+j]
+				Sdd := rm.rsrf[j]
 				if j != nrp {
-					C += *alr * Sdd.WSC
+					C += alr * Sdd.WSC
 				}
 			}
 

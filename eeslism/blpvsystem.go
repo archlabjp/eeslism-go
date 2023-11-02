@@ -59,7 +59,7 @@ func FNTPV(Sd *RMSRF, Wd *WDAT, Exsfs *EXSFS) float64 {
 	return TPV
 }
 
-func CalcPowerOutput(Nsrf int, Sd []RMSRF, Wd *WDAT, Exsfs *EXSFS) {
+func CalcPowerOutput(Nsrf int, Sd []*RMSRF, Wd *WDAT, Exsfs *EXSFS) {
 	for i := 0; i < Nsrf; i++ {
 		if Sd[i].mw != nil {
 			wall := Sd[i].mw.wall
@@ -68,7 +68,7 @@ func CalcPowerOutput(Nsrf int, Sd []RMSRF, Wd *WDAT, Exsfs *EXSFS) {
 			if Sd[i].PVwallFlg {
 				pvwall := &Sd[i].PVwall
 
-				pvwall.TPV = FNTPV(&Sd[i], Wd, Exsfs)
+				pvwall.TPV = FNTPV(Sd[i], Wd, Exsfs)
 				pvwall.KPT = FNKPT(pvwall.TPV, wall.PVwallcat.Apmax)
 				pvwall.KTotal = wall.PVwallcat.KConst * pvwall.KPT
 

@@ -827,48 +827,48 @@ type PV struct {
 
 // カタログデータ（機器仕様データ一覧）
 type EQCAT struct {
-	Hccca    []HCCCA    // <カタログ>冷温水コイル
-	Boica    []BOICA    // <カタログ>ボイラー
-	Refaca   []REFACA   // <カタログ>冷温水方式の圧縮式電動ヒートポンプ,仮想熱源
-	Rfcmp    []RFCMP    // <カタログ>標準圧縮機特性 (for REFACA)
-	Pfcmp    []PFCMP    // <カタログ>ポンプ・ファンの部分負荷特性の近似式係数  (for REFACA)
-	Collca   []COLLCA   // <カタログ>架台設置型太陽熱集熱器
-	Pipeca   []PIPECA   // <カタログ>配管
-	Stankca  []STANKCA  // <カタログ>蓄熱槽(熱交換型内蔵型含む)
-	Hexca    []HEXCA    // <カタログ>熱交換器
-	Pumpca   []PUMPCA   // <カタログ>ポンプ
-	Vavca    []VAVCA    // <カタログ>VAVユニット
-	Stheatca []STHEATCA // <カタログ>電気蓄熱式暖房器
-	Thexca   []THEXCA   // <カタログ>全熱交換器
-	PVca     []PVCA     // <カタログ>架台設置型太陽電池
-	OMvavca  []OMVAVCA  // <カタログ>OMVAV
-	Desica   []DESICA   // <カタログ>デシカント槽
-	Evacca   []EVACCA   // <カタログ>気化冷却器
+	Hccca    []*HCCCA    // <カタログ>冷温水コイル
+	Boica    []*BOICA    // <カタログ>ボイラー
+	Refaca   []*REFACA   // <カタログ>冷温水方式の圧縮式電動ヒートポンプ,仮想熱源
+	Rfcmp    []*RFCMP    // <カタログ>標準圧縮機特性 (for REFACA)
+	Pfcmp    []*PFCMP    // <カタログ>ポンプ・ファンの部分負荷特性の近似式係数  (for REFACA)
+	Collca   []*COLLCA   // <カタログ>架台設置型太陽熱集熱器
+	Pipeca   []*PIPECA   // <カタログ>配管
+	Stankca  []*STANKCA  // <カタログ>蓄熱槽(熱交換型内蔵型含む)
+	Hexca    []*HEXCA    // <カタログ>熱交換器
+	Pumpca   []*PUMPCA   // <カタログ>ポンプ
+	Vavca    []*VAVCA    // <カタログ>VAVユニット
+	Stheatca []*STHEATCA // <カタログ>電気蓄熱式暖房器
+	Thexca   []*THEXCA   // <カタログ>全熱交換器
+	PVca     []*PVCA     // <カタログ>架台設置型太陽電池
+	OMvavca  []*OMVAVCA  // <カタログ>OMVAV
+	Desica   []*DESICA   // <カタログ>デシカント槽
+	Evacca   []*EVACCA   // <カタログ>気化冷却器
 }
 
 // 「実際に」システムを構成する機器(システム使用機器データ一覧)
 type EQSYS struct {
 	Cnvrg []*COMPNT // 機器
 
-	Hcc    []HCC    // システム使用冷温水コイル
-	Boi    []BOI    // システム使用ボイラ－
-	Refa   []REFA   // システム使用ヒートポンプ
-	Coll   []COLL   // システム使用太陽熱集熱器
-	Pipe   []PIPE   // システム使用配管・ダクト
-	Stank  []STANK  // システム使用蓄熱槽
-	Hex    []HEX    // システム使用熱交換器
-	Pump   []PUMP   // システム使用ポンプ・ファン
-	Flin   []FLIN   // 境界条件設定用仮想機器
-	Hcload []HCLOAD // 空調機負荷仮想機器
-	Vav    []VAV    // VAVユニット
-	Stheat []STHEAT // 電気蓄熱式暖房器
-	Thex   []THEX   // 全熱交換器
-	Valv   []VALV   // VAV
-	Qmeas  []QMEAS  // カロリーメータ
-	PVcmp  []*PV    // 太陽電池
-	OMvav  []OMVAV  // OMVAV
-	Desi   []DESI   // デシカント槽
-	Evac   []EVAC   // 気化冷却器
+	Hcc    []*HCC    // システム使用冷温水コイル
+	Boi    []*BOI    // システム使用ボイラ－
+	Refa   []*REFA   // システム使用ヒートポンプ
+	Coll   []*COLL   // システム使用太陽熱集熱器
+	Pipe   []*PIPE   // システム使用配管・ダクト
+	Stank  []*STANK  // システム使用蓄熱槽
+	Hex    []*HEX    // システム使用熱交換器
+	Pump   []*PUMP   // システム使用ポンプ・ファン
+	Flin   []*FLIN   // 境界条件設定用仮想機器
+	Hcload []*HCLOAD // 空調機負荷仮想機器
+	Vav    []*VAV    // VAVユニット
+	Stheat []*STHEAT // 電気蓄熱式暖房器
+	Thex   []*THEX   // 全熱交換器
+	Valv   []*VALV   // VAV
+	Qmeas  []*QMEAS  // カロリーメータ
+	PVcmp  []*PV     // 太陽電池
+	OMvav  []*OMVAV  // OMVAV
+	Desi   []*DESI   // デシカント槽
+	Evac   []*EVAC   // 気化冷却器
 
 	// 使用されていなかった:
 	// Ngload int

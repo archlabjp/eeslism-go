@@ -25,7 +25,7 @@ import "fmt"
 func RMcf(Room *ROOM) {
 	N := Room.N
 	for n := 0; n < N; n++ {
-		Sdn := &Room.rsrf[n]
+		Sdn := Room.rsrf[n]
 
 		if Sdn.mrk == '*' || Sdn.PCMflg {
 
@@ -80,7 +80,7 @@ func RMcf(Room *ROOM) {
 	alr := Room.alr
 	XA := Room.XA
 	for n := 0; n < N; n++ {
-		Sdn := &Room.rsrf[n]
+		Sdn := Room.rsrf[n]
 
 		for j := 0; j < N; j++ {
 			XA[n*N+j] = -Sdn.FI * alr[n*N+j] / Sdn.ali
@@ -93,25 +93,25 @@ func RMcf(Room *ROOM) {
 	Matinv(XA, N, N, E)
 
 	for n := 0; n < N; n++ {
-		Sdn := &Room.rsrf[n]
+		Sdn := Room.rsrf[n]
 
 		Sdn.WSR = 0.0
 
 		for j := 0; j < N; j++ {
-			sdj := &Room.rsrf[j]
+			sdj := Room.rsrf[j]
 			kc := sdj.alic / sdj.ali
 			Sdn.WSR += XA[n*N+j] * sdj.FI * kc
 		}
 
 		for j := 0; j < Room.Ntr; j++ {
 			wrn := &Sdn.WSRN[j]
-			trn := &Room.trnx[j]
+			trn := Room.trnx[j]
 			sdk := trn.sd
 
 			// Find the index of sdk in Room.rsrf
 			var kk int
 			for kk = 0; kk < Room.N; kk++ {
-				if sdk == &Room.rsrf[kk] {
+				if sdk == Room.rsrf[kk] {
 					break
 				}
 			}
@@ -124,7 +124,7 @@ func RMcf(Room *ROOM) {
 			// Find the index of sdk in Room.rsrf
 			var kk int
 			for kk = 0; kk < Room.N; kk++ {
-				if sdk == &Room.rsrf[kk] {
+				if sdk == Room.rsrf[kk] {
 					break
 				}
 			}
@@ -137,7 +137,7 @@ func RMcf(Room *ROOM) {
 
 	Room.AR = 0.0
 	for n := 0; n < N; n++ {
-		Sdn := &Room.rsrf[n]
+		Sdn := Room.rsrf[n]
 		Room.AR += Sdn.A * Sdn.alic * (1.0 - Sdn.WSR)
 	}
 
@@ -145,7 +145,7 @@ func RMcf(Room *ROOM) {
 	for j := 0; j < Room.Ntr; j++ {
 		arn := 0.0
 		for n := 0; n < N; n++ {
-			sdk := &Room.rsrf[n]
+			sdk := Room.rsrf[n]
 			arn += sdk.A * sdk.alic * sdk.WSRN[j]
 		}
 		Room.ARN[j] = arn
@@ -154,7 +154,7 @@ func RMcf(Room *ROOM) {
 	for j := 0; j < Room.Nrp; j++ { // 室のパネル総数
 		rpnl := 0.0
 		for n := 0; n < N; n++ {
-			sdk := &Room.rsrf[n]
+			sdk := Room.rsrf[n]
 			rpnl += sdk.A * sdk.alic * sdk.WSPL[j] // WSPL：パネルに関する係数
 		}
 		Room.RMP[j] = rpnl
@@ -203,7 +203,7 @@ func RMrc(Room *ROOM) {
 	CRX := make([]float64, N)
 
 	for n := 0; n < N; n++ { // N：表面総数
-		Sdn := &Room.rsrf[n]
+		Sdn := Room.rsrf[n]
 		Sdn.CF = 0.0
 		if Sdn.typ == RMSRFType_H || Sdn.typ == RMSRFType_E || Sdn.typ == RMSRFType_e { // 壁の場合
 			Mw := Sdn.mw
@@ -226,13 +226,13 @@ func RMrc(Room *ROOM) {
 
 	// 表面熱収支に関係する係数の計算
 	for n := 0; n < N; n++ {
-		Sdn := &Room.rsrf[n]
+		Sdn := Room.rsrf[n]
 		CRX[n] = Sdn.CF + Sdn.FO*Sdn.Te + Sdn.FI*Sdn.RS/Sdn.ali
 	}
 
 	// 相互放射の計算
 	for n := 0; n < N; n++ {
-		Sdn := &Room.rsrf[n]
+		Sdn := Room.rsrf[n]
 		Sdn.WSC = 0.0
 		for j := 0; j < N; j++ {
 			Sdn.WSC += XA[n*N+j] * CRX[j]
@@ -241,7 +241,7 @@ func RMrc(Room *ROOM) {
 
 	Room.CA = 0.0
 	for n := 0; n < N; n++ {
-		Sdn := &Room.rsrf[n]
+		Sdn := Room.rsrf[n]
 		Room.CA += Sdn.A * Sdn.alic * Sdn.WSC
 	}
 
@@ -267,28 +267,28 @@ func RMsrt(Room *ROOM) {
 	N := Room.N
 
 	for n := 0; n < N; n++ {
-		Sdn := &Room.rsrf[n]
+		Sdn := Room.rsrf[n]
 
 		Sdn.Ts = Sdn.WSR*Room.Tr + Sdn.WSC
 
 		for j := 0; j < Room.Ntr; j++ {
-			trn := &Room.trnx[j]
+			trn := Room.trnx[j]
 			Sdn.Ts += Sdn.WSRN[j] * trn.nextroom.Tr
 		}
 
 		for j := 0; j < Room.Nrp; j++ {
-			rmpnl := &Room.rmpnl[j]
+			rmpnl := Room.rmpnl[j]
 			Sdn.Ts += Sdn.WSPL[j] * rmpnl.pnl.Tpi
 		}
 	}
 
 	alr := Room.alr
 	for n := 0; n < N; n++ {
-		Sdn := &Room.rsrf[n]
+		Sdn := Room.rsrf[n]
 		Sdn.Tmrt = 0.0
 
 		for j := 0; j < N; j++ {
-			Sd := &Room.rsrf[j]
+			Sd := Room.rsrf[j]
 			if j != n {
 				Sdn.Tmrt += Sd.Ts * alr[n*N+j]
 			}
@@ -297,7 +297,7 @@ func RMsrt(Room *ROOM) {
 	}
 
 	for n := 0; n < N; n++ {
-		Sd := &Room.rsrf[n]
+		Sd := Room.rsrf[n]
 		Sd.Qc = Sd.alic * Sd.A * (Sd.Ts - Room.Tr)
 		Sd.Qr = Sd.alir * Sd.A * (Sd.Ts - Sd.Tmrt)
 		Sd.Qi = Sd.Qc + Sd.Qr - Sd.RS*Sd.A
@@ -307,9 +307,9 @@ func RMsrt(Room *ROOM) {
 /* ----------------------------------------------------- */
 
 // 重量壁（後退差分）の係数行列の作成
-func RMwlc(Nmwall int, Mw []MWALL, Exsfs *EXSFS, Wd *WDAT) {
+func RMwlc(Nmwall int, Mw []*MWALL, Exsfs *EXSFS, Wd *WDAT) {
 	for i := 0; i < Nmwall; i++ {
-		var Mw *MWALL = &Mw[i]
+		var Mw *MWALL = Mw[i]
 		var Wall *WALL = Mw.wall
 
 		var Sd *RMSRF = Mw.sd
@@ -339,9 +339,9 @@ func RMwlc(Nmwall int, Mw []MWALL, Exsfs *EXSFS, Wd *WDAT) {
 /* ----------------------------------------------------- */
 
 // 壁体内部温度の計算
-func RMwlt(Nmwall int, Mw []MWALL) {
+func RMwlt(Nmwall int, Mw []*MWALL) {
 	for i := 0; i < Nmwall; i++ {
-		Mw := &Mw[i]
+		Mw := Mw[i]
 		Sd := Mw.sd
 
 		// 壁体の反対側の表面温度 ?
@@ -386,9 +386,9 @@ func RMwlt(Nmwall int, Mw []MWALL) {
 }
 
 // 壁体内部温度の仮計算
-func RMwltd(Nmwall int, Mw []MWALL) {
+func RMwltd(Nmwall int, Mw []*MWALL) {
 	for i := 0; i < Nmwall; i++ {
-		var Mw *MWALL = &Mw[i]
+		var Mw *MWALL = Mw[i]
 		var Sd *RMSRF = Mw.sd
 		var nxsd *RMSRF = Sd.nxsd
 		var Room *ROOM = Sd.room
@@ -430,7 +430,7 @@ func RMwltd(Nmwall int, Mw []MWALL) {
 /* ------------------------------------------------------ */
 
 // 室内表面 Sd における平均表面温度の計算 (Room's Temperature of Surface - AVerage)
-func RTsav(N int, Sd []RMSRF) float64 {
+func RTsav(N int, Sd []*RMSRF) float64 {
 	var Tav, Aroom float64
 	for n := 0; n < N; n++ {
 		Tav += Sd[n].Ts * Sd[n].A

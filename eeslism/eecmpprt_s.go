@@ -9,7 +9,7 @@ import (
 
 var __Hcmpprint_id int
 
-func Hcmpprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time float64, Eqsys *EQSYS, Rdpnl []RDPNL) {
+func Hcmpprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time float64, Eqsys *EQSYS, Rdpnl []*RDPNL) {
 	var j int
 
 	if __Hcmpprint_id == 0 {

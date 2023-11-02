@@ -89,7 +89,7 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*C
 			c.Name = Room[i].Name
 			c.Eqptype = ROOM_TYPE
 			c.Neqp = i
-			c.Eqp = &Room[i]
+			c.Eqp = Room[i]
 			c.Nout = 2
 			c.Nin = 2*Room[i].Nachr + Room[i].Ntr + Room[i].Nrp
 			c.Nivar = 0
@@ -105,7 +105,7 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*C
 			c.Name = Rdpnl[i].Name
 			c.Eqptype = RDPANEL_TYPE
 			c.Neqp = i
-			c.Eqp = &Rdpnl[i]
+			c.Eqp = Rdpnl[i]
 			c.Nout = 2
 			c.Nin = 3 + Rdpnl[i].Ntrm[0] + Rdpnl[i].Ntrm[1] + Rdpnl[i].Nrp[0] + Rdpnl[i].Nrp[1] + 1
 			c.Nivar = 0
@@ -391,7 +391,10 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*C
 							N := room.Nasup
 							if N > 0 {
 								if room.Arsp == nil {
-									room.Arsp = make([]AIRSUP, N)
+									room.Arsp = make([]*AIRSUP, N)
+									for i := 0; i < N; i++ {
+										room.Arsp[i] = new(AIRSUP)
+									}
 								}
 							}
 
@@ -569,8 +572,8 @@ func FindCOMPNTByName(s string, Compnt []*COMPNT) *COMPNT {
 	return cp
 }
 
-func NewVALV() VALV {
-	return VALV{
+func NewVALV() *VALV {
+	return &VALV{
 		Name:     "",
 		Cmp:      nil,
 		Cmb:      nil,
@@ -589,8 +592,8 @@ func NewVALV() VALV {
 	}
 }
 
-func NewHCC() HCC {
-	return HCC{
+func NewHCC() *HCC {
+	return &HCC{
 		Name: "",
 		Cmp:  nil,
 		Cat:  nil,
@@ -599,8 +602,8 @@ func NewHCC() HCC {
 	}
 }
 
-func NewBOI() BOI {
-	Boi := BOI{
+func NewBOI() *BOI {
+	Boi := &BOI{
 		Name: "",
 		Cmp:  nil,
 		Cat:  nil,
@@ -612,8 +615,8 @@ func NewBOI() BOI {
 	return Boi
 }
 
-func NewCOLL() COLL {
-	return COLL{
+func NewCOLL() *COLL {
+	return &COLL{
 		Name: "",
 		Cmp:  nil,
 		Cat:  nil,
@@ -624,7 +627,7 @@ func NewCOLL() COLL {
 }
 
 func NewPV() *PV {
-	PV := PV{
+	PV := &PV{
 		PVcap: -999.,
 		Area:  -999.,
 		Name:  "",
@@ -636,11 +639,11 @@ func NewPV() *PV {
 		I:     nil,
 	}
 	MtEdayinit(&PV.mtEdy)
-	return &PV
+	return PV
 }
 
-func NewOMVAV() OMVAV {
-	OMvav := OMVAV{
+func NewOMVAV() *OMVAV {
+	OMvav := &OMVAV{
 		Name:   "",
 		Cmp:    nil,
 		Cat:    nil,
@@ -654,8 +657,8 @@ func NewOMVAV() OMVAV {
 	return OMvav
 }
 
-func NewREFA() REFA {
-	Rf := REFA{
+func NewREFA() *REFA {
+	Rf := &REFA{
 		Name: "",
 		Cmp:  nil,
 		Cat:  nil,
@@ -672,8 +675,8 @@ func NewREFA() REFA {
 	return Rf
 }
 
-func NewPIPE() PIPE {
-	return PIPE{
+func NewPIPE() *PIPE {
+	return &PIPE{
 		Name:  "",
 		Cmp:   nil,
 		Cat:   nil,
@@ -683,8 +686,8 @@ func NewPIPE() PIPE {
 	}
 }
 
-func NewSTANK() STANK {
-	return STANK{
+func NewSTANK() *STANK {
+	return &STANK{
 		Name:      "",
 		Cmp:       nil,
 		Cat:       nil,
@@ -718,8 +721,8 @@ func NewSTANK() STANK {
 	}
 }
 
-func NewHEX() HEX {
-	return HEX{
+func NewHEX() *HEX {
+	return &HEX{
 		Name: "",
 		Cmp:  nil,
 		Cat:  nil,
@@ -727,8 +730,8 @@ func NewHEX() HEX {
 	}
 }
 
-func NewPUMP() PUMP {
-	Pp := PUMP{
+func NewPUMP() *PUMP {
+	Pp := &PUMP{
 		Name: "",
 		Cmp:  nil,
 		Cat:  nil,
@@ -738,8 +741,8 @@ func NewPUMP() PUMP {
 	return Pp
 }
 
-func NewFLIN() FLIN {
-	return FLIN{
+func NewFLIN() *FLIN {
+	return &FLIN{
 		Name:  "",
 		Namet: "",
 		Namex: "",
@@ -749,8 +752,8 @@ func NewFLIN() FLIN {
 	}
 }
 
-func NewHCLOAD() HCLOAD {
-	Hl := HCLOAD{
+func NewHCLOAD() *HCLOAD {
+	Hl := &HCLOAD{
 		Name:    "",
 		Loadt:   nil,
 		Loadx:   nil,
@@ -764,8 +767,8 @@ func NewHCLOAD() HCLOAD {
 	return Hl
 }
 
-func NewVAV() VAV {
-	return VAV{
+func NewVAV() *VAV {
+	return &VAV{
 		Name: "",
 		Cat:  nil,
 		Hcc:  nil,
@@ -774,8 +777,8 @@ func NewVAV() VAV {
 	}
 }
 
-func NewSTHEAT() STHEAT {
-	st := STHEAT{
+func NewSTHEAT() *STHEAT {
+	st := &STHEAT{
 		Name: "",
 		Cat:  nil,
 		Cmp:  nil,
@@ -786,8 +789,8 @@ func NewSTHEAT() STHEAT {
 	return st
 }
 
-func NewDESI() DESI {
-	return DESI{
+func NewDESI() *DESI {
+	return &DESI{
 		Name: "",
 		Cat:  nil,
 		Cmp:  nil,
@@ -796,8 +799,8 @@ func NewDESI() DESI {
 	}
 }
 
-func NewEVAC() EVAC {
-	return EVAC{
+func NewEVAC() *EVAC {
+	return &EVAC{
 		Name:  "",
 		Cat:   nil,
 		Cmp:   nil,
@@ -818,8 +821,8 @@ func NewEVAC() EVAC {
 	}
 }
 
-func NewTHEX() THEX {
-	return THEX{
+func NewTHEX() *THEX {
+	return &THEX{
 		Name: "",
 		Cmp:  nil,
 		Cat:  nil,

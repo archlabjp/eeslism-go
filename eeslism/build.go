@@ -752,8 +752,8 @@ type QHELM struct {
 }
 
 type RMQELM struct {
-	rmsb   []RMSB
-	WSCwk  []BHELM
+	rmsb   []*RMSB
+	WSCwk  []*BHELM
 	qelm   QHELM
 	qelmdy QHELM
 }
@@ -770,8 +770,8 @@ const (
 type RMSB struct {
 	Type RMSBType // 'E':外気に接する面、'G':地面に接する面、'i':内壁
 	Ts   BHELM
-	Tw   []BHELM
-	Told []BHELM
+	Tw   []*BHELM
+	Told []*BHELM
 }
 
 type QETOTAL struct {
@@ -813,16 +813,16 @@ type ROOM struct {
 	Nisidermpnl int
 	Nasup       int
 
-	rsrf  []RMSRF  // 壁体
-	achr  []ACHIR  // 室間相互換気
-	trnx  []TRNX   // 隣室
-	rmpnl []RPANEL // 室についての輻射パネル
+	rsrf  []*RMSRF  // 壁体
+	achr  []*ACHIR  // 室間相互換気
+	trnx  []*TRNX   // 隣室
+	rmpnl []*RPANEL // 室についての輻射パネル
 	//rairflow []RAIRFLOW
-	Arsp      []AIRSUP // 室への冷温風供給熱量
-	cmp       *COMPNT  // 逆参照
-	elinasup  []*ELIN  // 流入経路(空気温度用) サイズは Nasup に等しい
-	elinasupx []*ELIN  // 流入経路(空気湿度用) サイズは Nasup に等しい
-	rmld      *RMLOAD  // 室負荷
+	Arsp      []*AIRSUP // 室への冷温風供給熱量
+	cmp       *COMPNT   // 逆参照
+	elinasup  []*ELIN   // 流入経路(空気温度用) サイズは Nasup に等しい
+	elinasupx []*ELIN   // 流入経路(空気湿度用) サイズは Nasup に等しい
+	rmld      *RMLOAD   // 室負荷
 	rmqe      *RMQELM
 
 	F     []float64
@@ -933,15 +933,15 @@ type RMVLS struct {
 	Nsrf       int
 	Npcm       int
 	Emrk       []rune
-	Wall       []WALL   // 壁
-	Window     []WINDOW // 窓
-	Snbk       []SNBK   // 日よけ
-	PCM        []PCM    // 潜熱蓄熱材
-	Sd         []RMSRF  // 壁体
-	Mw         []MWALL  // 重量壁体
-	Room       []ROOM   // 室
-	Rdpnl      []RDPNL  // 輻射パネル
-	Qrm, Qrmd  []QRM    // 日射、室内発熱熱取得
+	Wall       []*WALL   // 壁
+	Window     []*WINDOW // 窓
+	Snbk       []*SNBK   // 日よけ
+	PCM        []*PCM    // 潜熱蓄熱材
+	Sd         []*RMSRF  // 壁体
+	Mw         []*MWALL  // 重量壁体
+	Room       []*ROOM   // 室
+	Rdpnl      []*RDPNL  // 輻射パネル
+	Qrm, Qrmd  []*QRM    // 日射、室内発熱熱取得
 	Qetotal    QETOTAL
 	Trdav      []float64
 	Pcmiterate rune // PCM建材を使用し、かつ収束計算を行う場合は'y'

@@ -25,8 +25,8 @@ func Elmalloc(
 	var Stank *STANK
 	var Pump *PUMP
 	var Cnvrg []*COMPNT
-	var Flin []FLIN
-	var Hcload []HCLOAD
+	var Flin []*FLIN
+	var Hcload []*HCLOAD
 	var Stheat *STHEAT
 	// var Elout []*ELOUT
 	// var Elin []*ELIN
@@ -210,11 +210,11 @@ func Elmalloc(
 			Compnt.Elouts = append(Compnt.Elouts, Elout)
 			Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 		} else if c == HCCOIL_TYPE {
-			Hcc = &Eqsys.Hcc[neqp]
+			Hcc = Eqsys.Hcc[neqp]
 			Compnt.Eqp = Hcc
 			Hcc.Name = name
 			Hcc.Cmp = Compnt
-			Hcc.Cat = &Eqcat.Hccca[ncat]
+			Hcc.Cat = Eqcat.Hccca[ncat]
 
 			// 入口の数=出口の数
 			for i = 0; i < Compnt.Nout; i++ {
@@ -233,11 +233,11 @@ func Elmalloc(
 				Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 			}
 		} else if c == HEXCHANGR_TYPE {
-			Hex := &Eqsys.Hex[neqp]
+			Hex := Eqsys.Hex[neqp]
 			Compnt.Eqp = Hex
 			Hex.Name = name
 			Hex.Cmp = Compnt
-			Hex.Cat = &Eqcat.Hexca[ncat]
+			Hex.Cat = Eqcat.Hexca[ncat]
 
 			for i = 0; i < Compnt.Nout; i++ {
 				Elout := NewElout()
@@ -255,11 +255,11 @@ func Elmalloc(
 				Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 			}
 		} else if c == BOILER_TYPE {
-			Boi = &Eqsys.Boi[neqp]
+			Boi = Eqsys.Boi[neqp]
 			Compnt.Eqp = Boi
 			Boi.Name = name
 			Boi.Cmp = Compnt
-			Boi.Cat = &Eqcat.Boica[ncat]
+			Boi.Cat = Eqcat.Boica[ncat]
 
 			Elout := NewElout()
 			Elout.Cmp = Compnt
@@ -271,11 +271,11 @@ func Elmalloc(
 			Compnt.Elouts = append(Compnt.Elouts, Elout)
 			Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 		} else if c == COLLECTOR_TYPE || c == ACOLLECTOR_TYPE {
-			Coll = &Eqsys.Coll[neqp]
+			Coll = Eqsys.Coll[neqp]
 			Compnt.Eqp = Coll
 			Coll.Name = name
 			Coll.Cmp = Compnt
-			Coll.Cat = &Eqcat.Collca[ncat]
+			Coll.Cat = Eqcat.Collca[ncat]
 			Coll.Ac = Compnt.Ac
 
 			if Coll.Cat.Type == COLLECTOR_PDT {
@@ -311,15 +311,15 @@ func Elmalloc(
 			Compnt.Eqp = PV
 			PV.Name = name
 			PV.Cmp = Compnt
-			PV.Cat = &Eqcat.PVca[ncat]
+			PV.Cat = Eqcat.PVca[ncat]
 			PV.PVcap = Compnt.PVcap
 			PV.Area = Compnt.Area
 		} else if c == REFACOMP_TYPE {
-			Refa = &Eqsys.Refa[neqp]
+			Refa = Eqsys.Refa[neqp]
 			Compnt.Eqp = Refa
 			Refa.Name = name
 			Refa.Cmp = Compnt
-			Refa.Cat = &Eqcat.Refaca[ncat]
+			Refa.Cat = Eqcat.Refaca[ncat]
 
 			Elout := NewElout()
 			Elout.Cmp = Compnt
@@ -331,11 +331,11 @@ func Elmalloc(
 			Compnt.Elouts = append(Compnt.Elouts, Elout)
 			Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 		} else if c == PUMP_TYPE {
-			Pump = &Eqsys.Pump[neqp]
+			Pump = Eqsys.Pump[neqp]
 			Compnt.Eqp = Pump
 			Pump.Name = name
 			Pump.Cmp = Compnt
-			Pump.Cat = &Eqcat.Pumpca[ncat]
+			Pump.Cat = Eqcat.Pumpca[ncat]
 
 			if Pump.Cat.pftype == PUMP_PF {
 				Elout := NewElout()
@@ -364,11 +364,11 @@ func Elmalloc(
 				}
 			}
 		} else if c == PIPEDUCT_TYPE {
-			Pipe = &Eqsys.Pipe[neqp]
+			Pipe = Eqsys.Pipe[neqp]
 			Compnt.Eqp = Pipe
 			Pipe.Name = name
 			Pipe.Cmp = Compnt
-			Pipe.Cat = &Eqcat.Pipeca[ncat]
+			Pipe.Cat = Eqcat.Pipeca[ncat]
 
 			if Pipe.Cat.Type == PIPE_PDT {
 				Elout := NewElout()
@@ -399,11 +399,11 @@ func Elmalloc(
 				}
 			}
 		} else if c == STANK_TYPE {
-			Stank = &Eqsys.Stank[neqp]
+			Stank = Eqsys.Stank[neqp]
 			Compnt.Eqp = Stank
 			Stank.Name = name
 			Stank.Cmp = Compnt
-			Stank.Cat = &Eqcat.Stankca[ncat]
+			Stank.Cat = Eqcat.Stankca[ncat]
 
 			Stankmemloc("Stankmemloc", Stank)
 
@@ -435,11 +435,11 @@ func Elmalloc(
 			}
 		} else if c == FLIN_TYPE {
 			// 流入境界条件
-			Compnt.Eqp = &Flin[flinIdx]
+			Compnt.Eqp = Flin[flinIdx]
 			Flin[flinIdx].Cmp = Compnt
 			Flin[flinIdx].Name = name
 
-			flindat(&Flin[flinIdx])
+			flindat(Flin[flinIdx])
 
 			for i = 0; i < Compnt.Nout; i++ {
 				Elout := NewElout()
@@ -461,7 +461,7 @@ func Elmalloc(
 			c == RMACD_TYPE {
 			// 仮想空調機
 
-			Compnt.Eqp = &Hcload[hcloadIdx]
+			Compnt.Eqp = Hcload[hcloadIdx]
 			Hcload[hcloadIdx].Cmp = Compnt
 			Hcload[hcloadIdx].Name = name
 
@@ -470,12 +470,12 @@ func Elmalloc(
 				Hcload[hcloadIdx].RMACFlg = 'Y'
 
 				// エアコンの機器スペックを読み込む
-				rmacdat(&Hcload[hcloadIdx])
+				rmacdat(Hcload[hcloadIdx])
 			} else if c == RMACD_TYPE {
 				Hcload[hcloadIdx].RMACFlg = 'y'
 
 				// エアコンの機器スペックを読み込む
-				rmacddat(&Hcload[hcloadIdx])
+				rmacddat(Hcload[hcloadIdx])
 			}
 
 			/*---- Roh Debug for a constant outlet humidity model of wet coil  2003/4/25 ----*/
@@ -546,10 +546,10 @@ func Elmalloc(
 		} else if c == VAV_TYPE || c == VWV_TYPE {
 			/*---- Satoh Debug VAV  2000/12/5 ----*/
 
-			Compnt.Eqp = &Eqsys.Vav[neqp]
+			Compnt.Eqp = Eqsys.Vav[neqp]
 			Eqsys.Vav[neqp].Name = name
 			Eqsys.Vav[neqp].Cmp = Compnt
-			Eqsys.Vav[neqp].Cat = &Eqcat.Vavca[ncat]
+			Eqsys.Vav[neqp].Cat = Eqcat.Vavca[ncat]
 			Compnt.Nin = 2
 			Compnt.Nout = 2
 
@@ -585,11 +585,11 @@ func Elmalloc(
 		} else if c == STHEAT_TYPE {
 			// 電気蓄熱暖房器
 
-			Stheat = &Eqsys.Stheat[neqp]
+			Stheat = Eqsys.Stheat[neqp]
 			Compnt.Eqp = Stheat
 			Stheat.Name = name
 			Stheat.Cmp = Compnt
-			Stheat.Cat = &Eqcat.Stheatca[ncat]
+			Stheat.Cat = Eqcat.Stheatca[ncat]
 			Compnt.Airpathcpy = true
 			Compnt.Nin = 2
 			Compnt.Nout = 2
@@ -612,11 +612,11 @@ func Elmalloc(
 		} else if c == DESI_TYPE {
 			// Satoh追加　デシカント槽　2013/10/23
 
-			Desi = &Eqsys.Desi[neqp]
+			Desi = Eqsys.Desi[neqp]
 			Compnt.Eqp = Desi
 			Desi.Name = name
 			Desi.Cmp = Compnt
-			Desi.Cat = &Eqcat.Desica[ncat]
+			Desi.Cat = Eqcat.Desica[ncat]
 
 			// 絶対湿度経路のコピー
 			Compnt.Airpathcpy = true
@@ -640,11 +640,11 @@ func Elmalloc(
 		} else if c == EVAC_TYPE {
 			// Satoh追加　気化冷却器 2013/10/26
 
-			Evac = &Eqsys.Evac[neqp]
+			Evac = Eqsys.Evac[neqp]
 			Compnt.Eqp = Evac
 			Evac.Name = name
 			Evac.Cmp = Compnt
-			Evac.Cat = &Eqcat.Evacca[ncat]
+			Evac.Cat = Eqcat.Evacca[ncat]
 
 			// 機器の出入口数（Tdry, xdry, Twet, xwet）
 			Compnt.Nout = 4
@@ -673,7 +673,7 @@ func Elmalloc(
 				Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 			}
 		} else if c == VALV_TYPE || c == TVALV_TYPE {
-			Valv := &Eqsys.Valv[Nvalv]
+			Valv := Eqsys.Valv[Nvalv]
 			Compnt.Eqp = Valv
 			Valv.Name = name
 			Valv.Cmp = Compnt
@@ -686,11 +686,11 @@ func Elmalloc(
 		} else if c == OMVAV_TYPE {
 			// Satoh OMVAV  2010/12/16
 
-			OMvav := &Eqsys.OMvav[NOMvav]
+			OMvav := Eqsys.OMvav[NOMvav]
 			Compnt.Eqp = OMvav
 			OMvav.Name = name
 			OMvav.Cmp = Compnt
-			OMvav.Cat = &Eqcat.OMvavca[ncat]
+			OMvav.Cat = Eqcat.OMvavca[ncat]
 
 			if OMvav.Cmp.Omparm != "" {
 				OMvavControl(OMvav, cmp)
@@ -698,18 +698,18 @@ func Elmalloc(
 
 			NOMvav++
 		} else if c == QMEAS_TYPE {
-			Qmeas := &Eqsys.Qmeas[NQmeas]
+			Qmeas := Eqsys.Qmeas[NQmeas]
 			Compnt.Eqp = Qmeas
 			Qmeas.Name = name
 			Qmeas.Cmp = Compnt
 
 			NQmeas++
 		} else if c == THEX_TYPE {
-			Thex = &Eqsys.Thex[neqp]
+			Thex = Eqsys.Thex[neqp]
 			Compnt.Eqp = Thex
 			Thex.Name = name
 			Thex.Cmp = Compnt
-			Thex.Cat = &Eqcat.Thexca[ncat]
+			Thex.Cat = Eqcat.Thexca[ncat]
 			Compnt.Airpathcpy = true
 			Compnt.Nout = 4
 

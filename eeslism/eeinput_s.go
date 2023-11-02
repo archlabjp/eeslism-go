@@ -530,7 +530,7 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 	//----------------------------------------------------
 
 	for i := range Rmvls.Room {
-		Rm := &Rmvls.Room[i]
+		Rm := Rmvls.Room[i]
 		if Rm.sfpri {
 			Nrmspri++
 		}
@@ -540,7 +540,7 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 	}
 
 	for i := 0; i < Rmvls.Nsrf; i++ {
-		Sd := &Rmvls.Sd[i]
+		Sd := Rmvls.Sd[i]
 		if Sd.wlpri {
 			Nwalpri++
 		}
@@ -583,9 +583,9 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 
 		Simc.Nhelmsfpri = 0
 		for i := range Rmvls.Room {
-			Rm := &Rmvls.Room[i]
+			Rm := Rmvls.Room[i]
 			for j = 0; j < Rm.N; j++ {
-				Sdd := &Rm.rsrf[j]
+				Sdd := Rm.rsrf[j]
 				if Sdd.sfepri {
 					Simc.Nhelmsfpri++
 				}

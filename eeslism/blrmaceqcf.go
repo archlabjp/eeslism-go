@@ -21,10 +21,10 @@ import "fmt"
 
 var __Rmhtrcf_count int
 
-func Rmhtrcf(exs *EXSFS, emrk []rune, rooms []ROOM, sds []RMSRF, wd *WDAT) {
+func Rmhtrcf(exs *EXSFS, emrk []rune, rooms []*ROOM, sds []*RMSRF, wd *WDAT) {
 	if rooms != nil {
 		for i := range rooms {
-			room := &rooms[i]
+			room := rooms[i]
 			n := room.N
 			brs := room.Brs
 			sds := sds[brs : brs+n]
@@ -70,13 +70,13 @@ func Rmhtrcf(exs *EXSFS, emrk []rune, rooms []ROOM, sds []RMSRF, wd *WDAT) {
 
 /* ----------------------------------------------------------------- */
 
-func Rmrdshfc(_Room []ROOM, Sd []RMSRF) {
+func Rmrdshfc(_Room []*ROOM, Sd []*RMSRF) {
 	if len(_Room) == 0 {
 		return
 	}
 
 	for i := range _Room {
-		Room := &_Room[i]
+		Room := _Room[i]
 		brs := Room.Brs
 		sd := Sd[brs:]
 
@@ -85,16 +85,16 @@ func Rmrdshfc(_Room []ROOM, Sd []RMSRF) {
 }
 
 /* ----------------------------------------------------------------- */
-func Rmhtrsmcf(Nsrf int, _Sd []RMSRF) {
+func Rmhtrsmcf(Nsrf int, _Sd []*RMSRF) {
 	for n := 0; n < Nsrf; n++ {
-		Sd := &_Sd[n]
+		Sd := _Sd[n]
 		Sd.K = 1.0 / (Sd.Rwall + 1.0/Sd.ali + 1.0/Sd.alo)
 	}
 }
 
 /* ----------------------------------------------------------------- */
 // 透過日射、相当外気温度の計算
-func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []SNBK, Qrm []QRM, nday, mt int) {
+func Rmexct(Room []*ROOM, Nsrf int, Sd []*RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []*SNBK, Qrm []*QRM, nday, mt int) {
 	var n, nn int
 	var Fsdw float64
 	var Idre float64 // 直逹日射  [W/m2]
@@ -113,7 +113,7 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []SNB
 
 	// 部位ごとの日射吸収比率のスケジュール対応（比率入力部位の日射入射比率初期化）
 	for i := range Room {
-		rm = &Room[i]
+		rm = Room[i]
 
 		// 室内部位の日射吸収比率の計算
 		// 2017/12/25毎時計算へ変更
@@ -124,7 +124,7 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []SNB
 		}
 
 		for j := 0; j < rm.N; j++ {
-			rsd := &rm.rsrf[j]
+			rsd := rm.rsrf[j]
 
 			// 床の場合
 			if rsd.ble == BLE_Floor || rsd.ble == BLE_InnerFloor {
@@ -145,8 +145,8 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []SNB
 	// 室内部位の日射吸収比率の計算（毎計算ステップへ変更）2017/12/25
 	Rmrdshfc(Room, Sd)
 	for i := range Room {
-		Q := &Qrm[i]
-		rm := &Room[i]
+		Q := Qrm[i]
+		rm := Room[i]
 
 		rm.Qgt = 0.0
 		rm.Qsolm = 0.0
@@ -155,11 +155,11 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []SNB
 		Q.Solo = 0.0
 		Q.Solw = 0.0
 		Q.Asl = 0.0
-		Sdn = &Sd[rm.Brs]
+		Sdn = Sd[rm.Brs]
 
 		n := rm.Brs
 		for nn := 0; nn < rm.N; nn++ {
-			Sdn = &Sd[n]
+			Sdn = Sd[n]
 
 			if Sdn.ble == BLE_InnerWall || Sdn.ble == BLE_InnerFloor || Sdn.ble == BLE_Ceil {
 				continue
@@ -177,7 +177,7 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []SNB
 
 				sb := Sdn.sb
 				if sb >= 0 && e.Cinc > 0.0 {
-					S = &Snbk[sb]
+					S = Snbk[sb]
 
 					// 日よけの影面積率 [-]
 					Fsdw = FNFsdw(S.Type, S.Ksi, e.Tazm, e.Tprof, S.D, S.W, S.H, S.W1, S.H1, S.W2, S.H2)
@@ -279,7 +279,7 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []SNB
 
 		// 室内部位への入射日射の計算（吸収日射ではない）
 		for nn = 0; nn < rm.N; nn++ {
-			Sdn = &Sd[rm.Brs+nn]
+			Sdn = Sd[rm.Brs+nn]
 
 			// 室内部位への入射日射量の計算
 			Sdn.RSsold = rm.Qgt * Sdn.srg
@@ -288,12 +288,12 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []SNB
 
 	// 透過日射の室内部位の最終計算（隣接室への日射分配、透過日射のうちガラスから屋外に放熱される分も考慮）
 	for i := range Room {
-		rm := &Room[i]
+		rm := Room[i]
 
 		// 透過間仕切りなど、隣接空間への透過日射分配の計算
 		n = rm.Brs
 		for nn := 0; nn < rm.N; nn++ {
-			Sdn := &Sd[n]
+			Sdn := Sd[n]
 			if Sdn.tnxt > 0. && Sdn.RSsold > 0. {
 				Rmnxt := Room[Sdn.nxrm]
 				RSsol := Sdn.RSsold * Sdn.tnxt
@@ -317,13 +317,13 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []SNB
 	}
 
 	for i := range Room {
-		rm := &Room[i]
-		Q := &Qrm[i]
+		rm := Room[i]
+		Q := Qrm[i]
 
 		// 室内部位の短波長吸収量の計算
 		n = rm.Brs
 		for nn := 0; nn < rm.N; nn++ {
-			Sdn := &Sd[n]
+			Sdn := Sd[n]
 
 			Sdn.RS = (Sdn.RSsol*Sdn.A + rm.Hr*Sdn.srh + rm.Lr*Sdn.srl + rm.Ar*Sdn.sra + rm.Qeqp*Sdn.eqrd) / Sdn.A
 			Sdn.RSin = (rm.Hr*Sdn.srh + rm.Lr*Sdn.srl + rm.Ar*Sdn.sra + rm.Qeqp*Sdn.eqrd) / Sdn.A
@@ -335,7 +335,7 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []SNB
 		// 室の透過日射熱取得を再度積算（透明間仕切りによる隣接空間からの透過日射を考慮するため）
 		if rm.rsrnx {
 			for nn := 0; nn < rm.N; nn++ {
-				Sdn := &Sd[rm.Brs+n]
+				Sdn := Sd[rm.Brs+n]
 				if Sdn.ble == BLE_Ceil || Sdn.ble == BLE_InnerFloor {
 					if Sdn.nxn >= 0 {
 						Sdn.Te += Sd[Sdn.nxn].RS / Sdn.alo
@@ -357,7 +357,7 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []SNB
 	} // 室ループ
 
 	for n := 0; n < Nsrf; n++ {
-		Sdn := &Sd[n]
+		Sdn := Sd[n]
 
 		// 共用壁の場合
 		if Sdn.mwtype == RMSRFMwType_C {
@@ -370,16 +370,16 @@ func Rmexct(Room []ROOM, Nsrf int, Sd []RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []SNB
 /* ----------------------------------------------------------------- */
 
 // 室の係数、定数項の計算
-func Roomcf(nmwall int, mw []MWALL, rooms []ROOM, rdpnl []RDPNL, wd *WDAT, exsf *EXSFS) {
+func Roomcf(nmwall int, mw []*MWALL, rooms []*ROOM, rdpnl []*RDPNL, wd *WDAT, exsf *EXSFS) {
 	for _, rdpnl := range rdpnl {
-		panelwp(&rdpnl)
+		panelwp(rdpnl)
 	}
 
 	// 壁体係数行列の作成（壁体数RMSRF分だけループ）
 	RMwlc(nmwall, mw, exsf, wd)
 
 	for i := range rooms {
-		room := &rooms[i]
+		room := rooms[i]
 
 		RMcf(room)
 		RMrc(room) // 室の定数項の計算
@@ -394,14 +394,14 @@ func Roomcf(nmwall int, mw []MWALL, rooms []ROOM, rdpnl []RDPNL, wd *WDAT, exsf 
 	}
 
 	for _, rdpnl := range rdpnl {
-		Panelcf(&rdpnl)
-		rdpnl.EPC = Panelce(&rdpnl)
+		Panelcf(rdpnl)
+		rdpnl.EPC = Panelce(rdpnl)
 	}
 }
 
 /* ----------------------------------------------------------------- */
 // 前時刻の室温の入れ替え、OT、MRTの計算
-func Rmsurft(rooms []ROOM, sd []RMSRF) {
+func Rmsurft(rooms []*ROOM, sd []*RMSRF) {
 	if rooms == nil {
 		return
 	}
@@ -417,7 +417,7 @@ func Rmsurft(rooms []ROOM, sd []RMSRF) {
 	}
 
 	for i := range rooms {
-		room := &rooms[i]
+		room := rooms[i]
 		n := room.N
 		brs := room.Brs
 		sdr := sd[brs:]
@@ -460,14 +460,14 @@ func Rmsurft(rooms []ROOM, sd []RMSRF) {
 
 /* ----------------------------------------------------------------- */
 // PCM収束計算過程における部位表面温度の計算
-func Rmsurftd(_Room []ROOM, Sd []RMSRF) {
+func Rmsurftd(_Room []*ROOM, Sd []*RMSRF) {
 	var r float64
 
 	if _Room == nil {
 		return
 	}
 
-	Room := &_Room[0]
+	Room := _Room[0]
 
 	if Room.OTsetCwgt == nil || *(Room.OTsetCwgt) < 0.0 || *(Room.OTsetCwgt) > 1.0 {
 		r = 0.5
@@ -476,7 +476,7 @@ func Rmsurftd(_Room []ROOM, Sd []RMSRF) {
 	}
 
 	for i := range _Room {
-		Room := &_Room[i]
+		Room := _Room[i]
 
 		N := Room.N
 		brs := Room.Brs
@@ -493,10 +493,10 @@ func Rmsurftd(_Room []ROOM, Sd []RMSRF) {
 /*--------------------------------------------------------------------------------------------*/
 
 // 室の熱取得要素の計算
-func Qrmsim(Room []ROOM, Wd *WDAT, Qrm []QRM) {
+func Qrmsim(Room []*ROOM, Wd *WDAT, Qrm []*QRM) {
 	for i := range Room {
-		Q := &Qrm[i]
-		rm := &Room[i]
+		Q := Qrm[i]
+		rm := Room[i]
 
 		// 人体・照明・機器の顕熱 [W]
 		Q.Hums = rm.Hc + rm.Hr

@@ -60,27 +60,27 @@ func Pipedata(cattype string, s string, Pipeca *PIPECA) int {
 
 /*  管長・ダクト長、周囲温度設定 */
 
-func Pipeint(Pipe []PIPE, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT) {
-	for i := range Pipe {
-		if Pipe[i].Cmp.Ivparm != nil {
-			Pipe[i].L = *Pipe[i].Cmp.Ivparm
+func Pipeint(Pipe []*PIPE, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT) {
+	for _, pipe := range Pipe {
+		if pipe.Cmp.Ivparm != nil {
+			pipe.L = *pipe.Cmp.Ivparm
 		} else {
-			Pipe[i].L = -999.0
+			pipe.L = -999.0
 		}
 
-		if Pipe[i].Cmp.Envname != "" {
-			Pipe[i].Tenv = envptr(Pipe[i].Cmp.Envname, Simc, Compnt, Wd, nil)
+		if pipe.Cmp.Envname != "" {
+			pipe.Tenv = envptr(pipe.Cmp.Envname, Simc, Compnt, Wd, nil)
 		} else {
-			Pipe[i].Room = roomptr(Pipe[i].Cmp.Roomname, Compnt)
+			pipe.Room = roomptr(pipe.Cmp.Roomname, Compnt)
 		}
 
-		if Pipe[i].Cat.Ko < 0.0 {
-			Err := fmt.Sprintf("Name=%s  Ko=%.4g", Pipe[i].Cmp.Name, Pipe[i].Cat.Ko)
+		if pipe.Cat.Ko < 0.0 {
+			Err := fmt.Sprintf("Name=%s  Ko=%.4g", pipe.Cmp.Name, pipe.Cat.Ko)
 			Eprint("Pipeint", Err)
 		}
 
-		if Pipe[i].L < 0.0 {
-			Err := fmt.Sprintf("Name=%s  L=%.4g", Pipe[i].Cmp.Name, Pipe[i].L)
+		if pipe.L < 0.0 {
+			Err := fmt.Sprintf("Name=%s  L=%.4g", pipe.Cmp.Name, pipe.L)
 			Eprint("Pipeint", Err)
 		}
 	}
@@ -95,31 +95,31 @@ func Pipeint(Pipe []PIPE, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT) {
 //             | PIPE |
 // [IN 2] ---> +------+ ---> [OUT 2] 湿度 (DUCT_PDTのみ)
 //
-func Pipecfv(Pipe []PIPE) {
-	for i := range Pipe {
+func Pipecfv(Pipe []*PIPE) {
+	for _, pipe := range Pipe {
 		Te := 0.0
-		if Pipe[i].Cmp.Control != OFF_SW {
-			if Pipe[i].Cmp.Envname != "" {
-				Te = *Pipe[i].Tenv
-			} else if Pipe[i].Room != nil {
-				Te = Pipe[i].Room.Tot
+		if pipe.Cmp.Control != OFF_SW {
+			if pipe.Cmp.Envname != "" {
+				Te = *pipe.Tenv
+			} else if pipe.Room != nil {
+				Te = pipe.Room.Tot
 			} else {
-				Err := fmt.Sprintf("Undefined Pipe Environment  name=%s", Pipe[i].Name)
+				Err := fmt.Sprintf("Undefined Pipe Environment  name=%s", pipe.Name)
 				Eprint("<Pipecfv>", Err)
 			}
-			Pipe[i].Ko = Pipe[i].Cat.Ko
+			pipe.Ko = pipe.Cat.Ko
 
-			Eo1 := Pipe[i].Cmp.Elouts[0]
+			Eo1 := pipe.Cmp.Elouts[0]
 			cG := Spcheat(Eo1.Fluid) * Eo1.G
-			Pipe[i].Ep = 1.0 - math.Exp(-(Pipe[i].Ko*Pipe[i].L)/cG)
-			Pipe[i].D1 = cG * Pipe[i].Ep
-			Pipe[i].Do = Pipe[i].D1 * Te
+			pipe.Ep = 1.0 - math.Exp(-(pipe.Ko*pipe.L)/cG)
+			pipe.D1 = cG * pipe.Ep
+			pipe.Do = pipe.D1 * Te
 			Eo1.Coeffo = cG
-			Eo1.Co = Pipe[i].Do
-			Eo1.Coeffin[0] = Pipe[i].D1 - cG
+			Eo1.Co = pipe.Do
+			Eo1.Coeffin[0] = pipe.D1 - cG
 
-			if Pipe[i].Cat.Type == DUCT_PDT {
-				Eo2 := Pipe[i].Cmp.Elouts[1]
+			if pipe.Cat.Type == DUCT_PDT {
+				Eo2 := pipe.Cmp.Elouts[1]
 				Eo2.Coeffo = 1.0
 				Eo2.Co = 0.0
 				Eo2.Coeffin[0] = -1.0
@@ -132,29 +132,29 @@ func Pipecfv(Pipe []PIPE) {
 
 /* 取得熱量の計算 */
 
-func Pipeene(Pipe []PIPE) {
-	for i := range Pipe {
-		Pipe[i].Tin = Pipe[i].Cmp.Elins[0].Sysvin
+func Pipeene(Pipe []*PIPE) {
+	for _, pipe := range Pipe {
+		pipe.Tin = pipe.Cmp.Elins[0].Sysvin
 
-		if Pipe[i].Cmp.Control != OFF_SW {
-			Eo := Pipe[i].Cmp.Elouts[0]
-			Pipe[i].Tout = Pipe[i].Do
-			Pipe[i].Q = Pipe[i].Do - Pipe[i].D1*Pipe[i].Tin
+		if pipe.Cmp.Control != OFF_SW {
+			Eo := pipe.Cmp.Elouts[0]
+			pipe.Tout = pipe.Do
+			pipe.Q = pipe.Do - pipe.D1*pipe.Tin
 
-			if Pipe[i].Room != nil {
-				Pipe[i].Room.Qeqp += (-Pipe[i].Q)
+			if pipe.Room != nil {
+				pipe.Room.Qeqp += (-pipe.Q)
 			}
 
-			if Pipe[i].Cat.Type == DUCT_PDT {
-				Eo = Pipe[i].Cmp.Elouts[1]
-				Pipe[i].Xout = Eo.Sysv
-				Pipe[i].RHout = FNRhtx(Pipe[i].Tout, Pipe[i].Xout)
-				Pipe[i].Hout = FNH(Pipe[i].Tout, Eo.Sysv)
+			if pipe.Cat.Type == DUCT_PDT {
+				Eo = pipe.Cmp.Elouts[1]
+				pipe.Xout = Eo.Sysv
+				pipe.RHout = FNRhtx(pipe.Tout, pipe.Xout)
+				pipe.Hout = FNH(pipe.Tout, Eo.Sysv)
 			} else {
-				Pipe[i].Hout = -999.0
+				pipe.Hout = -999.0
 			}
 		} else {
-			Pipe[i].Q = 0.0
+			pipe.Q = 0.0
 		}
 	}
 }
@@ -219,25 +219,25 @@ func pipeldsschd(Pipe *PIPE) {
 
 /* --------------------------- */
 
-func pipeprint(fo io.Writer, id int, Pipe []PIPE) {
+func pipeprint(fo io.Writer, id int, Pipe []*PIPE) {
 	switch id {
 	case 0:
 		if len(Pipe) > 0 {
 			fmt.Fprintf(fo, "%s %d\n", PIPEDUCT_TYPE, len(Pipe))
 		}
-		for i := range Pipe {
-			fmt.Fprintf(fo, " %s 1 5\n", Pipe[i].Name)
+		for _, pipe := range Pipe {
+			fmt.Fprintf(fo, " %s 1 5\n", pipe.Name)
 		}
 	case 1:
-		for i := range Pipe {
+		for _, pipe := range Pipe {
 			fmt.Fprintf(fo, "%s_c c c %s_G m f %s_Ti t f %s_To t f %s_Q q f\n",
-				Pipe[i].Name, Pipe[i].Name, Pipe[i].Name, Pipe[i].Name, Pipe[i].Name)
+				pipe.Name, pipe.Name, pipe.Name, pipe.Name, pipe.Name)
 		}
 	default:
-		for i := range Pipe {
+		for _, pipe := range Pipe {
 			fmt.Fprintf(fo, "%c %6.4g %4.1f %4.1f %.2f\n",
-				Pipe[i].Cmp.Elouts[0].Control, Pipe[i].Cmp.Elouts[0].G,
-				Pipe[i].Tin, Pipe[i].Cmp.Elouts[0].Sysv, Pipe[i].Q)
+				pipe.Cmp.Elouts[0].Control, pipe.Cmp.Elouts[0].G,
+				pipe.Tin, pipe.Cmp.Elouts[0].Sysv, pipe.Q)
 		}
 	}
 }
@@ -246,90 +246,90 @@ func pipeprint(fo io.Writer, id int, Pipe []PIPE) {
 
 /* 日積算値に関する処理 */
 
-func pipedyint(Pipe []PIPE) {
-	for i := range Pipe {
-		svdyint(&Pipe[i].Tidy)
-		qdyint(&Pipe[i].Qdy)
+func pipedyint(Pipe []*PIPE) {
+	for _, pipe := range Pipe {
+		svdyint(&pipe.Tidy)
+		qdyint(&pipe.Qdy)
 	}
 }
 
-func pipemonint(Pipe []PIPE) {
-	for i := range Pipe {
-		svdyint(&Pipe[i].MTidy)
-		qdyint(&Pipe[i].MQdy)
+func pipemonint(Pipe []*PIPE) {
+	for _, pipe := range Pipe {
+		svdyint(&pipe.MTidy)
+		qdyint(&pipe.MQdy)
 	}
 }
 
-func pipeday(Mon int, Day int, ttmm int, Pipe []PIPE, Nday int, SimDayend int) {
-	for i := range Pipe {
+func pipeday(Mon int, Day int, ttmm int, Pipe []*PIPE, Nday int, SimDayend int) {
+	for _, pipe := range Pipe {
 		// 日集計
-		svdaysum(int64(ttmm), Pipe[i].Cmp.Elouts[0].Control, Pipe[i].Tin, &Pipe[i].Tidy)
-		qdaysum(int64(ttmm), Pipe[i].Cmp.Elouts[0].Control, Pipe[i].Q, &Pipe[i].Qdy)
+		svdaysum(int64(ttmm), pipe.Cmp.Elouts[0].Control, pipe.Tin, &pipe.Tidy)
+		qdaysum(int64(ttmm), pipe.Cmp.Elouts[0].Control, pipe.Q, &pipe.Qdy)
 
 		// 月集計
-		svmonsum(Mon, Day, ttmm, Pipe[i].Cmp.Elouts[0].Control, Pipe[i].Tin, &Pipe[i].MTidy, Nday, SimDayend)
-		qmonsum(Mon, Day, ttmm, Pipe[i].Cmp.Elouts[0].Control, Pipe[i].Q, &Pipe[i].MQdy, Nday, SimDayend)
+		svmonsum(Mon, Day, ttmm, pipe.Cmp.Elouts[0].Control, pipe.Tin, &pipe.MTidy, Nday, SimDayend)
+		qmonsum(Mon, Day, ttmm, pipe.Cmp.Elouts[0].Control, pipe.Q, &pipe.MQdy, Nday, SimDayend)
 	}
 }
 
-func pipedyprt(fo io.Writer, id int, Pipe []PIPE) {
+func pipedyprt(fo io.Writer, id int, Pipe []*PIPE) {
 	switch id {
 	case 0:
 		if len(Pipe) > 0 {
 			fmt.Fprintf(fo, "%s %d\n", PIPEDUCT_TYPE, len(Pipe))
 		}
-		for i := range Pipe {
-			fmt.Fprintf(fo, " %s 1 14\n", Pipe[i].Name)
+		for _, pipe := range Pipe {
+			fmt.Fprintf(fo, " %s 1 14\n", pipe.Name)
 		}
 
 	case 1:
-		for i := range Pipe {
-			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", Pipe[i].Name, Pipe[i].Name)
-			fmt.Fprintf(fo, "%s_ttn h d %s_Tn t f %s_ttm h d %s_Tm t f\n", Pipe[i].Name, Pipe[i].Name, Pipe[i].Name, Pipe[i].Name)
-			fmt.Fprintf(fo, "%s_Hh H d %s_Qh Q f %s_Hc H d %s_Qc Q f\n", Pipe[i].Name, Pipe[i].Name, Pipe[i].Name, Pipe[i].Name)
-			fmt.Fprintf(fo, "%s_th h d %s_qh q f %s_tc h d %s_qc q f\n\n", Pipe[i].Name, Pipe[i].Name, Pipe[i].Name, Pipe[i].Name)
+		for _, pipe := range Pipe {
+			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", pipe.Name, pipe.Name)
+			fmt.Fprintf(fo, "%s_ttn h d %s_Tn t f %s_ttm h d %s_Tm t f\n", pipe.Name, pipe.Name, pipe.Name, pipe.Name)
+			fmt.Fprintf(fo, "%s_Hh H d %s_Qh Q f %s_Hc H d %s_Qc Q f\n", pipe.Name, pipe.Name, pipe.Name, pipe.Name)
+			fmt.Fprintf(fo, "%s_th h d %s_qh q f %s_tc h d %s_qc q f\n\n", pipe.Name, pipe.Name, pipe.Name, pipe.Name)
 		}
 
 	default:
-		for i := range Pipe {
+		for _, pipe := range Pipe {
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
-				Pipe[i].Tidy.Hrs, Pipe[i].Tidy.M, Pipe[i].Tidy.Mntime,
-				Pipe[i].Tidy.Mn, Pipe[i].Tidy.Mxtime, Pipe[i].Tidy.Mx)
-			fmt.Fprintf(fo, "%1d %3.1f ", Pipe[i].Qdy.Hhr, Pipe[i].Qdy.H)
-			fmt.Fprintf(fo, "%1d %3.1f ", Pipe[i].Qdy.Chr, Pipe[i].Qdy.C)
-			fmt.Fprintf(fo, "%1d %2.0f ", Pipe[i].Qdy.Hmxtime, Pipe[i].Qdy.Hmx)
-			fmt.Fprintf(fo, "%1d %2.0f\n", Pipe[i].Qdy.Cmxtime, Pipe[i].Qdy.Cmx)
+				pipe.Tidy.Hrs, pipe.Tidy.M, pipe.Tidy.Mntime,
+				pipe.Tidy.Mn, pipe.Tidy.Mxtime, pipe.Tidy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", pipe.Qdy.Hhr, pipe.Qdy.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", pipe.Qdy.Chr, pipe.Qdy.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", pipe.Qdy.Hmxtime, pipe.Qdy.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f\n", pipe.Qdy.Cmxtime, pipe.Qdy.Cmx)
 		}
 	}
 }
 
-func pipemonprt(fo io.Writer, id int, Pipe []PIPE) {
+func pipemonprt(fo io.Writer, id int, Pipe []*PIPE) {
 	switch id {
 	case 0:
 		if len(Pipe) > 0 {
 			fmt.Fprintf(fo, "%s %d\n", PIPEDUCT_TYPE, len(Pipe))
 		}
-		for i := range Pipe {
-			fmt.Fprintf(fo, " %s 1 14\n", Pipe[i].Name)
+		for _, pipe := range Pipe {
+			fmt.Fprintf(fo, " %s 1 14\n", pipe.Name)
 		}
 
 	case 1:
-		for i := range Pipe {
-			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", Pipe[i].Name, Pipe[i].Name)
-			fmt.Fprintf(fo, "%s_ttn h d %s_Tn t f %s_ttm h d %s_Tm t f\n", Pipe[i].Name, Pipe[i].Name, Pipe[i].Name, Pipe[i].Name)
-			fmt.Fprintf(fo, "%s_Hh H d %s_Qh Q f %s_Hc H d %s_Qc Q f\n", Pipe[i].Name, Pipe[i].Name, Pipe[i].Name, Pipe[i].Name)
-			fmt.Fprintf(fo, "%s_th h d %s_qh q f %s_tc h d %s_qc q f\n\n", Pipe[i].Name, Pipe[i].Name, Pipe[i].Name, Pipe[i].Name)
+		for _, pipe := range Pipe {
+			fmt.Fprintf(fo, "%s_Ht H d %s_T T f ", pipe.Name, pipe.Name)
+			fmt.Fprintf(fo, "%s_ttn h d %s_Tn t f %s_ttm h d %s_Tm t f\n", pipe.Name, pipe.Name, pipe.Name, pipe.Name)
+			fmt.Fprintf(fo, "%s_Hh H d %s_Qh Q f %s_Hc H d %s_Qc Q f\n", pipe.Name, pipe.Name, pipe.Name, pipe.Name)
+			fmt.Fprintf(fo, "%s_th h d %s_qh q f %s_tc h d %s_qc q f\n\n", pipe.Name, pipe.Name, pipe.Name, pipe.Name)
 		}
 
 	default:
-		for i := range Pipe {
+		for _, pipe := range Pipe {
 			fmt.Fprintf(fo, "%1d %3.1f %1d %3.1f %1d %3.1f ",
-				Pipe[i].MTidy.Hrs, Pipe[i].MTidy.M, Pipe[i].MTidy.Mntime,
-				Pipe[i].MTidy.Mn, Pipe[i].MTidy.Mxtime, Pipe[i].MTidy.Mx)
-			fmt.Fprintf(fo, "%1d %3.1f ", Pipe[i].MQdy.Hhr, Pipe[i].MQdy.H)
-			fmt.Fprintf(fo, "%1d %3.1f ", Pipe[i].MQdy.Chr, Pipe[i].MQdy.C)
-			fmt.Fprintf(fo, "%1d %2.0f ", Pipe[i].MQdy.Hmxtime, Pipe[i].MQdy.Hmx)
-			fmt.Fprintf(fo, "%1d %2.0f\n", Pipe[i].MQdy.Cmxtime, Pipe[i].MQdy.Cmx)
+				pipe.MTidy.Hrs, pipe.MTidy.M, pipe.MTidy.Mntime,
+				pipe.MTidy.Mn, pipe.MTidy.Mxtime, pipe.MTidy.Mx)
+			fmt.Fprintf(fo, "%1d %3.1f ", pipe.MQdy.Hhr, pipe.MQdy.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", pipe.MQdy.Chr, pipe.MQdy.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", pipe.MQdy.Hmxtime, pipe.MQdy.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f\n", pipe.MQdy.Cmxtime, pipe.MQdy.Cmx)
 		}
 	}
 }

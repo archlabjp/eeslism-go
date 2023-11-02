@@ -49,7 +49,7 @@ func roomvptr(Nk int, key []string, Room *ROOM) (VPTR, error) {
 		}
 	} else if Nk == 3 {
 		for i := 0; i < Room.N; i++ {
-			Sd := &Room.rsrf[i]
+			Sd := Room.rsrf[i]
 			if string(key[1]) == Sd.Name {
 				switch string(key[2]) {
 				case "Ts":
@@ -116,7 +116,7 @@ func roomldptr(load *ControlSWType, key []string, Room *ROOM, idmrk *byte) (VPTR
 	} else if len(key) > 2 && key[2] == "Ts" {
 
 		for i = 0; i < Room.N; i++ {
-			Sd = &Room.rsrf[i]
+			Sd = Room.rsrf[i]
 
 			if Sd.Name == key[1] {
 				vptr.Ptr = &Sd.Ts

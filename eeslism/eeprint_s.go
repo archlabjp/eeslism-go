@@ -152,7 +152,7 @@ func Eeprintm(daytm *DAYTM, simc *SIMCONTL, flout []*FLOUT, rmvls *RMVLS, exs []
 /* ----------------------------------------------------------- */
 /*  月－時刻集計値出力  */
 
-func Eeprintmt(simc *SIMCONTL, flout []*FLOUT, eqsys *EQSYS, rdpnl []RDPNL) {
+func Eeprintmt(simc *SIMCONTL, flout []*FLOUT, eqsys *EQSYS, rdpnl []*RDPNL) {
 	for _, flo := range flout {
 		if flo.Idn == PRTMTCOMP {
 			Compomtprt(flo.F, string(PRTMNCOMP), simc, eqsys, rdpnl)

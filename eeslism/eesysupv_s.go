@@ -113,9 +113,9 @@ func Sysupv(Mpath []*MPATH, Rmvls *RMVLS) {
 		/* 放射パネル設置室についてのパネル上流要素 */
 
 		for i := range Rmvls.Room {
-			room := &Rmvls.Room[i]
+			room := Rmvls.Room[i]
 			for j := 0; j < room.Nrp; j++ {
-				rmpnl := &room.rmpnl[j]
+				rmpnl := room.rmpnl[j]
 				elin := room.cmp.Elins[room.Nachr+room.Ntr+j]
 				elp := rmpnl.pnl.cmp.Elins[0]
 				elin.Upv = elp.Upv
@@ -123,11 +123,11 @@ func Sysupv(Mpath []*MPATH, Rmvls *RMVLS) {
 		}
 
 		for i := 0; i < Nrdpnl; i++ {
-			Rdpnl = &Rmvls.Rdpnl[i]
+			Rdpnl = Rmvls.Rdpnl[i]
 
 			for j := 0; j < Rdpnl.MC; j++ {
 				rm := Rdpnl.rm[j]
-				rmpnl := &rm.rmpnl[j]
+				rmpnl := rm.rmpnl[j]
 				elin := Rdpnl.cmp.Elins[Rdpnl.elinpnl[j]]
 				for jj := 0; jj < Rdpnl.Nrp[j]; jj++ {
 					elin.Upv = rmpnl.pnl.cmp.Elins[0].Upv

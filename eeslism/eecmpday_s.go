@@ -85,7 +85,7 @@ func Compoday(Mon, Day, Nday, ttmm int, Eqsys *EQSYS, SimDayend int) {
 
 var __Compodyprt_id int
 
-func Compodyprt(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Eqsys *EQSYS, Rdpnl []RDPNL) {
+func Compodyprt(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Eqsys *EQSYS, Rdpnl []*RDPNL) {
 	if __Compodyprt_id == 0 {
 		ttldyprint(fo, mrk, Simc)
 
@@ -144,7 +144,7 @@ func Compodyprt(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Eqsys *E
 
 var __Compomonprt_id int
 
-func Compomonprt(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Eqsys *EQSYS, Rdpnl []RDPNL) {
+func Compomonprt(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Eqsys *EQSYS, Rdpnl []*RDPNL) {
 	if __Compomonprt_id == 0 {
 		ttldyprint(fo, mrk, Simc)
 
@@ -200,7 +200,7 @@ func Compomonprt(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Eqsys *
 
 var __Compomtprt_id int = 0
 
-func Compomtprt(fo io.Writer, mrk string, Simc *SIMCONTL, Eqsys *EQSYS, Rdpnl []RDPNL) {
+func Compomtprt(fo io.Writer, mrk string, Simc *SIMCONTL, Eqsys *EQSYS, Rdpnl []*RDPNL) {
 	if __Compomtprt_id == 0 {
 		ttlmtprint(fo, mrk, Simc)
 

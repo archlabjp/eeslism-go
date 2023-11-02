@@ -24,8 +24,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 	C.Idi = nil
 	C.Ido = nil
 
-	for i := range Ecat.Hccca {
-		Hccca := &Ecat.Hccca[i]
+	for i, Hccca := range Ecat.Hccca {
 		if catname == Hccca.name {
 			C.Eqptype = HCCOIL_TYPE
 			C.Ncat = i
@@ -40,8 +39,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		}
 	}
 
-	for i := range Ecat.Boica {
-		Boica := &Ecat.Boica[i]
+	for i, Boica := range Ecat.Boica {
 		if catname == Boica.name {
 			C.Eqptype = BOILER_TYPE
 			C.Ncat = i
@@ -53,8 +51,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		}
 	}
 
-	for i := range Ecat.Collca {
-		Collca := &Ecat.Collca[i]
+	for i, Collca := range Ecat.Collca {
 		if catname == Collca.name {
 			C.Eqptype = COLLECTOR_TYPE
 			C.Ncat = i
@@ -74,8 +71,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		}
 	}
 
-	for i := range Ecat.PVca {
-		PVca := &Ecat.PVca[i]
+	for i, PVca := range Ecat.PVca {
 		if catname == PVca.Name {
 			C.Eqptype = PV_TYPE
 			C.Ncat = i
@@ -90,8 +86,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		}
 	}
 
-	for i := range Ecat.Refaca {
-		Refaca := &Ecat.Refaca[i]
+	for i, Refaca := range Ecat.Refaca {
 		if catname == Refaca.name {
 			C.Eqptype = REFACOMP_TYPE
 			C.Ncat = i
@@ -103,8 +98,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		}
 	}
 
-	for i := range Ecat.Pipeca {
-		Pipeca := &Ecat.Pipeca[i]
+	for i, Pipeca := range Ecat.Pipeca {
 		if catname == Pipeca.name {
 			C.Eqptype = PIPEDUCT_TYPE
 			C.Ncat = i
@@ -124,8 +118,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		}
 	}
 
-	for i := range Ecat.Stankca {
-		Stankca := &Ecat.Stankca[i]
+	for i, Stankca := range Ecat.Stankca {
 		if catname == Stankca.name {
 			C.Eqptype = STANK_TYPE
 			C.Ncat = i
@@ -136,8 +129,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		}
 	}
 
-	for i := range Ecat.Hexca {
-		Hexca := &Ecat.Hexca[i]
+	for i, Hexca := range Ecat.Hexca {
 		if catname == Hexca.Name {
 			C.Eqptype = HEXCHANGR_TYPE
 			C.Ncat = i
@@ -153,8 +145,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		}
 	}
 
-	for i := range Ecat.Pumpca {
-		Pumpca := &Ecat.Pumpca[i]
+	for i, Pumpca := range Ecat.Pumpca {
 		if catname == Pumpca.name {
 			C.Eqptype = PUMP_TYPE
 			C.Ncat = i
@@ -175,8 +166,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 	}
 
 	/*---- Satoh Debug VAV  2000/12/5 ----*/
-	for i := range Ecat.Vavca {
-		Vavca := &Ecat.Vavca[i]
+	for i, Vavca := range Ecat.Vavca {
 		if catname == Vavca.Name {
 			if Vavca.Type == VAV_PDT {
 				C.Eqptype = VAV_TYPE
@@ -203,8 +193,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 	}
 
 	// Satoh OMVAV  2010/12/16
-	for i := range Ecat.OMvavca {
-		OMvavca := &Ecat.OMvavca[i]
+	for i, OMvavca := range Ecat.OMvavca {
 		if catname == OMvavca.Name {
 			C.Eqptype = OMVAV_TYPE
 			C.Ncat = i
@@ -217,8 +206,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		}
 	}
 
-	for i := range Ecat.Stheatca {
-		Stheatca := &Ecat.Stheatca[i]
+	for i, Stheatca := range Ecat.Stheatca {
 		if catname == Stheatca.Name {
 			C.Eqptype = STHEAT_TYPE
 			C.Ncat = i
@@ -236,8 +224,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 	}
 
 	// Satoh追加　デシカント槽　2013/10/23
-	for i := range Ecat.Desica {
-		Desica := &Ecat.Desica[i]
+	for i, Desica := range Ecat.Desica {
 		if catname == Desica.name {
 			C.Eqptype = DESI_TYPE
 			C.Ncat = i
@@ -254,8 +241,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 	}
 
 	// Satoh追加　気化冷却器　2013/10/27
-	for i := range Ecat.Evacca {
-		Evcaca := &Ecat.Evacca[i]
+	for i, Evcaca := range Ecat.Evacca {
 		if catname == Evcaca.Name {
 			C.Eqptype = EVAC_TYPE
 			C.Ncat = i
@@ -271,8 +257,7 @@ func eqpcat(catname string, C *COMPNT, Ecat *EQCAT, Esys *EQSYS) bool {
 		}
 	}
 
-	for i := range Ecat.Thexca {
-		Thexca := &Ecat.Thexca[i]
+	for i, Thexca := range Ecat.Thexca {
 		if catname == Thexca.Name {
 			C.Eqptype = THEX_TYPE
 			C.Ncat = i

@@ -68,9 +68,8 @@ func VAVdata(cattype EqpType, s string, vavca *VAVCA) int {
 	return id
 }
 
-func VWVint(VAVs []VAV, Compn []*COMPNT) {
-	for i := range VAVs {
-		vav := &VAVs[i]
+func VWVint(VAVs []*VAV, Compn []*COMPNT) {
+	for _, vav := range VAVs {
 		vav.Hcc = nil
 		vav.Hcld = nil
 		vav.Mon = '-'
@@ -106,9 +105,8 @@ func VWVint(VAVs []VAV, Compn []*COMPNT) {
 ///  | VAV |
 //   +-----+ ---> [OUT 2] 湿度 (VAV_PDTのみ)
 //
-func VAVcfv(vav []VAV) {
-	for i := range vav {
-		v := &vav[i]
+func VAVcfv(vav []*VAV) {
+	for _, v := range vav {
 		Eo1 := v.Cmp.Elouts[0]
 
 		if v.Cmp.Control != OFF_SW && Eo1.Control != OFF_SW {
@@ -150,92 +148,90 @@ func VAVcfv(vav []VAV) {
 /* VAVコントローラ再熱部分の計算 */
 /*---- Satoh Debug VAV  2000/11/27 ----*/
 /*******************/
-func VAVene(vav []VAV, VAVrest *int) {
+func VAVene(vav []*VAV, VAVrest *int) {
 	var rest int
 	var elo *ELOUT
 	var Tr, Go, dTset float64
 
-	for i := range vav {
+	for _, v := range vav {
 		rest = 0
 
-		elo = vav[i].Cmp.Elouts[0]
-		vav[i].Tin = elo.Elins[0].Sysvin
+		elo = v.Cmp.Elouts[0]
+		v.Tin = elo.Elins[0].Sysvin
 
-		if vav[i].Cmp.Control != OFF_SW && elo.Control != OFF_SW {
-			Go = vav[i].G
-			vav[i].Tout = elo.Sysv
+		if v.Cmp.Control != OFF_SW && elo.Control != OFF_SW {
+			Go = v.G
+			v.Tout = elo.Sysv
 
-			if vav[i].Cat.Type == VAV_PDT {
-				Tr = vav[i].Cmp.Elouts[0].Emonitr.Sysv
+			if v.Cat.Type == VAV_PDT {
+				Tr = v.Cmp.Elouts[0].Emonitr.Sysv
 
-				vav[i].Q = Spcheat(elo.Fluid) * Go * (vav[i].Tout - Tr)
+				v.Q = Spcheat(elo.Fluid) * Go * (v.Tout - Tr)
 
-				if math.Abs(vav[i].Tin-Tr) > 1.0e-3 {
-					vav[i].G = (vav[i].Tout - Tr) / (vav[i].Tin - Tr) * Go
+				if math.Abs(v.Tin-Tr) > 1.0e-3 {
+					v.G = (v.Tout - Tr) / (v.Tin - Tr) * Go
 				} else {
-					vav[i].G = vav[i].Cat.Gmin
+					v.G = v.Cat.Gmin
 				}
 			} else {
-				if vav[i].Mon == 'c' && vav[i].Count < VAVCountMAX-1 {
-					vav[i].Qrld = -vav[i].Hcc.Qt
-				} else if vav[i].Mon == 'f' && vav[i].Count < VAVCountMAX-1 {
-					vav[i].Qrld = -vav[i].Rdpnl.Q
-				} else if vav[i].Mon == 'h' {
-					vav[i].Qrld = vav[i].Hcld.Qt
+				if v.Mon == 'c' && v.Count < VAVCountMAX-1 {
+					v.Qrld = -v.Hcc.Qt
+				} else if v.Mon == 'f' && v.Count < VAVCountMAX-1 {
+					v.Qrld = -v.Rdpnl.Q
+				} else if v.Mon == 'h' {
+					v.Qrld = v.Hcld.Qt
 				}
 
-				vav[i].Q = vav[i].Qrld
+				v.Q = v.Qrld
 
-				dTset = vav[i].Cat.dTset
+				dTset = v.Cat.dTset
 
-				if vav[i].Mon == 'h' && dTset <= 0.0 {
-					fmt.Printf("<VAVene> VWV SetDifferencialTemp=%.1f\n", vav[i].Cat.dTset)
+				if v.Mon == 'h' && dTset <= 0.0 {
+					fmt.Printf("<VAVene> VWV SetDifferencialTemp=%.1f\n", v.Cat.dTset)
 				}
 
-				if vav[i].Chmode == COOLING_SW {
+				if v.Chmode == COOLING_SW {
 					dTset = -dTset
 				}
 
-				if vav[i].Mon == 'h' || vav[i].Mon == 'f' {
-					vav[i].G = vav[i].Q / (Spcheat(elo.Fluid) * dTset)
-				} else if vav[i].Mon == 'c' {
-					vav[i].G = FNVWVG(&vav[i])
+				if v.Mon == 'h' || v.Mon == 'f' {
+					v.G = v.Q / (Spcheat(elo.Fluid) * dTset)
+				} else if v.Mon == 'c' {
+					v.G = FNVWVG(v)
 				}
 			}
 
 			elo.Control = ON_SW
 			elo.Sysld = 'n'
 
-			if vav[i].Mon != 'h' {
+			if v.Mon != 'h' {
 				elo.Emonitr.Control = ON_SW
 			}
 
-			rest = chvavswreset(vav[i].Q, vav[i].Chmode, &vav[i])
+			rest = chvavswreset(v.Q, v.Chmode, v)
 
-			if rest == 1 || math.Abs(vav[i].G-Go) > 1.0e-5 {
+			if rest == 1 || math.Abs(v.G-Go) > 1.0e-5 {
 				(*VAVrest)++
 			}
 		} else {
-			vav[i].Q = 0.0
-			vav[i].G = vav[i].Cat.Gmin
+			v.Q = 0.0
+			v.G = v.Cat.Gmin
 
-			if vav[i].Count == 0 {
+			if v.Count == 0 {
 				(*VAVrest)++
 			}
 		}
 	}
 }
 
-func VAVcountreset(VAVs []VAV) {
-	for i := range VAVs {
-		v := &VAVs[i]
+func VAVcountreset(VAVs []*VAV) {
+	for _, v := range VAVs {
 		v.Count = 0
 	}
 }
 
-func VAVcountinc(VAVs []VAV) {
-	for i := range VAVs {
-		v := &VAVs[i]
+func VAVcountinc(VAVs []*VAV) {
+	for _, v := range VAVs {
 		v.Count++
 	}
 }
@@ -275,24 +271,21 @@ func chvavswreset(Qload float64, chmode ControlSWType, vav *VAV) int {
 	}
 }
 
-func vavprint(fo io.Writer, id int, VAVs []VAV) {
+func vavprint(fo io.Writer, id int, VAVs []*VAV) {
 	switch id {
 	case 0:
 		if len(VAVs) > 0 {
 			fmt.Fprintf(fo, "%s %d\n", VAV_TYPE, len(VAVs))
 		}
-		for i := range VAVs {
-			vav := &VAVs[i]
+		for _, vav := range VAVs {
 			fmt.Fprintf(fo, " %s 1 2\n", vav.Name)
 		}
 	case 1:
-		for i := range VAVs {
-			vav := &VAVs[i]
+		for _, vav := range VAVs {
 			fmt.Fprintf(fo, "%s_c c c %s_G m f\n", vav.Name, vav.Name)
 		}
 	default:
-		for i := range VAVs {
-			vav := &VAVs[i]
+		for _, vav := range VAVs {
 			fmt.Fprintf(fo, "%c %6.4g\n", vav.Cmp.Elouts[0].Control, vav.Cmp.Elouts[0].G)
 		}
 	}

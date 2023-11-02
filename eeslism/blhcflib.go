@@ -31,7 +31,7 @@ const (
 
 /*    熱伝達率に関する計算  */
 
-func Htrcf(alc, alo *float64, alotype AloType, Exs []*EXSF, Tr float64, N int, alr []float64, _Sd []RMSRF, RMmrk *rune, Wd *WDAT) {
+func Htrcf(alc, alo *float64, alotype AloType, Exs []*EXSF, Tr float64, N int, alr []float64, _Sd []*RMSRF, RMmrk *rune, Wd *WDAT) {
 	var n int
 	var alic float64
 	var hc *float64
@@ -42,7 +42,7 @@ func Htrcf(alc, alo *float64, alotype AloType, Exs []*EXSF, Tr float64, N int, a
 	}
 
 	for n = 0; n < N; n++ {
-		Sd := &_Sd[n]
+		Sd := _Sd[n]
 
 		if DEBUG {
 			fmt.Printf("n=%d name=%s\n", n, Sd.Name)
@@ -184,7 +184,7 @@ func alcvh(dT float64) float64 {
 
 /*  室内表面間放射熱伝達率の計算  */
 
-func Radcf0(Tsav float64, alrbold *float64, N int, Sd []RMSRF, W, alr []float64) {
+func Radcf0(Tsav float64, alrbold *float64, N int, Sd []*RMSRF, W, alr []float64) {
 	var n int
 	var alir, TA float64
 
@@ -217,7 +217,7 @@ func Radcf0(Tsav float64, alrbold *float64, N int, Sd []RMSRF, W, alr []float64)
 
 /*  放射伝達係数の計算  */
 
-func radex(N int, Sd []RMSRF, F, W []float64) {
+func radex(N int, Sd []*RMSRF, F, W []float64) {
 	wk := make([]float64, N*N)
 	Ff := make([]float64, N*N)
 
@@ -249,7 +249,7 @@ func radex(N int, Sd []RMSRF, F, W []float64) {
 
 /* 形態係数の近似計算　　*/
 
-func formfaprx(N int, Aroom float64, Sd []RMSRF, F []float64) {
+func formfaprx(N int, Aroom float64, Sd []*RMSRF, F []float64) {
 	var i, n int
 
 	for n = 0; n < N; n++ {
@@ -265,7 +265,7 @@ func formfaprx(N int, Aroom float64, Sd []RMSRF, F []float64) {
 
 /*  短波長放射吸収係数 */
 
-func Radshfc(N int, FArea, Aroom float64, Sd0 []RMSRF, tfsol, eqcv float64, Rmname string, fsolm *float64) {
+func Radshfc(N int, FArea, Aroom float64, Sd0 []*RMSRF, tfsol, eqcv float64, Rmname string, fsolm *float64) {
 	var Sumsrg2, dblTemp, Srgchk float64
 	Room := Sd0[0].room
 
@@ -273,7 +273,7 @@ func Radshfc(N int, FArea, Aroom float64, Sd0 []RMSRF, tfsol, eqcv float64, Rmna
 
 	// tfsol:定義済みの部位日射吸収係数の合計値
 	for n := 0; n < N; n++ {
-		Sd := &Sd0[n]
+		Sd := Sd0[n]
 		Sd.eqrd = (1.0 - eqcv) * Sd.A / Aroom
 
 		dblTemp = math.Max((1.0-tfsol), 0.0) * Sd.A / Aroom
@@ -315,7 +315,7 @@ func Radshfc(N int, FArea, Aroom float64, Sd0 []RMSRF, tfsol, eqcv float64, Rmna
 	}
 
 	for n := 0; n < N; n++ {
-		Sd := &Sd0[n]
+		Sd := Sd0[n]
 		Srgchk += Sd.srg
 	}
 
@@ -329,7 +329,7 @@ func Radshfc(N int, FArea, Aroom float64, Sd0 []RMSRF, tfsol, eqcv float64, Rmna
 
 	// 最終日射吸収比率の計算（Sumsrg2で基準化）
 	for n := 0; n < N; n++ {
-		Sd := &Sd0[n]
+		Sd := Sd0[n]
 		Sd.srg2 /= Sumsrg2
 	}
 

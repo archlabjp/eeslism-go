@@ -194,13 +194,13 @@ func flindat(Flin *FLIN) {
 
 /* 境界条件・負荷仮想機器の要素機器データのポインター設定 */
 
-func Flinint(Flin []FLIN, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT) {
-	for i := range Flin {
+func Flinint(Flin []*FLIN, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT) {
+	for _, flin := range Flin {
 		// fmt.Printf("<<Flinint>>  i=%d  namet=%s\n", i, Flin[i].namet)
 
-		Flin[i].Vart = envptr(Flin[i].Namet, Simc, Compnt, Wd, nil)
-		if Flin[i].Awtype == 'A' {
-			Flin[i].Varx = envptr(Flin[i].Namex, Simc, Compnt, Wd, nil)
+		flin.Vart = envptr(flin.Namet, Simc, Compnt, Wd, nil)
+		if flin.Awtype == 'A' {
+			flin.Varx = envptr(flin.Namex, Simc, Compnt, Wd, nil)
 		}
 	}
 }
@@ -293,7 +293,7 @@ func Vcfinput(Daytm *DAYTM, Nvcfile int, Vcfile []VCFILE, perio rune) {
 
 /********************************************************************/
 
-func Flinprt(Fl []FLIN) {
+func Flinprt(Fl []*FLIN) {
 	if DEBUG {
 		for i, f := range Fl {
 			fmt.Printf("<< Flinprt >> Flin i=%d  %s %s = %.2g\n", i, f.Name, f.Namet, *f.Vart)

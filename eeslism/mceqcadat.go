@@ -77,91 +77,91 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 	N = NHCC
 	Eqcat.Hccca = nil
 	if N > 0 {
-		Eqcat.Hccca = make([]HCCCA, 0, N)
+		Eqcat.Hccca = make([]*HCCCA, 0, N)
 	}
 
 	N = NBOI
 	Eqcat.Boica = nil
 	if N > 0 {
-		Eqcat.Boica = make([]BOICA, 0, N)
+		Eqcat.Boica = make([]*BOICA, 0, N)
 	}
 
 	N = NREFA
 	Eqcat.Refaca = nil
 	if N > 0 {
-		Eqcat.Refaca = make([]REFACA, 0, N)
+		Eqcat.Refaca = make([]*REFACA, 0, N)
 	}
 
 	N = NCOL
 	Eqcat.Collca = nil
 	if N > 0 {
-		Eqcat.Collca = make([]COLLCA, 0, N)
+		Eqcat.Collca = make([]*COLLCA, 0, N)
 	}
 
 	N = NPV
 	Eqcat.PVca = nil
 	if N > 0 {
-		Eqcat.PVca = make([]PVCA, 0, N)
+		Eqcat.PVca = make([]*PVCA, 0, N)
 	}
 
 	N = NPIPE
 	Eqcat.Pipeca = nil
 	if N > 0 {
-		Eqcat.Pipeca = make([]PIPECA, 0, N)
+		Eqcat.Pipeca = make([]*PIPECA, 0, N)
 	}
 
 	N = NSTANK
 	Eqcat.Stankca = nil
 	if N > 0 {
-		Eqcat.Stankca = make([]STANKCA, 0, N)
+		Eqcat.Stankca = make([]*STANKCA, 0, N)
 	}
 
 	N = NHEX
 	Eqcat.Hexca = nil
 	if N > 0 {
-		Eqcat.Hexca = make([]HEXCA, 0, N)
+		Eqcat.Hexca = make([]*HEXCA, 0, N)
 	}
 
 	N = NPUMP
 	Eqcat.Pumpca = nil
 	if N > 0 {
-		Eqcat.Pumpca = make([]PUMPCA, 0, N)
+		Eqcat.Pumpca = make([]*PUMPCA, 0, N)
 	}
 
 	N = NVAV
 	Eqcat.Vavca = nil
 	if N > 0 {
-		Eqcat.Vavca = make([]VAVCA, 0, N)
+		Eqcat.Vavca = make([]*VAVCA, 0, N)
 	}
 
 	N = NSTHEAT
 	Eqcat.Stheatca = nil
 	if N > 0 {
-		Eqcat.Stheatca = make([]STHEATCA, 0, N)
+		Eqcat.Stheatca = make([]*STHEATCA, 0, N)
 	}
 
 	N = NTHEX
 	Eqcat.Thexca = nil
 	if N > 0 {
-		Eqcat.Thexca = make([]THEXCA, 0, N)
+		Eqcat.Thexca = make([]*THEXCA, 0, N)
 	}
 
 	N = NOMVAV
 	Eqcat.OMvavca = nil
 	if N > 0 {
-		Eqcat.OMvavca = make([]OMVAVCA, 0, N+1)
+		Eqcat.OMvavca = make([]*OMVAVCA, 0, N+1)
 	}
 
 	N = NDESI
 	Eqcat.Desica = nil
 	if N > 0 {
-		Eqcat.Desica = make([]DESICA, 0, N+1)
+		Eqcat.Desica = make([]*DESICA, 0, N+1)
 	}
 
 	N = NEVAC
 	Eqcat.Evacca = nil
 	if N > 0 {
-		Eqcat.Evacca = make([]EVACCA, 0, N+1)
+		Eqcat.Evacca = make([]*EVACCA, 0, N+1)
 	}
 
 	frf, err := os.Open("reflist.efl")
@@ -173,7 +173,7 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 	N = RFCMPLSTMX
 	Eqcat.Rfcmp = nil
 	if N > 0 {
-		Eqcat.Rfcmp = make([]RFCMP, N)
+		Eqcat.Rfcmp = make([]*RFCMP, N)
 	} else {
 		Rf := Eqcat.Rfcmp
 		for i := 0; i < N; i++ {
@@ -201,7 +201,7 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 	}
 	N = pflistcount(frf)
 	if N > 0 {
-		Eqcat.Pfcmp = make([]PFCMP, N)
+		Eqcat.Pfcmp = make([]*PFCMP, N)
 	}
 	PFcmpInit(N, Eqcat.Pfcmp)
 	PFcmpdata(frf, &Eqcat.Pfcmp)
@@ -218,8 +218,8 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 		eqpType := EqpType(s)
 
 		if eqpType == HCCOIL_TYPE {
-			Eqcat.Hccca = append(Eqcat.Hccca, HCCCA{})
-			Hccca := &Eqcat.Hccca[len(Eqcat.Hccca)-1]
+			Eqcat.Hccca = append(Eqcat.Hccca, new(HCCCA))
+			Hccca := Eqcat.Hccca[len(Eqcat.Hccca)-1]
 
 			Hccca.name = ""
 			for f.IsEnd() == false {
@@ -238,8 +238,8 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 				}
 			}
 		} else if eqpType == BOILER_TYPE {
-			Eqcat.Boica = append(Eqcat.Boica, BOICA{})
-			Boica := &Eqcat.Boica[len(Eqcat.Boica)-1]
+			Eqcat.Boica = append(Eqcat.Boica, new(BOICA))
+			Boica := Eqcat.Boica[len(Eqcat.Boica)-1]
 
 			Boica.name = ""
 			for f.IsEnd() == false {
@@ -258,8 +258,8 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 				}
 			}
 		} else if eqpType == COLLECTOR_TYPE || eqpType == ACOLLECTOR_TYPE {
-			Eqcat.Collca = append(Eqcat.Collca, COLLCA{})
-			Collca := &Eqcat.Collca[len(Eqcat.Collca)-1]
+			Eqcat.Collca = append(Eqcat.Collca, new(COLLCA))
+			Collca := Eqcat.Collca[len(Eqcat.Collca)-1]
 
 			Collca.name = ""
 			Collca.Fd = 0.9
@@ -279,8 +279,8 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 				}
 			}
 		} else if eqpType == PV_TYPE {
-			Eqcat.PVca = append(Eqcat.PVca, PVCA{})
-			PVca := &Eqcat.PVca[len(Eqcat.PVca)-1]
+			Eqcat.PVca = append(Eqcat.PVca, new(PVCA))
+			PVca := Eqcat.PVca[len(Eqcat.PVca)-1]
 
 			PVca.Name = ""
 			for f.IsEnd() == false {
@@ -299,8 +299,8 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 				}
 			}
 		} else if eqpType == REFACOMP_TYPE {
-			Eqcat.Refaca = append(Eqcat.Refaca, REFACA{})
-			Refaca := &Eqcat.Refaca[len(Eqcat.Refaca)-1]
+			Eqcat.Refaca = append(Eqcat.Refaca, new(REFACA))
+			Refaca := Eqcat.Refaca[len(Eqcat.Refaca)-1]
 
 			Refaca.name = ""
 			for f.IsEnd() == false {
@@ -319,8 +319,8 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 				}
 			}
 		} else if eqpType == PIPEDUCT_TYPE || s == DUCT_TYPE {
-			Eqcat.Pipeca = append(Eqcat.Pipeca, PIPECA{})
-			Pipeca := &Eqcat.Pipeca[len(Eqcat.Pipeca)-1]
+			Eqcat.Pipeca = append(Eqcat.Pipeca, new(PIPECA))
+			Pipeca := Eqcat.Pipeca[len(Eqcat.Pipeca)-1]
 
 			Pipeca.name = ""
 			for f.IsEnd() == false {
@@ -339,8 +339,8 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 				}
 			}
 		} else if eqpType == STANK_TYPE {
-			Eqcat.Stankca = append(Eqcat.Stankca, STANKCA{})
-			Stankca := &Eqcat.Stankca[len(Eqcat.Stankca)-1]
+			Eqcat.Stankca = append(Eqcat.Stankca, new(STANKCA))
+			Stankca := Eqcat.Stankca[len(Eqcat.Stankca)-1]
 
 			Stankca.name = ""
 			for f.IsEnd() == false {
@@ -359,8 +359,8 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 				}
 			}
 		} else if eqpType == HEXCHANGR_TYPE {
-			Eqcat.Hexca = append(Eqcat.Hexca, HEXCA{})
-			Hexca := &Eqcat.Hexca[len(Eqcat.Hexca)-1]
+			Eqcat.Hexca = append(Eqcat.Hexca, new(HEXCA))
+			Hexca := Eqcat.Hexca[len(Eqcat.Hexca)-1]
 
 			Hexca.Name = ""
 			for f.IsEnd() == false {
@@ -379,8 +379,8 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 				}
 			}
 		} else if eqpType == PUMP_TYPE || eqpType == FAN_TYPE {
-			Eqcat.Pumpca = append(Eqcat.Pumpca, PUMPCA{})
-			Pumpca := &Eqcat.Pumpca[len(Eqcat.Pumpca)-1]
+			Eqcat.Pumpca = append(Eqcat.Pumpca, new(PUMPCA))
+			Pumpca := Eqcat.Pumpca[len(Eqcat.Pumpca)-1]
 
 			Pumpca.name = ""
 			Pumpca.Type = ""
@@ -402,8 +402,8 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 				}
 			}
 		} else if eqpType == VAV_TYPE || eqpType == VWV_TYPE {
-			Eqcat.Vavca = append(Eqcat.Vavca, VAVCA{})
-			vavca := &Eqcat.Vavca[len(Eqcat.Vavca)-1]
+			Eqcat.Vavca = append(Eqcat.Vavca, new(VAVCA))
+			vavca := Eqcat.Vavca[len(Eqcat.Vavca)-1]
 
 			vavca.dTset = -999.0
 			vavca.Name = ""
@@ -423,8 +423,8 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 				}
 			}
 		} else if eqpType == OMVAV_TYPE || eqpType == OAVAV_TYPE {
-			Eqcat.OMvavca = append(Eqcat.OMvavca, OMVAVCA{})
-			OMvavca := &Eqcat.OMvavca[len(Eqcat.OMvavca)-1]
+			Eqcat.OMvavca = append(Eqcat.OMvavca, new(OMVAVCA))
+			OMvavca := Eqcat.OMvavca[len(Eqcat.OMvavca)-1]
 
 			OMvavca.Name = ""
 			OMvavca.Gmax = -999.0
@@ -445,8 +445,8 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 				}
 			}
 		} else if eqpType == STHEAT_TYPE {
-			Eqcat.Stheatca = append(Eqcat.Stheatca, STHEATCA{})
-			stheatca := &Eqcat.Stheatca[len(Eqcat.Stheatca)-1]
+			Eqcat.Stheatca = append(Eqcat.Stheatca, new(STHEATCA))
+			stheatca := Eqcat.Stheatca[len(Eqcat.Stheatca)-1]
 
 			stheatca.Name = ""
 			stheatca.PCMName = ""
@@ -466,8 +466,8 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 				}
 			}
 		} else if eqpType == THEX_TYPE {
-			Eqcat.Thexca = append(Eqcat.Thexca, THEXCA{})
-			Thexca := &Eqcat.Thexca[len(Eqcat.Thexca)-1]
+			Eqcat.Thexca = append(Eqcat.Thexca, new(THEXCA))
+			Thexca := Eqcat.Thexca[len(Eqcat.Thexca)-1]
 
 			Thexca.Name = ""
 			Thexca.et = -999.0
@@ -487,8 +487,8 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 				}
 			}
 		} else if eqpType == DESI_TYPE {
-			Eqcat.Desica = append(Eqcat.Desica, DESICA{})
-			Desica := &Eqcat.Desica[len(Eqcat.Desica)-1]
+			Eqcat.Desica = append(Eqcat.Desica, new(DESICA))
+			Desica := Eqcat.Desica[len(Eqcat.Desica)-1]
 
 			Desica.name = ""
 			for f.IsEnd() == false {
@@ -507,8 +507,8 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 				}
 			}
 		} else if eqpType == EVAC_TYPE {
-			Eqcat.Evacca = append(Eqcat.Evacca, EVACCA{})
-			Evacca := &Eqcat.Evacca[len(Eqcat.Evacca)-1]
+			Eqcat.Evacca = append(Eqcat.Evacca, new(EVACCA))
+			Evacca := Eqcat.Evacca[len(Eqcat.Evacca)-1]
 
 			Evacca.Name = ""
 			for f.IsEnd() == false {

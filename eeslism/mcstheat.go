@@ -72,9 +72,9 @@ func Stheatdata(s string, stheatca *STHEATCA) int {
 
 /*  管長・ダクト長、周囲温度設定 */
 
-func Stheatint(_stheat []STHEAT, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT, Npcm int, _PCM []PCM) {
+func Stheatint(_stheat []*STHEAT, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT, Npcm int, _PCM []*PCM) {
 	for i := range _stheat {
-		stheat := &_stheat[i]
+		stheat := _stheat[i]
 		if stheat.Cmp.Envname != "" {
 			stheat.Tenv = envptr(stheat.Cmp.Envname, Simc, Compnt, Wd, nil)
 		} else {
@@ -85,7 +85,7 @@ func Stheatint(_stheat []STHEAT, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT, Npc
 			var j int
 			for j = 0; j < Npcm; j++ {
 				if stheat.Cat.PCMName == _PCM[j].Name {
-					stheat.Pcm = &_PCM[j]
+					stheat.Pcm = _PCM[j]
 				}
 			}
 			if stheat.Pcm == nil {
@@ -135,9 +135,9 @@ func Stheatint(_stheat []STHEAT, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT, Npc
 //    +--------+ --> [OUT 2]
 //
 
-func Stheatcfv(_stheat []STHEAT) {
+func Stheatcfv(_stheat []*STHEAT) {
 	for i := range _stheat {
-		stheat := &_stheat[i]
+		stheat := _stheat[i]
 
 		// 作用温度 ?
 		var Te float64
@@ -197,13 +197,13 @@ func Stheatcfv(_stheat []STHEAT) {
 
 /* 取得熱量の計算 */
 
-func Stheatene(_stheat []STHEAT) {
+func Stheatene(_stheat []*STHEAT) {
 	var elo *ELOUT
 	var cat *STHEATCA
 	var Te float64
 
 	for i := range _stheat {
-		stheat := &_stheat[i]
+		stheat := _stheat[i]
 		elo = stheat.Cmp.Elouts[0]
 		stheat.Tin = elo.Elins[0].Sysvin
 
@@ -262,7 +262,7 @@ func stheatvptr(key []string, Stheat *STHEAT) (VPTR, VPTR, error) {
 
 /* ---------------------------*/
 
-func stheatprint(fo io.Writer, id int, stheat []STHEAT) {
+func stheatprint(fo io.Writer, id int, stheat []*STHEAT) {
 	switch id {
 	case 0:
 		if len(stheat) > 0 {
@@ -297,7 +297,7 @@ func stheatprint(fo io.Writer, id int, stheat []STHEAT) {
 /* 日積算値に関する処理 */
 
 /*******************/
-func stheatdyint(stheat []STHEAT) {
+func stheatdyint(stheat []*STHEAT) {
 	for i := range stheat {
 		stheat[i].Qlossdy = 0.0
 		stheat[i].Qstody = 0.0
@@ -310,7 +310,7 @@ func stheatdyint(stheat []STHEAT) {
 	}
 }
 
-func stheatmonint(stheat []STHEAT) {
+func stheatmonint(stheat []*STHEAT) {
 	for i := range stheat {
 		stheat[i].MQlossdy = 0.0
 		stheat[i].MQstody = 0.0
@@ -323,7 +323,7 @@ func stheatmonint(stheat []STHEAT) {
 	}
 }
 
-func stheatday(Mon, Day, ttmm int, stheat []STHEAT, Nday, SimDayend int) {
+func stheatday(Mon, Day, ttmm int, stheat []*STHEAT, Nday, SimDayend int) {
 	Mo := Mon - 1
 	tt := ConvertHour(ttmm)
 
@@ -351,7 +351,7 @@ func stheatday(Mon, Day, ttmm int, stheat []STHEAT, Nday, SimDayend int) {
 	}
 }
 
-func stheatdyprt(fo io.Writer, id int, stheat []STHEAT) {
+func stheatdyprt(fo io.Writer, id int, stheat []*STHEAT) {
 	switch id {
 	case 0:
 		if len(stheat) > 0 {
@@ -406,7 +406,7 @@ func stheatdyprt(fo io.Writer, id int, stheat []STHEAT) {
 	}
 }
 
-func stheatmonprt(fo io.Writer, id int, stheat []STHEAT) {
+func stheatmonprt(fo io.Writer, id int, stheat []*STHEAT) {
 	switch id {
 	case 0:
 		if len(stheat) > 0 {
@@ -461,7 +461,7 @@ func stheatmonprt(fo io.Writer, id int, stheat []STHEAT) {
 	}
 }
 
-func stheatmtprt(fo io.Writer, id int, stheat []STHEAT, Mo, tt int) {
+func stheatmtprt(fo io.Writer, id int, stheat []*STHEAT, Mo, tt int) {
 	switch id {
 	case 0:
 		if len(stheat) > 0 {

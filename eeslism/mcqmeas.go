@@ -26,9 +26,8 @@ import (
 
 // 出入り口温湿度の割り当て
 
-func Qmeaselm(Qmeas []QMEAS) {
-	for i := range Qmeas {
-		qmeas := &Qmeas[i]
+func Qmeaselm(Qmeas []*QMEAS) {
+	for _, qmeas := range Qmeas {
 		PlistTh := qmeas.PlistTh
 		N := qmeas.Nelmh
 		Pelm := PlistTh.Pelm[N]
@@ -105,9 +104,8 @@ func Qmeaselm(Qmeas []QMEAS) {
 	}
 }
 
-func Qmeasene(Qmeas []QMEAS) {
-	for i := range Qmeas {
-		qmeas := &Qmeas[i]
+func Qmeasene(Qmeas []*QMEAS) {
+	for _, qmeas := range Qmeas {
 		PG := qmeas.PlistG
 		Ph := qmeas.PlistTh
 		Pc := qmeas.PlistTc
@@ -130,9 +128,8 @@ func Qmeasene(Qmeas []QMEAS) {
 	}
 }
 
-func Qmeasprint(fo io.Writer, id int, Qmeas []QMEAS) {
-	for i := range Qmeas {
-		qmeas := &Qmeas[i]
+func Qmeasprint(fo io.Writer, id int, Qmeas []*QMEAS) {
+	for _, qmeas := range Qmeas {
 		el := qmeas.Cmp.Elouts[0]
 
 		switch id {
@@ -171,160 +168,160 @@ func Qmeasprint(fo io.Writer, id int, Qmeas []QMEAS) {
 	}
 }
 
-func Qmeasdyint(Qmeas []QMEAS) {
-	for i := range Qmeas {
-		svdyint(&Qmeas[i].Tcdy)
-		svdyint(&Qmeas[i].Thdy)
-		svdyint(&Qmeas[i].xcdy)
-		svdyint(&Qmeas[i].xhdy)
+func Qmeasdyint(Qmeas []*QMEAS) {
+	for _, qmeas := range Qmeas {
+		svdyint(&qmeas.Tcdy)
+		svdyint(&qmeas.Thdy)
+		svdyint(&qmeas.xcdy)
+		svdyint(&qmeas.xhdy)
 
-		qdyint(&Qmeas[i].Qdys)
-		qdyint(&Qmeas[i].Qdyl)
-		qdyint(&Qmeas[i].Qdyt)
+		qdyint(&qmeas.Qdys)
+		qdyint(&qmeas.Qdyl)
+		qdyint(&qmeas.Qdyt)
 	}
 }
 
-func Qmeasmonint(Qmeas []QMEAS) {
-	for i := range Qmeas {
-		svdyint(&Qmeas[i].mTcdy)
-		svdyint(&Qmeas[i].mThdy)
-		svdyint(&Qmeas[i].mxcdy)
-		svdyint(&Qmeas[i].mxhdy)
+func Qmeasmonint(Qmeas []*QMEAS) {
+	for _, qmeas := range Qmeas {
+		svdyint(&qmeas.mTcdy)
+		svdyint(&qmeas.mThdy)
+		svdyint(&qmeas.mxcdy)
+		svdyint(&qmeas.mxhdy)
 
-		qdyint(&Qmeas[i].mQdys)
-		qdyint(&Qmeas[i].mQdyl)
-		qdyint(&Qmeas[i].mQdyt)
+		qdyint(&qmeas.mQdys)
+		qdyint(&qmeas.mQdyl)
+		qdyint(&qmeas.mQdyt)
 	}
 }
 
-func Qmeasday(Mon, Day, ttmm int, Qmeas []QMEAS, Nday, SimDayend int) {
-	for i := range Qmeas {
+func Qmeasday(Mon, Day, ttmm int, Qmeas []*QMEAS, Nday, SimDayend int) {
+	for _, qmeas := range Qmeas {
 		// 日次集計
-		svdaysum(int64(ttmm), Qmeas[i].PlistG.Control, *Qmeas[i].Th, &Qmeas[i].Thdy) // 温度
-		svdaysum(int64(ttmm), Qmeas[i].PlistG.Control, *Qmeas[i].Tc, &Qmeas[i].Tcdy) // 温度
+		svdaysum(int64(ttmm), qmeas.PlistG.Control, *qmeas.Th, &qmeas.Thdy) // 温度
+		svdaysum(int64(ttmm), qmeas.PlistG.Control, *qmeas.Tc, &qmeas.Tcdy) // 温度
 
-		if Qmeas[i].Xh != nil {
-			svdaysum(int64(ttmm), Qmeas[i].PlistG.Control, *Qmeas[i].Xh, &Qmeas[i].xhdy) // 出口湿度
+		if qmeas.Xh != nil {
+			svdaysum(int64(ttmm), qmeas.PlistG.Control, *qmeas.Xh, &qmeas.xhdy) // 出口湿度
 		}
 
-		if Qmeas[i].Xc != nil {
-			svdaysum(int64(ttmm), Qmeas[i].PlistG.Control, *Qmeas[i].Xc, &Qmeas[i].xcdy) // 入口湿度
+		if qmeas.Xc != nil {
+			svdaysum(int64(ttmm), qmeas.PlistG.Control, *qmeas.Xc, &qmeas.xcdy) // 入口湿度
 		}
 
-		qdaysum(int64(ttmm), Qmeas[i].PlistG.Control, Qmeas[i].Qs, &Qmeas[i].Qdys) // 流量
-		qdaysum(int64(ttmm), Qmeas[i].PlistG.Control, Qmeas[i].Ql, &Qmeas[i].Qdyl) // 湿度流量
-		qdaysum(int64(ttmm), Qmeas[i].PlistG.Control, Qmeas[i].Qt, &Qmeas[i].Qdyt) // 総熱量
+		qdaysum(int64(ttmm), qmeas.PlistG.Control, qmeas.Qs, &qmeas.Qdys) // 流量
+		qdaysum(int64(ttmm), qmeas.PlistG.Control, qmeas.Ql, &qmeas.Qdyl) // 湿度流量
+		qdaysum(int64(ttmm), qmeas.PlistG.Control, qmeas.Qt, &qmeas.Qdyt) // 総熱量
 
 		// 月次集計
-		svmonsum(Mon, Day, ttmm, Qmeas[i].PlistG.Control, *Qmeas[i].Th, &Qmeas[i].mThdy, Nday, SimDayend) // 温度
-		svmonsum(Mon, Day, ttmm, Qmeas[i].PlistG.Control, *Qmeas[i].Tc, &Qmeas[i].mTcdy, Nday, SimDayend) // 温度
+		svmonsum(Mon, Day, ttmm, qmeas.PlistG.Control, *qmeas.Th, &qmeas.mThdy, Nday, SimDayend) // 温度
+		svmonsum(Mon, Day, ttmm, qmeas.PlistG.Control, *qmeas.Tc, &qmeas.mTcdy, Nday, SimDayend) // 温度
 
-		if Qmeas[i].Xh != nil {
-			svmonsum(Mon, Day, ttmm, Qmeas[i].PlistG.Control, *Qmeas[i].Xh, &Qmeas[i].mxhdy, Nday, SimDayend) // 出口湿度
+		if qmeas.Xh != nil {
+			svmonsum(Mon, Day, ttmm, qmeas.PlistG.Control, *qmeas.Xh, &qmeas.mxhdy, Nday, SimDayend) // 出口湿度
 		}
 
-		if Qmeas[i].Xc != nil {
-			svmonsum(Mon, Day, ttmm, Qmeas[i].PlistG.Control, *Qmeas[i].Xc, &Qmeas[i].mxcdy, Nday, SimDayend) // 入口湿度
+		if qmeas.Xc != nil {
+			svmonsum(Mon, Day, ttmm, qmeas.PlistG.Control, *qmeas.Xc, &qmeas.mxcdy, Nday, SimDayend) // 入口湿度
 		}
 
-		qmonsum(Mon, Day, ttmm, Qmeas[i].PlistG.Control, Qmeas[i].Qs, &Qmeas[i].mQdys, Nday, SimDayend) // 流量
-		qmonsum(Mon, Day, ttmm, Qmeas[i].PlistG.Control, Qmeas[i].Ql, &Qmeas[i].mQdyl, Nday, SimDayend) // 湿度流量
-		qmonsum(Mon, Day, ttmm, Qmeas[i].PlistG.Control, Qmeas[i].Qt, &Qmeas[i].mQdyt, Nday, SimDayend) // 総熱量
+		qmonsum(Mon, Day, ttmm, qmeas.PlistG.Control, qmeas.Qs, &qmeas.mQdys, Nday, SimDayend) // 流量
+		qmonsum(Mon, Day, ttmm, qmeas.PlistG.Control, qmeas.Ql, &qmeas.mQdyl, Nday, SimDayend) // 湿度流量
+		qmonsum(Mon, Day, ttmm, qmeas.PlistG.Control, qmeas.Qt, &qmeas.mQdyt, Nday, SimDayend) // 総熱量
 	}
 }
 
-func Qmeasdyprt(fo io.Writer, id int, Qmeas []QMEAS) {
-	for i := range Qmeas {
+func Qmeasdyprt(fo io.Writer, id int, Qmeas []*QMEAS) {
+	for _, qmeas := range Qmeas {
 		switch id {
 		case 0:
 			if len(Qmeas) > 0 {
 				fmt.Fprintf(fo, "%s %d\n", QMEAS_TYPE, len(Qmeas))
 			}
-			if Qmeas[i].Plistxc != nil && Qmeas[i].Plistxh != nil {
-				fmt.Fprintf(fo, " %s 1 24\n", Qmeas[i].Name)
+			if qmeas.Plistxc != nil && qmeas.Plistxh != nil {
+				fmt.Fprintf(fo, " %s 1 24\n", qmeas.Name)
 			} else {
-				fmt.Fprintf(fo, " %s 1 8\n", Qmeas[i].Name)
+				fmt.Fprintf(fo, " %s 1 8\n", qmeas.Name)
 			}
 		case 1:
-			if Qmeas[i].Plistxc != nil && Qmeas[i].Plistxh != nil {
+			if qmeas.Plistxc != nil && qmeas.Plistxh != nil {
 				fmt.Fprintf(fo, "%s_Hhs H d %s_Qsh Q f %s_Hcs H d %s_Qsc Q f\n",
-					Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name)
+					qmeas.Name, qmeas.Name, qmeas.Name, qmeas.Name)
 				fmt.Fprintf(fo, "%s_ths h d %s_qsh q f %s_tcs h d %s_qsc q f\n",
-					Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name)
+					qmeas.Name, qmeas.Name, qmeas.Name, qmeas.Name)
 				fmt.Fprintf(fo, "%s_Hhl H d %s_Qlh Q f %s_Hcl H d %s_Qlc Q f\n",
-					Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name)
+					qmeas.Name, qmeas.Name, qmeas.Name, qmeas.Name)
 				fmt.Fprintf(fo, "%s_thl h d %s_qlh q f %s_tcl h d %s_qlc q f\n",
-					Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name)
+					qmeas.Name, qmeas.Name, qmeas.Name, qmeas.Name)
 			}
 			fmt.Fprintf(fo, "%s_Hht H d %s_Qth Q f %s_Hct H d %s_Qtc Q f\n",
-				Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name)
+				qmeas.Name, qmeas.Name, qmeas.Name, qmeas.Name)
 			fmt.Fprintf(fo, "%s_tht h d %s_qth q f %s_tct h d %s_qtc q f\n\n",
-				Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name)
+				qmeas.Name, qmeas.Name, qmeas.Name, qmeas.Name)
 		default:
-			if Qmeas[i].Plistxc != nil && Qmeas[i].Plistxh != nil {
-				fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].Qdys.Hhr, Qmeas[i].Qdys.H)
-				fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].Qdys.Chr, Qmeas[i].Qdys.C)
-				fmt.Fprintf(fo, "%1d %2.0f ", Qmeas[i].Qdys.Hmxtime, Qmeas[i].Qdys.Hmx)
-				fmt.Fprintf(fo, "%1d %2.0f\n", Qmeas[i].Qdys.Cmxtime, Qmeas[i].Qdys.Cmx)
+			if qmeas.Plistxc != nil && qmeas.Plistxh != nil {
+				fmt.Fprintf(fo, "%1d %3.1f ", qmeas.Qdys.Hhr, qmeas.Qdys.H)
+				fmt.Fprintf(fo, "%1d %3.1f ", qmeas.Qdys.Chr, qmeas.Qdys.C)
+				fmt.Fprintf(fo, "%1d %2.0f ", qmeas.Qdys.Hmxtime, qmeas.Qdys.Hmx)
+				fmt.Fprintf(fo, "%1d %2.0f\n", qmeas.Qdys.Cmxtime, qmeas.Qdys.Cmx)
 
-				fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].Qdyl.Hhr, Qmeas[i].Qdyl.H)
-				fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].Qdyl.Chr, Qmeas[i].Qdyl.C)
-				fmt.Fprintf(fo, "%1d %2.0f ", Qmeas[i].Qdyl.Hmxtime, Qmeas[i].Qdyl.Hmx)
-				fmt.Fprintf(fo, "%1d %2.0f\n", Qmeas[i].Qdyl.Cmxtime, Qmeas[i].Qdyl.Cmx)
+				fmt.Fprintf(fo, "%1d %3.1f ", qmeas.Qdyl.Hhr, qmeas.Qdyl.H)
+				fmt.Fprintf(fo, "%1d %3.1f ", qmeas.Qdyl.Chr, qmeas.Qdyl.C)
+				fmt.Fprintf(fo, "%1d %2.0f ", qmeas.Qdyl.Hmxtime, qmeas.Qdyl.Hmx)
+				fmt.Fprintf(fo, "%1d %2.0f\n", qmeas.Qdyl.Cmxtime, qmeas.Qdyl.Cmx)
 			}
 
-			fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].Qdyt.Hhr, Qmeas[i].Qdyt.H)
-			fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].Qdyt.Chr, Qmeas[i].Qdyt.C)
-			fmt.Fprintf(fo, "%1d %2.0f ", Qmeas[i].Qdyt.Hmxtime, Qmeas[i].Qdyt.Hmx)
-			fmt.Fprintf(fo, "%1d %2.0f\n", Qmeas[i].Qdyt.Cmxtime, Qmeas[i].Qdyt.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", qmeas.Qdyt.Hhr, qmeas.Qdyt.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", qmeas.Qdyt.Chr, qmeas.Qdyt.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", qmeas.Qdyt.Hmxtime, qmeas.Qdyt.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f\n", qmeas.Qdyt.Cmxtime, qmeas.Qdyt.Cmx)
 		}
 	}
 }
 
-func Qmeasmonprt(fo io.Writer, id int, Qmeas []QMEAS) {
-	for i := range Qmeas {
+func Qmeasmonprt(fo io.Writer, id int, Qmeas []*QMEAS) {
+	for _, qmeas := range Qmeas {
 		switch id {
 		case 0:
 			if len(Qmeas) > 0 {
 				fmt.Fprintf(fo, "%s %d\n", QMEAS_TYPE, len(Qmeas))
 			}
-			if Qmeas[i].Plistxc != nil && Qmeas[i].Plistxh != nil {
-				fmt.Fprintf(fo, " %s 1 24\n", Qmeas[i].Name)
+			if qmeas.Plistxc != nil && qmeas.Plistxh != nil {
+				fmt.Fprintf(fo, " %s 1 24\n", qmeas.Name)
 			} else {
-				fmt.Fprintf(fo, " %s 1 8\n", Qmeas[i].Name)
+				fmt.Fprintf(fo, " %s 1 8\n", qmeas.Name)
 			}
 		case 1:
-			if Qmeas[i].Plistxc != nil && Qmeas[i].Plistxh != nil {
+			if qmeas.Plistxc != nil && qmeas.Plistxh != nil {
 				fmt.Fprintf(fo, "%s_Hhs H d %s_Qsh Q f %s_Hcs H d %s_Qsc Q f\n",
-					Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name)
+					qmeas.Name, qmeas.Name, qmeas.Name, qmeas.Name)
 				fmt.Fprintf(fo, "%s_ths h d %s_qsh q f %s_tcs h d %s_qsc q f\n",
-					Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name)
+					qmeas.Name, qmeas.Name, qmeas.Name, qmeas.Name)
 				fmt.Fprintf(fo, "%s_Hhl H d %s_Qlh Q f %s_Hcl H d %s_Qlc Q f\n",
-					Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name)
+					qmeas.Name, qmeas.Name, qmeas.Name, qmeas.Name)
 				fmt.Fprintf(fo, "%s_thl h d %s_qlh q f %s_tcl h d %s_qlc q f\n",
-					Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name)
+					qmeas.Name, qmeas.Name, qmeas.Name, qmeas.Name)
 			}
 			fmt.Fprintf(fo, "%s_Hht H d %s_Qth Q f %s_Hct H d %s_Qtc Q f\n",
-				Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name)
+				qmeas.Name, qmeas.Name, qmeas.Name, qmeas.Name)
 			fmt.Fprintf(fo, "%s_tht h d %s_qth q f %s_tct h d %s_qtc q f\n\n",
-				Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name, Qmeas[i].Name)
+				qmeas.Name, qmeas.Name, qmeas.Name, qmeas.Name)
 		default:
-			if Qmeas[i].Plistxc != nil && Qmeas[i].Plistxh != nil {
-				fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].mQdys.Hhr, Qmeas[i].mQdys.H)
-				fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].mQdys.Chr, Qmeas[i].mQdys.C)
-				fmt.Fprintf(fo, "%1d %2.0f ", Qmeas[i].mQdys.Hmxtime, Qmeas[i].mQdys.Hmx)
-				fmt.Fprintf(fo, "%1d %2.0f\n", Qmeas[i].mQdys.Cmxtime, Qmeas[i].mQdys.Cmx)
+			if qmeas.Plistxc != nil && qmeas.Plistxh != nil {
+				fmt.Fprintf(fo, "%1d %3.1f ", qmeas.mQdys.Hhr, qmeas.mQdys.H)
+				fmt.Fprintf(fo, "%1d %3.1f ", qmeas.mQdys.Chr, qmeas.mQdys.C)
+				fmt.Fprintf(fo, "%1d %2.0f ", qmeas.mQdys.Hmxtime, qmeas.mQdys.Hmx)
+				fmt.Fprintf(fo, "%1d %2.0f\n", qmeas.mQdys.Cmxtime, qmeas.mQdys.Cmx)
 
-				fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].mQdyl.Hhr, Qmeas[i].mQdyl.H)
-				fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].mQdyl.Chr, Qmeas[i].mQdyl.C)
-				fmt.Fprintf(fo, "%1d %2.0f ", Qmeas[i].mQdyl.Hmxtime, Qmeas[i].mQdyl.Hmx)
-				fmt.Fprintf(fo, "%1d %2.0f\n", Qmeas[i].mQdyl.Cmxtime, Qmeas[i].mQdyl.Cmx)
+				fmt.Fprintf(fo, "%1d %3.1f ", qmeas.mQdyl.Hhr, qmeas.mQdyl.H)
+				fmt.Fprintf(fo, "%1d %3.1f ", qmeas.mQdyl.Chr, qmeas.mQdyl.C)
+				fmt.Fprintf(fo, "%1d %2.0f ", qmeas.mQdyl.Hmxtime, qmeas.mQdyl.Hmx)
+				fmt.Fprintf(fo, "%1d %2.0f\n", qmeas.mQdyl.Cmxtime, qmeas.mQdyl.Cmx)
 			}
 
-			fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].mQdyt.Hhr, Qmeas[i].mQdyt.H)
-			fmt.Fprintf(fo, "%1d %3.1f ", Qmeas[i].mQdyt.Chr, Qmeas[i].mQdyt.C)
-			fmt.Fprintf(fo, "%1d %2.0f ", Qmeas[i].mQdyt.Hmxtime, Qmeas[i].mQdyt.Hmx)
-			fmt.Fprintf(fo, "%1d %2.0f\n", Qmeas[i].mQdyt.Cmxtime, Qmeas[i].mQdyt.Cmx)
+			fmt.Fprintf(fo, "%1d %3.1f ", qmeas.mQdyt.Hhr, qmeas.mQdyt.H)
+			fmt.Fprintf(fo, "%1d %3.1f ", qmeas.mQdyt.Chr, qmeas.mQdyt.C)
+			fmt.Fprintf(fo, "%1d %2.0f ", qmeas.mQdyt.Hmxtime, qmeas.mQdyt.Hmx)
+			fmt.Fprintf(fo, "%1d %2.0f\n", qmeas.mQdyt.Cmxtime, qmeas.mQdyt.Cmx)
 		}
 	}
 }

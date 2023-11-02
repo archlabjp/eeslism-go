@@ -26,16 +26,16 @@ import (
 
 /*  壁体デ－タの入力  */
 
-func PCMdata(fi *EeTokens, dsn string, pcm *[]PCM, Npcm *int, pcmiterate *rune) {
+func PCMdata(fi *EeTokens, dsn string, pcm *[]*PCM, Npcm *int, pcmiterate *rune) {
 	N := PCMcount(fi)
 
 	s := "PCMdata --"
 
 	if N > 0 {
-		*pcm = make([]PCM, N)
+		*pcm = make([]*PCM, N)
 
 		for j := 0; j < N; j++ {
-			var PCMa = &(*pcm)[j]
+			var PCMa = new(PCM)
 
 			PCMa.Name = ""
 			PCMa.Condl = -999.0
@@ -87,13 +87,15 @@ func PCMdata(fi *EeTokens, dsn string, pcm *[]PCM, Npcm *int, pcmiterate *rune) 
 				ct[i].upB = 0.0
 				ct[i].minTempChng = 0.5 // 最低温度変動幅
 			}
+
+			(*pcm)[j] = PCMa
 		}
 	}
 
 	*Npcm = 0
 	for i := 0; i < N; i++ {
 
-		PCMa := &(*pcm)[i]
+		PCMa := (*pcm)[i]
 
 		s = fi.GetToken()
 

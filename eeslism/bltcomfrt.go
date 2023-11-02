@@ -23,11 +23,11 @@ import "math"
 
 var __Rmotset_Pint int
 
-func Rmotset(_Room []ROOM) {
+func Rmotset(_Room []*ROOM) {
 	Fotinit(_Room)
 
 	for i := range _Room {
-		Room := &_Room[i]
+		Room := _Room[i]
 
 		Eo := Room.cmp.Elouts[0]
 		if Eo.Control == LOAD_SW {
@@ -45,7 +45,7 @@ func Rmotset(_Room []ROOM) {
 				}
 
 				for j := 0; j < Room.Nrp; j++ {
-					rmpnl := &Room.rmpnl[j]
+					rmpnl := Room.rmpnl[j]
 
 					var Twi float64
 					if __Rmotset_Pint == 0 {
@@ -77,10 +77,10 @@ func Rmotset(_Room []ROOM) {
 
 var __Fotinit_init int = 'i'
 
-func Fotinit(_Room []ROOM) {
+func Fotinit(_Room []*ROOM) {
 	if __Fotinit_init == 'i' {
 		for i := range _Room {
-			Room := &_Room[i]
+			Room := _Room[i]
 			if Room.rmld != nil {
 				Room.rmld.FOTN = nil
 				Room.rmld.FOPL = nil
@@ -105,7 +105,7 @@ func Fotf(Room *ROOM) {
 	{
 		var a, C float64
 		for i := 0; i < Room.N; i++ {
-			Sd := &Room.rsrf[i]
+			Sd := Room.rsrf[i]
 			a += Sd.A * Sd.WSR
 			C += Sd.A * Sd.WSC
 		}
@@ -118,7 +118,7 @@ func Fotf(Room *ROOM) {
 
 		var a float64
 		for i := 0; i < Room.N; i++ {
-			Sd := &Room.rsrf[i]
+			Sd := Room.rsrf[i]
 			a += Sd.A * Sd.WSRN[k]
 		}
 
@@ -130,7 +130,7 @@ func Fotf(Room *ROOM) {
 
 		var a float64
 		for i := 0; i < Room.N; i++ {
-			Sd := &Room.rsrf[i]
+			Sd := Room.rsrf[i]
 			a += Sd.A * Sd.WSPL[k]
 		}
 
@@ -142,14 +142,14 @@ func Fotf(Room *ROOM) {
 
 /*   各室の温熱環境指標計算　　*/
 
-func Rmcomfrt(_Room []ROOM) {
+func Rmcomfrt(_Room []*ROOM) {
 	met := 0.0
 	Icl := 0.0
 	v := 0.0
 
 	for i := range _Room {
 		id := 0
-		Room := &_Room[i]
+		Room := _Room[i]
 		if Room.Metsch != nil && *Room.Metsch > 0.0 {
 			met = *Room.Metsch
 			id++

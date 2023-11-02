@@ -39,7 +39,8 @@ func Entry(InFile string) {
 	var Ctlst []*CTLST
 	var key int
 	var Exsf EXSFS
-	var Soldy, Solmon []float64
+	var Soldy []float64  // 日集計データ
+	var Solmon []float64 // 月集計データ
 
 	var uop, ulp []bekt
 	var ullp, ulmp *bekt

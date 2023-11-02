@@ -5,9 +5,14 @@ import (
 	"io"
 )
 
-var __Wdtsum_oldday, __Wdtsum_hrs, __Wdtsum_oldMon, __Wdtsum_hrsm int
+var __Wdtsum_oldday, __Wdtsum_oldMon int
+var __Wdtsum_hrs int  // 日累計回数
+var __Wdtsum_hrsm int // 月累計回数
 var __Wdtsum_cffWh float64
 
+// 気象データ等の日集計、月集計を行います。
+// 気象データの日集計データは Wdd に、月集ケーデータは Wdm に反映されます。
+// 外表面ごとの日集計データは Soldy に、月集計データは Solmon に反映されます。
 func Wdtsum(Mon int, Day int, Nday int, ttmm int, Wd *WDAT, Exs []*EXSF,
 	Wdd *WDAT, Wdm *WDAT, Soldy []float64, Solmon []float64, Simc *SIMCONTL) {
 
@@ -26,8 +31,8 @@ func Wdtsum(Mon int, Day int, Nday int, ttmm int, Wd *WDAT, Exs []*EXSF,
 			Soldy[i] = 0.0
 		}
 
-		__Wdtsum_oldday = Nday
 	}
+	__Wdtsum_oldday = Nday
 
 	// 月集計の初期化
 	if Mon != __Wdtsum_oldMon {
@@ -81,35 +86,50 @@ func Wdtsum(Mon int, Day int, Nday int, ttmm int, Wd *WDAT, Exs []*EXSF,
 		}
 	}
 
+	// 日の終わりの処理
 	if ttmm == 2400 {
+		// 気温、絶対湿度、風速を平均値に変換
 		Wdd.T /= float64(__Wdtsum_hrs)
 		Wdd.X /= float64(__Wdtsum_hrs)
 		Wdd.Wv /= float64(__Wdtsum_hrs)
+
+		// 日射、ふく射を単位変換
 		Wdd.Idn *= __Wdtsum_cffWh
 		Wdd.Isky *= __Wdtsum_cffWh
 		Wdd.RN *= __Wdtsum_cffWh
 
+		// 外表面ごとの日射量または温度
 		for i, e := range Exs {
-			if e.Typ != 'E' && e.Typ != 'e' {
+			if e.Typ != EXSFType_E && e.Typ != EXSFType_e {
+				// 日射量の単位変換
 				Soldy[i] *= __Wdtsum_cffWh
 			} else {
+				// 温度を平均化
 				Soldy[i] /= float64(__Wdtsum_hrs)
 			}
 		}
 	}
+
+	// 月の終わりの処理
 	if IsEndDay(Mon, Day, Nday, Simc.Dayend) && __Wdtsum_hrsm > 0 && ttmm == 2400 {
+		// 気温、絶対湿度、風速を平均値に変換
 		Wdm.T /= float64(__Wdtsum_hrsm)
 		Wdm.X /= float64(__Wdtsum_hrsm)
 		Wdm.Wv /= float64(__Wdtsum_hrsm)
+
+		// 日射、ふく射を単位変換
 		Wdm.Idn *= __Wdtsum_cffWh
 		Wdm.Isky *= __Wdtsum_cffWh
 		Wdm.RN *= __Wdtsum_cffWh
 
+		// 外表面ごとの日射量または温度
 		for i, e := range Exs {
-			if e.Typ != 'E' && e.Typ != 'e' {
-				Soldy[i] *= __Wdtsum_cffWh
+			if e.Typ != EXSFType_E && e.Typ != EXSFType_e {
+				// 日射量の単位変換
+				Solmon[i] *= __Wdtsum_cffWh
 			} else {
-				Soldy[i] /= float64(__Wdtsum_hrsm)
+				// 温度を平均化
+				Solmon[i] /= float64(__Wdtsum_hrsm)
 			}
 		}
 	}

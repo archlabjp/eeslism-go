@@ -21,7 +21,7 @@ func wdflinit(Simc *SIMCONTL, Estl *ESTL, Tlist []TLIST) {
 	}
 
 	Err = fmt.Sprintf(ERRFMT, "(wdflinit)")
-	Locinit(Simc.Loc)
+	Simc.Loc = NewLOCAT()
 	loc := Simc.Loc
 
 	m = -1

@@ -90,8 +90,8 @@ func Boidata(s string, boica *BOICA) int {
 	return id
 }
 
-func Boicaint(_Boica []*BOICA, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL) {
-	for _, Boica := range _Boica {
+func (eqcat *EQCAT) Boicaint(Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT, Exsf *EXSFS, Schdl *SCHDL) {
+	for _, Boica := range eqcat.Boica {
 		if idx, err := idsch(Boica.Qostr, Schdl.Sch, ""); err == nil {
 			Boica.Qo = &Schdl.Val[idx]
 		} else {
@@ -173,8 +173,7 @@ func Boicfv(Boi []*BOI) {
 
 /* --------------------------- */
 
-/*  供給熱量、エネルギーの計算 */
-
+// 供給熱量、エネルギーの計算
 func Boiene(Boi []*BOI, BOIreset *int) {
 	for i, boi := range Boi {
 		boi.Tin = boi.Cmp.Elins[0].Sysvin

@@ -11,30 +11,31 @@ import (
 
 func Pathdata(
 	f *EeTokens,
-	errkey string,
 	Simc *SIMCONTL,
 	Wd *WDAT,
 	Compnt []*COMPNT,
 	Schdl *SCHDL,
 	M *[]*MPATH,
-	Nmpath *int,
 	Plst *[]*PLIST,
 	Plm *[]*PELM,
 	Eqsys *EQSYS,
+	Elout *[]*ELOUT,
+	Elin *[]*ELIN,
 ) {
 	var C *COMPNT
 	var stank *STANK
 	var Qmeas *QMEAS
 	var s, ss string
-	var etyp EqpType
 	var elm string
 	var id int
 
 	var i, j, m, ncv, iswc int
 
+	errkey := "Pathdata"
 	if DEBUG {
 		fmt.Printf("\n")
 		for i := range Compnt {
+
 			C = Compnt[i]
 			fmt.Printf("name=%s Nin=%d  Nout=%d\n", C.Name, C.Nin, C.Nout)
 		}
@@ -394,15 +395,13 @@ func Pathdata(
 	}
 	// 最外ループ: MPATHの読み込み 完了
 
-	*Nmpath = len(*M)
-
 	if DEBUG {
 		if len(*M) > 0 {
-			plistprint(*M, *Plm, Compnt[0].Elouts, Compnt[0].Elins)
+			plistprint(*M, *Plm, *Elout, *Elin)
 		}
 
 		fmt.Printf("SYSPTH  Data Read end\n")
-		fmt.Printf("Nmpath=%d\n", *Nmpath)
+		fmt.Printf("Nmpath=%d\n", len(*M))
 	}
 
 	/* ============================================================================ */
@@ -421,7 +420,7 @@ func Pathdata(
 		for j, Plist := range Mpath.Plist {
 
 			if DEBUG {
-				fmt.Printf("eepath.c  Mpath.Nlpath=%d\n", len(Mpath.Plist))
+				fmt.Printf("eepath.c  Mpath->Nlpath=%d\n", len(Mpath.Plist))
 				fmt.Printf("<<Pathdata>>  i=%d Mpath=%d  j=%d Plist=%d\n", i, i, j, j)
 			}
 
@@ -438,7 +437,7 @@ func Pathdata(
 
 				idci := true // システム要素入力端割当を行うか？
 				idco := true // システム要素出力端割当を行うか？
-				etyp = Pelm.Cmp.Eqptype
+				etyp := Pelm.Cmp.Eqptype
 
 				if m == 0 && etyp == FLIN_TYPE {
 					// 末端経路の先頭要素が*流入境界条件*である場合
@@ -478,7 +477,7 @@ func Pathdata(
 		}
 
 		if DEBUG {
-			plistprint((*M)[i:i+1], *Plm, Compnt[0].Elouts, Compnt[0].Elins)
+			plistprint((*M)[i:i+1], *Plm, *Elout, *Elin)
 			fmt.Printf("i=%d\n", i)
 		}
 
@@ -493,14 +492,14 @@ func Pathdata(
 			Plist := Mpath.Plist[0]
 
 			if DEBUG {
-				fmt.Printf("<<Pathdata>>   Plist.type=%c\n", Plist.Type)
+				fmt.Printf("<<Pathdata>>   Plist->type=%c\n", Plist.Type)
 			}
 
 			if Plist.Type == IN_LPTP {
 				Mpath.Type = THR_PTYP
 
 				if DEBUG {
-					fmt.Printf("<<Pathdata>>   Mpath.type=%c\n", Mpath.Type)
+					fmt.Printf("<<Pathdata>>   Mpath->type=%c\n", Mpath.Type)
 				}
 			} else {
 				Mpath.Type = CIR_PTYP
@@ -538,7 +537,7 @@ func Pathdata(
 				etyp_0 := Pelm_0.Cmp.Eqptype
 
 				if DEBUG {
-					fmt.Printf("<<Pathdata>> Plist j=%d name=%s eqptype=%s\n", j, Pelm_0.Cmp.Name, etyp)
+					fmt.Printf("<<Pathdata>> Plist j=%d name=%s eqptype=%s\n", j, Pelm_0.Cmp.Name, etyp_0)
 				}
 
 				if etyp_0 == DIVERG_TYPE || etyp_0 == DIVGAIR_TYPE {
@@ -578,14 +577,14 @@ func Pathdata(
 		Mpath.Ncv = ncv
 
 		if DEBUG {
-			fmt.Printf("2----- MAX=%d  i=%d\n", *Nmpath, i)
+			fmt.Printf("2----- MAX=%d  i=%d\n", len(*M), i)
 		}
 	}
 
 	if DEBUG {
-		if *Nmpath > 0 {
+		if len(*M) > 0 {
 			mpi := *M
-			plistprint(mpi, *Plm, Compnt[0].Elouts, Compnt[0].Elins)
+			plistprint(mpi, *Plm, *Elout, *Elin)
 		}
 	}
 
@@ -596,8 +595,8 @@ func Pathdata(
 	pflowstrct(*M)
 
 	if DEBUG {
-		if *Nmpath > 0 {
-			plistprint(*M, *Plm, Compnt[0].Elouts, Compnt[0].Elins)
+		if len(*M) > 0 {
+			plistprint(*M, *Plm, *Elout, *Elin)
 		}
 	}
 

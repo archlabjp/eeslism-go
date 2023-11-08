@@ -58,9 +58,10 @@ func Hclelm(Hcload []*HCLOAD) {
 			elini.Upv = eo.Elins[0].Upo
 			elin.Upo = eo
 			elin.Upv = eo
+
+			eo = hc.Cmp.Elouts[1]
 			elini = elo.Elins[2]
 			elin = elo.Elins[4]
-			eo = hc.Cmp.Elouts[1]
 
 			elini.Upo = eo.Elins[0].Upo
 			elini.Upv = eo.Elins[0].Upo
@@ -481,8 +482,7 @@ func Hcldcfv(_Hcload []*HCLOAD) {
 
 /* ------------------------------------------ */
 
-/* 空調負荷の計算 */
-
+// 空調負荷の計算
 func Hcldene(_Hcload []*HCLOAD, LDrest *int, Wd *WDAT) {
 	var rest int
 	var elo *ELOUT

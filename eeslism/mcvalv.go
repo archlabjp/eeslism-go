@@ -28,16 +28,16 @@ import (
 
 /* ------------------------------------------ */
 
-func Valvcountreset(Valv []*VALV) {
-	for _, v := range Valv {
+func (eqsys *EQSYS) Valvcountreset() {
+	for _, v := range eqsys.Valv {
 		v.Count = 0
 	}
 }
 
 /***********************************************/
 
-func Valvcountinc(Valv []*VALV) {
-	for _, v := range Valv {
+func (eqsys *EQSYS) Valvcountinc() {
+	for _, v := range eqsys.Valv {
 		v.Count++
 	}
 }

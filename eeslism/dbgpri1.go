@@ -63,7 +63,7 @@ func xprsolrd(E []*EXSF) {
 	if DEBUG {
 		fmt.Println("--- xprsolrd")
 		for i, Exs := range E {
-			fmt.Printf("EXSF[%2d]=%s  Id=%.0f  Idif=%.0f  Iw=%.0f RN=%.0f cinc=%.3f\n",
+			fmt.Printf("EXSF[%2d]=%s  Id=%5.0f  Idif=%5.0f  Iw=%5.0f RN=%5.0f cinc=%5.3f\n",
 				i, Exs.Name, Exs.Idre, Exs.Idf, Exs.Iw, Exs.Rn, Exs.Cinc)
 		}
 	}
@@ -167,11 +167,10 @@ func xprxas(R []ROOM, S []RMSRF) {
 	}
 }
 
-func xprtwsrf(N int, _Sd []*RMSRF) {
+func (Rmvls *RMVLS) xprtwsrf() {
 	fmt.Println("--- xprtwsrf")
 
-	for n := 0; n < N; n++ {
-		Sd := _Sd[n]
+	for n, Sd := range Rmvls.Sd {
 		fmt.Printf("  n=%2d  rm=%d nr=%d  Ts=%6.2f  Tmrt=%6.2f  Te=%6.2f  RS=%7.1f\n",
 			n, Sd.rm, Sd.n, Sd.Ts, Sd.Tmrt, Sd.Te, Sd.RS)
 	}
@@ -179,11 +178,10 @@ func xprtwsrf(N int, _Sd []*RMSRF) {
 
 /* -------------------------------------------------------------------- */
 
-func xprrmsrf(N int, _Sd []*RMSRF) {
+func (Rmvls *RMVLS) xprrmsrf() {
 	fmt.Println("--- xprrmsf")
 
-	for n := 0; n < N; n++ {
-		Sd := _Sd[n]
+	for n, Sd := range Rmvls.Sd {
 		fmt.Printf("  [%d]=%6.2f", n, Sd.Ts)
 	}
 	fmt.Println()
@@ -191,11 +189,10 @@ func xprrmsrf(N int, _Sd []*RMSRF) {
 
 /* -------------------------------------------------------------------- */
 
-func xprtwall(Nmwall int, _Mw []*MWALL) {
+func (Rmvls *RMVLS) xprtwall() {
 	fmt.Println("--- xprtwall")
 
-	for j := 0; j < Nmwall; j++ {
-		Mw := _Mw[j]
+	for j, Mw := range Rmvls.Mw {
 		if Mw.Pc > 0 {
 			fmt.Printf("Tw j=%2d", j)
 

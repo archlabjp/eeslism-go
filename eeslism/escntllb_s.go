@@ -72,128 +72,134 @@ func kynameptr(s string, Simc *SIMCONTL, _Compnt []*COMPNT,
 	key := strings.Split(s, "_")
 	nk := len(key)
 
-	switch key[0] {
-	case "Ta":
-		vptr = VPTR{
-			Type: VAL_CTYPE,
-			Ptr:  &Wd.T,
-		}
-	case "xa":
-		vptr = VPTR{
-			Type: VAL_CTYPE,
-			Ptr:  &Wd.X,
-		}
-	case "RHa":
-		vptr = VPTR{
-			Type: VAL_CTYPE,
-			Ptr:  &Wd.RH,
-		}
-	case "ha":
-		vptr = VPTR{
-			Type: VAL_CTYPE,
-			Ptr:  &Wd.H,
-		}
-	case "Twsup":
-		vptr = VPTR{
-			Type: VAL_CTYPE,
-			Ptr:  &Wd.Twsup,
-		}
-	case "Ihol":
-		vptr = VPTR{
-			Type: VAL_CTYPE,
-			Ptr:  &Wd.Ihor,
-		}
-	default:
-		// // 傾斜面名称の検索
-		if Exsf != nil {
-			for _, Exs := range Exsf.Exs {
-				if key[0] == Exs.Name {
-					switch key[1] {
-					case "Idre":
-						// 傾斜面への入射直達日射量
-						vptr = VPTR{
-							Type: VAL_CTYPE,
-							Ptr:  &Exs.Idre,
-						}
-						return vptr, vpath, nil
-					case "Idf":
-						// 傾斜面への入射拡散日射量
-						vptr = VPTR{
-							Type: VAL_CTYPE,
-							Ptr:  &Exs.Idf,
-						}
-						return vptr, vpath, nil
-					case "Iw":
-						// 傾斜面への入射全日射量
-						vptr = VPTR{
-							Type: VAL_CTYPE,
-							Ptr:  &Exs.Iw,
-						}
-						return vptr, vpath, nil
-					}
-				}
+	if nk > 0 {
+		switch key[0] {
+		case "Ta":
+			vptr = VPTR{
+				Type: VAL_CTYPE,
+				Ptr:  &Wd.T,
 			}
-		}
-
-		if len(Mpath) > 0 {
-			vptr, vpath, err = pathvptr(nk, key, Mpath)
-		} else {
-			err = errors.New("Nmpath == 0")
-		}
-
-		if err != nil {
-			if Simc.Nvcfile > 0 {
-				vptr, err = vcfptr(key, Simc)
-			} else {
-				err = errors.New("Simc.Nvcfile == 0")
+		case "xa":
+			vptr = VPTR{
+				Type: VAL_CTYPE,
+				Ptr:  &Wd.X,
 			}
-		}
-
-		if err != nil {
-			for i := range _Compnt {
-				Compnt := _Compnt[i]
-				if key[0] == Compnt.Name {
-					vptr, err = compntvptr(nk, key, Compnt)
-					if err != nil {
-						e := Compnt.Eqptype
-						switch e {
-						case ROOM_TYPE:
-							if SIMUL_BUILDG {
-								vptr, err = roomvptr(nk, key, Compnt.Eqp.(*ROOM))
+		case "RHa":
+			vptr = VPTR{
+				Type: VAL_CTYPE,
+				Ptr:  &Wd.RH,
+			}
+		case "ha":
+			vptr = VPTR{
+				Type: VAL_CTYPE,
+				Ptr:  &Wd.H,
+			}
+		case "Twsup":
+			vptr = VPTR{
+				Type: VAL_CTYPE,
+				Ptr:  &Wd.Twsup,
+			}
+		case "Ihol":
+			vptr = VPTR{
+				Type: VAL_CTYPE,
+				Ptr:  &Wd.Ihor,
+			}
+		default:
+			// // 傾斜面名称の検索
+			if Exsf != nil {
+				for _, Exs := range Exsf.Exs {
+					if key[0] == Exs.Name {
+						switch key[1] {
+						case "Idre":
+							// 傾斜面への入射直達日射量
+							vptr = VPTR{
+								Type: VAL_CTYPE,
+								Ptr:  &Exs.Idre,
 							}
-						case REFACOMP_TYPE:
-							vptr, err = refaswptr(key, Compnt.Eqp.(*REFA))
-						case HCLOAD_TYPE, HCLOADW_TYPE, RMAC_TYPE, RMACD_TYPE:
-							vptr, err = hcldswptr(key, Compnt.Eqp.(*HCLOAD))
-						case VAV_TYPE, VWV_TYPE:
-							/* VAV Satoh Debug 2001/1/19 */
-							vptr, err = vavswptr(key, Compnt.Eqp.(*VAV))
-						case COLLECTOR_TYPE:
-							vptr, err = collvptr(key, Compnt.Eqp.(*COLL))
-						case STANK_TYPE:
-							vptr, err = stankvptr(key, Compnt.Eqp.(*STANK))
-						case STHEAT_TYPE:
-							vptr, vpath, err = stheatvptr(key, Compnt.Eqp.(*STHEAT))
-						case DESI_TYPE:
-							// Satoh追加　デシカント槽　2013/10/23
-							vptr, err = Desivptr(key, Compnt.Eqp.(*DESI))
-						case PIPEDUCT_TYPE:
-							vptr, err = pipevptr(key, Compnt.Eqp.(*PIPE))
-						case RDPANEL_TYPE:
-							vptr, err = rdpnlvptr(key, Compnt.Eqp.(*RDPNL))
-						case VALV_TYPE, TVALV_TYPE:
-							vptr, err = valv_vptr(key, Compnt.Eqp.(*VALV))
-						default:
-							Eprint("CONTL", Compnt.Name)
+							return vptr, vpath, nil
+						case "Idf":
+							// 傾斜面への入射拡散日射量
+							vptr = VPTR{
+								Type: VAL_CTYPE,
+								Ptr:  &Exs.Idf,
+							}
+							return vptr, vpath, nil
+						case "Iw":
+							// 傾斜面への入射全日射量
+							vptr = VPTR{
+								Type: VAL_CTYPE,
+								Ptr:  &Exs.Iw,
+							}
+							return vptr, vpath, nil
 						}
 					}
-					break
+				}
+			}
+
+			if len(Mpath) > 0 {
+				vptr, vpath, err = pathvptr(nk, key, Mpath)
+			} else {
+				err = errors.New("Nmpath == 0")
+			}
+
+			if err != nil {
+				if Simc.Nvcfile > 0 {
+					vptr, err = vcfptr(key, Simc)
+				} else {
+					err = errors.New("Simc.Nvcfile == 0")
+				}
+			}
+
+			if err != nil {
+				for i := range _Compnt {
+					Compnt := _Compnt[i]
+					if key[0] == Compnt.Name {
+						vptr, err = compntvptr(nk, key, Compnt)
+						if err != nil {
+							e := Compnt.Eqptype
+							switch e {
+							case ROOM_TYPE:
+								if SIMUL_BUILDG {
+									vptr, err = roomvptr(nk, key, Compnt.Eqp.(*ROOM))
+								}
+							case REFACOMP_TYPE:
+								vptr, err = refaswptr(key, Compnt.Eqp.(*REFA))
+							case HCLOAD_TYPE, HCLOADW_TYPE, RMAC_TYPE, RMACD_TYPE:
+								vptr, err = hcldswptr(key, Compnt.Eqp.(*HCLOAD))
+							case VAV_TYPE, VWV_TYPE:
+								/* VAV Satoh Debug 2001/1/19 */
+								vptr, err = vavswptr(key, Compnt.Eqp.(*VAV))
+							case COLLECTOR_TYPE:
+								vptr, err = collvptr(key, Compnt.Eqp.(*COLL))
+							case STANK_TYPE:
+								vptr, err = stankvptr(key, Compnt.Eqp.(*STANK))
+							case STHEAT_TYPE:
+								vptr, vpath, err = stheatvptr(key, Compnt.Eqp.(*STHEAT))
+							case DESI_TYPE:
+								// Satoh追加　デシカント槽　2013/10/23
+								vptr, err = Desivptr(key, Compnt.Eqp.(*DESI))
+							case PIPEDUCT_TYPE:
+								vptr, err = pipevptr(key, Compnt.Eqp.(*PIPE))
+							case RDPANEL_TYPE:
+								vptr, err = rdpnlvptr(key, Compnt.Eqp.(*RDPNL))
+							case VALV_TYPE, TVALV_TYPE:
+								vptr, err = valv_vptr(key, Compnt.Eqp.(*VALV))
+							default:
+								Eprint("CONTL", Compnt.Name)
+							}
+						}
+						break
+					}
 				}
 			}
 		}
+	} else {
+		err = errors.New("Some error")
 	}
 
-	Eprint("<kynameptr>", s)
+	if err != nil {
+		Eprint("<kynameptr>", s)
+	}
 
 	return vptr, vpath, err
 }

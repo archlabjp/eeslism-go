@@ -85,8 +85,8 @@ func Rmrdshfc(_Room []*ROOM, Sd []*RMSRF) {
 }
 
 /* ----------------------------------------------------------------- */
-func Rmhtrsmcf(Nsrf int, _Sd []*RMSRF) {
-	for n := 0; n < Nsrf; n++ {
+func Rmhtrsmcf(_Sd []*RMSRF) {
+	for n := range _Sd {
 		Sd := _Sd[n]
 		Sd.K = 1.0 / (Sd.Rwall + 1.0/Sd.ali + 1.0/Sd.alo)
 	}
@@ -94,7 +94,7 @@ func Rmhtrsmcf(Nsrf int, _Sd []*RMSRF) {
 
 /* ----------------------------------------------------------------- */
 // 透過日射、相当外気温度の計算
-func Rmexct(Room []*ROOM, Nsrf int, Sd []*RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []*SNBK, Qrm []*QRM, nday, mt int) {
+func Rmexct(Room []*ROOM, Sd []*RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []*SNBK, Qrm []*QRM, nday, mt int) {
 	var n, nn int
 	var Fsdw float64
 	var Idre float64 // 直逹日射  [W/m2]
@@ -356,7 +356,7 @@ func Rmexct(Room []*ROOM, Nsrf int, Sd []*RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []*
 
 	} // 室ループ
 
-	for n := 0; n < Nsrf; n++ {
+	for n := range Sd {
 		Sdn := Sd[n]
 
 		// 共用壁の場合
@@ -370,13 +370,13 @@ func Rmexct(Room []*ROOM, Nsrf int, Sd []*RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []*
 /* ----------------------------------------------------------------- */
 
 // 室の係数、定数項の計算
-func Roomcf(nmwall int, mw []*MWALL, rooms []*ROOM, rdpnl []*RDPNL, wd *WDAT, exsf *EXSFS) {
+func Roomcf(mw []*MWALL, rooms []*ROOM, rdpnl []*RDPNL, wd *WDAT, exsf *EXSFS) {
 	for _, rdpnl := range rdpnl {
 		panelwp(rdpnl)
 	}
 
 	// 壁体係数行列の作成（壁体数RMSRF分だけループ）
-	RMwlc(nmwall, mw, exsf, wd)
+	RMwlc(mw, exsf, wd)
 
 	for i := range rooms {
 		room := rooms[i]
@@ -475,15 +475,31 @@ func Rmsurftd(_Room []*ROOM, Sd []*RMSRF) {
 		r = *(Room.OTsetCwgt)
 	}
 
+	if DEBUG {
+		fmt.Printf("<Rmsurft> Start\n")
+	}
+
 	for i := range _Room {
 		Room := _Room[i]
+
+		if DEBUG {
+			fmt.Printf("Room[%d]=%s\tN=%d\tbrs=%d\n", i, Room.Name, Room.N, Room.Brs)
+		}
 
 		N := Room.N
 		brs := Room.Brs
 		sd := Sd[brs:]
 
+		if DEBUG {
+			fmt.Printf("<Rmsurft>  RMsrt start\n")
+		}
+
 		// 室内表面温度の計算
 		RMsrt(Room)
+
+		if DEBUG {
+			fmt.Printf("<Rmsurft>  RMsrt end\n")
+		}
 
 		Room.Tsav = RTsav(N, sd)
 		Room.Tot = r*Room.Tr + (1.0-r)*Room.Tsav

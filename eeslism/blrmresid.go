@@ -26,8 +26,8 @@ import (
 /*
 居住者スケジュ－ルの入力              */
 
-func Residata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []*ROOM, pmvpri *int, simc *SIMCONTL) {
-	errFmt := fmt.Sprintf(ERRFMT, dsn)
+func Residata(fi *EeTokens, schdl *SCHDL, rooms []*ROOM, pmvpri *int, simc *SIMCONTL) {
+	errFmt := fmt.Sprintf(ERRFMT, "RESI")
 
 	for fi.IsEnd() == false {
 		var s, ss, sss, s4 string
@@ -140,8 +140,8 @@ func Residata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []*ROOM, pmvpri *int
 /*
 照明・機器利用スケジュ－ルの入力              */
 
-func Appldata(fi *EeTokens, dsn string, schdl *SCHDL, rooms []*ROOM, simc *SIMCONTL) {
-	errFmt := fmt.Sprintf(ERRFMT, dsn)
+func Appldata(fi *EeTokens, schdl *SCHDL, rooms []*ROOM, simc *SIMCONTL) {
+	errFmt := fmt.Sprintf(ERRFMT, "APPL")
 
 	for fi.IsEnd() == false {
 		var s, ss string

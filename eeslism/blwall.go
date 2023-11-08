@@ -26,7 +26,7 @@ import (
 
 /*  壁体後退差分計算準備   */
 
-func Walli(Nbm int, W []BMLST, Wl *WALL, pcm []*PCM, Npcm int) {
+func Walli(Nbm int, W []BMLST, Wl *WALL, pcm []*PCM) {
 	// int     i, j, k, m, N, M;
 	// double  Rwall, *C, *Rw, CAPwall;
 	var BM *BMLST
@@ -83,7 +83,7 @@ func Walli(Nbm int, W []BMLST, Wl *WALL, pcm []*PCM, Npcm int) {
 			Welm.Code = code // 基材のコード名のコピー
 
 			// PCMの検索
-			for k := 0; k < Npcm; k++ {
+			for k := range pcm {
 				PCMcat := pcm[k]
 				if PCMname == PCMcat.Name {
 					Wl.PCM[i] = PCMcat

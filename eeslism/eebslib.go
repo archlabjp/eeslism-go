@@ -220,8 +220,8 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 }
 
 /*  外表面入射日射量の計算    */
-func Exsfsol(Wd *WDAT, Exs []*EXSF) {
-	for _, ex := range Exs {
+func (exsf *EXSFS) Exsfsol(Wd *WDAT) {
+	for _, ex := range exsf.Exs {
 
 		if ex.Typ == EXSFType_S {
 			// 入射角のcos

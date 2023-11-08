@@ -18,7 +18,7 @@
 package eeslism
 
 // システム使用機器の初期設定
-func Mecsinit(Eqsys *EQSYS, Simc *SIMCONTL, Compnt []*COMPNT, Exsf []*EXSF, Wd *WDAT, Rmvls *RMVLS) {
+func (Eqsys *EQSYS) Mecsinit(Simc *SIMCONTL, Compnt []*COMPNT, Exsf []*EXSF, Wd *WDAT, Rmvls *RMVLS) {
 	// ヒートポンプ
 	Refaint(Eqsys.Refa, Wd, Compnt)
 
@@ -35,7 +35,7 @@ func Mecsinit(Eqsys *EQSYS, Simc *SIMCONTL, Compnt []*COMPNT, Exsf []*EXSF, Wd *
 	Pumpint(Eqsys.Pump, Exsf)
 
 	// 電気蓄熱暖房器
-	Stheatint(Eqsys.Stheat, Simc, Compnt, Wd, Rmvls.Npcm, Rmvls.PCM)
+	Stheatint(Eqsys.Stheat, Simc, Compnt, Wd, Rmvls.PCM)
 
 	// 境界条件設定用仮想機器
 	Flinint(Eqsys.Flin, Simc, Compnt, Wd)
@@ -57,7 +57,7 @@ func Mecsinit(Eqsys *EQSYS, Simc *SIMCONTL, Compnt []*COMPNT, Exsf []*EXSF, Wd *
 }
 
 // システム使用機器特性式係数の計算
-func Mecscf(Eqsys *EQSYS) {
+func (Eqsys *EQSYS) Mecscf() {
 	// 合流要素
 	Cnvrgcfv(Eqsys.Cnvrg)
 
@@ -100,7 +100,7 @@ func Mecscf(Eqsys *EQSYS) {
 }
 
 // システム使用機器の供給熱量、エネルギーの計算
-func Mecsene(Eqsys *EQSYS) {
+func (Eqsys *EQSYS) Mecsene() {
 	// 冷温水コイル
 	Hccene(Eqsys.Hcc)
 

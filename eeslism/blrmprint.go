@@ -250,12 +250,12 @@ func Dysfprint(fo io.Writer, title string, Mon, Day int, Room []*ROOM) {
 
 var __Shdprint_ic int
 
-func Shdprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, Sd []*RMSRF) {
+func Shdprint(fo io.Writer, title string, Mon, Day int, time float64, Sd []*RMSRF) {
 	if __Shdprint_ic == 0 {
 		__Shdprint_ic++
 
 		var m int
-		for i := 0; i < Nsrf; i++ {
+		for i := range Sd {
 			Sdd := Sd[i]
 			if Sdd.shdpri && Sdd.sb >= 0 {
 				m++
@@ -264,7 +264,7 @@ func Shdprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, 
 
 		fmt.Fprintf(fo, "%s;\n %d\n", title, m)
 
-		for i := 0; i < Nsrf; i++ {
+		for i := range Sd {
 			Sdd := Sd[i]
 			if Sdd.shdpri && Sdd.sb >= 0 {
 				fmt.Fprintf(fo, "%s\t%d:%s\n", Sdd.room.Name, i-Sdd.room.Brs, Sdd.Name)
@@ -274,7 +274,7 @@ func Shdprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, 
 
 	fmt.Fprintf(fo, "%d\t%d\t%.2f\t", Mon, Day, time)
 
-	for i := 0; i < Nsrf; i++ {
+	for i := range Sd {
 		Sdd := Sd[i]
 		if Sdd.shdpri && Sdd.sb >= 0 {
 			fmt.Fprintf(fo, "%.2f\t", Sdd.Fsdworg)
@@ -290,11 +290,11 @@ func Shdprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, 
 
 var __Wallprint_ic int
 
-func Wallprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, Sd []*RMSRF) {
+func Wallprint(fo io.Writer, title string, Mon, Day int, time float64, Sd []*RMSRF) {
 	if __Wallprint_ic == 0 {
 		__Wallprint_ic++
 		var m int
-		for i := 0; i < Nsrf; i++ {
+		for i := range Sd {
 			Sdd := Sd[i]
 			if Sdd.wlpri && Sdd.wd >= 0 {
 				m++
@@ -303,7 +303,7 @@ func Wallprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int,
 
 		fmt.Fprintf(fo, "%s;\n %d\n", title, m)
 
-		for i := 0; i < Nsrf; i++ {
+		for i := range Sd {
 			Sdd := Sd[i]
 			if Sdd.wlpri && Sdd.wd >= 0 {
 				fmt.Fprintf(fo, "%s\t%d-%c:%s\t%d\n", Sdd.room.Name, i-Sdd.room.Brs, Sdd.ble, Sdd.Name, Sdd.mw.M)
@@ -313,7 +313,7 @@ func Wallprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int,
 
 	fmt.Fprintf(fo, "%d\t%d\t%.2f\t", Mon, Day, time)
 
-	for i := 0; i < Nsrf; i++ {
+	for i := range Sd {
 		Sdd := Sd[i]
 		if Sdd.wlpri && Sdd.wd >= 0 {
 			Mw := Sdd.mw
@@ -341,7 +341,7 @@ func Wallprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int,
 /* 潜熱蓄熱材の状態値の出力 */
 var __PCMprint_ic int
 
-func PCMprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, Sd []*RMSRF) {
+func PCMprint(fo io.Writer, title string, Mon, Day int, time float64, Sd []*RMSRF) {
 	var Sdd *RMSRF
 	var pcmstate *PCMSTATE
 
@@ -350,7 +350,7 @@ func PCMprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, 
 
 		Sdd = Sd[0]
 		m := 0
-		for i := 0; i < Nsrf; i++ {
+		for i := range Sd {
 			if Sdd.pcmpri && Sdd.wd >= 0 {
 				m += Sdd.Npcm
 			}
@@ -359,7 +359,7 @@ func PCMprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, 
 
 		fmt.Fprintf(fo, "%s;\n %d\n", title, m)
 
-		for i := 0; i < Nsrf; i++ {
+		for i := range Sd {
 			Sdd := Sd[i]
 			if Sdd.mwside == RMSRFMwSideType_i {
 				if Sdd.pcmpri && Sdd.wd >= 0 {
@@ -376,8 +376,7 @@ func PCMprint(fo io.Writer, title string, Mon, Day int, time float64, Nsrf int, 
 
 	fmt.Fprintf(fo, "%d\t%d\t%.2f\t", Mon, Day, time)
 
-	Sdd = Sd[0]
-	for i := 0; i < Nsrf; i++ {
+	for _, Sdd := range Sd {
 		if Sdd.pcmpri && Sdd.wd >= 0 {
 			Mw := Sdd.mw
 
@@ -422,13 +421,12 @@ func Qrmprint(fo io.Writer, title string, Mon, Day int, time float64, Room []*RO
 		fmt.Fprintf(fo, "%s;\n %d\n", title, n)
 		fmt.Fprint(fo, "Mo\tNd\ttt\t")
 
-		key := [16]string{"tsol", "asol", "arn", "hums", "light", "apls",
-			"huml", "apll", "Qeqp", "Qis", "Qil", "Qsto", "Qstol", "AE", "AG"}
+		key := []string{"tsol", "asol", "arn", "hums", "light", "apls",
+			"huml", "apll", "Qeqp", "Qfun", "Qis", "Qil", "Qsto", "Qstol", "AE", "AG"}
 
-		for i := range Room {
-			Rm := Room[i]
+		for _, Rm := range Room {
 			if Rm.eqpri {
-				for j := 0; j < 16; j++ {
+				for j := range key {
 					fmt.Fprintf(fo, "%s_%s\t", Rm.Name, key[j])
 				}
 			}
@@ -439,8 +437,7 @@ func Qrmprint(fo io.Writer, title string, Mon, Day int, time float64, Room []*RO
 
 	fmt.Fprintf(fo, "%d\t%d\t%.2f\t", Mon, Day, time)
 
-	for i := range Room {
-		Rm := Room[i]
+	for i, Rm := range Room {
 		if Rm.eqpri {
 			Q := Qrm[i]
 			fmt.Fprintf(fo, "%.5g\t%.5g\t%.5g\t%.5g\t%.5g\t%.5g\t%.5g\t%.5g\t%.5g\t%.5g\t%.5g\t%.5g\t",

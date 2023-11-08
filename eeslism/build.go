@@ -774,10 +774,11 @@ type RMSB struct {
 	Told []*BHELM
 }
 
+// 合計空調負荷
 type QETOTAL struct {
 	Name   string
-	Qelm   QHELM
-	Qelmdy QHELM
+	Qelm   QHELM // 空調負荷
+	Qelmdy QHELM // 空調負荷
 }
 
 // 室デ－タ
@@ -926,13 +927,8 @@ type ROOM struct {
 --------------------------------*/
 
 type RMVLS struct {
-	Twallinit  float64 // 初期温度 (GDAT.RUN.Tinit)
-	Nwall      int
-	Nwindow    int
-	Nmwall     int
-	Nsrf       int
-	Npcm       int
-	Emrk       []rune
+	Twallinit  float64   // 初期温度 (GDAT.RUN.Tinit)
+	Emrk       []rune    // '!' or '*' ????
 	Wall       []*WALL   // 壁
 	Window     []*WINDOW // 窓
 	Snbk       []*SNBK   // 日よけ
@@ -942,7 +938,7 @@ type RMVLS struct {
 	Room       []*ROOM   // 室
 	Rdpnl      []*RDPNL  // 輻射パネル
 	Qrm, Qrmd  []*QRM    // 日射、室内発熱熱取得
-	Qetotal    QETOTAL
+	Qetotal    QETOTAL   // 合計空調負荷
 	Trdav      []float64
 	Pcmiterate rune // PCM建材を使用し、かつ収束計算を行う場合は'y'
 }

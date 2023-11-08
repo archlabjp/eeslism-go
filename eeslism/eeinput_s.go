@@ -184,19 +184,19 @@ func (t *EeTokens) GetInt() int {
 	return i
 }
 
-/*  建築・設備システムデータ入力  */
-
+// 建築・設備システムデータ入力
 func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 	Exsf *EXSFS, Rmvls *RMVLS, Eqcat *EQCAT, Eqsys *EQSYS,
 	Compnt *[]*COMPNT,
-	Elout *[]*ELOUT, Nelout *int,
-	Elin *[]*ELIN, Nelin *int,
-	Mpath *[]*MPATH, Nmpath *int,
-	Plist *[]*PLIST, Pelm *[]*PELM, Npelm *int,
-	Contl *[]*CONTL, Ncontl *int,
-	Ctlif *[]*CTLIF, Nctlif *int,
-	Ctlst *[]*CTLST, Nctlst *int,
-	Wd *WDAT, Daytm *DAYTM, key int, Nplist *int,
+	Elout *[]*ELOUT,
+	Elin *[]*ELIN,
+	Mpath *[]*MPATH,
+	Plist *[]*PLIST,
+	Pelm *[]*PELM,
+	Contl *[]*CONTL,
+	Ctlif *[]*CTLIF,
+	Ctlst *[]*CTLST,
+	Wd *WDAT, Daytm *DAYTM, key int,
 	bdpn *int, obsn *int, treen *int, shadn *int, polyn *int,
 	bp *[]BBDP, obs *[]OBS, tree *[]TREE, shadtb *[]SHADTB, poly *[]POLYGN, monten *int, gpn *int, DE *float64, Noplpmp *NOPLPMP) (*SCHDL, []*FLOUT) {
 
@@ -237,17 +237,6 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 
 	Err = fmt.Sprintf(ERRFMT, "(Eeinput)")
 
-	//*Nexs=0 ;
-
-	Rmvls.Nwall = 0
-	Rmvls.Nwindow = 0
-	//Rmvls.Nroom = 0
-
-	//Sdd := Rmvls.Sd
-	Rmvls.Nsrf = 0
-	// Rmvls.Nrdpnl = 0
-	Rmvls.Nmwall = 0
-
 	var err error
 
 	// -------------------------------------------------------
@@ -279,7 +268,7 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 	// 入力を正規化することで後処理を簡単にする
 	tokens := NewEeTokens(bdata)
 
-	for tokens.IsEnd() == false {
+	for !tokens.IsEnd() {
 		s := tokens.GetToken()
 		if s == "\n" || s == ";" || s == "*" {
 			continue
@@ -296,7 +285,7 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 			Wd.RNtype = 'C'
 			Wd.Intgtsupw = 'N'
 			Simc.Perio = 'n' // 周期定常計算フラグを'n'に初期化
-			Gdata(section, s, Simc.File, &Simc.Wfname, &Simc.Ofname, &dtm, &Simc.Sttmm,
+			Gdata(section, Simc.File, &Simc.Wfname, &Simc.Ofname, &dtm, &Simc.Sttmm,
 				&daystartx, &daystart, &dayend, &Twallinit, Simc.Dayprn,
 				&wdpri, &revpri, &pmvpri, &Simc.Helmkey, &Simc.MaxIterate, Daytm, Wd, &Simc.Perio)
 
@@ -317,13 +306,13 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 			Simc.Unitdy = "Q_kWh E_kWh"
 
 			fmt.Printf("== File  Output=%s\n", Simc.Ofname)
-		case "SCHTB":
-			// SCHDBデータセットの読み取り
-			Schtable(schtba, Schdl)
-			Schname(Schdl)
-		case "SCHNM":
-			// SCHNMデータセットの読み取り
-			Schdata(schnma, s, Simc.Daywk, Schdl)
+		// case "SCHTB":
+		// 	// SCHDBデータセットの読み取り
+		// 	//Schtable(schtba, Schdl)
+		// 	Schname(Schdl)
+		// case "SCHNM":
+		// 	// SCHNMデータセットの読み取り
+		// 	Schdata(schnma, s, Simc.Daywk, Schdl)
 		case "EXSRF":
 			// EXSRFデータセットの読み取り
 			section := tokens.GetSection()
@@ -336,7 +325,7 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 
 		case "PCM":
 			section := tokens.GetSection()
-			PCMdata(section, s, &Rmvls.PCM, &Rmvls.Npcm, &Rmvls.Pcmiterate)
+			PCMdata(section, s, &Rmvls.PCM, &Rmvls.Pcmiterate)
 
 		case "WALL":
 			if Fbmlist == "" {
@@ -353,43 +342,45 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 			/*******************/
 
 			section := tokens.GetSection()
-			Walldata(section, string(fbmContent), s, &Rmvls.Wall, &Rmvls.Nwall, &dfwl, Rmvls.PCM, Rmvls.Npcm)
+			Walldata(section, string(fbmContent), &Rmvls.Wall, &dfwl, Rmvls.PCM)
 
 		case "WINDOW":
 			section := tokens.GetSection()
-			Windowdata(section, s, &Rmvls.Window, &Rmvls.Nwindow)
+			Windowdata(section, &Rmvls.Window)
 
 		case "ROOM":
-			Roomdata(tokens, "Roomdata", Exsf.Exs, &dfwl, Rmvls, Schdl, Simc)
-			Balloc(Rmvls.Nsrf, Rmvls.Sd, Rmvls.Wall, &Rmvls.Mw, &Rmvls.Nmwall)
+			Roomdata(tokens, Exsf.Exs, &dfwl, Rmvls, Schdl, Simc)
+			Balloc(Rmvls.Sd, Rmvls.Wall, &Rmvls.Mw)
 
 		case "RAICH", "VENT":
 			section := tokens.GetSection()
-			Ventdata(section, s, Schdl, Rmvls.Room, Simc)
+			Ventdata(section, Schdl, Rmvls.Room, Simc)
 
 		case "RESI":
 			section := tokens.GetSection()
-			Residata(section, s, Schdl, Rmvls.Room, &pmvpri, Simc)
+			Residata(section, Schdl, Rmvls.Room, &pmvpri, Simc)
 
 		case "APPL":
 			section := tokens.GetSection()
-			Appldata(section, s, Schdl, Rmvls.Room, Simc)
+			Appldata(section, Schdl, Rmvls.Room, Simc)
+
 		case "VCFILE":
 			section := tokens.GetSection()
 			Vcfdata(section, Simc)
+
 		case "EQPCAT":
 			section := tokens.GetSection()
-			Eqcadata(section, "Eqcadata", Eqcat)
+			Eqcadata(section, Eqcat)
 
 		case "SYSCMP": // 接続用のノードを設定している
 			/*****Flwindata(Flwin, Nflwin,  Wd);********/
 			section := tokens.GetSection()
-			Compodata(section, "Compodata", Rmvls, Eqcat, Compnt, Eqsys)
-			Elmalloc("Elmalloc ", *Compnt, Eqcat, Eqsys, Elout, Elin)
+			Compodata(section, Rmvls, Eqcat, Compnt, Eqsys)
+			Elmalloc(*Compnt, Eqcat, Eqsys, Elout, Elin)
 
 		case "SYSPTH": // 接続パスの設定をしている
 			section := tokens.GetSection()
-			Pathdata(section, "Pathdata", Simc, Wd, *Compnt, Schdl, Mpath, Nmpath, Plist, Pelm, Eqsys)
+			Pathdata(section, Simc, Wd, *Compnt, Schdl, Mpath, Plist, Pelm, Eqsys, Elout, Elin)
 			Roomelm(Rmvls.Room, Rmvls.Rdpnl)
 
 			// 変数の割り当て
@@ -539,8 +530,7 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 		}
 	}
 
-	for i := 0; i < Rmvls.Nsrf; i++ {
-		Sd := Rmvls.Sd[i]
+	for _, Sd := range Rmvls.Sd {
 		if Sd.wlpri {
 			Nwalpri++
 		}

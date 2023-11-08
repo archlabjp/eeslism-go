@@ -61,6 +61,7 @@ func Weatherdt(Simc *SIMCONTL, Daytm *DAYTM, Loc *LOCAT, Wd *WDAT, Exs []*EXSF, 
 		if Simc.Wdtype == 'H' {
 			if Simc.DTm < 3600 {
 				_, Mon, Day, _ = hspwdread(Simc.Fwdata, Daytm.DayOfYear-1, Loc, &__Weatherdt_dtL)
+				fmt.Printf("Mon=%d  Day=%d\n", Mon, Day)
 			}
 
 			_, Mon, Day, _ = hspwdread(Simc.Fwdata, Daytm.DayOfYear, Loc, &__Weatherdt_dt)

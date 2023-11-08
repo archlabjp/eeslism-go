@@ -45,7 +45,7 @@ func Htrcf(alc, alo *float64, alotype AloType, Exs []*EXSF, Tr float64, N int, a
 		Sd := _Sd[n]
 
 		if DEBUG {
-			fmt.Printf("n=%d name=%s\n", n, Sd.Name)
+			fmt.Printf("n=%d name=%s\n", n, get_string_or_null(Sd.Name))
 		}
 
 		// 室内側対流熱伝達率の計算
@@ -68,6 +68,9 @@ func Htrcf(alc, alo *float64, alotype AloType, Exs []*EXSF, Tr float64, N int, a
 		}
 
 		if Sd.alicsch != nil {
+			if DEBUG {
+				fmt.Printf("test\n")
+			}
 			hc = Sd.alicsch
 			if *hc >= 0.00 {
 				alic = *hc
@@ -224,15 +227,35 @@ func radex(N int, Sd []*RMSRF, F, W []float64) {
 	for l, n := 0, 0; n < N; n++ {
 		for j := 0; j < N; j++ {
 			wk[l] = -F[l] * (1.0 - Sd[j].Ei) / Sd[j].Ei
+
+			if DEBUG {
+				fmt.Printf("j=%d F=%f Sd=%f wk=%f\n", j, F[l], Sd[j].Ei, wk[l])
+			}
+
 			Ff[l] = -F[l]
 			l++
 		}
 		nn := n*N + n
 		wk[nn] += 1.0 / Sd[n].Ei
+
+		if DEBUG {
+			fmt.Printf("nn=%d Sd=%f wk=%f\n", nn, Sd[0].Ei, wk[nn])
+		}
+
 		Ff[nn] += 1.0
 	}
 
+	if DEBUG {
+		fmt.Printf("<radex>  wk\n")
+		Matprint(" %6.4f", N, wk)
+	}
+
 	Matinv(wk, N, N, "<radex>")
+
+	if DEBUG {
+		fmt.Print("<radex>  wkinv\n")
+		Matprint(" %6.4f", N, wk)
+	}
 
 	for i := 0; i < N; i++ {
 		for j := 0; j < N; j++ {
@@ -242,6 +265,11 @@ func radex(N int, Sd []*RMSRF, F, W []float64) {
 			}
 			W[N*i+j] = c
 		}
+	}
+
+	if DEBUG {
+		fmt.Printf("<radex>  W[i,j]\n")
+		Matprint(" %6.4f", N, W)
 	}
 }
 

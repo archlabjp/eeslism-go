@@ -16,7 +16,7 @@ import (
 // TODO:
 // - この関数内で Eqsysにメモリを確保すると関数の責務を超えるので、分離独立させたほうが良い。
 //
-func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *EQSYS) {
+func Compodata(f *EeTokens, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *EQSYS) {
 	var (
 		Ni, No int
 		cio    ELIOType
@@ -24,6 +24,7 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*C
 		ido    []ELIOType
 	)
 	D := 0
+	errkey := "Compodata"
 
 	Room := Rmvls.Room
 	Rdpnl := Rmvls.Rdpnl
@@ -96,6 +97,7 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*C
 			c.Ivparm = nil
 			c.Airpathcpy = true
 			*Cmp = append(*Cmp, c)
+			D++
 		}
 		Ncrm = 2 + len(Rmvls.Room) // 給水温度設定+取り入れ外気設定+室の数
 
@@ -111,6 +113,7 @@ func Compodata(f *EeTokens, errkey string, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*C
 			c.Nivar = 0
 			c.Airpathcpy = true
 			*Cmp = append(*Cmp, c)
+			D++
 		}
 
 		// エアフローウィンドウの機器メモリ
@@ -759,11 +762,11 @@ func NewHCLOAD() *HCLOAD {
 		Loadx:   nil,
 		Cmp:     nil,
 		RMACFlg: 'N',
+		Ga:      0.0,
+		Gw:      0.0,
+		RHout:   50.0,
 	}
 	MtEdayinit(&Hl.mtEdy)
-	Hl.Ga = 0.0
-	Hl.Gw = 0.0
-	Hl.RHout = 50.0
 	return Hl
 }
 

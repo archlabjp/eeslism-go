@@ -94,7 +94,6 @@ func Dayweek(fi string, week string, daywk []int, key int) {
 		if matches != nil && len(matches) == 3 {
 			M, _ = strconv.Atoi(matches[1])
 			D, _ = strconv.Atoi(matches[2])
-			fmt.Printf("%d/%d\n", M, D)
 			d = FNNday(M, D)
 			daywk[d] = 7
 		}

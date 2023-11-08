@@ -1,6 +1,7 @@
 package eeslism
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -113,7 +114,7 @@ func elinprint(id int, C []*COMPNT, eo []*ELOUT, ei []*ELIN) {
 				}
 
 				var l int
-				for l := 0; l < len(ei); l++ {
+				for l = 0; l < len(ei); l++ {
 					if E == ei[l] {
 						break
 					}
@@ -192,45 +193,55 @@ func elinfprint(id int, C []*COMPNT, eo []*ELOUT, ei []*ELIN) {
 
 func plistprint(Mpath []*MPATH, Pe []*PELM, Eo []*ELOUT, Ei []*ELIN) {
 	fmt.Printf("xxx plistprint\n")
+	idx_0, _ := FindPELM(Pe, Mpath[0].Plist[0].Pelm[0])
 	for i, Mpathi := range Mpath {
-
 		fmt.Printf("\nMpath=[%d] %s sys=%c type=%c fluid=%c Nlpath= %d  Ncv=%d lvcmx=%d\n",
 			i, Mpathi.Name, Mpathi.Sys, Mpathi.Type, Mpathi.Fluid, len(Mpathi.Plist),
 			Mpathi.Ncv, Mpathi.Lvcmx)
 
 		for j, pl := range Mpathi.Plist {
 			// 要素のグローバルインデックスの取得
-			var idx int = 0
-			for idx = 0; idx < len(Pe); idx++ {
-				if pl.Pelm[0] == Pe[idx] {
-					break
-				}
-			}
+			idx, _ := FindPELM(Pe[idx_0:], pl.Pelm[0])
+
 			fmt.Printf("PLIST\n  n type Nelm Npump Nvav lvc Pelm  G \n")
 			fmt.Printf("%3d  %c  %3d  %3d %3d %3d %6.3f\n",
 				j, pl.Type, len(pl.Pelm), pl.Nvav, pl.Lvc, idx, pl.G)
 
 			fmt.Printf("    PELM  n  co ci elin eout\n")
 			for _, p := range pl.Pelm {
-				var pIdx, pInIdx, pOutIdx int = 0, 0, 0
-				for pIdx = 0; pIdx < len(pl.Pelm); pIdx++ {
-					if p == pl.Pelm[pIdx] {
-						break
-					}
-				}
-				for pInIdx = 0; pInIdx < len(Ei); pInIdx++ {
-					if p.In == Ei[pInIdx] {
-						break
-					}
-				}
-				for pOutIdx = 0; pOutIdx < len(Eo); pOutIdx++ {
-					if p.Out == Eo[pOutIdx] {
-						break
-					}
-				}
+				pIdx, _ := FindPELM(pl.Pelm, p)
+				pInIdx, _ := FindELIN(Ei, p.In)
+				pOutIdx, _ := FindELOUT(Eo, p.Out)
 				fmt.Printf("        %3d   %c  %c %4d %4d  %s\n",
 					pIdx, p.Co, p.Ci, pInIdx, pOutIdx, p.Cmp.Name)
 			}
 		}
 	}
+}
+
+func FindPELM(pl []*PELM, p *PELM) (int, error) {
+	for i := 0; i < len(pl); i++ {
+		if p == pl[i] {
+			return i, nil
+		}
+	}
+	return -1, errors.New("Not Found")
+}
+
+func FindELIN(elins []*ELIN, elin *ELIN) (int, error) {
+	for i := 0; i < len(elins); i++ {
+		if elin == elins[i] {
+			return i, nil
+		}
+	}
+	return -1, errors.New("Not Found")
+}
+
+func FindELOUT(elouts []*ELOUT, elout *ELOUT) (int, error) {
+	for i := 0; i < len(elouts); i++ {
+		if elout == elouts[i] {
+			return i, nil
+		}
+	}
+	return -1, errors.New("Not Found")
 }

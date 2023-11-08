@@ -28,7 +28,7 @@ import (
 	"os"
 )
 
-func bdhpri(ofile string, rmvls RMVLS, exs *EXSFS) {
+func bdhpri(ofile string, rmvls *RMVLS, exs *EXSFS) {
 	Nroom := len(rmvls.Room)
 	e := exs.Exs
 

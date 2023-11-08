@@ -27,22 +27,23 @@ const (
 
 type CATType string
 type VAVType rune
+type PathType rune
 
 const (
 	// ---- Satoh Debug VAV  2000/10/30 ----
 	VAV_PDT VAVType = 'A' // 空気
 	VWV_PDT VAVType = 'W' // 温水
 
-	PIPEDUCT_TYPE = "PIPE"
-	DUCT_TYPE     = "DUCT"
-	PIPE_PDT      = 'P'
-	DUCT_PDT      = 'D'
+	PIPEDUCT_TYPE EqpType = "PIPE"
+	DUCT_TYPE     EqpType = "DUCT"
+	PIPE_PDT              = 'P'
+	DUCT_PDT              = 'D'
 
-	PUMP_TYPE = "PUMP"
+	PUMP_TYPE EqpType = "PUMP"
 
-	FAN_TYPE = "FAN"
-	PUMP_PF  = 'P'
-	FAN_PF   = 'F'
+	FAN_TYPE EqpType = "FAN"
+	PUMP_PF          = 'P'
+	FAN_PF           = 'F'
 
 	PUMP_C  = "C"
 	PUMP_Vv = "Vv"
@@ -101,14 +102,14 @@ const (
 	HVAC_SYS    = 'A'
 	DHW_SYS     = 'W'
 
-	THR_PTYP = 'T'
-	CIR_PTYP = 'C'
-	BRC_PTYP = 'B'
+	THR_PTYP PathType = 'T'
+	CIR_PTYP PathType = 'C'
+	BRC_PTYP PathType = 'B'
 
-	DIVERG_LPTP = 'b'
-	CONVRG_LPTP = 'c'
-	IN_LPTP     = 'i' // 流入境界条件
-	OUT_LPTP    = 'o'
+	DIVERG_LPTP PathType = 'b' // 水または空気の*分岐*
+	CONVRG_LPTP PathType = 'c' // 水または空気の*合流*
+	IN_LPTP     PathType = 'i' // 経路の先頭が流入境界条件
+	OUT_LPTP    PathType = 'o' // 最後尾要素が水または空気の分岐または合流である場合
 
 	OFF_SW   ControlSWType = 'x' // 経路が停止中
 	ON_SW    ControlSWType = '-' // 経路が動作中
@@ -218,16 +219,17 @@ const (
 	ELIO_w     ELIOType = 'w'
 	ELIO_t     ELIOType = 't' // 空気温度
 	ELIO_i     ELIOType = 'i'
-	ELIO_ASTER ELIOType = '*'
+	ELIO_ASTER ELIOType = '*' // 流入経路
 	ELIO_SPACE ELIOType = ' '
+	ELIO_IN    ELIOType = '>'
 )
 
 type ELIN struct {
 	Id     ELIOType // 入口の識別番号（熱交換器の'C'、'H'や全熱交換器の'E'、'O'など）
 	Sysvin float64  // 連立方程式の答え
 	Upo    *ELOUT   // 上流の機器の出口
-	Upv    *ELOUT
-	Lpath  *PLIST // 機器入口が属する末端経路
+	Upv    *ELOUT   // 上流の機器の出口(停止している場合はnil)
+	Lpath  *PLIST   // 機器入口が属する末端経路
 }
 
 // SYSPTHに記載の機器
@@ -244,7 +246,7 @@ type PELM struct {
 type PLIST struct {
 	UnknownFlow int           // 末端経路が流量未知なら1、既知なら0
 	Name        string        // 末端経路の名前
-	Type        rune          // 貫流経路か循環経路かの判定
+	Type        PathType      // 貫流経路か循環経路かの判定
 	Control     ControlSWType // 経路の制御情報
 	Batch       bool          // バッチ運転を行う蓄熱槽のあるときtrue
 	Org         bool          // 入力された経路のときtrue、複写された経路（空気系統の湿度経路）のとき false
@@ -275,7 +277,7 @@ type PLIST struct {
 type MPATH struct {
 	Name    string        // 経路名称
 	Sys     byte          // 系統番号
-	Type    byte          // 貫流経路か循環経路かの判定
+	Type    PathType      // 貫流経路か循環経路かの判定
 	Fluid   FliudType     // 流体種別
 	Control ControlSWType // 経路の制御情報
 	NGv     int           // ガス導管数

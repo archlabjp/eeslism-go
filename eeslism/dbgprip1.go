@@ -26,7 +26,7 @@ import (
 func dprdayweek(daywk []int) {
 	const dmax = 366
 
-	fmt.Println("---  Day of week -----")
+	fmt.Print("---  Day of week -----\n   ")
 	for d := 0; d < 8; d++ {
 		fmt.Printf("  %s=%d  ", DAYweek[d], d)
 	}
@@ -38,14 +38,17 @@ func dprdayweek(daywk []int) {
 			fmt.Printf("\n%2d - ", k)
 			k++
 		}
-		fmt.Printf("%2d", daywk[d-1])
+		fmt.Printf("%2d", daywk[d])
 	}
 	fmt.Println()
 }
 
 /* ----------------------------------------------------------------- */
 
-func dprschtable(Ssn []SEASN, Wkd []WKDY, Dh []DSCH, Dw []DSCW) {
+// スケジュール設定のデバッグ出力
+func (Schdl *SCHDL) dprschtable() {
+
+	Ssn, Wkd, Dh, Dw := Schdl.Seasn, Schdl.Wkdy, Schdl.Dsch, Schdl.Dscw
 
 	Ns := len(Ssn)
 	Nw := len(Wkd)
@@ -56,32 +59,35 @@ func dprschtable(Ssn []SEASN, Wkd []WKDY, Dh []DSCH, Dw []DSCW) {
 		fmt.Printf("\n*** dprschtable  ***\n")
 		fmt.Printf("\n=== Schtable end  is=%d  iw=%d  sc=%d  sw=%d\n", Ns, Nw, Nsc, Nsw)
 
-		for is := 0; is < Ns; is++ {
-			Seasn := &Ssn[is]
+		// 季節設定の出力
+		for _, Seasn := range Ssn {
 			fmt.Printf("\n- %s", Seasn.name)
 
-			for js := 0; js < Seasn.N; js++ {
-				sday := &Seasn.sday[js]
-				eday := &Seasn.eday[js]
-				fmt.Printf("  %4d-%4d", *sday, *eday)
+			for js := range Seasn.sday {
+				sday := Seasn.sday[js]
+				eday := Seasn.eday[js]
+				fmt.Printf("  %4d-%4d", sday, eday)
 			}
 		}
 
-		for iw := 0; iw < Nw; iw++ {
-			Wkdy := &Wkd[iw]
+		// 曜日設定の出力
+		for _, Wkdy := range Wkd {
 			fmt.Printf("\n- %s", Wkdy.name)
 
-			for j := 0; j < 8; j++ {
-				wday := Wkdy.wday[j]
-				fmt.Printf("   %d", wday)
+			for _, wday := range Wkdy.wday {
+				if wday {
+					fmt.Printf("   1")
+				} else {
+					fmt.Printf("   0")
+				}
 			}
 		}
 
-		for sc := 0; sc < Nsc; sc++ {
-			Dsch := &Dh[sc]
+		// 1日の設定値スケジュールの出力
+		for sc, Dsch := range Dh {
 			fmt.Printf("\n-VL   %10s (%2d) ", Dsch.name, sc)
 
-			for jsc := 0; jsc < Dsch.N; jsc++ {
+			for jsc := range Dsch.stime {
 				stime := Dsch.stime[jsc]
 				val := Dsch.val[jsc]
 				etime := Dsch.etime[jsc]
@@ -89,11 +95,11 @@ func dprschtable(Ssn []SEASN, Wkd []WKDY, Dh []DSCH, Dw []DSCW) {
 			}
 		}
 
-		for sw := 0; sw < Nsw; sw++ {
-			Dscw := &Dw[sw]
+		// 1日の切替スケジュールの出力
+		for sw, Dscw := range Dw {
 			fmt.Printf("\n-SW   %10s (%2d) ", Dscw.name, sw)
 
-			for jsw := 0; jsw < Dscw.N; jsw++ {
+			for jsw := range Dscw.stime {
 				stime := Dscw.stime[jsw]
 				mode := Dscw.mode[jsw]
 				etime := Dscw.etime[jsw]
@@ -106,36 +112,40 @@ func dprschtable(Ssn []SEASN, Wkd []WKDY, Dh []DSCH, Dw []DSCW) {
 		fmt.Fprintf(Ferr, "\n*** dprschtable  ***\n")
 		fmt.Fprintf(Ferr, "\n=== Schtable end  is=%d  iw=%d  sc=%d  sw=%d\n", Ns, Nw, Nsc, Nsw)
 
-		for is := 0; is < Ns; is++ {
-			Seasn := &Ssn[is]
+		// 季節設定の出力
+		for _, Seasn := range Ssn {
 			fmt.Fprintf(Ferr, "\n\t%s", Seasn.name)
 
-			for js := 0; js < Seasn.N; js++ {
+			for js := range Seasn.sday {
 				sday := Seasn.sday[js]
 				eday := Seasn.eday[js]
 				fmt.Fprintf(Ferr, "\t%d-%d", sday, eday)
 			}
 		}
 
-		for j := 0; j < 8; j++ {
+		// 曜日の出力
+		for j := range DAYweek {
 			fmt.Fprintf(Ferr, "\t%s", DAYweek[j])
 		}
 
-		for iw := 0; iw < Nw; iw++ {
-			Wkdy := &Wkd[iw]
+		// 曜日設定の出力
+		for _, Wkdy := range Wkd {
 			fmt.Fprintf(Ferr, "\n%s", Wkdy.name)
 
-			for j := 0; j < 8; j++ {
-				wday := Wkdy.wday[j]
-				fmt.Fprintf(Ferr, "\t%d", wday)
+			for _, wday := range Wkdy.wday {
+				if wday {
+					fmt.Fprintf(Ferr, "\t1")
+				} else {
+					fmt.Fprintf(Ferr, "\t0")
+				}
 			}
 		}
 
-		for sc := 0; sc < Nsc; sc++ {
-			Dsch := &Dh[sc]
+		// 1日の設定値スケジュールの出力
+		for sc, Dsch := range Dh {
 			fmt.Fprintf(Ferr, "\nVL\t%s\t[%d]", Dsch.name, sc)
 
-			for jsc := 0; jsc < Dsch.N; jsc++ {
+			for jsc := range Dsch.stime {
 				stime := Dsch.stime[jsc]
 				val := Dsch.val[jsc]
 				etime := Dsch.etime[jsc]
@@ -143,11 +153,11 @@ func dprschtable(Ssn []SEASN, Wkd []WKDY, Dh []DSCH, Dw []DSCW) {
 			}
 		}
 
-		for sw := 0; sw < Nsw; sw++ {
-			Dscw := &Dw[sw]
+		// 1日の切替スケジュールの出力
+		for sw, Dscw := range Dw {
 			fmt.Fprintf(Ferr, "\nSW\t%s\t[%d]", Dscw.name, sw)
 
-			for jsw := 0; jsw < Dscw.N; jsw++ {
+			for jsw := range Dscw.stime {
 				stime := Dscw.stime[jsw]
 				mode := Dscw.mode[jsw]
 				etime := Dscw.etime[jsw]
@@ -268,14 +278,14 @@ func dprachv(Room []ROOM) {
 
 /* ----------------------------------------------------------------- */
 
-func dprexsf(E []*EXSF) {
-	if E == nil {
+func (exsfs *EXSFS) dprexsf() {
+	if exsfs.Exs == nil {
 		return
 	}
 
 	if DEBUG {
 		fmt.Println("\n*** dprexsf ***")
-		for i, Exs := range E {
+		for i, Exs := range exsfs.Exs {
 			fmt.Printf("%2d  %-11s  typ=%c Wa=%6.2f Wb=%5.2f Rg=%4.2f  z=%5.2f edf=%6.2e\n",
 				i, Exs.Name, Exs.Typ, Exs.Wa, Exs.Wb, Exs.Rg, Exs.Z, Exs.Erdff)
 		}
@@ -285,7 +295,7 @@ func dprexsf(E []*EXSF) {
 		fmt.Fprintln(Ferr, "\n*** dprexsf ***")
 		fmt.Fprintln(Ferr, "\tNo.\tName\ttyp\tWa\tWb\tRg\tz\tedf")
 
-		for i, Exs := range E {
+		for i, Exs := range exsfs.Exs {
 			fmt.Fprintf(Ferr, "\t%d\t%s\t%c\t%.4g\t%.4g\t%.2g\t%.2g\t%.2g\n",
 				i, Exs.Name, Exs.Typ, Exs.Wa, Exs.Wb, Exs.Rg, Exs.Z, Exs.Erdff)
 		}
@@ -294,13 +304,12 @@ func dprexsf(E []*EXSF) {
 
 /* ----------------------------------------------------------------- */
 
-func dprwwdata(Wa []*WALL, Wi []*WINDOW) {
+func (Rmvls *RMVLS) dprwwdata() {
 	if DEBUG {
 		fmt.Printf("\n*** dprwwdata ***\nWALLdata\n")
 
-		for i := range Wa {
-			Wall := Wa[i]
-			fmt.Printf("\nWall i=%d %s R=%5.3f IP=%d Ei=%4.2f Eo=%4.2f as=%4.2f\n", i, Wall.name, Wall.Rwall, Wall.Ip, Wall.Ei, Wall.Eo, Wall.as)
+		for i, Wall := range Rmvls.Wall {
+			fmt.Printf("\nWall i=%d %s R=%5.3f IP=%d Ei=%4.2f Eo=%4.2f as=%4.2f\n", i, get_string_or_null(Wall.name), Wall.Rwall, Wall.Ip, Wall.Ei, Wall.Eo, Wall.as)
 
 			for j := 0; j < Wall.N; j++ {
 				w := &Wall.welm[j]
@@ -310,8 +319,7 @@ func dprwwdata(Wa []*WALL, Wi []*WINDOW) {
 
 		fmt.Printf("\nWINDOWdata\n")
 
-		for i := range Wi {
-			Window := Wi[i]
+		for _, Window := range Rmvls.Window {
 			fmt.Printf("windows  %s\n", Window.Name)
 			fmt.Printf(" R=%f t=%f B=%f  Ei=%f Eo=%f\n", Window.Rwall, Window.tgtn, Window.Bn, Window.Ei, Window.Eo)
 		}
@@ -320,8 +328,7 @@ func dprwwdata(Wa []*WALL, Wi []*WINDOW) {
 	if Ferr != nil {
 		fmt.Fprintf(Ferr, "\n*** dprwwdata ***\nWALLdata\n")
 
-		for i := range Wa {
-			Wall := Wa[i]
+		for i, Wall := range Rmvls.Wall {
 			fmt.Fprintf(Ferr, "\nWall[%d]\t%s\tR=%.3g\tIP=%d\tEi=%.2g\tEo=%.2g\tas=%.2g\n", i, Wall.name, Wall.Rwall, Wall.Ip, Wall.Ei, Wall.Eo, Wall.as)
 
 			fmt.Fprintf(Ferr, "\tNo.\tcode\tL\tND\n")
@@ -334,8 +341,7 @@ func dprwwdata(Wa []*WALL, Wi []*WINDOW) {
 
 		fmt.Fprintf(Ferr, "\nWINDOWdata\n")
 
-		for i := range Wi {
-			Window := Wi[i]
+		for i, Window := range Rmvls.Window {
 			fmt.Fprintf(Ferr, "windows[%d]\t%s\n", i, Window.Name)
 			fmt.Fprintf(Ferr, "\tR=%.3g\tt=%.2g\tB=%.2g\tEi=%.2g\tEo=%.2g\n", Window.Rwall,
 				Window.tgtn, Window.Bn, Window.Ei, Window.Eo)
@@ -345,13 +351,11 @@ func dprwwdata(Wa []*WALL, Wi []*WINDOW) {
 
 /* ----------------------------------------------------------------- */
 
-func dprroomdata(R []*ROOM, S []*RMSRF) {
+func (Rmvls *RMVLS) dprroomdata() {
 	if DEBUG {
 		fmt.Printf("\n*** dprroomdata ***\n")
 
-		for i := range R {
-			Room := R[i]
-
+		for i, Room := range Rmvls.Room {
 			fmt.Printf("\n==room=(%d)    %s   N=%d  Ntr=%d Nrp=%d  V=%8.1f   MRM=%10.4e\n",
 				i, Room.Name, Room.N, Room.Ntr, Room.Nrp, Room.VRM, Room.MRM)
 			fmt.Printf("   Floor area=%6.2f   Total surface area=%6.2f\n", Room.FArea, Room.Area)
@@ -366,9 +370,9 @@ func dprroomdata(R []*ROOM, S []*RMSRF) {
 			fmt.Printf("  Apl=%f \n", Room.Apl)
 
 			for j := 0; j < Room.N; j++ {
-				Sdd := S[Room.Brs+j]
+				Sdd := Rmvls.Sd[Room.Brs+j]
 				fmt.Printf(" %2d  ble=%c typ=%c name=%8s exs=%2d nxrm=%2d nxn=%2d ",
-					Room.Brs+j, Sdd.ble, Sdd.typ, Sdd.Name, Sdd.exs, Sdd.nxrm, Sdd.nxn)
+					Room.Brs+j, Sdd.ble, Sdd.typ, get_string_or_null(Sdd.Name), Sdd.exs, Sdd.nxrm, Sdd.nxn)
 				fmt.Printf("wd=%2d Nfn=%2d A=%5.1f mwside=%c mwtype=%c Ei=%.2f Eo=%.2f\n",
 					Sdd.wd, Sdd.Nfn, Sdd.A, Sdd.mwside, Sdd.mwtype, Sdd.Ei, Sdd.Eo)
 			}
@@ -378,9 +382,7 @@ func dprroomdata(R []*ROOM, S []*RMSRF) {
 	if Ferr != nil {
 		fmt.Fprintf(Ferr, "\n*** dprroomdata ***\n")
 
-		for i := range R {
-			Room := R[i]
-
+		for i, Room := range Rmvls.Room {
 			fmt.Fprintf(Ferr, "\n==room=(%d)\t%s\tN=%d\tNtr=%d\tNrp=%d\tV=%.3g\tMRM=%.2g\n",
 				i, Room.Name, Room.N, Room.Ntr, Room.Nrp, Room.VRM, Room.MRM)
 			fmt.Fprintf(Ferr, "\tFloor_area=%.3g\tTotal_surface_area=%.2g\n", Room.FArea, Room.Area)
@@ -395,7 +397,7 @@ func dprroomdata(R []*ROOM, S []*RMSRF) {
 			fmt.Fprintf(Ferr, "wd\tNfn\tA\tmwside\tmwtype\tEi\tEo\n")
 
 			for j := 0; j < Room.N; j++ {
-				Sdd := S[Room.Brs+j]
+				Sdd := Rmvls.Sd[Room.Brs+j]
 				fmt.Fprintf(Ferr, "\t%d\t%c\t%c\t%s\t%d\t%d\t%d\t", Room.Brs+j, Sdd.ble, Sdd.typ, Sdd.Name, Sdd.exs, Sdd.nxrm, Sdd.nxn)
 				fmt.Fprintf(Ferr, "%d\t%d\t%.3g\t%c\t%c\t%.2f\t%.2f\n", Sdd.wd, Sdd.Nfn, Sdd.A, Sdd.mwside, Sdd.mwtype, Sdd.Ei, Sdd.Eo)
 			}
@@ -405,25 +407,22 @@ func dprroomdata(R []*ROOM, S []*RMSRF) {
 
 /* ----------------------------------------------------------------- */
 
-func dprballoc(M []*MWALL, S []*RMSRF) {
-
+func (Rmvls *RMVLS) dprballoc() {
 	if DEBUG {
 		fmt.Println("\n*** dprballoc ***")
 
-		for mw := range M {
-			Mw := M[mw]
-			id := S[Mw.ns].wd
+		for mw, Mw := range Rmvls.Mw {
+			id := Rmvls.Sd[Mw.ns].wd
 			fmt.Printf(" %2d n=%2d  rm=%2d  nxrm=%2d wd=%2d wall=%s M=%2d A=%.2f\n",
-				mw, Mw.ns, Mw.rm, Mw.nxrm, id, Mw.wall.name, Mw.M, Mw.sd.A)
+				mw, Mw.ns, Mw.rm, Mw.nxrm, id, get_string_or_null(Mw.wall.name), Mw.M, Mw.sd.A)
 		}
 	}
 	if Ferr != nil {
 		fmt.Fprintln(Ferr, "\n*** dprballoc ***")
 		fmt.Fprintln(Ferr, "\tNo.\tn\trm\tnxrm\twd\twall\tM\tA")
 
-		for mw := range M {
-			Mw := M[mw]
-			id := S[Mw.ns].wd
+		for mw, Mw := range Rmvls.Mw {
+			id := Rmvls.Sd[Mw.ns].wd
 			fmt.Fprintf(Ferr, "\t%d\t%d\t%d\t%d\t%d\t%s\t%d\t%.2g\n",
 				mw, Mw.ns, Mw.rm, Mw.nxrm, id, Mw.wall.name, Mw.M, Mw.sd.A)
 		}

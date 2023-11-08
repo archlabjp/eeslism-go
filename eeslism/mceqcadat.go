@@ -18,194 +18,44 @@
 package eeslism
 
 import (
-	"bufio"
 	"fmt"
-	"io"
-	"log"
-	"os"
 	"strings"
 )
 
 /* ----------------------------------------- */
 
-/*  機器仕様入力       */
-
-func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
+// 機器仕様入力
+func Eqcadata(f *EeTokens, Eqcat *EQCAT) {
 	var (
-		s       string
-		ss      string
-		ce      int
-		E       string
-		N       int
-		NBOI    int
-		NREFA   int
-		NCOL    int
-		NSTANK  int
-		NHCC    int
-		NHEX    int
-		NPIPE   int
-		NPUMP   int
-		NVAV    int
-		NSTHEAT int
-		NTHEX   int
-		NPV     int
-		NOMVAV  int
-		NDESI   int
-		NEVAC   int
-		frf     *os.File
+		s  string
+		ce int
+		E  string
 	)
 
-	NBOI = 0
-	NREFA = 0
-	NCOL = 0
-	NSTANK = 0
-	NHCC = 0
-	NHEX = 0
-	NPIPE = 0
-	NPUMP = 0
-	NVAV = 0
-	NSTHEAT = 0
-	NTHEX = 0
-	NPV = 0
-	NOMVAV = 0
-	NDESI = 0
-	NEVAC = 0
+	dsn := "Eqcadata"
 
-	Eqpcount(f, &NBOI, &NREFA, &NCOL, &NSTANK, &NHCC, &NHEX,
-		&NPIPE, &NPUMP, &NVAV, &NSTHEAT, &NTHEX, &NPV, &NOMVAV, &NDESI, &NEVAC)
+	// 各種別のカタログの領域を初期化
+	Eqcat.Hccca = make([]*HCCCA, 0)
+	Eqcat.Boica = make([]*BOICA, 0)
+	Eqcat.Refaca = make([]*REFACA, 0)
+	Eqcat.Collca = make([]*COLLCA, 0)
+	Eqcat.PVca = make([]*PVCA, 0)
+	Eqcat.Pipeca = make([]*PIPECA, 0)
+	Eqcat.Stankca = make([]*STANKCA, 0)
+	Eqcat.Hexca = make([]*HEXCA, 0)
+	Eqcat.Pumpca = make([]*PUMPCA, 0)
+	Eqcat.Vavca = make([]*VAVCA, 0)
+	Eqcat.Stheatca = make([]*STHEATCA, 0)
+	Eqcat.Thexca = make([]*THEXCA, 0)
+	Eqcat.OMvavca = make([]*OMVAVCA, 0)
+	Eqcat.Desica = make([]*DESICA, 0)
+	Eqcat.Evacca = make([]*EVACCA, 0)
 
-	N = NHCC
-	Eqcat.Hccca = nil
-	if N > 0 {
-		Eqcat.Hccca = make([]*HCCCA, 0, N)
-	}
+	// 圧縮機特性リストを reflist.efl から読み取る
+	Eqcat.Rfcmp = Refcmpdat()
 
-	N = NBOI
-	Eqcat.Boica = nil
-	if N > 0 {
-		Eqcat.Boica = make([]*BOICA, 0, N)
-	}
-
-	N = NREFA
-	Eqcat.Refaca = nil
-	if N > 0 {
-		Eqcat.Refaca = make([]*REFACA, 0, N)
-	}
-
-	N = NCOL
-	Eqcat.Collca = nil
-	if N > 0 {
-		Eqcat.Collca = make([]*COLLCA, 0, N)
-	}
-
-	N = NPV
-	Eqcat.PVca = nil
-	if N > 0 {
-		Eqcat.PVca = make([]*PVCA, 0, N)
-	}
-
-	N = NPIPE
-	Eqcat.Pipeca = nil
-	if N > 0 {
-		Eqcat.Pipeca = make([]*PIPECA, 0, N)
-	}
-
-	N = NSTANK
-	Eqcat.Stankca = nil
-	if N > 0 {
-		Eqcat.Stankca = make([]*STANKCA, 0, N)
-	}
-
-	N = NHEX
-	Eqcat.Hexca = nil
-	if N > 0 {
-		Eqcat.Hexca = make([]*HEXCA, 0, N)
-	}
-
-	N = NPUMP
-	Eqcat.Pumpca = nil
-	if N > 0 {
-		Eqcat.Pumpca = make([]*PUMPCA, 0, N)
-	}
-
-	N = NVAV
-	Eqcat.Vavca = nil
-	if N > 0 {
-		Eqcat.Vavca = make([]*VAVCA, 0, N)
-	}
-
-	N = NSTHEAT
-	Eqcat.Stheatca = nil
-	if N > 0 {
-		Eqcat.Stheatca = make([]*STHEATCA, 0, N)
-	}
-
-	N = NTHEX
-	Eqcat.Thexca = nil
-	if N > 0 {
-		Eqcat.Thexca = make([]*THEXCA, 0, N)
-	}
-
-	N = NOMVAV
-	Eqcat.OMvavca = nil
-	if N > 0 {
-		Eqcat.OMvavca = make([]*OMVAVCA, 0, N+1)
-	}
-
-	N = NDESI
-	Eqcat.Desica = nil
-	if N > 0 {
-		Eqcat.Desica = make([]*DESICA, 0, N+1)
-	}
-
-	N = NEVAC
-	Eqcat.Evacca = nil
-	if N > 0 {
-		Eqcat.Evacca = make([]*EVACCA, 0, N+1)
-	}
-
-	frf, err := os.Open("reflist.efl")
-	if err != nil {
-		Eprint(" file ", "reflist.efl")
-	}
-
-	const RFCMPLSTMX = 5
-	N = RFCMPLSTMX
-	Eqcat.Rfcmp = nil
-	if N > 0 {
-		Eqcat.Rfcmp = make([]*RFCMP, N)
-	} else {
-		Rf := Eqcat.Rfcmp
-		for i := 0; i < N; i++ {
-			Rf[i].cname = ""
-			for j := 0; j < 4; j++ {
-				Rf[i].d[j] = 0.0
-				Rf[i].e[j] = 0.0
-				Rf[i].w[j] = 0.0
-			}
-			Rf[i].Meff = 0.0
-			Rf[i].name = ""
-			for j := 0; j < 2; j++ {
-				Rf[i].Tco[j] = 0.0
-				Rf[i].Teo[j] = 0.0
-			}
-		}
-	}
-
-	Refcmpdat(frf, &Eqcat.Rfcmp)
-	frf.Close()
-
-	frf, err = os.Open("pumpfanlst.efl")
-	if err != nil {
-		Eprint(" file ", "pumpfanlst.efl")
-	}
-	N = pflistcount(frf)
-	if N > 0 {
-		Eqcat.Pfcmp = make([]*PFCMP, N)
-	}
-	PFcmpInit(N, Eqcat.Pfcmp)
-	PFcmpdata(frf, &Eqcat.Pfcmp)
-	frf.Close()
+	// ポンプ・ファンの部分負荷特性の近似式係数 を pumpfanlst.efl から読み取る
+	Eqcat.Pfcmp = PFcmpdata()
 
 	E = fmt.Sprintf(ERRFMT, dsn)
 
@@ -218,9 +68,7 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 		eqpType := EqpType(s)
 
 		if eqpType == HCCOIL_TYPE {
-			Eqcat.Hccca = append(Eqcat.Hccca, new(HCCCA))
-			Hccca := Eqcat.Hccca[len(Eqcat.Hccca)-1]
-
+			Hccca := new(HCCCA)
 			Hccca.name = ""
 			for f.IsEnd() == false {
 				s = f.GetToken()
@@ -237,10 +85,10 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 					break
 				}
 			}
-		} else if eqpType == BOILER_TYPE {
-			Eqcat.Boica = append(Eqcat.Boica, new(BOICA))
-			Boica := Eqcat.Boica[len(Eqcat.Boica)-1]
 
+			Eqcat.Hccca = append(Eqcat.Hccca, Hccca)
+		} else if eqpType == BOILER_TYPE {
+			Boica := new(BOICA)
 			Boica.name = ""
 			for f.IsEnd() == false {
 				s = f.GetToken()
@@ -257,358 +105,102 @@ func Eqcadata(f *EeTokens, dsn string, Eqcat *EQCAT) {
 					break
 				}
 			}
+			Eqcat.Boica = append(Eqcat.Boica, Boica)
 		} else if eqpType == COLLECTOR_TYPE || eqpType == ACOLLECTOR_TYPE {
-			Eqcat.Collca = append(Eqcat.Collca, new(COLLCA))
-			Collca := Eqcat.Collca[len(Eqcat.Collca)-1]
-
+			Collca := new(COLLCA)
 			Collca.name = ""
 			Collca.Fd = 0.9
-			for f.IsEnd() == false {
-				ss = f.GetToken()
-				if ss[0] == ';' {
-					break
-				}
-				if ce = strings.IndexRune(ss, ';'); ce != -1 {
-					s = s[:ce]
-				}
-				if Colldata(eqpType, ss, Collca) != 0 {
-					fmt.Printf("%s %s\n", E, s)
-				}
-				if ce != -1 {
-					break
-				}
-			}
+			ReadCatalogData(f, func(ss string) int { return Colldata(eqpType, ss, Collca) }, s, E)
+			Eqcat.Collca = append(Eqcat.Collca, Collca)
 		} else if eqpType == PV_TYPE {
-			Eqcat.PVca = append(Eqcat.PVca, new(PVCA))
-			PVca := Eqcat.PVca[len(Eqcat.PVca)-1]
-
+			PVca := new(PVCA)
 			PVca.Name = ""
-			for f.IsEnd() == false {
-				ss = f.GetToken()
-				if ss[0] == ';' {
-					break
-				}
-				if ce := strings.IndexRune(ss, ';'); ce != -1 {
-					s = s[:ce]
-				}
-				if PVcadata(ss, PVca) != 0 {
-					fmt.Printf("%s %s\n", E, ss)
-				}
-				if ce != -1 {
-					break
-				}
-			}
+			ReadCatalogData(f, func(ss string) int { return PVcadata(ss, PVca) }, s, E)
+			Eqcat.PVca = append(Eqcat.PVca, PVca)
 		} else if eqpType == REFACOMP_TYPE {
-			Eqcat.Refaca = append(Eqcat.Refaca, new(REFACA))
-			Refaca := Eqcat.Refaca[len(Eqcat.Refaca)-1]
-
+			Refaca := new(REFACA)
 			Refaca.name = ""
-			for f.IsEnd() == false {
-				s = f.GetToken()
-				if s[0] == ';' {
-					break
-				}
-				if ce := strings.IndexByte(s, ';'); ce != -1 {
-					s = s[:ce]
-				}
-				if Refadata(s, Refaca, Eqcat.Rfcmp) != 0 {
-					fmt.Println(E, s)
-				}
-				if ce != -1 {
-					break
-				}
-			}
-		} else if eqpType == PIPEDUCT_TYPE || s == DUCT_TYPE {
-			Eqcat.Pipeca = append(Eqcat.Pipeca, new(PIPECA))
-			Pipeca := Eqcat.Pipeca[len(Eqcat.Pipeca)-1]
-
+			ReadCatalogData(f, func(ss string) int { return Refadata(ss, Refaca, Eqcat.Rfcmp) }, s, E)
+			Eqcat.Refaca = append(Eqcat.Refaca, Refaca)
+		} else if eqpType == PIPEDUCT_TYPE || eqpType == DUCT_TYPE {
+			Pipeca := new(PIPECA)
 			Pipeca.name = ""
-			for f.IsEnd() == false {
-				ss = f.GetToken()
-				if ss[0] == ';' {
-					break
-				}
-				if ce := strings.IndexRune(ss, ';'); ce != -1 {
-					s = s[:ce]
-				}
-				if Pipedata(s, ss, Pipeca) != 0 {
-					fmt.Printf("%s %s\n", E, ss)
-				}
-				if ce != -1 {
-					break
-				}
-			}
+			ReadCatalogData(f, func(ss string) int { return Pipedata(eqpType, ss, Pipeca) }, s, E)
+			Eqcat.Pipeca = append(Eqcat.Pipeca, Pipeca)
 		} else if eqpType == STANK_TYPE {
-			Eqcat.Stankca = append(Eqcat.Stankca, new(STANKCA))
-			Stankca := Eqcat.Stankca[len(Eqcat.Stankca)-1]
-
+			Stankca := new(STANKCA)
 			Stankca.name = ""
-			for f.IsEnd() == false {
-				s = f.GetToken()
-				if s[0] == ';' {
-					break
-				}
-				if ce := strings.IndexRune(s, ';'); ce != -1 {
-					s = s[:ce]
-				}
-				if Stankdata(f, s, Stankca) != 0 {
-					fmt.Printf("%s %s\n", E, s)
-				}
-				if ce != -1 {
-					break
-				}
-			}
+			ReadCatalogData(f, func(ss string) int { return Stankdata(f, ss, Stankca) }, s, E)
+			Eqcat.Stankca = append(Eqcat.Stankca, Stankca)
 		} else if eqpType == HEXCHANGR_TYPE {
-			Eqcat.Hexca = append(Eqcat.Hexca, new(HEXCA))
-			Hexca := Eqcat.Hexca[len(Eqcat.Hexca)-1]
-
+			Hexca := new(HEXCA)
 			Hexca.Name = ""
-			for f.IsEnd() == false {
-				s = f.GetToken()
-				if s[0] == ';' {
-					break
-				}
-				if ce := strings.IndexRune(s, ';'); ce != -1 {
-					s = s[:ce]
-				}
-				if Hexdata(s, Hexca) != 0 {
-					fmt.Printf("%s %s\n", E, s)
-				}
-				if ce != -1 {
-					break
-				}
-			}
+			ReadCatalogData(f, func(ss string) int { return Hexdata(ss, Hexca) }, s, E)
+			Eqcat.Hexca = append(Eqcat.Hexca, Hexca)
 		} else if eqpType == PUMP_TYPE || eqpType == FAN_TYPE {
-			Eqcat.Pumpca = append(Eqcat.Pumpca, new(PUMPCA))
-			Pumpca := Eqcat.Pumpca[len(Eqcat.Pumpca)-1]
-
+			Pumpca := new(PUMPCA)
 			Pumpca.name = ""
 			Pumpca.Type = ""
 			Pumpca.val = nil
 			Pumpca.pfcmp = nil
-			for f.IsEnd() == false {
-				ss = f.GetToken()
-				if ss[0] == ';' {
-					break
-				}
-				if ce := strings.IndexRune(ss, ';'); ce != -1 {
-					s = s[:ce]
-				}
-				if Pumpdata(s, ss, Pumpca, Eqcat.Pfcmp) != 0 {
-					fmt.Printf("%s %s\n", E, ss)
-				}
-				if ce != -1 {
-					break
-				}
-			}
+			ReadCatalogData(f, func(ss string) int { return Pumpdata(eqpType, ss, Pumpca, Eqcat.Pfcmp) }, s, E)
+			Eqcat.Pumpca = append(Eqcat.Pumpca, Pumpca)
 		} else if eqpType == VAV_TYPE || eqpType == VWV_TYPE {
-			Eqcat.Vavca = append(Eqcat.Vavca, new(VAVCA))
-			vavca := Eqcat.Vavca[len(Eqcat.Vavca)-1]
-
+			vavca := new(VAVCA)
 			vavca.dTset = -999.0
 			vavca.Name = ""
-			for f.IsEnd() == false {
-				ss = f.GetToken()
-				if ss[0] == ';' {
-					break
-				}
-				if ce := strings.IndexRune(ss, ';'); ce != -1 {
-					s = s[:ce]
-				}
-				if VAVdata(eqpType, ss, vavca) != 0 {
-					Eprint("<Eqcadata> VAV", ss)
-				}
-				if ce != -1 {
-					break
-				}
-			}
+			ReadCatalogData(f, func(ss string) int { return VAVdata(eqpType, ss, vavca) }, s, E)
+			Eqcat.Vavca = append(Eqcat.Vavca, vavca)
 		} else if eqpType == OMVAV_TYPE || eqpType == OAVAV_TYPE {
-			Eqcat.OMvavca = append(Eqcat.OMvavca, new(OMVAVCA))
-			OMvavca := Eqcat.OMvavca[len(Eqcat.OMvavca)-1]
-
+			OMvavca := new(OMVAVCA)
 			OMvavca.Name = ""
 			OMvavca.Gmax = -999.0
 			OMvavca.Gmin = -999.0
-			for f.IsEnd() == false {
-				ss = f.GetToken()
-				if ss[0] == ';' {
-					break
-				}
-				if ce := strings.IndexRune(ss, ';'); ce != -1 {
-					s = s[:ce]
-				}
-				if OMVAVdata(ss, OMvavca) != 0 {
-					Eprint("<Eqcadata> OMVAV", ss)
-				}
-				if ce != -1 {
-					break
-				}
-			}
+			ReadCatalogData(f, func(ss string) int { return OMVAVdata(ss, OMvavca) }, s, E)
+			Eqcat.OMvavca = append(Eqcat.OMvavca, OMvavca)
 		} else if eqpType == STHEAT_TYPE {
-			Eqcat.Stheatca = append(Eqcat.Stheatca, new(STHEATCA))
-			stheatca := Eqcat.Stheatca[len(Eqcat.Stheatca)-1]
-
+			stheatca := new(STHEATCA)
 			stheatca.Name = ""
 			stheatca.PCMName = ""
-			for f.IsEnd() == false {
-				s = f.GetToken()
-				if s[0] == ';' {
-					break
-				}
-				if ce := strings.IndexRune(s, ';'); ce != -1 {
-					s = s[:ce]
-				}
-				if Stheatdata(s, stheatca) != 0 {
-					Eprint("<Eqcadata> STHEAT", s)
-				}
-				if ce != -1 {
-					break
-				}
-			}
+			ReadCatalogData(f, func(ss string) int { return Stheatdata(ss, stheatca) }, s, E)
+			Eqcat.Stheatca = append(Eqcat.Stheatca, stheatca)
 		} else if eqpType == THEX_TYPE {
-			Eqcat.Thexca = append(Eqcat.Thexca, new(THEXCA))
-			Thexca := Eqcat.Thexca[len(Eqcat.Thexca)-1]
-
+			Thexca := new(THEXCA)
 			Thexca.Name = ""
 			Thexca.et = -999.0
-			for f.IsEnd() == false {
-				s = f.GetToken()
-				if s[0] == ';' {
-					break
-				}
-				if ce := strings.IndexRune(s, ';'); ce != -1 {
-					s = s[:ce]
-				}
-				if Thexdata(s, Thexca) != 0 {
-					Eprint("<Eqcadata> THEX", s)
-				}
-				if ce != -1 {
-					break
-				}
-			}
+			ReadCatalogData(f, func(ss string) int { return Thexdata(ss, Thexca) }, s, E)
+			Eqcat.Thexca = append(Eqcat.Thexca, Thexca)
 		} else if eqpType == DESI_TYPE {
-			Eqcat.Desica = append(Eqcat.Desica, new(DESICA))
-			Desica := Eqcat.Desica[len(Eqcat.Desica)-1]
-
+			Desica := new(DESICA)
 			Desica.name = ""
-			for f.IsEnd() == false {
-				s = f.GetToken()
-				if s[0] == ';' {
-					break
-				}
-				if ce := strings.IndexRune(s, ';'); ce != -1 {
-					s = s[:ce]
-				}
-				if Desiccantdata(s, Desica) != 0 {
-					Eprint("<Eqcadata> DESICCANT", s)
-				}
-				if ce != -1 {
-					break
-				}
-			}
+			ReadCatalogData(f, func(ss string) int { return Desiccantdata(ss, Desica) }, s, E)
+			Eqcat.Desica = append(Eqcat.Desica, Desica)
 		} else if eqpType == EVAC_TYPE {
-			Eqcat.Evacca = append(Eqcat.Evacca, new(EVACCA))
-			Evacca := Eqcat.Evacca[len(Eqcat.Evacca)-1]
-
+			Evacca := new(EVACCA)
 			Evacca.Name = ""
-			for f.IsEnd() == false {
-				s = f.GetToken()
-				if s[0] == ';' {
-					break
-				}
-				if ce := strings.IndexRune(s, ';'); ce != -1 {
-					s = s[:ce]
-				}
-				if Evacdata(s, Evacca) != 0 {
-					Eprint("<Eqcadata> EVAC", s)
-				}
-				if ce != -1 {
-					break
-				}
-			}
+			ReadCatalogData(f, func(ss string) int { return Evacdata(ss, Evacca) }, s, E)
+			Eqcat.Evacca = append(Eqcat.Evacca, Evacca)
 		} else {
 			fmt.Printf("%s %s\n", E, s)
 		}
 	}
 }
 
-/****************************************************************************/
-func Eqpcount(fi *EeTokens, NBOI, NREFA, NCOL, NSTANK, NHCC, NHEX, NPIPE, NPUMP, NVAV, NSTHEAT, NTHEX, NPV, NOMVAV, NDESI, NEVAC *int) {
-	ad := fi.GetPos()
-
-	for fi.IsEnd() == false {
-		s := fi.GetToken()
-
-		if s == "*" {
+func ReadCatalogData(f *EeTokens, reader func(string) int, s string, E string) {
+	var ce int
+	for f.IsEnd() == false {
+		ss := f.GetToken()
+		if ss[0] == ';' {
 			break
-		} else if s == string(HCCOIL_TYPE) {
-			*NHCC++
-		} else if s == string(BOILER_TYPE) {
-			*NBOI++
-		} else if s == string(COLLECTOR_TYPE) || s == string(ACOLLECTOR_TYPE) {
-			*NCOL++
-		} else if s == string(REFACOMP_TYPE) {
-			*NREFA++
-		} else if s == string(PIPEDUCT_TYPE) || s == string(DUCT_TYPE) {
-			*NPIPE++
-		} else if s == string(STANK_TYPE) {
-			*NSTANK++
-		} else if s == string(HEXCHANGR_TYPE) {
-			*NHEX++
-		} else if s == string(PUMP_TYPE) || s == string(FAN_TYPE) {
-			*NPUMP++
-		} else if s == string(VAV_TYPE) || s == string(VWV_TYPE) {
-			*NVAV++
-		} else if s == string(STHEAT_TYPE) {
-			*NSTHEAT++
-		} else if s == string(THEX_TYPE) {
-			*NTHEX++
-		} else if s == string(PV_TYPE) {
-			*NPV++
-		} else if s == string(OMVAV_TYPE) || s == string(OAVAV_TYPE) {
-			*NOMVAV++
-		} else if s == string(DESI_TYPE) {
-			*NDESI++
-		} else if s == string(EVAC_TYPE) {
-			*NEVAC++
 		}
-	}
-
-	fi.RestorePos(ad)
-}
-
-func pflistcount(fl io.ReadSeeker) int {
-	N := 0
-	reader := bufio.NewReader(fl)
-
-	for {
-		s, err := reader.ReadString(' ')
-		if err != nil && err != io.EOF {
-			log.Fatal(err)
+		if ce = strings.IndexRune(ss, ';'); ce != -1 {
+			s = s[:ce]
 		}
-
-		s = strings.TrimSpace(s)
-
-		if s == "*" {
-			break
-		} else if s == "!" {
-			_, err := reader.ReadString('\n')
-			if err != nil && err != io.EOF {
-				log.Fatal(err)
-			}
-		} else if s == ";" {
-			N++
+		if reader(ss) != 0 {
+			fmt.Printf("%s %s\n", E, s)
 		}
-
-		if err == io.EOF {
+		if ce != -1 {
 			break
 		}
 	}
-
-	_, err := fl.Seek(0, io.SeekStart)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return N
 }

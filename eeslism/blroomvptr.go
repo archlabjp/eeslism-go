@@ -165,16 +165,19 @@ func roomldschd(Room *ROOM) {
 			if Eo == Eo.Eldobj || Eo.Eldobj.Control != OFF_SW {
 				switch rmld.hmopt {
 				case 'r':
+					// 相対湿度
 					if rmld.Xset > 0.0 {
 						Eo.Sysv = FNXtr(Room.Tr, rmld.Xset)
 						Eo.Control = LOAD_SW
 					}
 				case 'd':
+					// 露点温度
 					if rmld.Xset > TEMPLIMIT {
 						Eo.Sysv = FNXp(FNPws(rmld.Xset))
 						Eo.Control = LOAD_SW
 					}
 				case 'x':
+					// 絶対湿度
 					if rmld.Xset > 0.0 {
 						Eo.Sysv = rmld.Xset
 						Eo.Control = LOAD_SW

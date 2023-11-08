@@ -30,7 +30,7 @@ import (
 
 /*  室構成部材の入力  */
 
-func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SCHDL, Simc *SIMCONTL) {
+func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SCHDL, Simc *SIMCONTL) {
 	// var Wall, w *WALL
 	// var Window, W *WINDOW
 	// var Snbk, S *SNBK
@@ -48,6 +48,8 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 	// var ca, roa float64
 	// var NSTOP int
 	// var i int
+
+	errkey := "Roomdata"
 
 	//i := -1
 	var j, n, nr, brs, ij, N2, k, l int
@@ -329,12 +331,12 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 								w := Rmvls.Wall[j]
 
 								if DEBUG {
-									fmt.Printf("!!!!Wall.name=%s  s=%s!!!!\n", w.name, s)
+									fmt.Printf("!!!!Wall.name=%s  s=%s!!!!\n", get_string_or_null(w.name), s)
 								}
 
 								if w.name == s && w.ble == Sd.ble {
 									if DEBUG {
-										fmt.Printf("---- j=%d Wallname=%s n=%d\n", j, w.name, n)
+										fmt.Printf("---- j=%d Wallname=%s n=%d\n", j, get_string_or_null(w.name), n)
 									}
 
 									Sd.wd = j
@@ -438,8 +440,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 								panic(err)
 							}
 
-							for kk := 0; kk < Rmvls.Npcm; kk++ {
-								PCM := Rmvls.PCM[kk]
+							for _, PCM := range Rmvls.PCM {
 								if Rm.PCMfurnname == PCM.Name {
 									Rm.PCM = PCM
 								}
@@ -706,8 +707,9 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 	//printf ( "Nsrf=%d\n", Nsrf ) ;
 	//Room = Rmvls.Room
 
-	for n := 0; n < Nsrf; n++ {
-		Sd := Rmvls.Sd[n]
+	// 全ての壁体のループ
+	for _, Sd := range Rmvls.Sd {
+		// 隣室名を解決しておく
 		if Sd.nxrmname != "" {
 			err := fmt.Sprintf("%s%s", Er, Sd.nxrmname)
 			var err2 error
@@ -721,36 +723,47 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 
 	/******* 個別内壁 *****/
 
-	for n := 0; n < Nsrf; n++ {
-		Sd := Rmvls.Sd[n]
-		if i := Sd.nxrm; i >= 0 {
-			Room := Rmvls.Room[i]
-			brs := Room.Brs
-			bre := brs + Room.N
+	// 隣室が設定されているの壁体のループ
+	for i, Sd := range Rmvls.Sd {
+		if Sd.nxrm < 0 {
+			continue
+		}
 
-			switch Sd.ble {
-			case BLE_InnerWall:
-				// 内壁
-				for j := brs; j < bre; j++ {
-					Sdj := Rmvls.Sd[j]
-					if Sdj.nxrm == Sd.rm && Sdj.ble == BLE_InnerWall {
-						Sd.nxn = j
+		Room := Rmvls.Room[Sd.nxrm]
+		brs := Room.Brs
+		bre := brs + Room.N
+
+		switch Sd.ble {
+		case BLE_InnerWall:
+			// 内壁 [i]
+			for j := brs; j < bre; j++ {
+				Sdj := Rmvls.Sd[j]
+				if Sdj.nxrm == Sd.rm && Sdj.ble == BLE_InnerWall {
+					Sd.nxn = j
+					if i == j {
+						panic("")
 					}
 				}
-			case BLE_Ceil:
-				// 天井(内部)
-				for j := brs; j < bre; j++ {
-					Sdj := Rmvls.Sd[j]
-					if Sdj.nxrm == Sd.rm && Sdj.ble == BLE_InnerFloor {
-						Sd.nxn = j
+			}
+		case BLE_Ceil:
+			// 天井(内部) [f]
+			for j := brs; j < bre; j++ {
+				Sdj := Rmvls.Sd[j]
+				if Sdj.nxrm == Sd.rm && Sdj.ble == BLE_InnerFloor {
+					Sd.nxn = j
+					if i == j {
+						panic("")
 					}
 				}
-			case BLE_InnerFloor:
-				// 床(内部)
-				for j := brs; j < bre; j++ {
-					Sdj := Rmvls.Sd[j]
-					if Sdj.nxrm == Sd.rm && Sdj.ble == BLE_Ceil {
-						Sd.nxn = j
+			}
+		case BLE_InnerFloor:
+			// 床(内部) [c]
+			for j := brs; j < bre; j++ {
+				Sdj := Rmvls.Sd[j]
+				if Sdj.nxrm == Sd.rm && Sdj.ble == BLE_Ceil {
+					Sd.nxn = j
+					if i == j {
+						panic("")
 					}
 				}
 			}
@@ -759,83 +772,88 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 
 	/***** 共用内壁 ******/
 
-	for n := 0; n < Nsrf; n++ {
-		rsd := Rmvls.Sd[n]
+	// 共用内壁のループ
+	for j, rsd := range Rmvls.Sd {
+		if !((rsd.ble == BLE_InnerWall || rsd.ble == BLE_Ceil || rsd.ble == BLE_InnerFloor) && rsd.mwtype != RMSRFMwType_C) {
+			continue
+		}
 
-		if (rsd.ble == BLE_InnerWall || rsd.ble == BLE_Ceil || rsd.ble == BLE_InnerFloor) && rsd.mwtype != RMSRFMwType_C {
-			if rsd.Name != "" {
-				if rsd.wd >= 0 && rsd.A > 0.0 {
-					for i := 0; i < Nsrf; i++ {
-						nxsd := Rmvls.Sd[i]
-						if nxsd.Name != "" && nxsd.A < 0.0 {
-							if rsd.Name == nxsd.Name && rsd != nxsd {
-								rsd.room.Ntr++
-								nxsd.room.Ntr++
+		if !(rsd.Name != "" && rsd.wd >= 0 && rsd.A > 0.0) {
+			continue
+		}
 
-								nxsd.nextroom = rsd.room
-								nxsd.nxsd = rsd
-								nxsd.A = rsd.A
+		// 相手を探す
+		flag := false
+		for i, nxsd := range Rmvls.Sd {
+			if !(nxsd.Name != "" && nxsd.A < 0.0) {
+				continue
+			}
 
-								nxsd.Ei = rsd.Eo
-								nxsd.Eo = rsd.Ei
-								nxsd.as = rsd.as
-								nxsd.Rwall = rsd.Rwall
-								nxsd.CAPwall = rsd.CAPwall
+			// 同じ名前で別の壁体
+			if rsd.Name == nxsd.Name && rsd != nxsd {
+				rsd.room.Ntr++
+				nxsd.room.Ntr++
 
-								nxsd.wd = rsd.wd
-								nxsd.mwside = RMSRFMwSideType_M
-								rsd.mwtype = RMSRFMwType_C
-								nxsd.mwtype = RMSRFMwType_C
-								nxsd.pcmpri = rsd.pcmpri
-								nxsd.PCMflg = rsd.PCMflg
+				nxsd.nextroom = rsd.room
+				nxsd.nxsd = rsd
+				nxsd.A = rsd.A
 
-								nxsd.tnxt = rsd.tnxt
+				nxsd.Ei = rsd.Eo
+				nxsd.Eo = rsd.Ei
+				nxsd.as = rsd.as
+				nxsd.Rwall = rsd.Rwall
+				nxsd.CAPwall = rsd.CAPwall
 
-								rsd.nextroom = nxsd.room
-								rsd.nxsd = nxsd
+				nxsd.wd = rsd.wd
+				nxsd.mwside = RMSRFMwSideType_M
+				rsd.mwtype = RMSRFMwType_C
+				nxsd.mwtype = RMSRFMwType_C
+				nxsd.pcmpri = rsd.pcmpri
+				nxsd.PCMflg = rsd.PCMflg
 
-								if rsd.ble == BLE_InnerWall {
-									nxsd.ble = BLE_InnerWall
-								} else if rsd.ble == BLE_InnerFloor {
-									nxsd.ble = BLE_Ceil
-								} else if rsd.ble == BLE_Ceil {
-									nxsd.ble = BLE_InnerFloor
-								}
+				nxsd.tnxt = rsd.tnxt
 
-								var err error
-								rsd.nxrm, err = idroom(rsd.nextroom.Name, Rmvls.Room, "")
-								if err != nil {
-									panic(err)
-								}
-								rsd.nxn = i
-								nxsd.nxrm, err = idroom(nxsd.nextroom.Name, Rmvls.Room, "")
-								if err != nil {
-									panic(err)
-								}
-								nxsd.nxn = i
+				rsd.nextroom = nxsd.room
+				rsd.nxsd = nxsd
 
-								break
-							}
-						}
-					}
-
-					if i == Nsrf {
-						fmt.Printf("name=%s 共用内壁が片側しか定義されていません。\n", rsd.Name)
-					}
+				if rsd.ble == BLE_InnerWall {
+					nxsd.ble = BLE_InnerWall
+				} else if rsd.ble == BLE_InnerFloor {
+					nxsd.ble = BLE_Ceil
+				} else if rsd.ble == BLE_Ceil {
+					nxsd.ble = BLE_InnerFloor
 				}
-			}
 
-			if rsd.nxn < 0 && rsd.mwtype == RMSRFMwType_C {
-				err := fmt.Sprintf("%s    room=%s  xxx  (%s):  -%c\n", Er, Rmvls.Room[rsd.rm].Name, Rmvls.Room[rsd.nxrm].Name, rsd.ble)
-				Eprint("<Roomdata>", err)
-				os.Exit(1)
+				var err error
+				rsd.nxrm, err = idroom(rsd.nextroom.Name, Rmvls.Room, "")
+				if err != nil {
+					panic(err)
+				}
+				rsd.nxn = i
+				nxsd.nxrm, err = idroom(nxsd.nextroom.Name, Rmvls.Room, "")
+				if err != nil {
+					panic(err)
+				}
+				nxsd.nxn = j
+
+				flag = true
+				break
 			}
+		}
+
+		if !flag {
+			fmt.Printf("name=%s 共用内壁が片側しか定義されていません。\n", rsd.Name)
+		}
+
+		if rsd.nxn < 0 && rsd.mwtype == RMSRFMwType_C {
+			err := fmt.Sprintf("%s    room=%s  xxx  (%s):  -%c\n", Er, Rmvls.Room[rsd.rm].Name, Rmvls.Room[rsd.nxrm].Name, rsd.ble)
+			Eprint("<Roomdata>", err)
+			os.Exit(1)
 		}
 	}
 
 	// 面積入力のチェック
-	for i := 0; i < Nsrf; i++ {
-		rsd := Rmvls.Sd[i]
+	for _, rsd := range Rmvls.Sd {
 		if rsd.A <= 0.0 {
 			fmt.Printf("Room=%s  ble=%c  A=%f\n", rsd.room.Name, rsd.ble, rsd.A)
 			os.Exit(1)
@@ -845,8 +863,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 	/***** 放射パネル総数、室ごとのパネル数 *****/
 
 	var Nairflow, Nrdpnl int
-	for i := 0; i < Nsrf; i++ {
-		rsd := Rmvls.Sd[i]
+	for _, rsd := range Rmvls.Sd {
 		if rsd.ble != BLE_Window {
 			w := Rmvls.Wall[rsd.wd]
 			if w.Ip >= 0 {
@@ -862,8 +879,7 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 		}
 	}
 
-	for i := 0; i < Nroom; i++ {
-		room := Rmvls.Room[i]
+	for _, room := range Rmvls.Room {
 		N := room.Ntr
 		if N > 0 {
 			room.trnx = make([]*TRNX, N)
@@ -1065,7 +1081,6 @@ func Roomdata(tokens *EeTokens, errkey string, Exs []*EXSF, dfwl *DFWL, Rmvls *R
 		}
 	}
 
-	Rmvls.Nsrf = Nsrf
 	Rmvls.Trdav = make([]float64, len(Rmvls.Room))
 
 	if len(Rmvls.Room) > 0 {
@@ -1118,10 +1133,9 @@ func readRoomVol(value string) (float64, error) {
 
 /*  重量壁体の計算準備      */
 
-func Balloc(N int, Sd []*RMSRF, Wall []*WALL, Mwall *[]*MWALL, Nmwall *int) {
+func Balloc(Sd []*RMSRF, Wall []*WALL, Mwall *[]*MWALL) {
 	var mw int
-	for n := 0; n < N; n++ {
-		ssd := Sd[n]
+	for _, ssd := range Sd {
 		if id := ssd.wd; id >= 0 && ssd.mwside == 'i' {
 			mw++
 		}
@@ -1155,8 +1169,7 @@ func Balloc(N int, Sd []*RMSRF, Wall []*WALL, Mwall *[]*MWALL, Nmwall *int) {
 	}
 
 	mw = 0
-	for n := 0; n < N; n++ {
-		ssd := Sd[n]
+	for n, ssd := range Sd {
 
 		if id := ssd.wd; id >= 0 && ssd.mwside == 'i' {
 			ssd.rmw = mw
@@ -1256,10 +1269,8 @@ func Balloc(N int, Sd []*RMSRF, Wall []*WALL, Mwall *[]*MWALL, Nmwall *int) {
 			ssd.mw = nil
 		}
 	}
-	*Nmwall = mw
 
-	for n := 0; n < N; n++ {
-		ssd := Sd[n]
+	for _, ssd := range Sd {
 		if ssd.mwside == 'M' {
 			ssd.mw = ssd.nxsd.mw
 			M := ssd.mw.M
@@ -1283,11 +1294,11 @@ func Balloc(N int, Sd []*RMSRF, Wall []*WALL, Mwall *[]*MWALL, Nmwall *int) {
 
 /* ------------------------------------------ */
 
-/*  壁体内部温度の初期値設定   */
+// 壁体内部温度の初期値設定
+func (Rmvls *RMVLS) Tinit() {
+	Tini := Rmvls.Twallinit
 
-func Tinit(Tini float64, _Room []*ROOM, Ns int, S []*RMSRF, Nmwall int, Mw []*MWALL) {
-	for i := range _Room {
-		rm := _Room[i]
+	for _, rm := range Rmvls.Room {
 		rm.Tr = Tini
 		rm.Trold = Tini
 		rm.Tsav = Tini
@@ -1301,14 +1312,12 @@ func Tinit(Tini float64, _Room []*ROOM, Ns int, S []*RMSRF, Nmwall int, Mw []*MW
 		rm.TM = rm.oldTM
 	}
 
-	for i := 0; i < Ns; i++ {
-		Sd := S[i]
+	for _, Sd := range Rmvls.Sd {
 		Sd.Ts = Tini
 		Sd.mrk = '*'
 	}
 
-	for i := 0; i < Nmwall; i++ {
-		mw := Mw[i]
+	for _, mw := range Rmvls.Mw {
 		mw.Tw = make([]float64, mw.M)
 		mw.Told = make([]float64, mw.M)
 		mw.Toldd = make([]float64, mw.M)
@@ -1322,8 +1331,7 @@ func Tinit(Tini float64, _Room []*ROOM, Ns int, S []*RMSRF, Nmwall int, Mw []*MW
 		}
 	}
 
-	for i := range _Room {
-		Room := _Room[i]
+	for _, Room := range Rmvls.Room {
 		if Room.rmqe == nil {
 			continue
 		}

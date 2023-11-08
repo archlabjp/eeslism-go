@@ -35,11 +35,11 @@ func Desielm(Desi []*DESI) {
 		Eox := desi.Cmp.Elouts[1] // 空気湿度出口
 
 		elin := Eot.Elins[1]
-		elin.Upo = elin.Upv // 出口空気温度の要素方程式の2つめの変数は絶対湿度
+		elin.Upo = Eox.Elins[0].Upo // 出口空気温度の要素方程式の2つめの変数は絶対湿度
 		elin.Upv = Eox.Elins[0].Upo
 
 		elin = Eox.Elins[1]
-		elin.Upo = elin.Upv         // 出口絶対湿度の要素方程式の2つめの変数は空気温度
+		elin.Upo = Eot.Elins[0].Upo // 出口絶対湿度の要素方程式の2つめの変数は空気温度
 		elin.Upv = Eot.Elins[0].Upo // 空気温度の要素方程式の2つ目の変数（空気入口温度）のupo、upvに空気湿度をつなげる
 	}
 }

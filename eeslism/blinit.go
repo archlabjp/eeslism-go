@@ -26,7 +26,7 @@ import (
 /*  壁体デ－タの入力  */
 
 // WALLデータセットの読み取り
-func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]*WALL, Nwall *int, dfwl *DFWL, pcm []*PCM, Npcm int) {
+func Walldata(section *EeTokens, fbmlist string, Wall *[]*WALL, dfwl *DFWL, pcm []*PCM) {
 	var s string
 	var i = -1
 	var j, jj, jw, Nlyr, k = 0, 0, 0, 0, -1
@@ -374,13 +374,11 @@ func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]*WALL, Nwal
 		}
 
 		Wa.N = jw + 1
-		Walli(Nbm, W, Wa, pcm, Npcm)
+		Walli(Nbm, W, Wa, pcm)
 
 		*Wall = append(*Wall, Wa)
 		i++
 	}
-
-	*Nwall = i
 }
 
 /* ------------------------------------------------ */
@@ -388,8 +386,8 @@ func Walldata(section *EeTokens, fbmlist string, dsn string, Wall *[]*WALL, Nwal
 /*  窓デ－タの入力     */
 
 // WINDOWデータセットの読み取り
-func Windowdata(section *EeTokens, dsn string, Window *[]*WINDOW, Nwindow *int) {
-	E := fmt.Sprintf(ERRFMT, dsn)
+func Windowdata(section *EeTokens, Window *[]*WINDOW) {
+	E := fmt.Sprintf(ERRFMT, "WINDOW")
 
 	var N int
 	for section.IsEnd() == false {
@@ -483,8 +481,6 @@ func Windowdata(section *EeTokens, dsn string, Window *[]*WINDOW, Nwindow *int) 
 
 		i++
 	}
-
-	*Nwindow = i
 }
 
 /* --------------------------------------------------- */

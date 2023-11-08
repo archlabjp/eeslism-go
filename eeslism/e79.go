@@ -13,32 +13,29 @@ func Entry(InFile string) {
 	var s string
 
 	var Daytm DAYTM
-	var Simc SIMCONTL
-	var Loc LOCAT
+	var Simc *SIMCONTL
+	var Loc *LOCAT
 	var Wd, Wdd, Wdm WDAT
 	var dminute int
-	var Rmvls RMVLS
-	var Eqcat EQCAT
-	var Eqsys EQSYS
+	var Rmvls *RMVLS
+	var Eqcat *EQCAT
+	var Eqsys *EQSYS
 	var i int
 
 	/* ============================ */
 
-	var Nelout, Nelin int
 	var Compnt []*COMPNT
 	var Elout []*ELOUT
 	var Elin []*ELIN
 	var Syseq SYSEQ
-	var Nmpath, Npelm, Nplist int
 	var Mpath []*MPATH
 	var Plist []*PLIST
 	var Pelm []*PELM
-	var Ncontl, Nctlif, Nctlst int
 	var Contl []*CONTL
 	var Ctlif []*CTLIF
 	var Ctlst []*CTLST
 	var key int
-	var Exsf EXSFS
+	var Exsf EXSFS       // 外皮
 	var Soldy []float64  // 日集計データ
 	var Solmon []float64 // 月集計データ
 
@@ -104,15 +101,14 @@ func Entry(InFile string) {
 	Exsf.EarthSrfFlg = false
 	Exsf.Exs = nil
 	Soldy = nil
-	Loc.Name = ""
 	Fbmlist = ""
 
-	Rmvlsinit(&Rmvls)
-	Simcinit(&Simc)
+	Rmvls = NewRMVLS()
+	Simc = NewSIMCONTL()
 
-	Eqsysinit(&Eqsys)
-	Locinit(&Loc)
-	Eqcatinit(&Eqcat)
+	Eqsys = NewEQSYS()
+	Loc = NewLOCAT()
+	Eqcat = NewEQCAT()
 
 	/* ------------------------------------------------------ */
 
@@ -137,23 +133,24 @@ func Entry(InFile string) {
 	bdata, schtba, schnma, week := Eespre(bdata0, EWKFile, &key) //key=`WEEK`が含まれているかどうか
 
 	Simc.File = InFile
-	Simc.Loc = &Loc
+	Simc.Loc = Loc
 
+	// 建築・設備システムデータ入力
 	Schdl, Flout := Eeinput(
 		EWKFile,
 		bdata, week, schtba, schnma,
-		&Simc, &Exsf, &Rmvls, &Eqcat, &Eqsys,
+		Simc, &Exsf, Rmvls, Eqcat, Eqsys,
 		&Compnt,
-		&Elout, &Nelout,
-		&Elin, &Nelin,
-		&Mpath, &Nmpath,
+		&Elout,
+		&Elin,
+		&Mpath,
 		&Plist,
-		&Pelm, &Npelm,
-		&Contl, &Ncontl,
-		&Ctlif, &Nctlif,
-		&Ctlst, &Nctlst,
+		&Pelm,
+		&Contl,
+		&Ctlif,
+		&Ctlst,
 		&Wd,
-		&Daytm, key, &Nplist,
+		&Daytm, key,
 		&bdpn, &obsn, &treen, &shadn, &polyn, &BDP, &obs, &tree, &shadtb, &poly, &monten, &gpn, &DE, &Noplpmp)
 
 	// 外部障害物のメモリを確保
@@ -167,10 +164,10 @@ func Entry(InFile string) {
 	VAV_Count_MAX := Simc.MaxIterate
 
 	// 動的カーテンの展開
-	for i := 0; i < Rmvls.Nsrf; i++ {
+	for i := range Rmvls.Sd {
 		Sd := Rmvls.Sd[i]
 		if Sd.DynamicCode != "" {
-			ctifdecode(Sd.DynamicCode, Sd.Ctlif, &Simc, Compnt, Mpath, &Wd, &Exsf, Schdl)
+			ctifdecode(Sd.DynamicCode, Sd.Ctlif, Simc, Compnt, Mpath, &Wd, &Exsf, Schdl)
 		}
 	}
 
@@ -369,8 +366,8 @@ func Entry(InFile string) {
 			fmt.Printf("[%3d] Eo_cmp=%s\n", i, Eo.Cmp.Name)
 		}
 
-		fmt.Printf("Npelm=%d Ncompnt=%d Nelout=%d Nelin=%d\n",
-			Npelm, len(Compnt), Nelout, Nelin)
+		fmt.Printf("Npelm=%d Ncmalloc=%d Ncompnt=%d Nelout=%d Nelin=%d\n",
+			len(Pelm), len(Compnt), len(Compnt), len(Elout), len(Elin))
 	}
 
 	Soldy = make([]float64, len(Exsf.Exs))
@@ -385,13 +382,20 @@ func Entry(InFile string) {
 		Rm.Qeqp = 0.0
 	}
 
-	dprschtable(Schdl.Seasn, Schdl.Wkdy, Schdl.Dsch, Schdl.Dscw)
-	//dprschdata ( Schdl.Sch, Schdl.Scw ) ;
-	//dprachv ( Rmvls.Nroom, Rmvls.Room ) ;
-	dprexsf(Exsf.Exs)
-	dprwwdata(Rmvls.Wall, Rmvls.Window)
-	dprroomdata(Rmvls.Room, Rmvls.Sd)
-	dprballoc(Rmvls.Mw, Rmvls.Sd)
+	// スケジュール設定のデバッグ出力
+	Schdl.dprschtable()
+
+	// 外表面方位データのデバッグ出力
+	Exsf.dprexsf()
+
+	// 壁・窓のデバッグ出力
+	Rmvls.dprwwdata()
+
+	// 室のデバッグ出力
+	Rmvls.dprroomdata()
+
+	// 重量壁体のデバッグ出力
+	Rmvls.dprballoc()
 
 	Simc.eeflopen(Flout)
 
@@ -403,8 +407,8 @@ func Entry(InFile string) {
 		fmt.Fprintln(Ferr, "\n<<main>> eeflopen end")
 	}
 
-	Tinit(Rmvls.Twallinit, Rmvls.Room,
-		Rmvls.Nsrf, Rmvls.Sd, Rmvls.Nmwall, Rmvls.Mw)
+	// 壁体内部温度の初期値設定
+	Rmvls.Tinit()
 
 	if DEBUG {
 		fmt.Println("<<main>> Tinit")
@@ -415,8 +419,10 @@ func Entry(InFile string) {
 	}
 
 	// ボイラ機器仕様の初期化
-	Boicaint(Eqcat.Boica, &Simc, Compnt, &Wd, &Exsf, Schdl)
-	Mecsinit(&Eqsys, &Simc, Compnt, Exsf.Exs, &Wd, &Rmvls)
+	Eqcat.Boicaint(Simc, Compnt, &Wd, &Exsf, Schdl)
+
+	// システム使用機器の初期設定
+	Eqsys.Mecsinit(Simc, Compnt, Exsf.Exs, &Wd, Rmvls)
 
 	if DEBUG {
 		fmt.Println("<<main>> Mecsinit")
@@ -520,7 +526,7 @@ func Entry(InFile string) {
 			//  fmt.Printf("xxxxxx\n")
 
 			Vcfinput(&Daytm, Simc.Nvcfile, Simc.Vcfile, Simc.Perio)
-			Weatherdt(&Simc, &Daytm, &Loc, &Wd, Exsf.Exs, Exsf.EarthSrfFlg)
+			Weatherdt(Simc, &Daytm, Loc, &Wd, Exsf.Exs, Exsf.EarthSrfFlg)
 
 			if dayprn && Ferr != nil {
 				fmt.Fprintf(Ferr, "\n\n\n---- date=%2d/%2d nday=%d day=%d time=%5.2f ----\n",
@@ -586,7 +592,7 @@ func Entry(InFile string) {
 			}
 
 			// 傾斜面日射量の計算
-			Exsfsol(&Wd, Exsf.Exs)
+			Exsf.Exsfsol(&Wd)
 
 			/*==transplantation to eeslism from KAGExSUN by higuchi 070918==start*/
 			if bdpn != 0 {
@@ -683,21 +689,23 @@ func Entry(InFile string) {
 				fmt.Println("<<main>> Exsfsol")
 			}
 
-			// Create schedule for current time step
-			Eeschdlr(day, Daytm.Ttmm, Schdl, &Rmvls)
+			// 現時刻ステップのスケジュール作成
+			Eeschdlr(day, Daytm.Ttmm, Schdl, Rmvls)
 
 			if DEBUG {
 				fmt.Println("<<main>>  Eeschdlr")
 			}
 
-			// Calculate control status values for use in control (e.g. collector equivalent outdoor temperature)
-			CalcControlStatus(&Eqsys, &Rmvls, &Wd, &Exsf)
+			// 制御で使用する状態値を計算する（集熱器の相当外気温度）
+			CalcControlStatus(Eqsys, Rmvls, &Wd, &Exsf)
 
-			// Update control information
-			Contlschdlr(Ncontl, Contl, Mpath, Compnt)
+			// 制御情報の更新
+			Contlschdlr(Contl, Mpath, Compnt)
 
-			// Recalculate internal heat gains after setting air conditioning on/off schedule
-			Qischdlr(Rmvls.Room)
+			// 空調発停スケジュール設定が完了したら人体発熱を再計算
+			for _, rm := range Rmvls.Room {
+				rm.Qischdlr()
+			}
 
 			if DEBUG {
 				fmt.Println("<<main>> Contlschdlr")
@@ -707,12 +715,13 @@ func Entry(InFile string) {
 			eloutprint(0, Nelout, Elout, Compnt);
 			*****/
 
-			VAVcountreset(Eqsys.Vav)
-			Valvcountreset(Eqsys.Valv)
-			Evaccountreset(Eqsys.Evac)
+			// カウンターリセット
+			Eqsys.VAVcountreset()
+			Eqsys.Valvcountreset()
+			Eqsys.Evaccountreset()
 
 			/*---- Satoh Debug VAV  2000/12/6 ----*/
-			/* VAV 計算繰り返しループの開始地点 */
+			// ここから: VAV 計算繰り返しループ
 			for j := 0; j < VAV_Count_MAX; j++ {
 				if DEBUG {
 					fmt.Printf("\n\n====== VAV LOOP Count=%d ======\n\n\n", j)
@@ -724,7 +733,8 @@ func Entry(InFile string) {
 				VAVreset := 0
 				Valvreset := 0
 
-				Pumpflow(Eqsys.Pump)
+				// ポンプ流量設定（太陽電池ポンプのみ
+				Eqsys.Pumpflow()
 
 				if DEBUG {
 					fmt.Println("<<main>> Pumpflow")
@@ -748,7 +758,7 @@ func Entry(InFile string) {
 				eloutprint(0, Nelout, Elout, Compnt);
 				***********/
 
-				Sysupv(Mpath, &Rmvls)
+				Sysupv(Mpath, Rmvls)
 
 				if DEBUG {
 					fmt.Println("<<main>> Sysupv")
@@ -766,18 +776,19 @@ func Entry(InFile string) {
 					Rmvls.Emrk[i] = '!'
 				}
 
-				for n := 0; n < Rmvls.Nsrf; n++ {
+				for n := range Rmvls.Sd {
 					Rmvls.Sd[n].mrk = '!'
 				}
 
-				Mecscf(&Eqsys)
+				// システム使用機器特性式係数の計算
+				Eqsys.Mecscf()
 
 				if DEBUG {
 					fmt.Println("<<main>> Mecscf")
 				}
 
 				/*======higuchi update 070918==========*/
-				eeroomcf(&Wd, &Exsf, &Rmvls, nday, mt)
+				eeroomcf(&Wd, &Exsf, Rmvls, nday, mt)
 				/*=====================================*/
 
 				if DEBUG {
@@ -794,7 +805,7 @@ func Entry(InFile string) {
 				Roomvar(Rmvls.Room, Rmvls.Rdpnl)
 
 				if DEBUG {
-					fmt.Println("<<main>>  Roomvar")
+					fmt.Println("<<main>> Roomvar")
 					eloutprint(1, Elout, Compnt)
 					elinprint(1, Compnt, Elout, Elin)
 				}
@@ -808,11 +819,10 @@ func Entry(InFile string) {
 
 				//hcldmodeinit(&Eqsys);
 
+				// 収束計算
 				for i := 0; i < LOOP_MAX; i++ {
-					//s := fmt.Sprintf("Loop Start %d", i)
-
 					if i == 0 {
-						hcldwetmdreset(&Eqsys)
+						hcldwetmdreset(Eqsys)
 					}
 
 					if DEBUG {
@@ -836,16 +846,22 @@ func Entry(InFile string) {
 					nday, mt, tt, mm, TKreset );
 					****************************/
 
+					// 蓄熱槽特性式係数
 					Stankcfv(Eqsys.Stank)
 
+					// 特性式の係数
 					Hcldcfv(Eqsys.Hcload)
 
-					Syseqv(Nelout, Elout, &Syseq)
+					// システム方程式の作成およびシステム変数の計算
+					Syseqv(Elout, &Syseq)
 
 					Sysvar(Compnt)
 
-					Roomene(&Rmvls, Rmvls.Room, Rmvls.Rdpnl, &Exsf, &Wd)
+					// 室温・湿度計算結果代入、室供給熱量計算
+					// およびパネル入口温度代入、パネル供給熱量計算
+					Roomene(Rmvls, Rmvls.Room, Rmvls.Rdpnl, &Exsf, &Wd)
 
+					// 室負荷の計算
 					Roomload(Rmvls.Room, &LDreset)
 
 					// PCM家具の収束判定
@@ -853,19 +869,25 @@ func Entry(InFile string) {
 
 					// 壁体内部温度の計算と収束計算のチェック
 					if Rmvls.Pcmiterate == 'y' {
-						PCMwlchk(i, &Rmvls, &Exsf, &Wd, &LDreset)
+						PCMwlchk(i, Rmvls, &Exsf, &Wd, &LDreset)
 					}
 
+					// 供給熱量、エネルギーの計算
 					Boiene(Eqsys.Boi, &BOIreset)
 
+					// 冷却熱量/加熱量、エネルギーの計算
 					Refaene(Eqsys.Refa, &LDreset)
 
+					// 空調負荷の計算
 					Hcldene(Eqsys.Hcload, &LDreset, &Wd)
 
+					// 供給熱量の計算
 					Hccdwreset(Eqsys.Hcc, &DWreset)
 
+					// 槽内水温、水温分布逆転の検討
 					Stanktss(Eqsys.Stank, &TKreset)
 
+					// 内部温度、熱量の計算
 					Evacene(Eqsys.Evac, &Evacreset)
 
 					if BOIreset+LDreset+DWreset+TKreset+Evacreset+PCMfunreset == 0 {
@@ -877,33 +899,28 @@ func Entry(InFile string) {
 					fmt.Printf("収束しませんでした。 MAX=%d\n", LOOP_MAX)
 				}
 
-				//fmt.Printf("Loop=%d\n", i)
+				// 供給熱量の計算
 				Hccene(Eqsys.Hcc)
-				// 風量の計算は最初だけ
-				//if i == 0 {
+
+				// 風量の計算
 				VAVene(Eqsys.Vav, &VAVreset)
-				//}
 				Valvene(Eqsys.Valv, &Valvreset)
 
-				//fmt.Printf("\n\nVAVreset=%d\n", VAVreset)
-				/***************/
 				if VAVreset == 0 && Valvreset == 0 {
 					break
 				}
-				VAVcountinc(Eqsys.Vav)
-				Valvcountinc(Eqsys.Valv)
+
+				// カウントアップ
+				Eqsys.VAVcountinc()
+				Eqsys.Valvcountinc()
 
 				// 風量が変わったら電気蓄熱暖房器の係数を再計算
 				Stheatcfv(Eqsys.Stheat)
-
-				/*****************/
-
-				/*---- Satoh Debug VAV  2000/12/6 ----*/
-				/* VAV 計算繰り返しループの終了地点 */
 			}
+			// ここまで: VAV 計算繰り返しループ
 
 			// 太陽電池内蔵壁体の発電量計算
-			CalcPowerOutput(Rmvls.Nsrf, Rmvls.Sd, &Wd, &Exsf)
+			CalcPowerOutput(Rmvls.Sd, &Wd, &Exsf)
 
 			if Simc.Helmkey == 'y' {
 				Helmroom(Rmvls.Room, Rmvls.Qrm, &Rmvls.Qetotal, Wd.T, Wd.X)
@@ -926,14 +943,14 @@ func Entry(InFile string) {
 			}
 
 			/*  システム使用機器の供給熱量、エネルギーの計算  */
-			Mecsene(&Eqsys)
+			Eqsys.Mecsene()
 
 			/***********************
 			fmt.Printf("Mecsene en\n")
 			/***********************/
 
 			if DEBUG {
-				mecsxprint(&Eqsys)
+				mecsxprint(Eqsys)
 			}
 
 			/* ------------------------------------------------ */
@@ -952,7 +969,7 @@ func Entry(InFile string) {
 			//	printf("debug\n");
 
 			// 壁体内部温度の計算（ヒステリシス考慮PCMの状態値もここで設定）
-			RMwlt(Rmvls.Nmwall, Rmvls.Mw)
+			RMwlt(Rmvls.Mw)
 
 			if DEBUG {
 				fmt.Printf("xxxmain 4\n")
@@ -968,7 +985,7 @@ func Entry(InFile string) {
 			//xprsolrd (Exsf.Nexs, Exsf.Exs);
 
 			// 代表日の毎時計算結果のファイル出力
-			Eeprinth(&Daytm, &Simc, Flout, &Rmvls, &Exsf, Nmpath, Mpath, &Eqsys, &Wd)
+			Eeprinth(&Daytm, Simc, Flout, Rmvls, &Exsf, Mpath, Eqsys, &Wd)
 
 			if DEBUG {
 				fmt.Printf("xxxmain 6\n")
@@ -981,7 +998,7 @@ func Entry(InFile string) {
 					Helmdy(day, Rmvls.Room, &Rmvls.Qetotal)
 				}
 
-				Compoday(Daytm.Mon, Daytm.Day, day, Daytm.Ttmm, &Eqsys, Simc.Dayend)
+				Compoday(Daytm.Mon, Daytm.Day, day, Daytm.Ttmm, Eqsys, Simc.Dayend)
 				/**   if (Nqrmpri > 0)  **/
 				Qrmsum(Daytm.Day, Rmvls.Room, Rmvls.Qrm, Rmvls.Trdav, Rmvls.Qrmd)
 
@@ -990,17 +1007,16 @@ func Entry(InFile string) {
 				}
 
 				// 気象データの日集計、月集計
-				Wdtsum(Daytm.Mon, Daytm.Day, day, Daytm.Ttmm, &Wd, Exsf.Exs, &Wdd, &Wdm, Soldy, Solmon, &Simc)
+				Wdtsum(Daytm.Mon, Daytm.Day, day, Daytm.Ttmm, &Wd, Exsf.Exs, &Wdd, &Wdm, Soldy, Solmon, Simc)
 			}
 			if DEBUG {
 				fmt.Printf("xxxmain 8\n")
 			}
 
 			if DEBUG {
-				//xprtwpanel (Rmvls.Nroom, Rmvls.Room, Twp, Sd, Mw);
-				xprtwsrf(Rmvls.Nsrf, Rmvls.Sd)
-				xprrmsrf(Rmvls.Nsrf, Rmvls.Sd)
-				xprtwall(Rmvls.Nmwall, Rmvls.Mw)
+				Rmvls.xprtwsrf()
+				Rmvls.xprrmsrf()
+				Rmvls.xprtwall()
 			}
 
 			mm += dminute
@@ -1009,7 +1025,7 @@ func Entry(InFile string) {
 		}
 
 		// 日集計の出力
-		Eeprintd(&Daytm, &Simc, Flout, &Rmvls, Exsf.Exs, Soldy, &Eqsys, &Wdd)
+		Eeprintd(&Daytm, Simc, Flout, Rmvls, Exsf.Exs, Soldy, Eqsys, &Wdd)
 		/*****fmt.Printf("xxxmain 9\n")*****/
 
 		//if (Daytm.Mon == 4 && Daytm.Day == 25)
@@ -1018,12 +1034,12 @@ func Entry(InFile string) {
 		// 月集計の出力
 		if IsEndDay(Daytm.Mon, Daytm.Day, Daytm.DayOfYear, Simc.Dayend) && Daytm.Ddpri != 0 {
 			//fmt.Printf("月集計出力\n")
-			Eeprintm(&Daytm, &Simc, Flout, &Rmvls, Exsf.Exs, Solmon, &Eqsys, &Wdm)
+			Eeprintm(&Daytm, Simc, Flout, Rmvls, Exsf.Exs, Solmon, Eqsys, &Wdm)
 		}
 
 	}
 	// 月－時刻別集計値の出力
-	Eeprintmt(&Simc, Flout, &Eqsys, Rmvls.Rdpnl)
+	Eeprintmt(Simc, Flout, Eqsys, Rmvls.Rdpnl)
 
 	if DEBUG {
 		fmt.Printf("メモリ領域の解放\n")
@@ -1041,10 +1057,6 @@ func Entry(InFile string) {
 	}
 
 	/*---------------------higuchi 1999.7.21-----------end*/
-
-	// return (0);
-	// In Go, you don't need to return an integer value like in C
-	// since the compiler will automatically assume a zero exit status
 }
 
 func matiniti(A []int, N int) {

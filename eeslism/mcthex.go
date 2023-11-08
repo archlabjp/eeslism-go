@@ -93,17 +93,17 @@ func Thexelm(Thex []*THEX) {
 		// E+2: Toout calculation, elin: Tein
 		elin = E2.Elins[1]
 		elin.Upo = elin2.Upo
-		elin.Upv = elin2.Upv
+		elin.Upv = elin2.Upo
 
 		if thex.Cat.eh > 0.0 {
 			// E+1: xeout calculation, elin:
 			elin = E1.Elins[1]
 			elin.Upo = elin2.Upo
-			elin.Upv = elin2.Upv
+			elin.Upv = elin2.Upo
 
 			elin = E3.Elins[3]
 			elin.Upo = elin2.Upo
-			elin.Upv = elin2.Upv
+			elin.Upv = elin2.Upo
 		}
 
 		// Toin variable assignment
@@ -111,38 +111,38 @@ func Thexelm(Thex []*THEX) {
 
 		elin = E2.Elins[0]
 		elin.Upo = elin2.Upo
-		elin.Upv = elin2.Upv
+		elin.Upv = elin2.Upo
 
 		if thex.Cat.eh > 0.0 {
 			elin = E1.Elins[3]
 			elin.Upo = elin2.Upo
-			elin.Upv = elin2.Upv
+			elin.Upv = elin2.Upo
 
 			elin = E3.Elins[1]
 			elin.Upo = elin2.Upo
-			elin.Upv = elin2.Upv
+			elin.Upv = elin2.Upo
 
-			// Teout variable assignment
+			// Teoutの変数割り当て
 			elin = E1.Elins[2]
 			elin.Upo = E
 			elin.Upv = E2
 
-			// Toout assignment
+			// Tooutの割り当て
 			elin = E3.Elins[2]
 			elin.Upo = E2
 			elin.Upv = E2
 
-			// xein assignment
+			// xeinの割り当て
 			elin = E1.Elins[0]
 			elin2 = E3.Elins[4]
 			elin2.Upo = elin.Upo
-			elin2.Upv = elin.Upv
+			elin2.Upv = elin.Upo
 
-			// xoin assignment
+			// xoinの割り当て
 			elin = E1.Elins[4]
 			elin2 = E3.Elins[0]
 			elin2.Upo = elin.Upo
-			elin2.Upv = elin.Upv
+			elin2.Upv = elin.Upo
 		}
 	}
 }

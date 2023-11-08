@@ -35,7 +35,7 @@ func Eeschdlr(day, ttmm int, Schdl *SCHDL, Rmvls *RMVLS) {
 			xprschval(Schdl.Val, Schdl.Isw)
 		}
 
-		Windowschdlr(Schdl.Isw, Rmvls.Window, Rmvls.Nsrf, Rmvls.Sd)
+		Windowschdlr(Schdl.Isw, Rmvls.Window, Rmvls.Sd)
 		Vtschdlr(Rmvls.Room)
 		Aichschdlr(Schdl.Val, Rmvls.Room)
 

@@ -26,7 +26,7 @@ import (
 
 /*  壁体デ－タの入力  */
 
-func PCMdata(fi *EeTokens, dsn string, pcm *[]*PCM, Npcm *int, pcmiterate *rune) {
+func PCMdata(fi *EeTokens, dsn string, pcm *[]*PCM, pcmiterate *rune) {
 	N := PCMcount(fi)
 
 	s := "PCMdata --"
@@ -92,7 +92,6 @@ func PCMdata(fi *EeTokens, dsn string, pcm *[]*PCM, Npcm *int, pcmiterate *rune)
 		}
 	}
 
-	*Npcm = 0
 	for i := 0; i < N; i++ {
 
 		PCMa := (*pcm)[i]
@@ -271,8 +270,6 @@ func PCMdata(fi *EeTokens, dsn string, pcm *[]*PCM, Npcm *int, pcmiterate *rune)
 				}
 			}
 		}
-
-		*Npcm = *Npcm + 1
 	}
 }
 

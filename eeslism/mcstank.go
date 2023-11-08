@@ -398,8 +398,7 @@ func stankvptr(key []string, Stank *STANK) (VPTR, error) {
 
 /* ------------------------------------------------------- */
 
-/* 槽内水温、水温分布逆転の検討 */
-
+// 槽内水温、水温分布逆転の検討
 func Stanktss(Stank []*STANK, TKreset *int) {
 	for _, stank := range Stank {
 

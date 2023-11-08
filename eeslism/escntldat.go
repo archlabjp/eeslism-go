@@ -147,8 +147,10 @@ func Contrldata(fi *EeTokens, Ct *[]*CONTL, Ci *[]*CTLIF,
 					err = ctlrgtptr(value, &Ctlst.Rgt, Simc, Compnt, Mpath, Wd, Exsf, Schdl, Ctlst.Type)
 				}
 
-				Err := fmt.Sprintf("%s = %s", s[:st], s[st+1:])
-				Eprint("<Contrldata>", Err)
+				if err != nil {
+					Err := fmt.Sprintf("%s = %s", s[:st], s[st+1:])
+					Eprint("<Contrldata>", Err)
+				}
 			} else if s == "TVALV" {
 				flag_ignore = true
 				ValvControl(fi, Compnt, Schdl, Simc, Wd, &vptr)

@@ -23,12 +23,11 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"strconv"
 	"strings"
 )
 
-/*  機器仕様入力 */
-
+// 冷温水コイルの機器仕様入力
+// See: ../format/EQPCAT.md#HCC
 func Hccdata(s string, Hccca *HCCCA) int {
 	var st string
 	var dt float64
@@ -41,13 +40,16 @@ func Hccdata(s string, Hccca *HCCCA) int {
 		Hccca.KA = -999.0
 	} else {
 		st = s[stIdx+1:]
-		dt, _ = strconv.ParseFloat(st, 64)
+		dt, _ = readFloat(st)
 
 		if s == "et" {
+			// コイル温度効率
 			Hccca.et = dt
 		} else if s == "eh" {
+			// コイルエンタルピー効率
 			Hccca.eh = dt
 		} else if s == "KA" {
+			// コイルの熱通過率と伝熱面積の積 [W/K]
 			Hccca.KA = dt
 		} else {
 			id = 1
@@ -108,24 +110,25 @@ func Hcccfv(_hcc []*HCC) {
 		if len(hcc.Cmp.Elouts) != 3 || len(hcc.Cmp.Elins) != 0 {
 			panic("HCCの機器出力数は3、機器入力は0です。")
 		}
-		Eo1 := hcc.Cmp.Elouts[0]
-		Eo2 := hcc.Cmp.Elouts[1]
-		Eo3 := hcc.Cmp.Elouts[2]
+
+		eo_ta := hcc.Cmp.Elouts[0] // 排気温度
+		eo_xa := hcc.Cmp.Elouts[1] // 排気湿度
+		eo_tw := hcc.Cmp.Elouts[2] // 排水温度
 
 		var AirSW, WaterSW ControlSWType
 
-		// 水の流量?
-		hcc.Ga = Eo1.G                        // 水の流量?
-		hcc.cGa = Spcheat(Eo1.Fluid) * hcc.Ga // 水の熱量?
+		// 排気量・排気熱量
+		hcc.Ga = eo_ta.G                        // 排気量
+		hcc.cGa = Spcheat(eo_ta.Fluid) * hcc.Ga // 排気熱量
 		if hcc.Ga > 0.0 {
 			AirSW = ON_SW
 		} else {
 			AirSW = OFF_SW
 		}
 
-		// 空気の流量?
-		hcc.Gw = Eo3.G                        // 空気の流量?
-		hcc.cGw = Spcheat(Eo3.Fluid) * hcc.Gw // 空気の熱量?
+		// 排水量・排水熱量
+		hcc.Gw = eo_tw.G                        // 排水量
+		hcc.cGw = Spcheat(eo_tw.Fluid) * hcc.Gw // 排水熱量
 		if hcc.Gw > 0.0 {
 			WaterSW = ON_SW
 		} else {
@@ -139,58 +142,61 @@ func Hcccfv(_hcc []*HCC) {
 		} else if hcc.Etype == 'k' {
 			// 温度効率を計算
 			hcc.et = FNhccet(hcc.cGa, hcc.cGw, hcc.Cat.KA)
+		} else {
+			panic(hcc.Etype)
 		}
 
-		// エンタルピ効率
+		// エンタルピ効率 [-]
 		hcc.eh = hcc.Cat.eh
 
 		// 冷温水コイルの処理熱量
 		hcc.Et, hcc.Ex, hcc.Ew = wcoil(AirSW, WaterSW, hcc.Wet, hcc.Ga*hcc.et, hcc.Ga*hcc.eh, hcc.Xain, hcc.Twin)
 
-		// 空気の温度
-		Eo1.Coeffo = hcc.cGa
-		Eo1.Co = -(hcc.Et.C)
-		Eo1.Coeffin[0] = hcc.Et.T - hcc.cGa
-		Eo1.Coeffin[1] = hcc.Et.X
-		Eo1.Coeffin[2] = -(hcc.Et.W)
+		// 排気温度に関する係数の設定
+		eo_ta.Coeffo = hcc.cGa
+		eo_ta.Co = -(hcc.Et.C)
+		eo_ta.Coeffin[0] = hcc.Et.T - hcc.cGa
+		eo_ta.Coeffin[1] = hcc.Et.X
+		eo_ta.Coeffin[2] = -(hcc.Et.W)
 
-		// 空気の絶対湿度
-		Eo2.Coeffo = hcc.Ga
-		Eo2.Co = -(hcc.Ex.C)
-		Eo2.Coeffin[0] = hcc.Ex.T
-		Eo2.Coeffin[1] = hcc.Ex.X - hcc.Ga
-		Eo2.Coeffin[2] = -(hcc.Ex.W)
+		// 排気湿度に関する係数の設定
+		eo_xa.Coeffo = hcc.Ga
+		eo_xa.Co = -(hcc.Ex.C)
+		eo_xa.Coeffin[0] = hcc.Ex.T
+		eo_xa.Coeffin[1] = hcc.Ex.X - hcc.Ga
+		eo_xa.Coeffin[2] = -(hcc.Ex.W)
 
-		// 水の温度
-		Eo3.Coeffo = hcc.cGw
-		Eo3.Co = hcc.Ew.C
-		Eo3.Coeffin[0] = -(hcc.Ew.T)
-		Eo3.Coeffin[1] = -(hcc.Ew.X)
-		Eo3.Coeffin[2] = hcc.Ew.W - hcc.cGw
+		// 排水温度に関する係数の設定
+		eo_tw.Coeffo = hcc.cGw
+		eo_tw.Co = hcc.Ew.C
+		eo_tw.Coeffin[0] = -(hcc.Ew.T)
+		eo_tw.Coeffin[1] = -(hcc.Ew.X)
+		eo_tw.Coeffin[2] = hcc.Ew.W - hcc.cGw
 	}
 }
 
 /* ------------------------------------------ */
 
-/* 供給熱量の計算 */
-
+// 供給熱量の計算
 func Hccdwreset(Hcc []*HCC, DWreset *int) {
 	for i, hcc := range Hcc {
-		xain := hcc.Cmp.Elins[1].Sysvin
-		Twin := hcc.Cmp.Elins[2].Sysvin
+		xain := hcc.Cmp.Elins[1].Sysvin // <給気>絶対湿度 [kg/kg]
+		Twin := hcc.Cmp.Elins[2].Sysvin // <給水>温水の温度 [C]
 
-		reset := 0
+		reset := false
 		if hcc.Cat.eh > 1.0e-10 {
-			Tdp := FNDp(FNPwx(xain))
+			Tdp := FNDp(FNPwx(xain)) // 露点温度
 			if hcc.Wet == 'w' && Twin > Tdp {
+				// 露点温度を上回った => 結露なし (乾きコイル)
 				hcc.Wet = 'd'
-				reset = 1
+				reset = true
 			} else if hcc.Wet == 'd' && Twin < Tdp {
+				// 露点温度を上回った => 結露あり (湿りコイル)
 				hcc.Wet = 'w'
-				reset = 1
+				reset = true
 			}
 
-			if reset != 0 {
+			if reset {
 				(*DWreset)++
 				Hcccfv(Hcc[i : i+1])
 			}
@@ -200,26 +206,27 @@ func Hccdwreset(Hcc []*HCC, DWreset *int) {
 
 /* ------------------------------------------ */
 
-/* 供給熱量の計算 */
-
+// 冷温水コイルHccの供給熱量 Qs, Ql, Qt の計算を行う。
 func Hccene(Hcc []*HCC) {
 	for _, hcc := range Hcc {
-		hcc.Tain = hcc.Cmp.Elins[0].Sysvin
-		hcc.Xain = hcc.Cmp.Elins[1].Sysvin
-		hcc.Twin = hcc.Cmp.Elins[2].Sysvin
+		hcc.Tain = hcc.Cmp.Elins[0].Sysvin // <給気>空気温度 [C]
+		hcc.Xain = hcc.Cmp.Elins[1].Sysvin // <給気>絶対湿度 [kg/kg]
+		hcc.Twin = hcc.Cmp.Elins[2].Sysvin // <給水>温水の温度 [C]
 
 		if hcc.Cmp.Control != OFF_SW {
-			elo := hcc.Cmp.Elouts[0]
-			hcc.Taout = elo.Sysv
-			hcc.Qs = hcc.cGa * (elo.Sysv - hcc.Tain)
+			// <排気>空気温度 [C]
+			hcc.Taout = hcc.Cmp.Elouts[0].Sysv
+			hcc.Qs = hcc.cGa * (hcc.Taout - hcc.Tain)
 
-			elo = hcc.Cmp.Elouts[1]
-			hcc.Ql = Ro * hcc.Ga * (elo.Sysv - hcc.Xain)
+			// <排気>空気絶対湿度 [kg/kg]
+			Xaout := hcc.Cmp.Elouts[1].Sysv
+			hcc.Ql = Ro * hcc.Ga * (Xaout - hcc.Xain)
 
-			elo = hcc.Cmp.Elouts[2]
-			hcc.Twout = elo.Sysv
-			hcc.Qt = hcc.cGw * (elo.Sysv - hcc.Twin)
+			// <排水>温水の温度 [C]
+			hcc.Twout = hcc.Cmp.Elouts[2].Sysv
+			hcc.Qt = hcc.cGw * (hcc.Twout - hcc.Twin)
 		} else {
+			// 経路が停止している場合は熱供給しない
 			hcc.Qs = 0.0
 			hcc.Ql = 0.0
 			hcc.Qt = 0.0
@@ -229,6 +236,7 @@ func Hccene(Hcc []*HCC) {
 
 /* ------------------------------------------ */
 
+// 冷温水コイルHccの状態をfoに出力する。
 func hccprint(fo io.Writer, id int, Hcc []*HCC) {
 	switch id {
 	case 0:
@@ -240,29 +248,27 @@ func hccprint(fo io.Writer, id int, Hcc []*HCC) {
 		}
 	case 1:
 		for _, hcc := range Hcc {
-			fmt.Fprintf(fo, "%s_ca c c %s_Ga m f %s_Ti t f %s_To t f %s_Qs q f\n",
-				hcc.Name, hcc.Name, hcc.Name, hcc.Name, hcc.Name)
-			fmt.Fprintf(fo, "%s_cx c c %s_xi x f %s_xo x f %s_Ql q f\n",
-				hcc.Name, hcc.Name, hcc.Name, hcc.Name)
-			fmt.Fprintf(fo, "%s_cw c c %s_Gw m f %s_Twi t f %s_Two t f %s_Qt q f\n",
-				hcc.Name, hcc.Name, hcc.Name, hcc.Name, hcc.Name)
-			fmt.Fprintf(fo, "%s_et m f %s_eh m f\n\n",
-				hcc.Name, hcc.Name)
+			fmt.Fprintf(fo, "%s_ca c c %s_Ga m f %s_Ti t f %s_To t f %s_Qs q f\n", hcc.Name, hcc.Name, hcc.Name, hcc.Name, hcc.Name)
+			fmt.Fprintf(fo, "%s_cx c c %s_xi x f %s_xo x f %s_Ql q f\n", hcc.Name, hcc.Name, hcc.Name, hcc.Name)
+			fmt.Fprintf(fo, "%s_cw c c %s_Gw m f %s_Twi t f %s_Two t f %s_Qt q f\n", hcc.Name, hcc.Name, hcc.Name, hcc.Name, hcc.Name)
+			fmt.Fprintf(fo, "%s_et m f %s_eh m f\n\n", hcc.Name, hcc.Name)
 		}
 	default:
 		for _, hcc := range Hcc {
-			el := hcc.Cmp.Elouts[0] // Get the address of the first element
-			fmt.Fprintf(fo, "%c %6.4g %4.1f %4.1f %2.0f ",
-				el.Control, hcc.Ga, hcc.Tain, el.Sysv, hcc.Qs)
-			el = hcc.Cmp.Elouts[1] // Get the address of the second element
-			fmt.Fprintf(fo, "%c %5.3f %5.3f %2.0f ",
-				el.Control, hcc.Xain, el.Sysv, hcc.Ql)
-			el = hcc.Cmp.Elouts[2] // Get the address of the third element
-			fmt.Fprintf(fo, "%c %6.4g %4.1f %4.1f %2.0f ",
-				el.Control, hcc.Gw, hcc.Twin, el.Sysv, hcc.Qt)
+			// 給排気温度に関する事項
+			eo_ta := hcc.Cmp.Elouts[0]
+			fmt.Fprintf(fo, "%c %6.4g %4.1f %4.1f %2.0f ", eo_ta.Control, hcc.Ga, hcc.Tain, eo_ta.Sysv, hcc.Qs)
 
-			fmt.Fprintf(fo, "%6.4g %6.4g\n",
-				hcc.et, hcc.eh)
+			// 給排気湿度に関する事項
+			eo_xa := hcc.Cmp.Elouts[1]
+			fmt.Fprintf(fo, "%c %5.3f %5.3f %2.0f ", eo_xa.Control, hcc.Xain, eo_xa.Sysv, hcc.Ql)
+
+			// 給排水温度に関する事項
+			eo_tw := hcc.Cmp.Elouts[2]
+			fmt.Fprintf(fo, "%c %6.4g %4.1f %4.1f %2.0f ", eo_tw.Control, hcc.Gw, hcc.Twin, eo_tw.Sysv, hcc.Qt)
+
+			// 温度効率、エンタルピー
+			fmt.Fprintf(fo, "%6.4g %6.4g\n", hcc.et, hcc.eh)
 		}
 	}
 }

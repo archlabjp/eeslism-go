@@ -21,12 +21,12 @@ import (
 	"io"
 )
 
-func Contlschdlr(Ncontl int, _Contl []*CONTL, Mpath []*MPATH, _Compnt []*COMPNT) {
+func Contlschdlr(_Contl []*CONTL, Mpath []*MPATH, _Compnt []*COMPNT) {
 
 	// 全ての経路、機器を停止で初期化
 	for _, Mp := range Mpath {
 		Mp.Control = OFF_SW
-		mpathschd(OFF_SW, Mp.Plist)
+		Mp.mpathschd(OFF_SW)
 	}
 
 	// 機器の制御情報を「停止」で初期化
@@ -51,8 +51,7 @@ func Contlschdlr(Ncontl int, _Contl []*CONTL, Mpath []*MPATH, _Compnt []*COMPNT)
 	}
 
 	// CONTLの制御情報を反映
-	for i := 0; i < Ncontl; i++ {
-		Contl := _Contl[i]
+	for _, Contl := range _Contl {
 		Contl.Lgv = 1
 		// True:1、False:0
 		// if分で制御される場合
@@ -85,10 +84,10 @@ func Contlschdlr(Ncontl int, _Contl []*CONTL, Mpath []*MPATH, _Compnt []*COMPNT)
 					if Contl.Cst.PathType == MAIN_CPTYPE {
 						Mp := Contl.Cst.Path.(*MPATH)
 						Mp.Control = *Contl.Cst.Lft.S
-						mpathschd(Mp.Control, Mp.Plist)
+						Mp.mpathschd(Mp.Control)
 					} else if Contl.Cst.PathType == LOCAL_CPTYPE {
 						Pli := Contl.Cst.Path.(*PLIST)
-						lpathscdd(*Contl.Cst.Lft.S, Pli)
+						Pli.lpathscdd(*Contl.Cst.Lft.S)
 					}
 				}
 			}
@@ -149,7 +148,7 @@ func Contlschdlr(Ncontl int, _Contl []*CONTL, Mpath []*MPATH, _Compnt []*COMPNT)
 	for _, Mp := range Mpath {
 		for _, Pli := range Mp.Plist {
 			if Pli.Batch {
-				lpathschbat(Pli)
+				Pli.lpathschbat()
 			}
 		}
 	}
@@ -207,16 +206,16 @@ func contrlif(ctlif *CTLIF) int {
 
 /* --------------------------------------------------- */
 
-func mpathschd(control ControlSWType, Plist []*PLIST) {
-	for j := range Plist {
-		Plist[j].Control = control
-		lpathscdd(control, Plist[j])
+func (mp *MPATH) mpathschd(control ControlSWType) {
+	for _, path := range mp.Plist {
+		path.Control = control
+		path.lpathscdd(control)
 	}
 }
 
 /* --------------------------------------------------- */
 
-func lpathscdd(control ControlSWType, plist *PLIST) {
+func (plist *PLIST) lpathscdd(control ControlSWType) {
 	if plist.Org {
 		lpathschd(control, plist.Pelm)
 
@@ -253,7 +252,7 @@ func lpathschd(control ControlSWType, pelm []*PELM) {
 
 /* 蓄熱槽のバッチ給水、排水時の設定  */
 
-func lpathschbat(Plist *PLIST) {
+func (Plist *PLIST) lpathschbat() {
 	var j, k, i, jt, ifl int
 	var batop ControlSWType
 	var Tsout, Gbat float64

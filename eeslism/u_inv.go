@@ -246,6 +246,7 @@ func Gauss(A, C, B []float64, m, n int) {
 // 正方行列の出力
 //*/
 func Matprint(format string, N int, a []float64) {
+	fmt.Println()
 	for i := 0; i < N; i++ {
 		for j := 0; j < N; j++ {
 			fmt.Printf(format, a[i*N+j])

@@ -319,9 +319,9 @@ type OMVAV struct {
 
 // 冷温水コイル機器仕様
 type HCCCA struct {
-	name string
+	name string  // 冷温水コイルカタログ名
 	et   float64 // 定格温度効率 [-]
-	KA   float64
+	KA   float64 // コイルの熱通過率と伝熱面積の積 [W/K]
 	eh   float64 // 定格エンタルピ効率 [-]
 }
 
@@ -337,18 +337,18 @@ type HCC struct {
 	Et                     ACS     // 処理熱量(温度?)
 	Ex                     ACS     // 処理熱量(湿度?)
 	Ew                     ACS     // 処理熱量(水?)
-	cGa                    float64
-	Ga                     float64
-	cGw                    float64
-	Gw                     float64
-	Tain                   float64 // IN空気温度??
-	Taout                  float64 // OUT空気温度??
-	Xain                   float64 // IN空気湿度??
-	Twin                   float64 // IN水湿度??
-	Twout                  float64 // OUT水湿度??
-	Qs                     float64
-	Ql                     float64
-	Qt                     float64
+	cGa                    float64 // 排気熱量
+	Ga                     float64 // 排気量
+	cGw                    float64 // 排水熱量
+	Gw                     float64 // 排水量
+	Tain                   float64 // <給気>空気温度 [C]
+	Taout                  float64 // <排気>空気温度 [C]
+	Xain                   float64 // <給気>絶対湿度 [kg/kg]
+	Twin                   float64 // <給水>温水の温度 [C]
+	Twout                  float64 // <排水>温水の温度 [C]
+	Qs                     float64 // 空気温度としての供給熱量
+	Ql                     float64 // 空気湿気としての供給熱量
+	Qt                     float64 // 温水温度としての供給熱量
 	Taidy, xaidy, Twidy    SVDAY
 	Qdys, Qdyl, Qdyt       QDAY
 	mTaidy, mxaidy, mTwidy SVDAY

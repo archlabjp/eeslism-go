@@ -7,7 +7,7 @@ import (
 /* ---------------------------------------------------------------- */
 /* 毎時計算値出力　*/
 
-func Eeprinth(Daytm *DAYTM, Simc *SIMCONTL, flout []*FLOUT, Rmvls *RMVLS, Exsfst *EXSFS, Nmpath int, Mpath []*MPATH, Eqsys *EQSYS, Wd *WDAT) {
+func Eeprinth(Daytm *DAYTM, Simc *SIMCONTL, flout []*FLOUT, Rmvls *RMVLS, Exsfst *EXSFS, Mpath []*MPATH, Eqsys *EQSYS, Wd *WDAT) {
 	if Daytm.Ddpri != 0 && Simc.Dayprn[Daytm.DayOfYear] != 0 {
 		title := Simc.Title
 		Mon := Daytm.Mon
@@ -30,7 +30,7 @@ func Eeprinth(Daytm *DAYTM, Simc *SIMCONTL, flout []*FLOUT, Rmvls *RMVLS, Exsfst
 			case PRTCOMP: // 毎時機器の出力
 				Hcmpprint(flo.F, string(PRTCOMP), Simc, Mon, Day, time, Eqsys, Rmvls.Rdpnl)
 			case PRTPATH: // システム経路の温湿度出力
-				Pathprint(flo.F, title, Mon, Day, time, Nmpath, Mpath)
+				Pathprint(flo.F, title, Mon, Day, time, Mpath)
 			case PRTHRSTANK: // 蓄熱槽内温度分布の出力
 				Hstkprint(flo.F, title, Mon, Day, time, Eqsys)
 			default:
@@ -59,13 +59,13 @@ func Eeprinth(Daytm *DAYTM, Simc *SIMCONTL, flout []*FLOUT, Rmvls *RMVLS, Exsfst
 						Rmsfprint(flo.F, title, Mon, Day, time, Rmvls.Room, Rmvls.Sd)
 					case PRTSHD:
 						// 日よけの影面積の出力
-						Shdprint(flo.F, title, Mon, Day, time, Rmvls.Nsrf, Rmvls.Sd)
+						Shdprint(flo.F, title, Mon, Day, time, Rmvls.Sd)
 					case PRTWAL:
 						// 壁体内部温度の出力
-						Wallprint(flo.F, title, Mon, Day, time, Rmvls.Nsrf, Rmvls.Sd)
+						Wallprint(flo.F, title, Mon, Day, time, Rmvls.Sd)
 					case PRTPCM:
 						// 潜熱蓄熱材の状態値の出力
-						PCMprint(flo.F, title, Mon, Day, time, Rmvls.Nsrf, Rmvls.Sd)
+						PCMprint(flo.F, title, Mon, Day, time, Rmvls.Sd)
 					case PRTSFQ:
 						// 室内表面熱流の出力
 						Rmsfqprint(flo.F, title, Mon, Day, time, Rmvls.Room, Rmvls.Sd)

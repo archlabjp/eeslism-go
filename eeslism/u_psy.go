@@ -46,41 +46,57 @@ func FNPo() float64 {
 	return _P
 }
 
-func FNPws(T float64) float64 {
-	var Tabs, Pws, Temp float64
-	Tabs = T + 273.15
+// ---- 露点温度 ----
 
+// 湿り空気を冷却していくと、やがて飽和空気となる。このときの温度を露点温度という。
+// 飽和空気にはこれ以上水分を含むことができず、これ以上冷却すると結露が生じる。
+// 飽和空気の全圧のうち、水蒸気が占める圧力(水蒸気分圧)である飽和水蒸気圧 Pws [kPa] を求める。
+// 計算にはウェククスラー・ハイランド(Wexler-Hyland)による式を用いる。
+// See: パソコンによる空気調和計算法 P.27
+func FNPws(T float64) float64 {
+
+	// 絶対温度 Tabs
+	Tabs := T + 273.15
 	if math.Abs(Tabs) < 1e-5 {
 		fmt.Printf("xxxx ゼロ割が発生しています Tabs=%f\n", Tabs)
 	}
 
+	// 飽和水蒸気分圧 Pws
+	var Pws float64
 	if T > 0.0 {
-		Temp = 6.5459673*math.Log(Tabs) - 5800.2206/Tabs + 1.3914993 + Tabs*(-0.048640239+
-			Tabs*(4.1764768e-5-1.4452093e-8*Tabs))
-		Pws = math.Exp(Temp)
+		// 0から200℃の水と接する場合
+		Pws = math.Exp(6.5459673*math.Log(Tabs)-5800.2206/Tabs+1.3914993+Tabs*(-0.048640239+
+			Tabs*(4.1764768e-5-1.4452093e-8*Tabs))) / 1000.0
 	} else {
-		Pws = math.Exp(-5674.5359/Tabs + 6.3925247 + Tabs*(-9.677843e-3+
-			Tabs*(6.2215701e-7+Tabs*(2.0747825e-9-9.484024e-13*Tabs))) + 4.1635019*math.Log(Tabs))
+		// -100から0℃の氷と接する場合
+		Pws = math.Exp(-5674.5359/Tabs+6.3925247+Tabs*(-9.677843e-3+
+			Tabs*(6.2215701e-7+Tabs*(2.0747825e-9-9.484024e-13*Tabs)))+4.1635019*math.Log(Tabs)) / 1000.0
 	}
 
-	//fmt.Printf("Tabs=%f Temp=%f Pws=%f\n", Tabs, Temp, Pws)
-	return _Pcnv * Pws / 1000.0
+	// 単位変換
+	return _Pcnv * Pws
 }
 
+// 水蒸気分圧 Pw [kPa] から露点温度を求める
+// NOTE:
+// - 611.2 Paは、水の飽和蒸気圧に関連する値であり、これはおおよそ0℃の飽和蒸気圧に相当します。
+//
+// See: パソコンによる空気調和計算法 P.28
 func FNDp(Pw float64) float64 {
-	var Pwx, Y float64
-	Pwx = Pw * 1000.0 / _Pcnv
-	Y = math.Log(Pwx)
+	// 水蒸気分圧の単位をPaに変換
+	Pwx := Pw * 1000.0 / _Pcnv
 
+	Y := math.Log(Pwx)
+
+	// 近似式を用いて水蒸気分圧から露点温度を求める
 	if Pwx >= 611.2 {
+		// 0から50℃のとき
+		// NOTE: 611.2[Pa]はおおよそ0℃の飽和蒸気圧である.
 		return -77.199 + Y*(13.198+Y*(-0.63772+0.071098*Y))
 	} else {
+		// -50から0℃のとき
 		return -60.662 + Y*(7.4624+Y*(0.20594+0.016321*Y))
 	}
-}
-
-func FNDbrp(Rh, Pw float64) float64 {
-	return FNDp(100.0 / Rh * Pw)
 }
 
 func FNDbxr(X, Rh float64) float64 {
@@ -127,21 +143,28 @@ func FNDbrw(Rh, Twb float64) float64 {
 	return Dbrw
 }
 
+// --- 相対湿度、比較湿度 ---
+
+// 湿り空気の水蒸気分圧 Pw [kPa] から絶対湿度 x [kg/kg]を求める。
+// 絶対湿度とは、湿り空気の水蒸気と乾き空気の質量の比である。
+// See: パソコンによる空気調和計算法 P.29
 func FNXp(Pw float64) float64 {
+	// 標準大気圧 P [kPa]
 	P := 101.325
+
 	if math.Abs(P-Pw) < 1.0e-4 {
 		fmt.Printf("xxxxx ゼロ割が発生しています P=%f Pw=%f\n", P, Pw)
 	}
-	return 0.62198 * Pw / (P - Pw)
+
+	// 絶対湿度 x [kg/kg]
+	x := 0.62198 * Pw / (P - Pw)
+
+	return x
 }
 
+// 温度 T [C] および 相対湿度 Rh [%] から絶対湿度 x [kg/kg] を求める
 func FNXtr(T, Rh float64) float64 {
 	return FNXp(FNPwtr(T, Rh))
-}
-
-func FNXth(T, H float64) float64 {
-	R0, Ca, Cv := 2501000.0, 1005.0, 1846.0
-	return (H - Ca*T) / (Cv*T + R0)
 }
 
 func FNXtw(T, Twb float64) float64 {
@@ -149,26 +172,65 @@ func FNXtw(T, Twb float64) float64 {
 	return ((_R0+_Cv*Twb-Hc)*FNXp(FNPws(Twb)) - _Ca*(T-Twb)) / (_Cv*T + _R0 - Hc)
 }
 
+// 絶対湿度 x [kg/kg] から 水蒸気分圧 Pw [kPa] を求める。
+// See: パソコンによる空気調和計算法 P.29
 func FNPwx(X float64) float64 {
+	// 標準大気圧 P [kPa]
 	P := 101.325
-	return (X * P / (X + 0.62198))
+
+	// 水蒸気分圧 Pw [kPa]
+	Pw := (X * P / (X + 0.62198))
+
+	return Pw
 }
 
+// 温度 T [C] および 湿り空気の水蒸気分圧 Pw [kPa] から 相対湿度 φ [%] を求める。
+// 相対湿度は水蒸気分圧を飽和水蒸気圧の百分率である。
+// See: パソコンによる空気調和計算法 P.29
+func FNRhtp(T, Pw float64) float64 {
+	return 100.0 * Pw / FNPws(T)
+}
+
+// 温度 T [C] および 相対湿度 Rh [%] から 湿り空気の水蒸気分圧 Pw [kPa] を求める。
+// See: パソコンによる空気調和計算法 P.29
 func FNPwtr(T, Rh float64) float64 {
 	return (Rh * FNPws(T) / 100.0)
 }
 
-func FNRhtp(T, Pw float64) float64 {
-	return (100.0 * Pw / FNPws(T))
+// 相対湿度φ [%]と水蒸気分圧Pwから 乾球温度 Tを求める。
+func FNDbrp(Rh, Pw float64) float64 {
+	return FNDp(100.0 / Rh * Pw)
 }
 
+// 温度 T [C] および 湿り空気の水蒸気分圧 Pw [kPa] から 相対湿度 φ [%] を求める。
 func FNRhtx(T, X float64) float64 {
-	return (FNRhtp(T, FNPwx(X)))
+	return FNRhtp(T, FNPwx(X))
 }
 
+// 乾燥空気の温度 t [C] と絶対湿度 x [kg/kg] から、湿り空気のエンタルピ h [J/kg] を求める。
+// ここで、Tは乾燥空気の温度、Xは水蒸気の質量分率（乾燥空気に対する水蒸気の質量比）である。
+// エンタルピーは、乾燥空気の比熱を用いた温度の項と、水蒸気の比熱及び蒸発熱を用いた温度と絶対湿度の項の和として計算される。
+// See: パソコンによる空気調和計算法 P.29
 func FNH(T, X float64) float64 {
-	R0, Ca, Cv := 2501000.0, 1005.0, 1846.0
-	return (Ca*T + (Cv*T+R0)*X)
+	// 定数
+	Ca := 1005.0    // 乾き空気の定格比熱, 1005 J/kgK (0.240 kcal/kgC)
+	Cv := 1846.0    // 水蒸気の低圧比熱, 1846 J/kgK (0.441 kcal/kgC)
+	r0 := 2501000.0 // 0℃の水の蒸発潜熱, 2501x10^3 J/kg (597.5 kcak/kg)
+
+	// エンタルピー h
+	h := Ca*T + (Cv*T+r0)*X
+
+	return h
+}
+
+// 乾燥空気の温度 t [C]とエンタルピー h [J/kg]から
+func FNXth(T, h float64) float64 {
+	// 定数
+	Ca := 1005.0    // 乾き空気の定格比熱, 1005 J/kgK (0.240 kcal/kgC)
+	Cv := 1846.0    // 水蒸気の低圧比熱, 1846 J/kgK (0.441 kcal/kgC)
+	r0 := 2501000.0 // 0℃の水の蒸発潜熱, 2501x10^3 J/kg (597.5 kcak/kg)
+
+	return (h - Ca*T) / (Cv*T + r0)
 }
 
 func FNWbtx(T float64, X float64) float64 {

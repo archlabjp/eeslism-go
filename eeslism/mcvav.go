@@ -224,14 +224,14 @@ func VAVene(vav []*VAV, VAVrest *int) {
 	}
 }
 
-func VAVcountreset(VAVs []*VAV) {
-	for _, v := range VAVs {
+func (eqsys *EQSYS) VAVcountreset() {
+	for _, v := range eqsys.Vav {
 		v.Count = 0
 	}
 }
 
-func VAVcountinc(VAVs []*VAV) {
-	for _, v := range VAVs {
+func (eqsys *EQSYS) VAVcountinc() {
+	for _, v := range eqsys.Vav {
 		v.Count++
 	}
 }

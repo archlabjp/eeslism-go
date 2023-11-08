@@ -1,15 +1,13 @@
 package eeslism
 
-/* 機器使用データの割り付けおよびシステム要素から入力、出力要素の割り付け */
-
 var idmrkc = []FliudType{
 	AIRt_FLD,  //'t' 空気（温度）
 	AIRx_FLD,  //'x' 空気（湿度）
 	WATER_FLD, //'W' 水
 }
 
+// 機器使用データの割り付けおよびシステム要素から入力、出力要素の割り付け
 func Elmalloc(
-	errkey string,
 	_Compnt []*COMPNT,
 	Eqcat *EQCAT,
 	Eqsys *EQSYS,
@@ -441,15 +439,18 @@ func Elmalloc(
 
 			flindat(Flin[flinIdx])
 
+			elins := NewElinSlice(Compnt.Nout)
+			*Eli = append(*Eli, elins...)
+
 			for i = 0; i < Compnt.Nout; i++ {
 				Elout := NewElout()
 				Elout.Cmp = Compnt
 				Elout.Ni = Compnt.Nin
-				Elout.Elins = NewElinSlice(Elout.Ni)
+				Elout.Elins = elins
+				//Elout.Elins = NewElinSlice(Elout.Ni)
 				Elout.Id = Compnt.Ido[i]
 
 				*Elo = append(*Elo, Elout)
-				*Eli = append(*Eli, Elout.Elins...)
 				Compnt.Elouts = append(Compnt.Elouts, Elout)
 				Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 			}
@@ -762,7 +763,7 @@ func Elmalloc(
 				Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 			}
 		} else {
-			Errprint(1, errkey, string(c))
+			Errprint(1, "Elmalloc ", string(c))
 		}
 
 		for i = 0; i < Compnt.Nout; i++ {

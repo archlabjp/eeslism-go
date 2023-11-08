@@ -4,13 +4,12 @@ import (
 	"fmt"
 )
 
-/* システム方程式の作成およびシステム変数の計算 */
-
-func Syseqv(Nelout int, _Elout []*ELOUT, Syseq *SYSEQ) {
+// システム方程式の作成およびシステム変数の計算
+func Syseqv(_Elout []*ELOUT, Syseq *SYSEQ) {
 	var elov *ELOUT
 	var eleq, elosv []*ELOUT
 	var sysmcf, syscv, Y []float64
-	var i, j, m, n, nn, Nsv int
+	var i, m, n, Nsv int
 	var mrk []rune
 
 	Syseq.A = ' '
@@ -20,6 +19,8 @@ func Syseqv(Nelout int, _Elout []*ELOUT, Syseq *SYSEQ) {
 	sysmcf = nil
 	syscv = nil
 	Y = nil
+
+	Nelout := len(_Elout)
 
 	if Nelout > 0 {
 		eleq = make([]*ELOUT, Nelout)
@@ -96,7 +97,8 @@ func Syseqv(Nelout int, _Elout []*ELOUT, Syseq *SYSEQ) {
 
 	for i = 0; i < Nsv; i++ {
 		elout := eleq[i]
-		b := &syscv[i]
+		a := sysmcf[Nsv*i : Nsv*i+Nsv]
+		b := syscv[i : i+1]
 
 		if DEBUG {
 			fmt.Printf("xxx syseqv Elout=%d %s Ni=%d cfo=%f\n",
@@ -108,21 +110,21 @@ func Syseqv(Nelout int, _Elout []*ELOUT, Syseq *SYSEQ) {
 				i, elout.Cmp.Name, elout.Ni, elout.Coeffo)
 		}
 
-		c := sysmcf[i*Nsv : i*Nsv+Nsv]
+		c := a
 		matinit(c, Nsv)
 
-		*b = elout.Co
+		b[0] = elout.Co
 
 		if n = elout.Sv; n >= 0 {
-			sysmcf[i*Nsv+n] = elout.Coeffo
-			if nn = elout.Sld; nn >= 0 {
-				sysmcf[i*Nsv+nn] = -1.0
+			a[n] = elout.Coeffo
+			if nn := elout.Sld; nn >= 0 {
+				a[nn] = -1.0
 			}
 		} else {
-			*b -= elout.Coeffo * elout.Sysv
+			b[0] -= elout.Coeffo * elout.Sysv
 		}
 
-		for j = 0; j < elout.Ni; j++ {
+		for j := 0; j < elout.Ni; j++ {
 			elin := elout.Elins[j]
 			cfin := &elout.Coeffin[j]
 
@@ -141,7 +143,7 @@ func Syseqv(Nelout int, _Elout []*ELOUT, Syseq *SYSEQ) {
 
 				if elov.Control == ON_SW {
 					n = elin.Upv.Sv
-					sysmcf[i*Nsv+n] += *cfin
+					a[n] += *cfin
 				} else if elov.Control == LOAD_SW ||
 					elov.Control == FLWIN_SW ||
 					elov.Control == BATCH_SW {
@@ -155,19 +157,19 @@ func Syseqv(Nelout int, _Elout []*ELOUT, Syseq *SYSEQ) {
 							elov.Cmp.Name, elov.Control, elov.Sysv)
 					}
 
-					*b -= *cfin * elov.Sysv
+					b[0] -= *cfin * elov.Sysv
 				}
 			}
 		}
 		if DEBUG {
-			fmt.Printf("xx syseqv  i=%d  b=%f\n", i, *b)
+			fmt.Printf("xx syseqv  i=%d  b=%f\n", i, b[0])
 		}
 	}
 
 	/********* 連立方程式 ***********/
 
 	if DEBUG {
-		Seqprint("%g\t", Nsv, sysmcf, "%g", syscv)
+		Seqprint("%.6g\t", Nsv, sysmcf, "%.6g", syscv)
 
 		//for ( i = 0; i < Nsv; i++ )
 		//	fmt.Printf ( "%g\n", sysmcf[i+Nsv*7] ) ;
@@ -188,6 +190,7 @@ func Syseqv(Nelout int, _Elout []*ELOUT, Syseq *SYSEQ) {
 		} else if mrk[i] == LOAD_EQV {
 			elosv[i].Load = Y[i]
 		}
+		fmt.Printf("%d: %s = %f\n", i, elosv[i].Cmp.Name, Y[i])
 	}
 
 	if DEBUG {

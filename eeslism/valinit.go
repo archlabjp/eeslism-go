@@ -1,7 +1,8 @@
 package eeslism
 
 /*****  SIMCONTL の初期化  *****/
-func Simcinit(S *SIMCONTL) {
+func NewSIMCONTL() *SIMCONTL {
+	S := new(SIMCONTL)
 	S.Title = ""
 	S.File = ""
 	S.Wfname = ""
@@ -44,6 +45,8 @@ func Simcinit(S *SIMCONTL) {
 		S.Daywk[i] = 0
 		S.Dayprn[i] = 0
 	}
+
+	return S
 }
 
 /*****  COMPNT の初期化  *****/
@@ -214,7 +217,8 @@ func Syseqinit(S *SYSEQ) {
 }
 
 /*****  EQSYS の初期化  *****/
-func Eqsysinit(E *EQSYS) {
+func NewEQSYS() *EQSYS {
+	E := new(EQSYS)
 	E.Cnvrg = make([]*COMPNT, 0)
 	E.Hcc = make([]*HCC, 0)
 	E.Boi = make([]*BOI, 0)
@@ -237,12 +241,14 @@ func Eqsysinit(E *EQSYS) {
 	// 使用されていなかった:
 	//E.Ngload = 0
 	//E.Gload = nil
+
+	return E
 }
 
 /*****  RMVLS の初期化  *****/
-func Rmvlsinit(R *RMVLS) {
+func NewRMVLS() *RMVLS {
+	R := new(RMVLS)
 	R.Twallinit = 0.0
-	R.Nwindow, R.Nmwall, R.Nsrf = 0, 0, 0
 	R.Emrk = nil
 	R.Wall = nil
 	R.Window = nil
@@ -254,11 +260,12 @@ func Rmvlsinit(R *RMVLS) {
 	R.PCM = nil
 	// R.airflow = nil
 	R.Pcmiterate = 'n'
-	R.Npcm = 0
 
 	R.Mw = nil
 	R.Room = nil
 	R.Qetotal.Name = ""
+
+	return R
 }
 
 func VPTRinit(v *VPTR) {
@@ -279,15 +286,19 @@ func TMDTinit(t *TMDT) {
 	t.Year, t.Mon, t.Day, t.Time = 0, 0, 0, 0
 }
 
-func Locinit(L *LOCAT) {
+func NewLOCAT() *LOCAT {
+	L := new(LOCAT)
 	L.Name = ""
 	L.Lat, L.Lon, L.Ls, L.Tgrav, L.DTgr = -999.0, -999.0, -999.0, -999.0, -999.0
 	L.Daymxert = -999
 
 	matinitx(L.Twsup[:], 12, -999.0)
+
+	return L
 }
 
-func Eqcatinit(E *EQCAT) {
+func NewEQCAT() *EQCAT {
+	E := new(EQCAT)
 	E.Rfcmp = nil
 	E.Hccca = nil
 	E.Boica = nil
@@ -303,6 +314,7 @@ func Eqcatinit(E *EQCAT) {
 	E.Pfcmp = nil
 	E.PVca = nil
 	E.OMvavca = nil
+	return E
 }
 
 func MtEdayinit(mtEday *[12][24]EDAY) {

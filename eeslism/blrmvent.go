@@ -27,12 +27,12 @@ import (
 /*  外気導入量および室間相互換気量の設定スケジュ－ル入力   */
 
 // VENTデータセット
-func Ventdata(fi *EeTokens, dsn string, Schdl *SCHDL, Room []*ROOM, Simc *SIMCONTL) {
+func Ventdata(fi *EeTokens, Schdl *SCHDL, Room []*ROOM, Simc *SIMCONTL) {
 	var Rm *ROOM
 	var name1, ss, E string
 	var k int
 
-	E = fmt.Sprintf(ERRFMT, dsn)
+	E = fmt.Sprintf(ERRFMT, "RAICH or VENT")
 	for fi.IsEnd() == false {
 		line := fi.GetLogicalLine()
 		if line[0] == "*" {

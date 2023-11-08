@@ -39,11 +39,11 @@ func Pflow(_Mpath []*MPATH, Wd *WDAT) {
 				}
 			}
 
-			for _, Plist := range Mpath.Plist {
+			for i, Plist := range Mpath.Plist {
 				Plist.G = 0.0
 
 				if DEBUG {
-					fmt.Printf("i=%d iMAX=%d name=%s\n", i, len(Mpath.Plist), Plist.Name)
+					fmt.Printf("i=%d iMAX=%d name=%s\n", i, len(Mpath.Plist), get_string_or_null(Plist.Name))
 				}
 
 				// 流量が既知の末端経路
@@ -92,7 +92,7 @@ func Pflow(_Mpath []*MPATH, Wd *WDAT) {
 					}
 
 					if Plist.G <= 0.0 {
-						lpathscdd(OFF_SW, Plist)
+						Plist.lpathscdd(OFF_SW)
 					}
 
 					if Plist.G > 0. {
@@ -254,7 +254,7 @@ func Pflow(_Mpath []*MPATH, Wd *WDAT) {
 			for i, Plist := range Mpath.Plist {
 
 				if DEBUG {
-					fmt.Printf("<< Pflow >> e i=%d iMAX=%d control=%c G=%g\n",
+					fmt.Printf("<< Pflow >> e i=%d iMAX=%d control=%c G=%.5f\n",
 						i, len(Mpath.Plist), Plist.Control, Plist.G)
 				}
 
@@ -267,7 +267,7 @@ func Pflow(_Mpath []*MPATH, Wd *WDAT) {
 
 					Plist.G = 0.0
 					Plist.Control = OFF_SW
-					lpathscdd(Plist.Control, Plist)
+					Plist.lpathscdd(Plist.Control)
 				}
 
 				for j, Pelm := range Plist.Pelm {
@@ -282,11 +282,18 @@ func Pflow(_Mpath []*MPATH, Wd *WDAT) {
 							G0 = 0.0
 						}
 
-						fmt.Printf("< Pflow > j=%d\tjMAX=%d\tPelm-G=%g\tPlist.G=%g\n",
+						fmt.Printf("< Pflow > j=%d\tjMAX=%d\tPelm-G=%.5f\tPlist->G=%.5f\n",
 							j, len(Plist.Pelm), G0, Plist.G)
 					}
 				}
 			}
 		}
 	}
+}
+
+func get_string_or_null(s string) string {
+	if s == "" {
+		return "(null)"
+	}
+	return s
 }

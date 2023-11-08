@@ -19,15 +19,20 @@ package eeslism
 
 import (
 	"bufio"
-	"io"
 	"math"
-	"strconv"
+	"os"
 	"strings"
 )
 
-/*  圧縮式冷凍機定格特性入力    */
+// 圧縮式冷凍機定格特性入力
+// reflist.efl ファイルから読み取ります。
+func Refcmpdat() []*RFCMP {
+	frf, err := os.Open("reflist.efl")
+	if err != nil {
+		Eprint(" file ", "reflist.efl")
+	}
 
-func Refcmpdat(frf io.Reader, Rfcmp *[]*RFCMP) {
+	Rfcmp := make([]*RFCMP, 0)
 	scanner := bufio.NewScanner(frf)
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -37,35 +42,47 @@ func Refcmpdat(frf io.Reader, Rfcmp *[]*RFCMP) {
 
 		fields := strings.Fields(line)
 
-		rfcmp := new(RFCMP)
+		rfcmp := NewRFCMP()
 		rfcmp.name = fields[0]
 		rfcmp.cname = fields[1]
+		for i := 0; i < 4; i++ {
+			rfcmp.e[i], _ = readFloat(fields[i+2])
+		}
+		for i := 0; i < 4; i++ {
+			rfcmp.d[i], _ = readFloat(fields[i+6])
+		}
+		for i := 0; i < 4; i++ {
+			rfcmp.w[i], _ = readFloat(fields[i+10])
+		}
+		rfcmp.Teo[0], _ = readFloat(fields[14])
+		rfcmp.Teo[1], _ = readFloat(fields[15])
+		rfcmp.Tco[0], _ = readFloat(fields[16])
+		rfcmp.Tco[1], _ = readFloat(fields[17])
+		rfcmp.Meff, _ = readFloat(fields[18])
 
-		for i := 0; i < 4; i++ {
-			val, _ := strconv.ParseFloat(fields[i+2], 64)
-			rfcmp.e[i] = val
-		}
-		for i := 0; i < 4; i++ {
-			val, _ := strconv.ParseFloat(fields[i+6], 64)
-			rfcmp.d[i] = val
-		}
-		for i := 0; i < 4; i++ {
-			val, _ := strconv.ParseFloat(fields[i+10], 64)
-			rfcmp.w[i] = val
-		}
-		val, _ := strconv.ParseFloat(fields[14], 64)
-		rfcmp.Teo[0] = val
-		val, _ = strconv.ParseFloat(fields[15], 64)
-		rfcmp.Teo[1] = val
-		val, _ = strconv.ParseFloat(fields[16], 64)
-		rfcmp.Tco[0] = val
-		val, _ = strconv.ParseFloat(fields[17], 64)
-		rfcmp.Tco[1] = val
-		val, _ = strconv.ParseFloat(fields[18], 64)
-		rfcmp.Meff = val
-
-		*Rfcmp = append(*Rfcmp, rfcmp)
+		Rfcmp = append(Rfcmp, rfcmp)
 	}
+
+	frf.Close()
+
+	return Rfcmp
+}
+
+func NewRFCMP() *RFCMP {
+	Rf := new(RFCMP)
+	Rf.cname = ""
+	for j := 0; j < 4; j++ {
+		Rf.d[j] = 0.0
+		Rf.e[j] = 0.0
+		Rf.w[j] = 0.0
+	}
+	Rf.Meff = 0.0
+	Rf.name = ""
+	for j := 0; j < 2; j++ {
+		Rf.Tco[j] = 0.0
+		Rf.Teo[j] = 0.0
+	}
+	return Rf
 }
 
 /* ----------------------------------- */

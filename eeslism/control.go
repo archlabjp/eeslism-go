@@ -4,7 +4,7 @@ type VPtrType rune
 
 const (
 	VAL_CTYPE    VPtrType = 'v' // 設定値 (float64)
-	SW_CTYPE     VPtrType = 's' // 切替状態(SW)
+	SW_CTYPE     VPtrType = 's' // 切替状態(ControlSWType)
 	MAIN_CPTYPE  VPtrType = 'M' // For *MPATH ?
 	LOCAL_CPTYPE VPtrType = 'L' // For *PLIST ?
 )

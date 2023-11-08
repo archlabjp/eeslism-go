@@ -59,8 +59,8 @@ func FNTPV(Sd *RMSRF, Wd *WDAT, Exsfs *EXSFS) float64 {
 	return TPV
 }
 
-func CalcPowerOutput(Nsrf int, Sd []*RMSRF, Wd *WDAT, Exsfs *EXSFS) {
-	for i := 0; i < Nsrf; i++ {
+func CalcPowerOutput(Sd []*RMSRF, Wd *WDAT, Exsfs *EXSFS) {
+	for i := range Sd {
 		if Sd[i].mw != nil {
 			wall := Sd[i].mw.wall
 

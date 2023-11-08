@@ -28,15 +28,17 @@ import (
 
 /*  配管・ダクト 仕様入力 */
 
-func Pipedata(cattype string, s string, Pipeca *PIPECA) int {
+func Pipedata(cattype EqpType, s string, Pipeca *PIPECA) int {
 	var st string
 	var dt float64
 	var id int
 
 	if cattype == DUCT_TYPE {
 		Pipeca.Type = DUCT_PDT
-	} else {
+	} else if cattype == PIPEDUCT_TYPE {
 		Pipeca.Type = PIPE_PDT
+	} else {
+		panic(cattype)
 	}
 
 	st = strings.Split(s, "=")[1]

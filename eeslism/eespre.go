@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"golang.org/x/exp/slices"
 )
 
 /*        注釈文の除去             */
@@ -121,11 +123,47 @@ func Eespre(bdata0 string, Ipath string, key *int) (string, string, string, stri
 
 	var st int
 
+	var section_marker = []string{"TITLE", "GDAT", "RUN", "PRINT", "SCHTB", "EXSRF", "PCM",
+		"WALL", "WINDOW", "SUNBRK", "ROOM", "RESI", "APPL", "VENT", "SYSCMP", "SYSPTH", "CONTL"}
+
 	// %s, %sn を先に分離しておく。
 	// 理由: 微妙な位置にある場合にうまく分離できない。
+	tokens := NewEeTokens(bdata0)
+	sb := new(strings.Builder)
+	for !tokens.IsEnd() {
+
+		line := tokens.GetLogicalLine()
+		if line[0] == "*" {
+			sb.WriteString("*\n")
+			line = line[1:]
+		}
+
+		if slices.Contains(section_marker, line[0]) {
+			sb.WriteString(line[0])
+			sb.WriteString("\n")
+			line = line[1:]
+		}
+
+		if line[0] == "%s" {
+			for _, item := range line[1:] {
+				fmt.Fprintf(fs, "%s ", item)
+			}
+			fs.WriteString(";\n")
+		} else if line[0] == "%sn" {
+			for _, item := range line[1:] {
+				fmt.Fprintf(fsn, "%s ", item)
+			}
+			fsn.WriteString(";\n")
+		} else {
+			for _, item := range line {
+				fmt.Fprintf(sb, "%s ", item)
+			}
+			sb.WriteString(";\n")
+		}
+	}
 
 	// トークン分割
-	tokens := NewEeTokens(bdata0)
+	tokens = NewEeTokens(sb.String())
 	for !tokens.IsEnd() {
 
 		s := tokens.GetToken()
@@ -151,25 +189,15 @@ func Eespre(bdata0 string, Ipath string, key *int) (string, string, string, stri
 			fw.WriteByte(';')
 		} else if s == "*" {
 			fb.WriteString("*\n")
-		} else if s == "%s" {
-			line := tokens.GetLogicalLine()
-			for _, item := range line {
-				fmt.Fprintf(fs, "%s ", item)
-			}
-			fs.WriteString(" ;\n")
-		} else if s == "%sn" {
-			line := tokens.GetLogicalLine()
-			for _, item := range line {
-				fmt.Fprintf(fsn, "%s ", item)
-			}
-			fsn.WriteString(" ;\n")
 		} else {
 			fb.WriteString(s)
 			line := tokens.GetLogicalLine()
+
 			for _, item := range line {
 				fmt.Fprintf(fb, " %s", item)
 			}
-			fb.WriteString(" ;\n")
+
+			fb.WriteString(" ; \n")
 		}
 	}
 

@@ -257,8 +257,7 @@ func refacoeff(Refa *REFA, err *int) {
 
 /* ------------------------------------------------------------- */
 
-/*   冷却熱量/加熱量、エネルギーの計算 */
-
+// 冷却熱量/加熱量、エネルギーの計算
 func Refaene(Refa []*REFA, LDreset *int) {
 	var err, reset int
 	var Emax float64

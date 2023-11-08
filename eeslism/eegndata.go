@@ -32,7 +32,7 @@ import (
 //   *helm => helmkey
 //   *log => グローバル変数 Ferr の設定
 //   *debug => グローバル変数 DEBUGの設定
-func Gdata(section *EeTokens, dsn string, File string, wfname *string,
+func Gdata(section *EeTokens, File string, wfname *string,
 	ofname *string, dtm *int, sttmm *int, dayxs *int, days *int, daye *int,
 	Tini *float64, pday []int, wdpri *int, revpri *int, pmvpri *int,
 	helmkey *rune, MaxIterate *int, Daytm *DAYTM, Wd *WDAT, perio *rune) {

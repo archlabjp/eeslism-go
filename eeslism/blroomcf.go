@@ -31,11 +31,11 @@ func eeroomcf(Wd *WDAT, Exs *EXSFS, Rmvls *RMVLS, nday int, mt int) {
 	}
 
 	// 熱貫流率の計算
-	Rmhtrsmcf(Rmvls.Nsrf, Rmvls.Sd)
+	Rmhtrsmcf(Rmvls.Sd)
 
 	// 透過日射、相当外気温度の計算
-	Rmexct(Rmvls.Room, Rmvls.Nsrf, Rmvls.Sd, Wd, Exs.Exs, Rmvls.Snbk, Rmvls.Qrm, nday, mt)
+	Rmexct(Rmvls.Room, Rmvls.Sd, Wd, Exs.Exs, Rmvls.Snbk, Rmvls.Qrm, nday, mt)
 
 	// 室の係数（壁体熱伝導等））、定数項の計算
-	Roomcf(Rmvls.Nmwall, Rmvls.Mw, Rmvls.Room, Rmvls.Rdpnl, Wd, Exs)
+	Roomcf(Rmvls.Mw, Rmvls.Room, Rmvls.Rdpnl, Wd, Exs)
 }

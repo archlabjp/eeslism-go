@@ -27,8 +27,6 @@ import (
 func Helminit(errkey string, helmkey rune, _Room []*ROOM, Qetotal *QETOTAL) {
 	var Nmax, k int
 
-	Rm := _Room[0]
-
 	if helmkey != 'y' {
 		for i := range _Room {
 			Room := _Room[i]
@@ -109,7 +107,7 @@ func Helminit(errkey string, helmkey rune, _Room []*ROOM, Qetotal *QETOTAL) {
 				Bh.pnl = 0.0
 			}
 		} else {
-			Room.rmqe.WSCwk = Rm.rmqe.WSCwk
+			Room.rmqe.WSCwk = _Room[0].rmqe.WSCwk
 		}
 	}
 	Qetotal.Name = "Qetotal"

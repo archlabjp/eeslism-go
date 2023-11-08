@@ -26,8 +26,8 @@ import (
 
 /*  窓の熱抵抗の変更 */
 
-func Windowschdlr(isw []ControlSWType, windows []*WINDOW, N int, ds []*RMSRF) {
-	for i := 0; i < N; i++ {
+func Windowschdlr(isw []ControlSWType, windows []*WINDOW, ds []*RMSRF) {
+	for i := range ds {
 		sd := ds[i]
 		if sd.ble == BLE_Window {
 			nsw := sd.Nfn
@@ -65,72 +65,79 @@ func Windowschdlr(isw []ControlSWType, windows []*WINDOW, N int, ds []*RMSRF) {
 
 /* --------------------------------------------- */
 
-/*  室内発熱の計算    */
-
-func Qischdlr(_Room []*ROOM) {
+// 室内発熱の計算
+func (Room *ROOM) Qischdlr() {
 	Ht := [9]float64{92, 106, 119, 131, 145, 198, 226, 264, 383}
 	Hs24 := [9]float64{58, 62, 63, 64, 69, 76, 83, 99, 137}
 	d := [9]float64{3.5, 3.6, 4.0, 4.2, 4.4, 6.5, 7.0, 7.3, 6.3}
 
-	for i := range _Room {
-		Room := _Room[i]
+	Room.Hc = 0.0
+	Room.Hr = 0.0
+	Room.HL = 0.0
+	Room.Lc = 0.0
+	Room.Lr = 0.0
+	Room.Ac = 0.0
+	Room.Ar = 0.0
+	Room.AL = 0.0
 
-		Room.Hc = 0.0
-		Room.Hr = 0.0
-		Room.HL = 0.0
-		Room.Lc = 0.0
-		Room.Lr = 0.0
-		Room.Ac = 0.0
-		Room.Ar = 0.0
-		Room.AL = 0.0
+	if DEBUG {
+		fmt.Printf("<Qischdlr> Name=%s\n", Room.Name)
+	}
 
-		if Room.Hmsch != nil && *Room.Hmsch > 0.0 {
-			N := Room.Nhm * *Room.Hmsch
+	if Room.Hmsch != nil && *Room.Hmsch > 0.0 {
+		N := Room.Nhm * *Room.Hmsch
 
-			if N > 0 && Room.Hmwksch != nil && *Room.Hmwksch > 0.0 {
-				wk := int(*Room.Hmwksch - 1)
+		if N > 0 && Room.Hmwksch != nil && *Room.Hmwksch > 0.0 {
+			wk := int(*Room.Hmwksch - 1)
 
-				if wk < 0 || wk > 8 {
-					s := fmt.Sprintf("Room=%s wk=%d", Room.Name, wk)
-					Eprint("<Qischdlr>", s)
-				}
+			if wk < 0 || wk > 8 {
+				s := fmt.Sprintf("Room=%s wk=%d", Room.Name, wk)
+				Eprint("<Qischdlr>", s)
+			}
 
-				Eo := Room.cmp.Elouts
-				Tr := Room.Tr // 自然室温計算時は前時刻の室温で顕熱・潜熱分離する
-				// 室温が高温となるときに、顕熱が負になるのを回避
-				if Eo[0].Control == LOAD_SW {
-					Tr = Room.rmld.Tset
-				}
+			if DEBUG {
+				fmt.Printf("wk=%d\n", wk)
+			}
 
-				Q := math.Max((Hs24[wk]-d[wk]*(Tr-24.0)), 0.) * N
-				Room.Hc = Q * 0.5
-				Room.Hr = Q * 0.5
-				Room.HL = Ht[wk]*N - Q
+			Eo := Room.cmp.Elouts
+			Tr := Room.Tr // 自然室温計算時は前時刻の室温で顕熱・潜熱分離する
+			// 室温が高温となるときに、顕熱が負になるのを回避
+			if Eo[0].Control == LOAD_SW {
+				Tr = Room.rmld.Tset
+			}
+
+			Q := math.Max((Hs24[wk]-d[wk]*(Tr-24.0)), 0.) * N
+			Room.Hc = Q * 0.5
+			Room.Hr = Q * 0.5
+			Room.HL = Ht[wk]*N - Q
+
+			if DEBUG {
+				fmt.Printf("Hc=%f Hr=%f HL=%f\n", Room.Hc, Room.Hr, Room.HL)
 			}
 		}
+	}
 
-		if Room.Lightsch != nil && *Room.Lightsch > 0.0 {
-			Q := Room.Light * *Room.Lightsch
-			Room.Lc = Q * 0.5
-			Room.Lr = Q * 0.5
-		} else {
-			Room.Lc = 0.0
-			Room.Lr = 0.0
-		}
+	if Room.Lightsch != nil && *Room.Lightsch > 0.0 {
+		Q := Room.Light * *Room.Lightsch
+		Room.Lc = Q * 0.5
+		Room.Lr = Q * 0.5
+	} else {
+		Room.Lc = 0.0
+		Room.Lr = 0.0
+	}
 
-		if Room.Assch != nil && *Room.Assch > 0.0 {
-			Room.Ac = Room.Apsc * *Room.Assch
-			Room.Ar = Room.Apsr * *Room.Assch
-		} else {
-			Room.Ac = 0.0
-			Room.Ar = 0.0
-		}
+	if Room.Assch != nil && *Room.Assch > 0.0 {
+		Room.Ac = Room.Apsc * *Room.Assch
+		Room.Ar = Room.Apsr * *Room.Assch
+	} else {
+		Room.Ac = 0.0
+		Room.Ar = 0.0
+	}
 
-		if Room.Alsch != nil && *Room.Alsch > 0.0 {
-			Room.AL = Room.Apl * *Room.Alsch
-		} else {
-			Room.AL = 0.0
-		}
+	if Room.Alsch != nil && *Room.Alsch > 0.0 {
+		Room.AL = Room.Apl * *Room.Alsch
+	} else {
+		Room.AL = 0.0
 	}
 }
 

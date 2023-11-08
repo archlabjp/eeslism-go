@@ -23,28 +23,27 @@ import (
 	"math"
 )
 
-/* 室温・湿度計算結果代入、室供給熱量計算
-およびパネル入口温度代入、パネル供給熱量計算 */
-
+// 室温・湿度計算結果代入、室供給熱量計算
+// およびパネル入口温度代入、パネル供給熱量計算
 func Roomene(Rmvls *RMVLS, Room []*ROOM, Rdpnl []*RDPNL, Exsfs *EXSFS, Wd *WDAT) {
 	var j int
 	var E *ELOUT
 	var ca, ro float64
 
-	for i := range Room {
-		E = Room[i].cmp.Elouts[0]
-		Room[i].Tr = E.Sysv
-		E = Room[i].cmp.Elouts[1]
-		Room[i].xr = E.Sysv
-		Room[i].RH = FNRhtx(Room[i].Tr, Room[i].xr)
-		Room[i].hr = FNH(Room[i].Tr, Room[i].xr)
+	for _, rm := range Room {
+		E = rm.cmp.Elouts[0]
+		rm.Tr = E.Sysv
+		E = rm.cmp.Elouts[1]
+		rm.xr = E.Sysv
+		rm.RH = FNRhtx(rm.Tr, rm.xr)
+		rm.hr = FNH(rm.Tr, rm.xr)
 
-		if Room[i].Arsp != nil {
+		if rm.Arsp != nil {
 
-			for j = 0; j < Room[i].Nasup; j++ {
-				A := Room[i].Arsp[j]
-				elin := Room[i].elinasup[j]
-				elix := Room[i].elinasupx[j]
+			for j = 0; j < rm.Nasup; j++ {
+				A := rm.Arsp[j]
+				elin := rm.elinasup[j]
+				elix := rm.elinasupx[j]
 
 				if elin.Lpath.Control != 0 {
 					A.G = elin.Lpath.G
@@ -57,14 +56,14 @@ func Roomene(Rmvls *RMVLS, Room []*ROOM, Rdpnl []*RDPNL, Exsfs *EXSFS, Wd *WDAT)
 				}
 
 				if elin.Lpath.Control != 0 {
-					A.Qs = ca * elin.Lpath.G * (elin.Sysvin - Room[i].Tr)
+					A.Qs = ca * elin.Lpath.G * (elin.Sysvin - rm.Tr)
 				} else {
 					A.Qs = 0.0
 				}
 
 				A.Ql = 0.0
 				if elix.Lpath != nil && elix.Lpath.Control != 0 {
-					A.Ql = ro * elix.Lpath.G * (elix.Sysvin - Room[i].xr)
+					A.Ql = ro * elix.Lpath.G * (elix.Sysvin - rm.xr)
 				}
 
 				A.Qt = A.Qs + A.Ql
@@ -132,7 +131,7 @@ func PCMwlchk(counter int, Rmvls *RMVLS, Exsfs *EXSFS, Wd *WDAT, LDreset *int) {
 	Rmsurftd(Rmvls.Room, Rmvls.Sd)
 
 	// 壁体内部温度の仮計算
-	RMwltd(Rmvls.Nmwall, Rmvls.Mw)
+	RMwltd(Rmvls.Mw)
 
 	// PCM温度の収束判定
 	for i := range Rmvls.Room {
@@ -234,7 +233,7 @@ func PCMwlchk(counter int, Rmvls *RMVLS, Exsfs *EXSFS, Wd *WDAT, LDreset *int) {
 	}
 
 	if Rmwlcreset > 0 {
-		Roomcf(Rmvls.Nmwall, Rmvls.Mw, Rmvls.Room, Rmvls.Rdpnl, Wd, Exsfs)
+		Roomcf(Rmvls.Mw, Rmvls.Room, Rmvls.Rdpnl, Wd, Exsfs)
 	}
 }
 
@@ -276,8 +275,7 @@ func PCMfunchk(Room []*ROOM, Wd *WDAT, LDreset *int) {
 
 /* ------------------------------------------------------ */
 
-/* 室負荷の計算 */
-
+// 室負荷の計算
 func Roomload(Room []*ROOM, LDreset *int) {
 	var reset, resetl int
 

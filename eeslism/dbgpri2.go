@@ -96,7 +96,7 @@ func xprqin(Room []*ROOM) {
 
 	for i := range Room {
 		r := Room[i]
-		fmt.Printf("[%d] Hc=%f Hr=%f HL=%f Lc=%f Lr=%f Ac=%f Ar=%f AL=%f\n",
+		fmt.Printf("  [%d] Hc=%f Hr=%f HL=%f Lc=%f Lr=%f Ac=%f Ar=%f AL=%f\n",
 			i, r.Hc, r.Hr, r.HL, r.Lc, r.Lr, r.Ac, r.Ar, r.AL)
 	}
 }
@@ -113,7 +113,7 @@ func xprvent(R []*ROOM) {
 
 		for i := range R {
 			Room = R[i]
-			fmt.Printf("[%d] %-10s  Gvent=%f  -- Gvr:", i, Room.Name, Room.Gvent)
+			fmt.Printf("  [%d] %-10s  Gvent=%f  -- Gvr:", i, Room.Name, Room.Gvent)
 
 			for j = 0; j < Room.Nachr; j++ {
 				A = Room.achr[j]

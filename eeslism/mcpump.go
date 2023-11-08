@@ -23,13 +23,14 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"os"
 	"strconv"
 	"strings"
 )
 
 /* 機器仕様入力　　　　　　*/
 
-func Pumpdata(cattype string, s string, Pumpca *PUMPCA, pfcmp []*PFCMP) int {
+func Pumpdata(cattype EqpType, s string, Pumpca *PUMPCA, pfcmp []*PFCMP) int {
 	st := strings.IndexByte(s, '=')
 	var dt float64
 	var id int
@@ -121,10 +122,9 @@ func Pumpint(Pump []*PUMP, Exs []*EXSF) {
 
 /* --------------------------- */
 
-/* ポンプ流量設定（太陽電池ポンプのみ） */
-
-func Pumpflow(Pump []*PUMP) {
-	for i, p := range Pump {
+// ポンプ流量設定（太陽電池ポンプのみ
+func (eqsys *EQSYS) Pumpflow() {
+	for i, p := range eqsys.Pump {
 		if p.Cat.Type == "P" {
 			S := p.Sol.Iw
 
@@ -384,18 +384,24 @@ func pumpmtprt(fo io.Writer, id int, Pump []*PUMP, Mo, tt int) {
 	}
 }
 
-func PFcmpInit(N int, Pfcmp []*PFCMP) {
-	for i := 0; i < N; i++ {
-		Pfcmp[i].pftype = ' '
-		Pfcmp[i].Type = ""
-		matinit(Pfcmp[i].dblcoeff[:], 5)
-	}
+func NewPFCMP() *PFCMP {
+	Pfcmp := new(PFCMP)
+	Pfcmp.pftype = ' '
+	Pfcmp.Type = ""
+	matinit(Pfcmp.dblcoeff[:], 5)
+	return Pfcmp
 }
 
-func PFcmpdata(fl io.Reader, Pfcmp *[]*PFCMP) {
+func PFcmpdata() []*PFCMP {
 	var s string
 	var c byte
 	var i int
+
+	fl, err := os.Open("pumpfanlst.efl")
+	if err != nil {
+		Eprint(" file ", "pumpfanlst.efl")
+	}
+	Pfcmp := make([]*PFCMP, 0)
 
 	for {
 		_, err := fmt.Fscanf(fl, "%s", &s)
@@ -411,11 +417,11 @@ func PFcmpdata(fl io.Reader, Pfcmp *[]*PFCMP) {
 				}
 			}
 		} else {
-			pfcmp := new(PFCMP)
+			pfcmp := NewPFCMP()
 
-			if s == PUMP_TYPE {
+			if s == string(PUMP_TYPE) {
 				pfcmp.pftype = PUMP_PF
-			} else if s == FAN_TYPE {
+			} else if s == string(FAN_TYPE) {
 				pfcmp.pftype = FAN_PF
 			} else {
 				Eprint("<pumpfanlst.efl>", s)
@@ -443,7 +449,11 @@ func PFcmpdata(fl io.Reader, Pfcmp *[]*PFCMP) {
 				i++
 			}
 
-			*Pfcmp = append(*Pfcmp, pfcmp)
+			Pfcmp = append(Pfcmp, pfcmp)
 		}
 	}
+
+	fl.Close()
+
+	return Pfcmp
 }

@@ -307,8 +307,8 @@ func RMsrt(Room *ROOM) {
 /* ----------------------------------------------------- */
 
 // 重量壁（後退差分）の係数行列の作成
-func RMwlc(Nmwall int, Mw []*MWALL, Exsfs *EXSFS, Wd *WDAT) {
-	for i := 0; i < Nmwall; i++ {
+func RMwlc(Mw []*MWALL, Exsfs *EXSFS, Wd *WDAT) {
+	for i := range Mw {
 		var Mw *MWALL = Mw[i]
 		var Wall *WALL = Mw.wall
 
@@ -339,8 +339,8 @@ func RMwlc(Nmwall int, Mw []*MWALL, Exsfs *EXSFS, Wd *WDAT) {
 /* ----------------------------------------------------- */
 
 // 壁体内部温度の計算
-func RMwlt(Nmwall int, Mw []*MWALL) {
-	for i := 0; i < Nmwall; i++ {
+func RMwlt(Mw []*MWALL) {
+	for i := range Mw {
 		Mw := Mw[i]
 		Sd := Mw.sd
 
@@ -361,7 +361,7 @@ func RMwlt(Nmwall int, Mw []*MWALL) {
 		Tie := (Sd.alic*Room.Tr + Sd.alir*Sd.Tmrt + Sd.RS) / Sd.ali
 
 		if DEBUG {
-			fmt.Printf("----- RMwlt i=%d room=%s ble=%c %s  Tie=%f Tee=%f\n", i, Sd.room.Name, Sd.ble, Sd.Name, Tie, Tee)
+			fmt.Printf("----- RMwlt i=%d room=%s ble=%c %s  Tie=%f Tee=%f\n", i, Sd.room.Name, Sd.ble, get_string_or_null(Sd.Name), Tie, Tee)
 		}
 
 		var WTp float64
@@ -386,8 +386,8 @@ func RMwlt(Nmwall int, Mw []*MWALL) {
 }
 
 // 壁体内部温度の仮計算
-func RMwltd(Nmwall int, Mw []*MWALL) {
-	for i := 0; i < Nmwall; i++ {
+func RMwltd(Mw []*MWALL) {
+	for i := range Mw {
 		var Mw *MWALL = Mw[i]
 		var Sd *RMSRF = Mw.sd
 		var nxsd *RMSRF = Sd.nxsd
@@ -409,7 +409,7 @@ func RMwltd(Nmwall int, Mw []*MWALL) {
 
 			if DEBUG {
 				fmt.Printf("----- RMwlt i=%d room=%s ble=%c %s  Tie=%f Tee=%f\n",
-					i, Sd.room.Name, Sd.ble, Sd.Name, Tie, Tee)
+					i, Sd.room.Name, Sd.ble, get_string_or_null(Sd.Name), Tie, Tee)
 			}
 
 			// WTp

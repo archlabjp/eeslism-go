@@ -190,33 +190,33 @@ func Evacelm(Evac []*EVAC) {
 		EoTwet := evac.Cmp.Elouts[2] // Twetoutの出口温度計算用
 		Eoxwet := evac.Cmp.Elouts[3] // xwetoutの出口温度計算用
 
-		EoTdry.Elins[0].Upo = Eoxdry.Elins[0].Upo
-		EoTdry.Elins[0].Upv = Eoxdry.Elins[0].Upo
-		EoTdry.Elins[1].Upo = EoTwet.Elins[0].Upo
-		EoTdry.Elins[1].Upv = EoTwet.Elins[0].Upo
-		EoTdry.Elins[2].Upo = Eoxwet.Elins[0].Upo
-		EoTdry.Elins[2].Upv = Eoxwet.Elins[0].Upo
+		EoTdry.Elins[1].Upo = Eoxdry.Elins[0].Upo
+		EoTdry.Elins[1].Upv = Eoxdry.Elins[0].Upo
+		EoTdry.Elins[2].Upo = EoTwet.Elins[0].Upo
+		EoTdry.Elins[2].Upv = EoTwet.Elins[0].Upo
+		EoTdry.Elins[3].Upo = Eoxwet.Elins[0].Upo
+		EoTdry.Elins[3].Upv = Eoxwet.Elins[0].Upo
 
-		Eoxdry.Elins[0].Upo = EoTdry.Elins[0].Upo
-		Eoxdry.Elins[0].Upv = EoTdry.Elins[0].Upo
-		Eoxdry.Elins[1].Upo = EoTwet.Elins[0].Upo
-		Eoxdry.Elins[1].Upv = EoTwet.Elins[0].Upo
-		Eoxdry.Elins[2].Upo = Eoxwet.Elins[0].Upo
-		Eoxdry.Elins[2].Upv = Eoxwet.Elins[0].Upo
+		Eoxdry.Elins[1].Upo = EoTdry.Elins[0].Upo
+		Eoxdry.Elins[1].Upv = EoTdry.Elins[0].Upo
+		Eoxdry.Elins[2].Upo = EoTwet.Elins[0].Upo
+		Eoxdry.Elins[2].Upv = EoTwet.Elins[0].Upo
+		Eoxdry.Elins[3].Upo = Eoxwet.Elins[0].Upo
+		Eoxdry.Elins[3].Upv = Eoxwet.Elins[0].Upo
 
-		EoTwet.Elins[0].Upo = EoTdry.Elins[0].Upo
-		EoTwet.Elins[0].Upv = EoTdry.Elins[0].Upo
-		EoTwet.Elins[1].Upo = Eoxdry.Elins[0].Upo
-		EoTwet.Elins[1].Upv = Eoxdry.Elins[0].Upo
-		EoTwet.Elins[2].Upo = Eoxwet.Elins[0].Upo
-		EoTwet.Elins[2].Upv = Eoxwet.Elins[0].Upo
+		EoTwet.Elins[1].Upo = EoTdry.Elins[0].Upo
+		EoTwet.Elins[1].Upv = EoTdry.Elins[0].Upo
+		EoTwet.Elins[2].Upo = Eoxdry.Elins[0].Upo
+		EoTwet.Elins[2].Upv = Eoxdry.Elins[0].Upo
+		EoTwet.Elins[3].Upo = Eoxwet.Elins[0].Upo
+		EoTwet.Elins[3].Upv = Eoxwet.Elins[0].Upo
 
-		Eoxwet.Elins[0].Upo = EoTdry.Elins[0].Upo
-		Eoxwet.Elins[0].Upv = EoTdry.Elins[0].Upo
-		Eoxwet.Elins[1].Upo = Eoxdry.Elins[0].Upo
-		Eoxwet.Elins[1].Upv = Eoxdry.Elins[0].Upo
-		Eoxwet.Elins[2].Upo = EoTwet.Elins[0].Upo
-		Eoxwet.Elins[2].Upv = EoTwet.Elins[0].Upo
+		Eoxwet.Elins[1].Upo = EoTdry.Elins[0].Upo
+		Eoxwet.Elins[1].Upv = EoTdry.Elins[0].Upo
+		Eoxwet.Elins[2].Upo = Eoxdry.Elins[0].Upo
+		Eoxwet.Elins[2].Upv = Eoxdry.Elins[0].Upo
+		Eoxwet.Elins[3].Upo = EoTwet.Elins[0].Upo
+		Eoxwet.Elins[3].Upv = EoTwet.Elins[0].Upo
 
 	}
 }
@@ -531,8 +531,8 @@ func Evacene(Evac []*EVAC, Evacreset *int) {
 }
 
 // カウンタのリセット
-func Evaccountreset(Evac []*EVAC) {
-	for _, evac := range Evac {
+func (eqsys *EQSYS) Evaccountreset() {
+	for _, evac := range eqsys.Evac {
 		evac.Count = 0
 	}
 }

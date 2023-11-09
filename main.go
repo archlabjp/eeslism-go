@@ -29,9 +29,9 @@ func main() {
 		fmt.Print(parser.Usage(err))
 	}
 
-	if len(*efl_path) > 0 {
-		os.Chdir(*efl_path)
-	}
+	// if len(*efl_path) > 0 {
+	// 	os.Chdir(*efl_path)
+	// }
 
-	eeslism.Entry(*filename)
+	eeslism.Entry(*filename, *efl_path)
 }

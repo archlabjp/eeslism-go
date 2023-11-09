@@ -4,28 +4,36 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
 /* ----------------------------------------------------- */
 
 // ファイルのオープン
-func (Simc *SIMCONTL) eeflopen(Flout []*FLOUT) {
+func (Simc *SIMCONTL) eeflopen(Flout []*FLOUT, efl_path string) {
 	// 気象データファイルを開く
 	if Simc.Wdtype == 'H' {
+		var fullpath string
+		if filepath.IsAbs(Simc.Wfname) {
+			fullpath = Simc.Wfname
+		} else {
+			fullpath = filepath.Join(efl_path, Simc.Wfname)
+		}
+
 		var err error
-		Simc.Fwdata, err = os.Open(Simc.Wfname)
+		Simc.Fwdata, err = os.Open(fullpath)
 		if err != nil {
-			Eprint("<eeflopen>", Simc.Wfname)
+			Eprint("<eeflopen>", fullpath)
 			os.Exit(EXIT_WFILE)
 		}
-		Simc.Fwdata2, err = os.Open(Simc.Wfname)
+		Simc.Fwdata2, err = os.Open(fullpath)
 		if err != nil {
-			Eprint("<eeflopen>", Simc.Wfname)
+			Eprint("<eeflopen>", fullpath)
 			os.Exit(EXIT_WFILE)
 		}
 
-		Simc.Ftsupw, err = ioutil.ReadFile("supw.efl")
+		Simc.Ftsupw, err = ioutil.ReadFile(filepath.Join(efl_path, "supw.efl"))
 		if err != nil {
 			Eprint("<eeflopen>", "supw.efl")
 			os.Exit(EXIT_SUPW)

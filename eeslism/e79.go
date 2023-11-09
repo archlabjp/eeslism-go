@@ -9,7 +9,7 @@ import (
 	"os"
 )
 
-func Entry(InFile string) {
+func Entry(InFile string, efl_path string) {
 	var s string
 
 	var Daytm DAYTM
@@ -138,6 +138,7 @@ func Entry(InFile string) {
 	// 建築・設備システムデータ入力
 	Schdl, Flout := Eeinput(
 		EWKFile,
+		efl_path,
 		bdata, week, schtba, schnma,
 		Simc, &Exsf, Rmvls, Eqcat, Eqsys,
 		&Compnt,
@@ -397,7 +398,7 @@ func Entry(InFile string) {
 	// 重量壁体のデバッグ出力
 	Rmvls.dprballoc()
 
-	Simc.eeflopen(Flout)
+	Simc.eeflopen(Flout, efl_path)
 
 	if DEBUG {
 		fmt.Println("<<main>> eeflopen ")

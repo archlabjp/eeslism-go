@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -185,7 +186,7 @@ func (t *EeTokens) GetInt() int {
 }
 
 // 建築・設備システムデータ入力
-func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
+func Eeinput(Ipath string, efl_path string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 	Exsf *EXSFS, Rmvls *RMVLS, Eqcat *EQCAT, Eqsys *EQSYS,
 	Compnt *[]*COMPNT,
 	Elout *[]*ELOUT,
@@ -243,7 +244,7 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 	// 曜日設定ファイルの読み取り
 	// -------------------------------------------------------
 	var fi_dayweek []byte
-	if fi_dayweek, err = ioutil.ReadFile("dayweek.efl"); err != nil {
+	if fi_dayweek, err = ioutil.ReadFile(filepath.Join(efl_path, "dayweek.efl")); err != nil {
 		Eprint("<Eeinput>", "dayweek.efl")
 		os.Exit(EXIT_DAYWEK)
 	}
@@ -334,8 +335,15 @@ func Eeinput(Ipath string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 				File = Fbmlist
 			}
 
+			var fullpath string
+			if filepath.IsAbs(File) {
+				fullpath = File
+			} else {
+				fullpath = filepath.Join(efl_path, File)
+			}
+
 			var fbmContent []byte
-			if fbmContent, err = ioutil.ReadFile(File); err != nil {
+			if fbmContent, err = ioutil.ReadFile(fullpath); err != nil {
 				Eprint("<Eeinput>", "wbmlist.efl")
 				os.Exit(EXIT_WBMLST)
 			}

@@ -762,6 +762,7 @@ func FindComponent(name string, Compnt []*COMPNT) (int, *COMPNT, error) {
 	return -1, nil, errors.New(fmt.Sprintf("Component %s not found", name))
 }
 
+// 定数ポインタの作成する。初期値は constValue とする。
 func CreateConstantValuePointer(constValue float64) *float64 {
 	val := new(float64)
 	*val = constValue

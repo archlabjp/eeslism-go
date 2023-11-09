@@ -248,7 +248,7 @@ func (exsf *EXSFS) Exsfsol(Wd *WDAT) {
 			// 日射量の計算
 			ex.Idre = Wd.Idn * ex.Cinc                         // 直逹日射  [W/m2]
 			ex.Idf = Wd.Isky*ex.Fs + ex.Rg*Wd.Ihor*(1.0-ex.Fs) // 拡散日射  [W/m2]
-			ex.Iw = ex.Idre + ex.Idf                           // 全日射    [W/m2]w
+			ex.Iw = ex.Idre + ex.Idf                           // 全日射    [W/m2]
 			ex.Rn = Wd.RN * ex.Fs                              // 夜間輻射  [W/m2]
 		}
 	}
@@ -267,15 +267,14 @@ func (exsf *EXSFS) Exsfsol(Wd *WDAT) {
 //   透過日射熱取得 Qgt [W]
 //   吸収日射熱取得 Qga [W]
 func Glasstga(Ag, tgtn, Bn, cinc, Fsdw, Idr, Idf float64, Cidtype string, Profile, Gamma float64) (Qgt, Qga float64) {
-	var Cid, Cidf, Bid, Bidf, Qt, Qb float64
+	var Cid, Cidf, Bid, Bidf float64
 
 	Cid = 0.0
 	Bid = 0.0
 	Cidf = 0.01
 	Bidf = 0.0
-	Qt = 0.0
-	Qb = 0.0
 
+	// 標準
 	if Cidtype == "N" {
 		Cid = Glscid(cinc)
 		Cidf = 0.91
@@ -286,8 +285,11 @@ func Glasstga(Ag, tgtn, Bn, cinc, Fsdw, Idr, Idf float64, Cidtype string, Profil
 		fmt.Printf("xxxxx <eebslib.c  CidType=%s\n", Cidtype)
 	}
 
-	Qt = Ag * (Cid*Idr*(1.0-Fsdw) + Cidf*Idf)
-	Qb = Ag * (Bid*Idr*(1.0-Fsdw) + Bidf*Idf)
+	// 透過日射量の計算
+	Qt := Ag * (Cid*Idr*(1.0-Fsdw) + Cidf*Idf)
+
+	// 吸収日射量の計算
+	Qb := Ag * (Bid*Idr*(1.0-Fsdw) + Bidf*Idf)
 
 	Qgt = Qt * tgtn
 	Qga = Qb * Bn

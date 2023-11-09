@@ -193,8 +193,8 @@ type RMSRF struct {
 
 	TeEsol float64
 	TeErn  float64
-	Te     float64 // 外表面の相当外気温
-	Tmrt   float64 // 室内表面の平均輻射温度
+	Te     float64 // 外表面の相当外気温 [C]
+	Tmrt   float64 // 室内表面の平均輻射温度 [C]
 	Ei     float64
 	Ts     float64 // 室内表面の温度 ????
 
@@ -236,7 +236,7 @@ type RMSRF struct {
 	Npcm     int         // PCM設置レイヤー数
 
 	tnxt    float64 // 当該部位への入射日射の隣接空間への日射分配（連続空間の隣室への日射分配）
-	RStrans bool    // 室内透過日射が窓室内側への入射日射を屋外に透過する場合'y'
+	RStrans bool    // 室内透過日射が窓室内側への入射日射を屋外に透過する場合はtrue
 }
 
 // 壁体各層の熱抵抗と熱容量

@@ -102,12 +102,11 @@ func xpralph(_Room []*ROOM, S []*RMSRF) {
 
 /* ---------------------------------------------------------- */
 
-func xprxas(R []ROOM, S []RMSRF) {
+func xprxas(R []*ROOM, S []*RMSRF) {
 	if DEBUG {
 		fmt.Printf("--- xprxas\n")
 
-		for i := range R {
-			Room := &R[i]
+		for _, Room := range R {
 			N := Room.N
 			brs := Room.Brs
 
@@ -115,7 +114,7 @@ func xprxas(R []ROOM, S []RMSRF) {
 			Matprint("%7.4f", N, Room.XA)
 
 			for n := brs; n < brs+N; n++ {
-				Sd := &S[n]
+				Sd := S[n]
 				fmt.Printf("%2d  K=%f  alo=%f  FI=%f FO=%f FP=%f  CF=%f\n",
 					n, Sd.K, Sd.alo, Sd.FI, Sd.FO, Sd.FP, Sd.CF)
 				fmt.Printf("            WSR=%f", Sd.WSR)
@@ -136,8 +135,7 @@ func xprxas(R []ROOM, S []RMSRF) {
 	if Ferr != nil {
 		fmt.Fprintf(Ferr, "--- xprxas\n")
 
-		for i := range R {
-			Room := &R[i]
+		for _, Room := range R {
 			N := Room.N
 			brs := Room.Brs
 
@@ -145,8 +143,7 @@ func xprxas(R []ROOM, S []RMSRF) {
 			Matfiprint(Ferr, "\t%.1g", N, Room.XA)
 
 			for n := brs; n < brs+N; n++ {
-
-				Sd := &S[n]
+				Sd := S[n]
 				fmt.Fprintf(Ferr, "\n\n\t%d\tK=%.2g\talo=%.2g\tFI=%.2g\tFO=%.2g\tFP=%.2g\tCF=%.2g\t",
 					n, Sd.K, Sd.alo, Sd.FI, Sd.FO, Sd.FP, Sd.CF)
 				fmt.Fprintf(Ferr, "\t\tWSR=%.3g\n\t", Sd.WSR)

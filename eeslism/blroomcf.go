@@ -38,4 +38,7 @@ func eeroomcf(Wd *WDAT, Exs *EXSFS, Rmvls *RMVLS, nday int, mt int) {
 
 	// 室の係数（壁体熱伝導等））、定数項の計算
 	Roomcf(Rmvls.Mw, Rmvls.Room, Rmvls.Rdpnl, Wd, Exs)
+
+	xprroom(Rmvls.Room)
+	xprxas(Rmvls.Room, Rmvls.Sd)
 }

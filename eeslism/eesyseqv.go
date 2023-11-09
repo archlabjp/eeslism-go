@@ -6,14 +6,12 @@ import (
 
 // システム方程式の作成およびシステム変数の計算
 func Syseqv(_Elout []*ELOUT, Syseq *SYSEQ) {
-	var elov *ELOUT
 	var eleq, elosv []*ELOUT
 	var sysmcf, syscv, Y []float64
 	var i, m, n, Nsv int
 	var mrk []rune
 
 	Syseq.A = ' '
-	elov = nil
 	eleq = nil
 	elosv = nil
 	sysmcf = nil
@@ -38,10 +36,9 @@ func Syseqv(_Elout []*ELOUT, Syseq *SYSEQ) {
 		}
 	}
 
-	mrk = make([]rune, 0)
+	mrk = make([]rune, Nelout)
 
-	for i = 0; i < Nelout; i++ {
-		Elout := _Elout[i]
+	for i, Elout := range _Elout {
 
 		if DEBUG {
 			fmt.Printf("xxx syseqv  Eo name=%s control=%c sysld=%c i=%d MAX=%d\n",
@@ -56,8 +53,8 @@ func Syseqv(_Elout []*ELOUT, Syseq *SYSEQ) {
 		if Elout.Control != LOAD_SW &&
 			Elout.Control != FLWIN_SW &&
 			Elout.Control != BATCH_SW {
-			// Elout.Sv = -1
-			// Elout.Sysv = 0.0
+			Elout.Sv = -1
+			Elout.Sysv = 0.0
 		}
 
 		if Elout.Control == ON_SW {
@@ -66,18 +63,15 @@ func Syseqv(_Elout []*ELOUT, Syseq *SYSEQ) {
 			}
 
 			eleq[m] = Elout
-
 			elosv[n] = Elout
-
-			mrk = append(mrk, SYSV_EQV)
-
+			mrk[n] = SYSV_EQV
 			Elout.Sv = n
 			Elout.Sld = -1
 			n++
 
 			if Elout.Sysld == 'y' {
 				elosv[n] = Elout
-				mrk = append(mrk, LOAD_EQV)
+				mrk[n] = LOAD_EQV
 				Elout.Sld = n
 				n++
 			}
@@ -126,9 +120,10 @@ func Syseqv(_Elout []*ELOUT, Syseq *SYSEQ) {
 
 		for j := 0; j < elout.Ni; j++ {
 			elin := elout.Elins[j]
-			cfin := &elout.Coeffin[j]
+			cfin := elout.Coeffin[j]
+			elov := elin.Upv
 
-			if elov = elin.Upv; elov != nil {
+			if elov != nil {
 				if DEBUG {
 					fmt.Printf("xxx syseqv Elout=%d %s  in=%d elov=%s  control=%c sys=%f\n",
 						i, elout.Cmp.Name, j,
@@ -143,7 +138,7 @@ func Syseqv(_Elout []*ELOUT, Syseq *SYSEQ) {
 
 				if elov.Control == ON_SW {
 					n = elin.Upv.Sv
-					a[n] += *cfin
+					a[n] += cfin
 				} else if elov.Control == LOAD_SW ||
 					elov.Control == FLWIN_SW ||
 					elov.Control == BATCH_SW {
@@ -157,7 +152,7 @@ func Syseqv(_Elout []*ELOUT, Syseq *SYSEQ) {
 							elov.Cmp.Name, elov.Control, elov.Sysv)
 					}
 
-					b[0] -= *cfin * elov.Sysv
+					b[0] -= cfin * elov.Sysv
 				}
 			}
 		}
@@ -190,7 +185,9 @@ func Syseqv(_Elout []*ELOUT, Syseq *SYSEQ) {
 		} else if mrk[i] == LOAD_EQV {
 			elosv[i].Load = Y[i]
 		}
-		fmt.Printf("%d: %s = %f\n", i, elosv[i].Cmp.Name, Y[i])
+		if DEBUG {
+			fmt.Printf("%d: %s = %f\n", i, elosv[i].Cmp.Name, Y[i])
+		}
 	}
 
 	if DEBUG {

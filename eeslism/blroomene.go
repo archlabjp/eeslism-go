@@ -28,7 +28,6 @@ import (
 func Roomene(Rmvls *RMVLS, Room []*ROOM, Rdpnl []*RDPNL, Exsfs *EXSFS, Wd *WDAT) {
 	var j int
 	var E *ELOUT
-	var ca, ro float64
 
 	for _, rm := range Room {
 		E = rm.cmp.Elouts[0]
@@ -56,14 +55,14 @@ func Roomene(Rmvls *RMVLS, Room []*ROOM, Rdpnl []*RDPNL, Exsfs *EXSFS, Wd *WDAT)
 				}
 
 				if elin.Lpath.Control != 0 {
-					A.Qs = ca * elin.Lpath.G * (elin.Sysvin - rm.Tr)
+					A.Qs = Ca * elin.Lpath.G * (elin.Sysvin - rm.Tr)
 				} else {
 					A.Qs = 0.0
 				}
 
 				A.Ql = 0.0
 				if elix.Lpath != nil && elix.Lpath.Control != 0 {
-					A.Ql = ro * elix.Lpath.G * (elix.Sysvin - rm.xr)
+					A.Ql = Ro * elix.Lpath.G * (elix.Sysvin - rm.xr)
 				}
 
 				A.Qt = A.Qs + A.Ql
@@ -354,99 +353,99 @@ func Roomload(Room []*ROOM, LDreset *int) {
 
 /* 室供給熱量の出力 */
 
-func rmqaprint(fo io.Writer, id int, Room []*ROOM) {
+func rmqaprint(fo io.Writer, id int, Rooms []*ROOM) {
 	var Nload, Nfnt int
 	//var rpnl *RPANEL
 
 	switch id {
 	case 0:
-		if len(Room) > 0 {
-			fmt.Fprintf(fo, "%s %d\n", ROOM_TYPE, len(Room))
+		if len(Rooms) > 0 {
+			fmt.Fprintf(fo, "%s %d\n", ROOM_TYPE, len(Rooms))
 		}
-		for i := range Room {
-			if Room[i].rmld != nil {
+		for _, Room := range Rooms {
+			if Room.rmld != nil {
 				Nload = 2
 			} else {
 				Nload = 0
 			}
 
 			Nfnt = 0
-			if Room[i].FunHcap > 0.0 {
+			if Room.FunHcap > 0.0 {
 				Nfnt = 4
 			}
 
 			Nset := 0
-			if Room[i].setpri {
+			if Room.setpri {
 				Nset = 1
 			}
-			fmt.Fprintf(fo, " %s 5 %d 4 %d %d %d\n", Room[i].Name,
-				4+Nload+Room[i].Nasup*5+Room[i].Nrp+Nfnt+Nset,
-				Nload, Room[i].Nasup*5, Room[i].Nrp)
+			fmt.Fprintf(fo, " %s 5 %d 4 %d %d %d\n", Room.Name,
+				4+Nload+Room.Nasup*5+Room.Nrp+Nfnt+Nset,
+				Nload, Room.Nasup*5, Room.Nrp)
 		}
 	case 1:
-		for i := range Room {
+		for _, Room := range Rooms {
 			fmt.Fprintf(fo, "%s_Tr t f %s_xr x f %s_RH r f %s_Ts t f ",
-				Room[i].Name, Room[i].Name, Room[i].Name, Room[i].Name)
+				Room.Name, Room.Name, Room.Name, Room.Name)
 
-			if Room[i].setpri {
-				fmt.Fprintf(fo, "%s_SET* t f ", Room[i].Name)
+			if Room.setpri {
+				fmt.Fprintf(fo, "%s_SET* t f ", Room.Name)
 			}
 
-			if Room[i].FunHcap > 0.0 {
-				fmt.Fprintf(fo, "%s_TM t f %s_QM q f %s_QMsol q f %s_PCMQl q f ", Room[i].Name, Room[i].Name, Room[i].Name, Room[i].Name)
+			if Room.FunHcap > 0.0 {
+				fmt.Fprintf(fo, "%s_TM t f %s_QM q f %s_QMsol q f %s_PCMQl q f ", Room.Name, Room.Name, Room.Name, Room.Name)
 			}
 
-			if Room[i].rmld != nil {
-				fmt.Fprintf(fo, "%s_Ls q f %s_Lt q f ", Room[i].Name, Room[i].Name)
+			if Room.rmld != nil {
+				fmt.Fprintf(fo, "%s_Ls q f %s_Lt q f ", Room.Name, Room.Name)
 			}
 
-			if Room[i].Nasup > 0 {
-				Ei := Room[i].cmp.Elins[Room[i].Nachr+Room[i].Nrp]
-				for j := 0; j < Room[i].Nasup; j++ {
+			if Room.Nasup > 0 {
+				Ei := Room.cmp.Elins[Room.Nachr+Room.Nrp]
+				for j := 0; j < Room.Nasup; j++ {
 					if Ei.Lpath == nil {
 						fmt.Fprintf(fo, "%s:%1d_G m f %s:%1d_Tin t f %s:%1d_Xin x f %s:%1d_Qas q f %s:%1d_Qat q f ",
-							Room[i].Name, j, Room[i].Name, j, Room[i].Name, j, Room[i].Name, j, Room[i].Name, j)
+							Room.Name, j, Room.Name, j, Room.Name, j, Room.Name, j, Room.Name, j)
 					} else {
 						fmt.Fprintf(fo, "%s:%s_G m f %s:%s_Tin t f %s:%s_Xin x f %s:%s_Qas q f %s:%s_Qat q f ",
-							Room[i].Name, Ei.Lpath.Name, Room[i].Name, Ei.Lpath.Name, Room[i].Name, Ei.Lpath.Name, Room[i].Name, Ei.Lpath.Name,
-							Room[i].Name, Ei.Lpath.Name)
+							Room.Name, Ei.Lpath.Name, Room.Name, Ei.Lpath.Name, Room.Name, Ei.Lpath.Name, Room.Name, Ei.Lpath.Name,
+							Room.Name, Ei.Lpath.Name)
 					}
 				}
 			}
 
-			for j := 0; j < Room[i].Nrp; j++ {
-				rpnl := Room[i].rmpnl[j]
-				fmt.Fprintf(fo, "%s:%s_Qp q f ", Room[i].Name, rpnl.pnl.Name)
+			for j := 0; j < Room.Nrp; j++ {
+				rpnl := Room.rmpnl[j]
+				fmt.Fprintf(fo, "%s:%s_Qp q f ", Room.Name, rpnl.pnl.Name)
 			}
 
 			fmt.Fprintf(fo, "\n")
 		}
 	default:
-		for i := range Room {
+		for _, Room := range Rooms {
 			fmt.Fprintf(fo, "%.2f %5.4f %2.0f %.2f ",
-				Room[i].Tr, Room[i].xr, Room[i].RH, Room[i].Tsav)
+				Room.Tr, Room.xr, Room.RH, Room.Tsav)
 
-			if Room[i].setpri {
-				fmt.Fprintf(fo, "%.2f ", Room[i].SET)
+			if Room.setpri {
+				fmt.Fprintf(fo, "%.2f ", Room.SET)
 			}
 
-			if Room[i].FunHcap > 0.0 {
-				fmt.Fprintf(fo, "%.2f %.2f %.2f %.2f ", Room[i].TM, Room[i].QM, Room[i].Qsolm, Room[i].PCMQl)
+			if Room.FunHcap > 0.0 {
+				fmt.Fprintf(fo, "%.2f %.2f %.2f %.2f ", Room.TM, Room.QM, Room.Qsolm, Room.PCMQl)
 			}
 
-			if Room[i].rmld != nil {
-				fmt.Fprintf(fo, "%.2f %.2f ", Room[i].rmld.Qs, Room[i].rmld.Qt)
+			if Room.rmld != nil {
+				fmt.Fprintf(fo, "%.2f %.2f ", Room.rmld.Qs, Room.rmld.Qt)
 			}
 
-			if Room[i].Nasup > 0 {
-				for j := 0; j < Room[i].Nasup; j++ {
-					A := Room[i].Arsp[j]
+			if Room.Nasup > 0 {
+				for j := 0; j < Room.Nasup; j++ {
+					A := Room.Arsp[j]
 					fmt.Fprintf(fo, "%.4g %4.1f %.4f %.2f %.2f ", A.G, A.Tin, A.Xin, A.Qs, A.Qt)
 				}
 			}
 
-			for j := 0; j < Room[i].Nrp; j++ {
-				rpnl := Room[i].rmpnl[j]
+			for j := 0; j < Room.Nrp; j++ {
+				rpnl := Room.rmpnl[j]
 				fmt.Fprintf(fo, " %.2f", -rpnl.pnl.Q)
 			}
 

@@ -105,7 +105,7 @@ func Roomvar(_Room []*ROOM, _Rdpnl []*RDPNL) {
 		// 室間相互換気量
 		for j := 0; j < Room.Nachr; j++ {
 			Gvr := Ca * Room.achr[j].Gvr
-			elout.Coeffin[j] -= Gvr
+			elout.Coeffin[j] = -Gvr
 			elout.Coeffo += Gvr
 		}
 
@@ -122,7 +122,7 @@ func Roomvar(_Room []*ROOM, _Rdpnl []*RDPNL) {
 		// 流量
 		for j := 0; j < Room.Nasup; j++ {
 			G := Ca * compnt.Elins[j+Room.Nachr+Room.Ntr+Room.Nrp].Lpath.G
-			elout.Coeffin[j+Room.Nachr+Room.Ntr+Room.Nrp] -= G
+			elout.Coeffin[j+Room.Nachr+Room.Ntr+Room.Nrp] = -G
 			elout.Coeffo += G
 		}
 
@@ -133,14 +133,14 @@ func Roomvar(_Room []*ROOM, _Rdpnl []*RDPNL) {
 		// 室間相互換気量
 		for j := 0; j < Room.Nachr; j++ {
 			Gvr := Room.achr[j].Gvr
-			elout.Coeffin[j] -= Gvr
+			elout.Coeffin[j] = -Gvr
 			elout.Coeffo += Gvr
 		}
 
 		// 流量
 		for j := 0; j < Room.Nasup; j++ {
 			G := compnt.Elins[j+Room.Nachr+Room.Ntr+Room.Nrp+Room.Nachr].Lpath.G
-			elout.Coeffin[j+Room.Nachr] -= G
+			elout.Coeffin[j+Room.Nachr] = -G
 			elout.Coeffo += G
 		}
 	}

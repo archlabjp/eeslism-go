@@ -502,40 +502,16 @@ func Snbkdata(section *EeTokens, dsn string, Snbk *[]*SNBK) {
 	Er := fmt.Sprintf(ERRFMT, dsn)
 	Type := 0
 
-	var N int
-	for N = 0; section.IsEnd() == false; N++ {
-		section.GetLogicalLine()
-	}
-	section.Reset()
+	*Snbk = make([]*SNBK, 0)
 
-	if N > 0 {
-		*Snbk = make([]*SNBK, N)
-
-		for j := 0; j < N; j++ {
-			S := new(SNBK)
-			S.Name = ""
-			S.W = 0.0
-			S.H = 0.0
-			S.D = 0.0
-			S.W1 = 0.0
-			S.W2 = 0.0
-			S.H1 = 0.0
-			S.H2 = 0.0
-			S.Type = 0
-			S.Ksi = 0
-
-			(*Snbk)[j] = S
-		}
-	}
-
-	S := (*Snbk)[0]
-	i := 0
 	for section.IsEnd() == false {
 
 		fields := section.GetLogicalLine()
 		if fields[0] == "*" {
 			break
 		}
+
+		S := NewSNBK()
 
 		// 名前
 		S.Name = fields[0]
@@ -674,8 +650,23 @@ func Snbkdata(section *EeTokens, dsn string, Snbk *[]*SNBK) {
 			}
 		}
 
-		S = (*Snbk)[i]
+		*Snbk = append(*Snbk, S)
 	}
+}
+
+func NewSNBK() *SNBK {
+	S := new(SNBK)
+	S.Name = ""
+	S.W = 0.0
+	S.H = 0.0
+	S.D = 0.0
+	S.W1 = 0.0
+	S.W2 = 0.0
+	S.H1 = 0.0
+	S.H2 = 0.0
+	S.Type = 0
+	S.Ksi = 0
+	return S
 }
 
 /************************************************************/

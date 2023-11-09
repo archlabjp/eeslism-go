@@ -32,7 +32,7 @@ var (
 
 	Fbmlist = "" // 壁材料リストファイル名 ref: wbmlist.md
 
-	DEBUG   = true
+	DEBUG   = false
 	dayprn  = false
 	DAYweek = [8]string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", "Hol"}
 

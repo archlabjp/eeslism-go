@@ -357,7 +357,7 @@ func contlxprint(Ncontl int, C *CONTL, out io.Writer) {
 
 					fmt.Fprintf(out, "  lft1=%.2f  lft2=%.2f  rgt=%.2f\n", *cif.Lft1.V, V, *cif.Rgt.V)
 				} else {
-					fmt.Fprintf(out, "  lft1=%s  lft2=%s  rgt=%s\n", *cif.Lft1.S, *cif.Lft2.S, *cif.Rgt.S)
+					fmt.Fprintf(out, "  lft1=%s  lft2=%s  rgt=%s\n", string(*cif.Lft1.S), string(*cif.Lft2.S), string(*cif.Rgt.S))
 				}
 			}
 
@@ -365,7 +365,7 @@ func contlxprint(Ncontl int, C *CONTL, out io.Writer) {
 			if cst.Type == VAL_CTYPE {
 				fmt.Fprintf(out, "  lft=%.2f    rgt=%.2f\n", *cst.Lft.V, *cst.Rgt.V)
 			} else {
-				fmt.Fprintf(out, "  lft=%s    rgt=%s\n", *cst.Lft.S, *cst.Rgt.S)
+				fmt.Fprintf(out, "  lft=%s    rgt=%s\n", string(*cst.Lft.S), string(*cst.Rgt.S))
 			}
 		}
 	}
@@ -390,7 +390,7 @@ func contlxprint(Ncontl int, C *CONTL, out io.Writer) {
 
 					fmt.Fprintf(out, "\tlft1=%.2f\tlft2=%.2f\trgt=%.2f\n", *cif.Lft1.V, V, *cif.Rgt.V)
 				} else {
-					fmt.Fprintf(out, "\tlft1=%s\tlft2=%s\trgt=%s\n", *cif.Lft1.S, *cif.Lft2.S, *cif.Rgt.S)
+					fmt.Fprintf(out, "\tlft1=%s\tlft2=%s\trgt=%s\n", string(*cif.Lft1.S), string(*cif.Lft2.S), string(*cif.Rgt.S))
 				}
 			}
 
@@ -398,7 +398,7 @@ func contlxprint(Ncontl int, C *CONTL, out io.Writer) {
 			if cst.Type == VAL_CTYPE {
 				fmt.Fprintf(out, "\tlft=%.2f\trgt=%.2f\n", *cst.Lft.V, *cst.Rgt.V)
 			} else {
-				fmt.Fprintf(out, "\tlft=%s\trgt=%s\n", *cst.Lft.S, *cst.Rgt.S)
+				fmt.Fprintf(out, "\tlft=%s\trgt=%s\n", string(*cst.Lft.S), string(*cst.Rgt.S))
 			}
 		}
 	}

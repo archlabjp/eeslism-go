@@ -18,8 +18,6 @@ func Eesprera(file string) string {
 	// 設定ファイルを開く
 	fi, err := os.Open(file)
 	if err != nil {
-		wd, _ := os.Getwd()
-		fmt.Printf(wd)
 		fmt.Printf("File not found '%s'\n", file)
 		os.Exit(1)
 	}

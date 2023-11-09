@@ -4,6 +4,7 @@ This program is a port of "EESLISM", a general-purpose simulation program for bu
 control systems consisting of both buildings and facilities, to the Go language.
 
 The original EESLISM is written in C and is available at https://github.com/satoh-er/open_eeslism.
+Although the Go language version still needs to be tested, it is not inferior to the C language version in terms of execution speed.
 
 ## Why porting to Go ?
 
@@ -41,6 +42,36 @@ GOOS=js GOARCH=wasm go build -o eeslism.wasm
 
 For other compilation targets, please refer to [here](https://go.dev/doc/install/source#environment
 ).
+
+## Run samples
+
+```
+go run main.go samples/standard-plan-no-hcap-PCM-CM-fsolm.txt
+```
+
+## Creating your configuration file
+
+See [this document](format/README.md)
+
+## Running Speed Performance
+
+The execution speed of the Go version is approximately 14 seconds for the standard model (a 19-room detached dwelling with a 1-month aid run and a 12-month main calculation at 30-minute intervals).
+It is almost as fast as the optimized build of open_eeslism.
+
+```
+$ time ./eeslism-go samples/standard-plan-no-hcap-PCM-CM-fsolm.txt
+real    0m13.970s
+user    0m13.328s
+sys     0m1.014s
+```
+
+Under the same conditions, open_eeslism (Release build + O3 optimized) yields the following results
+```
+real    0m13.933s
+user    0m12.433s
+sys     0m1.442s
+```
+
 
 ## Porting Policy
 

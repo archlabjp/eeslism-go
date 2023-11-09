@@ -1,0 +1,750 @@
+! 自立循環型住宅のモデルプラン
+
+WEEK
+	1/1=Sun ;
+
+TITLE
+	Residential House ;
+
+GDAT
+	FILE	w=tokyo_3column_SI.has -skyrd ;
+	RUN		1/1-12/31 MaxIterate=100 dTime=1800 ;
+	PRINT	1/1-12/31 *wd ;
+*
+
+SCHTB
+	%s -s    WSCH     001-(N)-800 801-(D)-1700 1701-(N)-2400 ;
+	%s -wkd  Weekday  Mon Tue Wed Thu Fri ;
+	%s -wkd  Weekend  Sat Sun Hol ;
+	%s -ssn	Winter		11/4-4/21 ;
+	%s -ssn	Summer		5/30-9/23 ;
+	%s -ssn	Inter		4/22-5/29  9/24-11/3 ;
+*
+
+EXSRF
+	r=0.1 ;
+	south	a=0. alo=25 ;
+	west	a=south+90.0 alo=25 ;
+	north	a=west+90.0 alo=25 ;
+	east	a=south-90.0 alo=25 ;
+	sroof	a=south  t=24.2 alo=25 ;
+	nroof	a=north  t=24.2 alo=25 ;
+	wroof	a=west  t=24.2 alo=25 ;
+	Hor 	alo=23.3 ;
+	EarthSf ;
+	earth	Z=1.5 ;
+*
+
+PCM
+   SBPCM	Ql=200000000    ! 潜熱量[J/m3]
+		Condl=0.1       ! 液相熱伝導率[W/mK]
+       		Conds=0.1       ! 固相熱伝導率[W/mK]
+		Crol=1000000    ! 液相容積比熱[J/m3K]
+		Cros=1000000    ! 固相容積比熱[J/m3K]
+		Ts=20.0         ! 相変化下限温度［℃］
+		Tl=25.0         ! 相変化上限温度［℃］
+		Tp=22.5		! 相変化ピーク温度[℃]
+		Ctype=2		! PCM比熱特性のモデル番号
+!		T=xxx		! パラメータτ
+!		B=xxx		! パラメータβ
+!		a=xxx		! パラメータa[-]もしくは[J/kg]
+!		bs=xxx		! パラメータbs[℃]
+!		bl=xxx		! パラメータbl[℃]
+!		skew=xxx	! パラメータskew[-]
+!		omega=xxx	! パラメータω[-]
+!		b=xxx		! パラメータb[-]
+!		c=xxx		! パラメータc[-]
+!		d=xxx		! パラメータd[-]
+!		e=xxx		! パラメータe[-]
+!		f=xxx		! パラメータf[-]
+		-pcmnode 	! PCM温度を境界温度で代表させる場合指定	デフォルトはPCM両端境界の平均温度
+		-iterate        ! 収束計算をする
+		DivTemp=1000    ! 比熱数値積分時の温度分割数
+		nWeight=0.1		! 収束計算時の現在ステップ温度の重み係数
+		IterateJudge=0.01	! 収束計算時の前ステップ見かけの比熱の1%以内なら収束したと判定
+		;
+* 
+
+WALL
+	! 外壁
+	-E:Exwall	haspeeGPB-12  haspeeGWI16-66 haspeeAS2  haspeePWD-12 ;		
+	! 間仕切り
+	-i		haspeeGPB-12  haspeeAS1  haspeeGPB-12 ;	
+	! 屋根
+	-R		haspeeKWR-12  WDB-12 ;
+	! 2階天井
+	-c:C2F		haspeeXPS3-107  haspeePWD-9 haspeeAS1  haspeeGPB-10 ;
+	-f:FAT		haspeeXPS3-107  haspeePWD-9 haspeeAS1  haspeeGPB-10 ;
+	! 2階床
+	-c:CKM		haspeePWD-12 ;
+	-f:F2F		haspeePWD-12 ;
+	! 階間床
+	-c:C1F		haspeeGPB-10 ;
+	-f:FKM		haspeeGPB-10 ;
+	! 階間床PCM
+	-c:C1FPCM	haspeePWD(SBPCM_1)-2  haspeePWD(SBPCM_1)-2  haspeePWD(SBPCM_1)-2  haspeePWD(SBPCM_1)-2  haspeePWD(SBPCM_1)-2  haspeeSTL-3 ;
+	-f:FKMPCM	haspeePWD(SBPCM_1)-2  haspeePWD(SBPCM_1)-2  haspeePWD(SBPCM_1)-2  haspeePWD(SBPCM_1)-2  haspeePWD(SBPCM_1)-2  haspeeSTL-3 ;
+	! 1階床
+	-c:CFN		haspeePWD-12 haspeeGWI16-80 ;
+	-f:F1F		haspeePWD-12 haspeeGWI16-80 ;
+	! 1階床PCM
+	-c:CFNPCM	haspeePWD-6 haspeePWD(SBPCM_1)-2  haspeePWD(SBPCM_1)-2  haspeePWD(SBPCM_1)-2  haspeePWD(SBPCM_1)-2  haspeePWD(SBPCM_1)-2  haspeePWD-12 haspeeGWI16-80 ;
+	-f:F1FPCM	haspeePWD-6 haspeePWD(SBPCM_1)-2  haspeePWD(SBPCM_1)-2  haspeePWD(SBPCM_1)-2  haspeePWD(SBPCM_1)-2  haspeePWD(SBPCM_1)-2  haspeePWD-12 haspeeGWI16-80 ;
+	! 土間床
+	-F:DOMA		haspeeC-120	haspeeSL-1500/3 ;
+	! 土間外周部
+	-F:DOMAOu	haspeeC-120	haspeeSL-1000/3 ;
+	! 基礎立ち上がり
+	-E:Fnd		haspeeC-120 ;
+	! 仮想壁
+	-i:Vir		Ei=1.0  Eo=1.0  haspeeCPR-0.1 ;
+*
+
+WINDOW
+	Window	t=0.74 B=0.05 R=0.065 ;																									
+	Door	t=0 B=0.1581 R=0.065 ;	
+*
+
+SUNBRK																											
+	SBLiving	type=H	window=H2100xW3300  D=910  T=480  L=290 R=50 ;																								
+	SBBed		type=H	window=H1050xW1650  D=650  T=512.5  L=1445 R=7360 ;																								
+	SBChild1	type=H	window=H1950xW1650  D=650  T=512.5  L=5227.5 R=3407.5 ;																								
+	SBChild2	type=H	window=H1950xW1650  D=650  T=512.5  L=7047.5 R=1587.5 ;																								
+*	
+
+ROOM
+	Jroom	Vol=39.75
+!		Hcap=5.008e+05
+
+		alc=4.6
+		south:		-E	Exwall				6.33 ;
+					-W	Window			4.59 ;
+		west:		-E	Exwall				8.74 ;
+		north:		-E	Exwall				2.18 ;
+		(Ent):		-i			i=J2Entwl	3.28 ;
+		(Hall1F):	-i			i=J2H1wl	5.46 ;
+		(LD):		-i			i=J2LDwl	8.74 ;
+		(Fnd):		-f	F1F	alc=2.2	i=J2Fnfl	16.56 ;
+		(Kaima):	-c	C1F	alc=6.6	i=J2Kmcl	13.25 ;
+		(AtticW):	-c	C2F	alc=6.6	i=J2AWcl	3.31 ;
+	*
+	
+	LD		Vol=51.67	*s *q
+!		Hcap=6.511e+05
+!		PCMFurn=(SBPCM,0.158)	! 21.53[m2]*0.01[m]*(1-U/h)(Up/(h+Up))/((1-U/h)(Up/(h+Up))+U/h)
+					! =21.53[m2]*0.01[m]*(1-2.95/11.1)*((15/0.003)/(11.1+15/0.003))	/((1-2.95/11.1)*((15/0.003)/(11.1+15/0.003))+2.95/11.1)
+					! U=1/(1/6.7+0.01/0.1+1/11.1)=2.95		
+!		CM=238.45		! A/r=21.53[m2]/(1/11.1[W/(m2K)]+0.003m/15[W/(mK)])					
+!		fsolm=0.124
+		
+		alc=4.6
+		south:		-E	Exwall		fsol=0.057			7.27 ;
+					-W	Window	fsol=0.055	sb=SBLiving	6.93 ;
+		east:		-E	Exwall		fsol=0.052			6.59 ;
+					-W	Window	fsol=0.017			2.15 ;
+		(Hall1F):	-i			fsol=0.069	i=LD2H1wl	8.74 ;
+		(Jroom):	-i			fsol=0.069	i=J2LDwl	 ;
+		(K):		-i			fsol=0.043	i=LD2Kwl	5.46 ;
+		(Fnd):		-f	F1F	alc=2.2	fsol=0.469	i=LD2Fnfl *p	21.53 ;
+		(Kaima):	-c	C1F	alc=6.6	fsol=0.045	i=LD2Kmcl	tnxt=1.0	21.53 ;
+	*
+	
+	K		Vol=19.87	*s *q
+!		Hcap=2.504e+05
+
+		alc=4.6
+		east:		-E	Exwall				8.74 ;
+					-W	Window			0.98 ;
+		north:		-E	Exwall				5.46 ;
+					-W	Window			1.62 ;
+		(LD):		-i			i=LD2Kwl	 ;
+		(Hall1F):	-i			i=K2H1wl	4.37 ;
+		(WC1F):		-i			i=K2WC1wl	4.37 ;
+		(Fnd):		-f	F1F	alc=2.2	i=K2Fnfl	8.28 ;
+		(Kaima):	-c	C1F	alc=6.6	i=K2Kmcl	4.14 ;
+		(AtticN):	-c	C2F	alc=6.6	i=K2ANcl	4.14 ;
+	*
+	
+	WC1F	Vol=3.97
+!		Hcap=5.008e+04
+
+		alc=4.6
+		north:		-E	Exwall				2.18 ;
+					-W	Window			0.54 ;
+		(K):		-i			i=K2WC1wl	 ;
+		(Hall1F):	-i			i=WC12H1wl	2.18 ;
+		(Wroom):	-i			i=WC12Wwl	4.37 ;
+		(Fnd):		-f	F1F	alc=2.2	i=WC12Fnfl	1.66 ;
+		(AtticN):	-c	C2F	alc=6.6	i=WC12ANcl	1.66 ;
+	*
+	
+	Wroom	Vol=7.95	*s
+!		Hcap=1.002e+05
+
+		alc=4.6
+		north:		-E	Exwall				3.83 ;
+					-W	Window			0.54 ;
+		(WC1F):		-i			i=WC12Wwl	 ;
+		(Hall1F):	-i			i=W2H1wl	4.37 ;
+		(Bath):		-i			i=W2Btwl	4.37 ;
+		(Fnd):		-f	F1F	alc=2.2	i=W2Fnfl	3.31 ;
+		(AtticN):	-c	C2F	alc=6.6	i=W2ANcl	3.31 ;
+	*
+	
+	Bath	Vol=7.95	*s
+!		Hcap=1.002e+05
+
+		alc=4.6
+		west:		-E	Exwall				3.83 ;
+					-W	Window			0.54 ;
+		north:		-E	Exwall				4.37 ;
+		(Wroom):	-i			i=W2Btwl	 ;
+		(Hall1F):	-i			i=Bt2H1wl	4.37 ;
+		(Fnd):		-f	F1F	alc=2.2	i=Bt2Fnfl	3.31 ;
+		(AtticN):	-c	C2F	alc=6.6	i=Bt2ANcl	3.31 ;
+	*
+	
+	Hall1F	Vol=25.84
+!		Hcap=3.255e+05
+
+		alc=4.6
+		north:		-E	Exwall				3.28 ;
+					-W	Window			0.54 ;
+		(Ent):		-i	Vir		i=H12Enwl	4.37 ;
+		(Jroom):	-i			i=J2H1wl	 ;
+		(LD):		-i			i=LD2H1wl	 ;
+		(K):		-i			i=K2H1wl	 ;
+		(WC1F):		-i			i=WC12H1wl	 ;
+		(Wroom):	-i			i=W2H1wl	 ;
+		(Bath):		-i			i=Bt2H1wl	 ;
+		(Fnd):		-f	F1F	alc=2.2	i=H12Fnfl	10.77 ;
+		(Kaima):	-c	C1F	alc=6.6	i=H12Kmcl	10.77 ;
+	*
+	
+	Ent		Vol=5.96
+!		Hcap=7.513e+04
+
+		alc=4.6
+		west:		-E	Exwall				2.48 ;
+					-W	Window			1.89 ;
+		north:		-E	Exwall				3.28 ;
+		(Jroom):	-i			i=J2Entwl	 ;
+		(Hall1F):	-i	Vir		i=H12Enwl	 ;
+		(Fnd):		-f	F1F	alc=2.2	i=En2Fnfl	2.48 ;
+		(Kaima):	-c	C1F	alc=6.6	i=En2Kmcl	2.48 ;
+	*
+	
+	MBroom	Vol=31.80	*s
+!		Hcap=4.007e+05
+
+		alc=4.6
+		south:		-E	Exwall				7.00 ;
+					-W	Window	sb=SBBed	1.73 ;
+		west:		-E	Exwall				7.75 ;
+					-W	Window			0.99 ;
+		(Cloth):	-i			i=MB2Clowl	6.55 ;
+		(Hall2F):	-i			i=MB2H2wl	2.18 ;
+		(CBC):		-i			i=MB2CBCwl	8.74 ;
+		(Attic):	-c	C2F	alc=6.6	i=MB2Atcl	13.25 ;
+		(Kaima):	-f	F2F	alc=2.2	i=MB2Kmfl	13.25 ;
+	*
+	
+	CBC		Vol=25.84	*s
+!		Hcap=3.255e+05
+
+		alc=4.6
+		south:		-E	Exwall				3.88 ;
+					-W	Window	sb=SBChild1	3.22 ;
+		(MBroom):	-i			i=MB2CBCwl	 ;
+		(CBE):		-i			i=CBC2CBEwl	8.74 ;
+		(Hall2F):	-i			i=CEC2H2wl	7.10 ;
+		(Attic):	-c	C2F	alc=6.6	i=CBC2Atcl	10.77 ;
+		(Kaima):	-f	F2F	alc=2.2	i=CBC2Kmfl	10.77 ;
+	*
+	
+	CBE		Vol=25.84	*s
+!		Hcap=3.255e+05
+
+		alc=4.6
+		south:		-E	Exwall				3.88 ;
+					-W	Window	sb=SBChild2	3.22 ;
+		east:		-E	Exwall				8.08 ;
+					-W	Window			0.66 ;
+		(CBC):		-i			i=CBC2CBEwl	 ;
+		(Hall2F):	-i			i=CBE2H2wl	7.10 ;
+		(Attic):	-c	C2F	alc=6.6	i=CBE2Atcl	10.77 ;
+		(Kaima):	-f	F2F	alc=2.2	i=CBE2Kmfl	10.77 ;
+	*
+	
+	Hall2F	Vol=25.84	*s
+!		Hcap=3.255e+05
+
+		alc=4.6
+		north:		-E	Exwall				11.02 ;
+					-W	Window			0.99 ;
+		east:		-E	Exwall				2.18 ;
+		(Cloth):	-i			i=H22Clowl	4.37 ;
+		(MBroom):	-i			i=MB2H2wl	 ;
+		(CBC):		-i			i=CEC2H2wl	 ;
+		(CBE):		-i			i=CBE2H2wl	 ;
+		(WC2F):		-i			i=H22WC2wl	6.55 ;
+		(Attic):	-c	C2F	alc=6.6	i=H22Atcl	10.77 ;
+		(Kaima):	-f	F2F	alc=2.2	i=H22Kmfl	10.77 ;
+	*
+	
+	Cloth	Vol=11.92
+!		Hcap=1.503e+05
+
+		alc=4.6
+		west:		-E	Exwall				3.83 ;
+					-W	Window			0.54 ;
+		north:		-E	Exwall				6.55 ;
+		(MBroom):	-i			i=MB2Clowl	 ;
+		(Hall2F):	-i			i=H22Clowl	 ;
+		(Attic):	-c	C2F	alc=6.6	i=Clo2Atcl	4.97 ;
+		(Kaima):	-f	F2F	alc=2.2	i=Clo2Kmfl	4.97 ;
+	*
+	
+	WC2F	Vol=3.97	*s
+!		Hcap=5.008e+04
+
+		alc=4.6
+		north:		-E	Exwall				3.83 ;
+					-W	Window			0.54 ;
+		east:		-E	Exwall				2.18 ;
+		(Hall2F):	-i			i=H22WC2wl	 ;
+		(Attic):	-c	C2F	alc=6.6	i=WC22Atcl	1.66 ;
+		(Kaima):	-f	F2F	alc=2.2	i=WC22Kmfl	1.66 ;
+	*
+	
+	Attic	Vol=32.06
+!		Hcap=4.039e+05
+
+		alc=4.6
+		sroof:		-R	alc=6.6					28.60 ;
+		nroof:		-R	alc=6.6					28.60 ;
+		east:		-E	Exwall				3.36 ;
+		west:		-E	Exwall				3.36 ;
+		(MBroom):	-f	FAT	alc=2.2	i=MB2Atcl	 ;
+		(CBC):		-f	FAT	alc=2.2	i=CBC2Atcl	 ;
+		(CBE):		-f	FAT	alc=2.2	i=CBE2Atcl	 ;
+		(Hall2F):	-f	FAT	alc=2.2	i=H22Atcl	 ;
+		(Cloth):	-f	FAT	alc=2.2	i=Clo2Atcl	 ;
+		(WC2F):		-f	FAT	alc=2.2	i=WC22Atcl	 ;
+	*
+	
+	AtticN	Vol=5.09
+!		Hcap=6.409e+04
+
+		alc=4.6
+		nroof:		-R	alc=6.6					11.32 ;
+		east:		-E	Exwall				0.75 ;
+		west:		-E	Exwall				0.75 ;
+		(K):		-f	FAT	alc=2.2	i=K2ANcl	 ;
+		(WC1F):		-f	FAT	alc=2.2	i=WC12ANcl	 ;
+		(Wroom):	-f	FAT	alc=2.2	i=W2ANcl	 ;
+		(Bath):		-f	FAT	alc=2.2	i=Bt2ANcl	 ;
+	*
+	
+	AtticW	Vol=0.68
+!		Hcap=8.556e+03
+
+		alc=4.6
+		north:		-E	Exwall				0.19 ;
+		south:		-E	Exwall				0.19 ;
+		wroof:		-R	alc=6.6					3.63 ;
+		(Jroom):	-f	FAT	alc=2.2	i=J2AWcl	 ;
+	*
+	
+	Fnd		Vol=34.63	*s
+!		Hcap=4.364e+05
+
+		alc=4.6
+		east:		-E	Fnd					3.71 ;
+		west:		-E	Fnd					3.71 ;
+		south:		-E	Fnd					5.34 ;
+		north:		-E	Fnd					5.34 ;
+		earth:		-F	DOMA	alc=2.2			67.90 ;
+		(Jroom):	-c	CFN	alc=6.6	i=J2Fnfl	 ;
+		(LD):		-c	CFNPCM	alc=6.6	i=LD2Fnfl	 ;
+		(K):		-c	CFN	alc=6.6	i=K2Fnfl	 ;
+		(WC1F):		-c	CFN	alc=6.6	i=WC12Fnfl	 ;
+		(Wroom):	-c	CFN	alc=6.6	i=W2Fnfl	 ;
+		(Bath):		-c	CFN	alc=6.6	i=Bt2Fnfl	 ;
+		(Hall1F):	-c	CFN	alc=6.6	i=H12Fnfl	 ;
+		(Ent):		-c	CFN	alc=6.6	i=En2Fnfl	 ;
+	*
+	
+	Kaima	Vol=26.09
+!		Hcap=3.287e+05
+!		PCMFurn=(SBPCM,0.0573)	! 21.53[m2]*0.01[m]*(U/h)/((1-U/h)(Up/(h+Up))+U/h)
+					! =21.53[m2]*0.01[m]*(2.95/11.1)/((1-2.95/11.1)*((15/0.003)/(11.1+15/0.003))+2.95/11.1)
+					! U=1/(1/6.7+0.01/0.1+1/11.1)=2.95
+!		CM=86.5			! A/r=21.53[m2]/(1/2.95[W/(m2K)]-1/11.1[W/(m2K)])
+!		fsolm=1.0	
+!		flrsr=0.0
+
+		alc=4.6
+		east:		-E	Exwall				2.73 ;
+		west:		-E	Exwall				2.73 ;
+		south:		-E	Exwall				4.78 ;
+		north:		-E	Exwall				4.78 ;
+		(Jroom):	-f	FKM	alc=2.2	i=J2Kmcl	 ;
+		(LD):		-f	FKMPCM	alc=2.2	i=LD2Kmcl	 ;
+		(K):		-f	FKM	alc=2.2	i=K2Kmcl	 ;
+		(Hall1F):	-f	FKM	alc=2.2	i=H12Kmcl	 ;
+		(Ent):		-f	FKM	alc=2.2	i=En2Kmcl	 ;
+		(MBroom):	-c	CKM	alc=6.6	i=MB2Kmfl	 ;
+		(CBC):		-c	CKM	alc=6.6	i=CBC2Kmfl	 ;
+		(CBE):		-c	CKM	alc=6.6	i=CBE2Kmfl	 ;
+		(Hall2F):	-c	CKM	alc=6.6	i=H22Kmfl	 ;
+		(Cloth):	-c	CKM	alc=6.6	i=Clo2Kmfl	 ;
+		(WC2F):		-c	CKM	alc=6.6	i=WC22Kmfl	 ;
+	*
+*
+
+RESI
+	LD		H=(1,LDResi,3) ;
+	CBC		H=(1,CBCResi,3) ;
+	CBE		H=(1,CBEResi,3) ;
+	MBroom	H=(1,MBResi,3) ;
+
+%s -v	LDResiwd							601-(1)-700	701-(2)-800	801-(1)-900	901-(1)-1000			1201-(1)-1300	1301-(1)-1400			1601-(1)-1700	1701-(2)-1800	1801-(2)-1900	1901-(3)-2000	2001-(3)-2100	2101-(2)-2200	2201-(1)-2300	2301-(1)-2400	;
+%s -v	LDResiwe									801-(3)-900	901-(2)-1000	1001-(2)-1100	1101-(2)-1200	1201-(2)-1300	1301-(1)-1400			1601-(2)-1700	1701-(3)-1800	1801-(3)-1900	1901-(4)-2000	2001-(2)-2100	2101-(2)-2200	2201-(1)-2300		;
+%s -v	CBCResiwd	001-(1)-100	101-(1)-200	201-(1)-300	301-(1)-400	401-(1)-500	501-(1)-600	601-(1)-700														2001-(1)-2100		2201-(1)-2300	2301-(1)-2400	;
+%s -v	CBCResiwe	001-(1)-100	101-(1)-200	201-(1)-300	301-(1)-400	401-(1)-500	501-(1)-600	601-(1)-700	701-(1)-800	801-(1)-900	901-(1)-1000	1001-(1)-1100	1101-(1)-1200					1601-(1)-1700	1701-(1)-1800	1801-(1)-1900		2001-(1)-2100	2101-(1)-2200	2201-(1)-2300	2301-(1)-2400	;
+%s -v	CBEResiwd	001-(1)-100	101-(1)-200	201-(1)-300	301-(1)-400	401-(1)-500	501-(1)-600	601-(1)-700												1801-(1)-1900			2101-(1)-2200	2201-(1)-2300	2301-(1)-2400	;
+%s -v	CBEResiwe	001-(1)-100	101-(1)-200	201-(1)-300	301-(1)-400	401-(1)-500	501-(1)-600	601-(1)-700	701-(1)-800		901-(1)-1000	1001-(1)-1100	1101-(1)-1200	1201-(1)-1300								2001-(1)-2100	2101-(1)-2200	2201-(1)-2300	2301-(1)-2400	;
+%s -v	MBResiwd	001-(2)-100	101-(2)-200	201-(2)-300	301-(2)-400	401-(2)-500	501-(2)-600	601-(1)-700																	2301-(1)-2400	;
+%s -v	MBResiwe	001-(2)-100	101-(2)-200	201-(2)-300	301-(2)-400	401-(2)-500	501-(2)-600	601-(2)-700	701-(1)-800																2301-(2)-2400	;
+
+%sn -v	LDResi	LDResiwd:-Weekday					LDResiwe:-Weekend					;
+%sn -v	CBCResi	CBCResiwd:-Weekday					CBCResiwe:-Weekend					;
+%sn -v	CBEResi	CBEResiwd:-Weekday					CBEResiwe:-Weekend					;
+%sn -v	MBResi	MBResiwd:-Weekday					MBResiwe:-Weekend					;
+*
+
+APPL
+	LD		L=(1,x,LDLght)
+			As=(0.5,0.5,LDAppl) ;
+	K		L=(1,x,KLght)
+			As=(0.5,0.5,KSHAppl)
+			Al=(1,KLHAppl) ;
+	WC1F	L=(1,x,WC1FLght)
+			As=(0.5,0.5,WC1Appl) ;
+	Wroom	L=(1,x,WroomLght)
+			As=(0.5,0.5,WroomAppl) ;
+	CBC		L=(1,x,CBCLght)
+			As=(0.5,0.5,CBCAppl) ;
+	CBE		L=(1,x,CBELght)
+			As=(0.5,0.5,CBEAppl) ;
+	MBroom	L=(1,x,MBLght)
+			As=(0.5,0.5,MBAppl) ;
+	Ent		L=(1,x,EntLght) ;
+	Hall1F	L=(1,x,Hall1FLght) ;
+	Bath	L=(1,x,BathLght) ;
+
+%s -v	LDApplwd	001-(6.9)-100	101-(6.9)-200	201-(6.9)-300	301-(6.9)-400	401-(6.9)-500	501-(6.9)-600	601-(6.9)-700	701-(209.1)-800	801-(210.6)-900	901-(107.8)-1000	1001-(57.4)-1100	1101-(6.9)-1200	1201-(107.8)-1300	1301-(158.7)-1400	1401-(6.9)-1500	1501-(6.9)-1600	1601-(107.8)-1700	1701-(158.7)-1800	1801-(209.1)-1900	1901-(209.1)-2000	2001-(209.1)-2100	2101-(209.1)-2200	2201-(182.9)-2300	2301-(182.9)-2400	;
+%s -v	LDApplwe	001-(6.9)-100	101-(6.9)-200	201-(6.9)-300	301-(6.9)-400	401-(6.9)-500	501-(6.9)-600	601-(6.9)-700	701-(6.9)-800	801-(209.1)-900	901-(209.1)-1000	1001-(385.1)-1100	1101-(358.9)-1200	1201-(209.1)-1300	1301-(57.4)-1400	1401-(6.9)-1500	1501-(6.9)-1600	1601-(107.8)-1700	1701-(209.1)-1800	1801-(209.1)-1900	1901-(107.8)-2000	2001-(209.1)-2100	2101-(209.1)-2200	2201-(182.9)-2300	2301-(6.9)-2400	;
+%s -v	KSHApplwd	001-(60)-100	101-(60)-200	201-(60)-300	301-(60)-400	401-(60)-500	501-(60)-600	601-(77.4)-700	701-(60)-800	801-(60)-900	901-(60)-1000	1001-(60)-1100	1101-(60)-1200	1201-(77.4)-1300	1301-(60)-1400	1401-(60)-1500	1501-(60)-1600	1601-(60)-1700	1701-(60)-1800	1801-(94.8)-1900	1901-(60)-2000	2001-(60)-2100	2101-(60)-2200	2201-(60)-2300	2301-(60)-2400	;
+%s -v	KSHApplwe	001-(60)-100	101-(60)-200	201-(60)-300	301-(60)-400	401-(60)-500	501-(60)-600	601-(60)-700	701-(60)-800	801-(77.4)-900	901-(60)-1000	1001-(60)-1100	1101-(60)-1200	1201-(77.4)-1300	1301-(60)-1400	1401-(60)-1500	1501-(60)-1600	1601-(60)-1700	1701-(94.8)-1800	1801-(60)-1900	1901-(60)-2000	2001-(60)-2100	2101-(60)-2200	2201-(60)-2300	2301-(60)-2400	;
+%s -v	KLHApplwd							601-(16.875)-700												1801-(33.75)-1900						;
+%s -v	KLHApplwe									801-(16.875)-900									1701-(33.75)-1800							;
+%s -v	WC1FApplwd	001-(30)-100	101-(30)-200	201-(30)-300	301-(30)-400	401-(30)-500	501-(30)-600	601-(30)-700	701-(30)-800	801-(30)-900	901-(30)-1000	1001-(30)-1100	1101-(30)-1200	1201-(30)-1300	1301-(30)-1400	1401-(30)-1500	1501-(30)-1600	1601-(30)-1700	1701-(30)-1800	1801-(30)-1900	1901-(30)-2000	2001-(30)-2100	2101-(30)-2200	2201-(30)-2300	2301-(30)-2400	;
+%s -v	WC1FApplwe	001-(30)-100	101-(30)-200	201-(30)-300	301-(30)-400	401-(30)-500	501-(30)-600	601-(30)-700	701-(30)-800	801-(30)-900	901-(30)-1000	1001-(30)-1100	1101-(30)-1200	1201-(30)-1300	1301-(30)-1400	1401-(30)-1500	1501-(30)-1600	1601-(30)-1700	1701-(30)-1800	1801-(30)-1900	1901-(30)-2000	2001-(30)-2100	2101-(30)-2200	2201-(30)-2300	2301-(30)-2400	;
+%s -v	WroomApplwd	001-(11.5)-100	101-(11.5)-200	201-(11.5)-300	301-(11.5)-400	401-(11.5)-500	501-(11.5)-600	601-(11.5)-700	701-(65.1)-800	801-(27)-900	901-(11.5)-1000	1001-(11.5)-1100	1101-(11.5)-1200	1201-(11.5)-1300	1301-(11.5)-1400	1401-(11.5)-1500	1501-(11.5)-1600	1601-(11.5)-1700	1701-(11.5)-1800	1801-(11.5)-1900	1901-(11.5)-2000	2001-(11.5)-2100	2101-(118.8)-2200	2201-(11.5)-2300	2301-(65.1)-2400	;
+%s -v	WroomApplwe	001-(11.5)-100	101-(11.5)-200	201-(11.5)-300	301-(11.5)-400	401-(11.5)-500	501-(11.5)-600	601-(11.5)-700	701-(65.1)-800	801-(80.5)-900	901-(11.5)-1000	1001-(11.5)-1100	1101-(11.5)-1200	1201-(11.5)-1300	1301-(11.5)-1400	1401-(11.5)-1500	1501-(11.5)-1600	1601-(11.5)-1700	1701-(65.1)-1800	1801-(11.5)-1900	1901-(11.5)-2000	2001-(11.5)-2100	2101-(65.1)-2200	2201-(11.5)-2300	2301-(65.1)-2400	;
+%s -v	CBCApplwd	001-(15)-100	101-(15)-200	201-(15)-300	301-(15)-400	401-(15)-500	501-(15)-600	601-(15)-700	701-(15)-800	801-(15)-900	901-(15)-1000	1001-(15)-1100	1101-(15)-1200	1201-(15)-1300	1301-(15)-1400	1401-(15)-1500	1501-(15)-1600	1601-(15)-1700	1701-(15)-1800	1801-(15)-1900	1901-(15)-2000	2001-(60)-2100	2101-(30)-2200	2201-(80)-2300	2301-(35)-2400	;
+%s -v	CBCApplwe	001-(15)-100	101-(15)-200	201-(15)-300	301-(15)-400	401-(15)-500	501-(15)-600	601-(15)-700	701-(15)-800	801-(15)-900	901-(63.8)-1000	1001-(80)-1100	1101-(80)-1200	1201-(15)-1300	1301-(15)-1400	1401-(15)-1500	1501-(15)-1600	1601-(20)-1700	1701-(20)-1800	1801-(17.5)-1900	1901-(15)-2000	2001-(80)-2100	2101-(31.3)-2200	2201-(80)-2300	2301-(15)-2400	;
+%s -v	CBEApplwd	001-(3)-100	101-(3)-200	201-(3)-300	301-(3)-400	401-(3)-500	501-(3)-600	601-(3)-700	701-(3)-800	801-(3)-900	901-(3)-1000	1001-(3)-1100	1101-(3)-1200	1201-(3)-1300	1301-(3)-1400	1401-(3)-1500	1501-(3)-1600	1601-(3)-1700	1701-(3)-1800	1801-(3)-1900	1901-(3)-2000	2001-(3)-2100	2101-(3)-2200	2201-(38.3)-2300	2301-(14.8)-2400	;
+%s -v	CBEApplwe	001-(3)-100	101-(3)-200	201-(3)-300	301-(3)-400	401-(3)-500	501-(3)-600	601-(3)-700	701-(3)-800	801-(3)-900	901-(3)-1000	1001-(3)-1100	1101-(3)-1200	1201-(3)-1300	1301-(3)-1400	1401-(3)-1500	1501-(3)-1600	1601-(3)-1700	1701-(3)-1800	1801-(3)-1900	1901-(3)-2000	2001-(50)-2100	2101-(50)-2200	2201-(50)-2300	2301-(3)-2400	;
+%s -v	MBApplwd										901-(275.1)-1000															;
+%s -v	MBApplwe										901-(412.5)-1000															;
+
+%sn -v	LDAppl	LDApplwd:-Weekday					LDApplwe:-Weekend					;
+%sn -v	KSHAppl	KSHApplwd:-Weekday					KSHApplwe:-Weekend					;
+%sn -v	KLHAppl	KLHApplwd:-Weekday					KLHApplwe:-Weekend					;
+%sn -v	WC1Appl	WC1FApplwd:-Weekday					WC1FApplwe:-Weekend					;
+%sn -v	WroomAppl	WroomApplwd:-Weekday					WroomApplwe:-Weekend					;
+%sn -v	CBCAppl	CBCApplwd:-Weekday					CBCApplwe:-Weekend					;
+%sn -v	CBEAppl	CBEApplwd:-Weekday					CBEApplwe:-Weekend					;
+%sn -v	MBAppl	MBApplwd:-Weekday					MBApplwe:-Weekend					;
+
+%s -v	EntLghtwd							601-(28.5)-700	701-(57)-800	801-(57)-900	901-(57)-1000	1001-(28.5)-1100						1601-(57)-1700	1701-(57)-1800	1801-(57)-1900	1901-(57)-2000	2001-(57)-2100	2101-(57)-2200	2201-(57)-2300	2301-(28.5)-2400	;
+%s -v	EntLghtwe								701-(42.75)-800	801-(57)-900	901-(57)-1000	1001-(57)-1100	1101-(57)-1200	1201-(57)-1300	1301-(14.25)-1400					1801-(28.5)-1900	1901-(57)-2000	2001-(57)-2100	2101-(57)-2200	2201-(57)-2300	2301-(14.25)-2400	;
+%s -v	LDLghtwd							601-(22.55)-700	701-(97.4875)-800	801-(52.525)-900	901-(114.95)-1000	1001-(17.4625)-1100		1201-(67.5125)-1300	1301-(52.525)-1400			1601-(35.0625)-1700	1701-(69.9875)-1800	1801-(69.9875)-1900	1901-(80.025)-2000	2001-(120.0375)-2100	2101-(69.9875)-2200	2201-(69.9875)-2300	2301-(35.0625)-2400	;
+%s -v	LDLghtwe									801-(120.0375)-900	901-(137.5)-1000	1001-(69.9875)-1100	1101-(69.9875)-1200	1201-(102.4375)-1300	1301-(40.0125)-1400			1601-(69.9875)-1700	1701-(69.9875)-1800	1801-(80.025)-1900	1901-(124.9875)-2000	2001-(69.9875)-2100	2101-(69.9875)-2200	2201-(69.9875)-2300		;
+%s -v	KLghtwd							601-(17.01525)-700	701-(17.01525)-800		901-(24.51225)-1000			1201-(33.99375)-1300				1601-(33.99375)-1700		1801-(33.99375)-1900	1901-(33.99375)-2000	2001-(33.99375)-2100				;
+%s -v	KLghtwe									801-(33.99375)-900	901-(36.75)-1000			1201-(33.99375)-1300	1301-(17.01525)-1400				1701-(33.99375)-1800	1801-(33.99375)-1900	1901-(33.99375)-2000					;
+%s -v	Hall1FLghtwd							601-(28.5)-700	701-(57)-800	801-(28.5)-900	901-(57)-1000	1001-(28.5)-1100			1301-(28.5)-1400							2001-(28.5)-2100	2101-(114)-2200	2201-(114)-2300	2301-(28.5)-2400	;
+%s -v	Hall1FLghtwe								701-(85.5)-800	801-(85.5)-900	901-(114)-1000							1601-(57)-1700	1701-(28.5)-1800				2101-(28.5)-2200	2201-(28.5)-2300	2301-(28.5)-2400	;
+%s -v	WC1FLghtwd							601-(8.55)-700	701-(2.84715)-800		901-(0.94905)-1000			1201-(0.94905)-1300				1601-(0.94905)-1700	1701-(0.94905)-1800	1801-(0.94905)-1900	1901-(0.94905)-2000	2001-(0.94905)-2100	2101-(2.84715)-2200		2301-(3.7962)-2400	;
+%s -v	WC1FLghtwe								701-(5.70285)-800	801-(5.70285)-900		1001-(1.8981)-1100	1101-(1.8981)-1200					1601-(2.84715)-1700	1701-(0.94905)-1800		1901-(2.84715)-2000	2001-(0.94905)-2100		2201-(2.84715)-2300	2301-(0.94905)-2400	;
+%s -v	WroomLghtwd							601-(19.019)-700	701-(37.9715)-800	801-(15.827)-900	901-(34.846)-1000	1001-(19.019)-1100			1301-(19.019)-1400			1601-(6.3175)-1700	1701-(6.3175)-1800	1801-(12.635)-1900	1901-(19.019)-2000	2001-(14.231)-2100	2101-(66.5)-2200	2201-(61.7785)-2300	2301-(19.019)-2400	;
+%s -v	WroomLghtwe								701-(52.269)-800	801-(52.269)-900	901-(56.9905)-1000		1101-(6.3175)-1200					1601-(30.058)-1700	1701-(33.25)-1800	1801-(12.635)-1900			2101-(47.481)-2200	2201-(61.7785)-2300	2301-(19.019)-2400	;
+%s -v	BathLghtwd																					2001-(13.4865)-2100	2101-(27.0135)-2200	2201-(40.5)-2300		;
+%s -v	BathLghtwe																	1601-(27.0135)-1700	1701-(13.4865)-1800				2101-(27.0135)-2200	2201-(40.5)-2300		;
+%s -v	CBCLghtwd										901-(35)-1000											2001-(52.5)-2100	2101-(17.5)-2200	2201-(70)-2300	2301-(70)-2400	;
+%s -v	CBCLghtwe										901-(52.5)-1000	1001-(70)-1100	1101-(70)-1200					1601-(70)-1700	1701-(70)-1800	1801-(35)-1900		2001-(70)-2100	2101-(17.5)-2200	2201-(70)-2300		;
+%s -v	CBELghtwd										901-(35)-1000									1801-(35)-1900	1901-(35)-2000		2101-(52.5)-2200	2201-(70)-2300	2301-(17.5)-2400	;
+%s -v	CBELghtwe									801-(17.5)-900	901-(70)-1000	1001-(70)-1100	1101-(70)-1200	1201-(35)-1300								2001-(70)-2100	2101-(70)-2200	2201-(70)-2300		;
+%s -v	MBLghtwd										901-(35.0175)-1000															;
+%s -v	MBLghtwe										901-(52.5)-1000															;
+
+%sn -v	EntLght	EntLghtwd:-Weekday					EntLghtwe:-Weekend					;
+%sn -v	LDLght	LDLghtwd:-Weekday					LDLghtwe:-Weekend					;
+%sn -v	KLght	KLghtwd:-Weekday					KLghtwe:-Weekend					;
+%sn -v	Hall1FLght	Hall1FLghtwd:-Weekday					Hall1FLghtwe:-Weekend					;
+%sn -v	WC1FLght	WC1FLghtwd:-Weekday					WC1FLghtwe:-Weekend					;
+%sn -v	WroomLght	WroomLghtwd:-Weekday					WroomLghtwe:-Weekend					;
+%sn -v	BathLght	BathLghtwd:-Weekday					BathLghtwe:-Weekend					;
+%sn -v	CBCLght	CBCLghtwd:-Weekday					CBCLghtwe:-Weekend					;
+%sn -v	CBELght	CBELghtwd:-Weekday					CBELghtwe:-Weekend					;
+%sn -v	MBLght	MBLghtwd:-Weekday					MBLghtwe:-Weekend					;
+
+*
+
+VENT
+! Jroom  Inf=(1.32E-02,Infschdl) ;
+! LD  Inf=(1.72E-02,Infschdl) ;
+! K  Inf=(6.62E-03,Infschdl) ;
+! WC1F  Inf=(1.32E-03,Infschdl) ;
+! Wroom  Inf=(2.65E-03,Infschdl) ;
+! Bath  Inf=(2.65E-03,Infschdl) ;
+! Hall1F  Inf=(8.61E-03,Infschdl) ;
+! Ent  Inf=(1.99E-03,Infschdl) ;
+! MBroom  Inf=(1.06E-02,Infschdl) ;
+! CBC  Inf=(8.61E-03,Infschdl) ;
+! CBE  Inf=(8.61E-03,Infschdl) ;
+! Hall2F  Inf=(8.61E-03,Infschdl) ;
+! Cloth  Inf=(3.97E-03,Infschdl) ;
+! WC2F  Inf=(1.32E-03,Infschdl) ;
+ Attic  Inf=(1.07E-02,Infschdl) ;
+ AtticN  Inf=(1.70E-03,Infschdl) ;
+ AtticW  Inf=(2.26E-04,Infschdl) ;
+ Fnd  Inf=(1.15E-02,Infschdl) ;
+! Kaima  Inf=(8.70E-03,Infschdl) ;
+	
+	%s -v	Infschdl 001-(5.0)-2400 ;
+*
+
+SYSCMP
+	! 局所換気用外気導入
+	_OAKl	-type FLI  -V t=Ta x=xa * ;
+	_OABath	-type FLI  -V t=Ta x=xa * ;
+	_OAWC1F	-type FLI  -V t=Ta x=xa * ;
+	
+	! 計画換気用外気導入
+	_OAK	-type FLI  -V t=Ta x=xa * ;
+	_OALD	-type FLI  -V t=Ta x=xa * ;
+	_OAJ	-type FLI  -V t=Ta x=xa * ;
+	_OAClo	-type FLI  -V t=Ta x=xa * ;
+	_OAMB	-type FLI  -V t=Ta x=xa * ;
+	_OACBC	-type FLI  -V t=Ta x=xa * ;
+	_OACBE	-type FLI  -V t=Ta x=xa * ;
+	
+	! 室への空気流入
+	K		-Nin	3 ;
+	LD		-Nin	3 ;
+	Jroom	-Nin	1 ;
+	Wroom	-Nin	1 ;
+	Ent		-Nin	2 ;
+	Hall1F	-Nin	4 ;
+	Cloth	-Nin	1 ;
+	MBroom	-Nin	2 ;
+	CBC		-Nin	2 ;
+	CBE		-Nin	2 ;
+	WC2F	-Nin	1 ;
+	Hall2F	-Nin	2 ;
+	WC1F	-Nin	2 ;
+	Bath	-Nin	1 ;
+	
+	! 分岐・合流
+	G1			-type CA	-Nin	2 ;
+	G2			-type CA	-Nin	2 ;
+	B1			-type BA	-Nout	3 ;
+	Hall1Fex	-type BA	-Nout	1 ;
+	Wroomex		-type BA	-Nout	1 ;
+	WC1Fex		-type BA	-Nout	1 ;
+	G3			-type CA	-Nin	2 ;
+	G4			-type CA	-Nin	2 ;
+	G5			-type CA	-Nin	2 ;
+	B2			-type BA	-Nout	2 ;
+	Hall2Fex	-type BA	-Nout	1 ;
+	WC2Fex		-type BA	-Nout	1 ;
+	
+	RMACLD		-type HCLD ;
+	RMACMB		-type HCLD ;
+	RMACCBC		-type HCLD ;
+	RMACCBE		-type HCLD ;
+*
+
+SYSPTH
+	! LD空調
+	LDAC	-sys A	-f A
+	> (0.2) LD RMACLD >
+	;
+	
+	! MB空調
+	MBAC	-sys A	-f A
+	> (0.2) MBroom RMACMB >
+	;
+	
+	! CBC空調
+	CBCAC	-sys A	-f A
+	> (0.2) CBC RMACCBC >
+	;
+	
+	! CBE空調
+	CBEAC	-sys A	-f A
+	> (0.2) CBE RMACCBE >
+	;
+	
+	! 5000CMH（緑本P621）
+	LD2KVent	-sys A	-f A
+	> (1.66667)  LD  K >
+	;
+	
+	! 273CMH （緑本P621）
+	HAL12HAL2Vent	-sys A	-f A
+	> (0.091)  Hall1F  Hall2F >
+	;
+	
+	! K局所換気
+	KLVent	-sys A	-f A
+	> (KVent)  _OAKl  K >
+	;
+	
+	! 便所局所換気
+	WC1FLVent	-sys A	-f A
+	> (WC1FVent)  _OAWC1F  Ent  Hall1F  WC1F >
+	;
+	
+	! 浴室局所換気
+	BathLVent	-sys A	-f A
+	> (BathVent)  _OABath  Ent  Hall1F  Bath >
+	;
+	
+	! 1F計画換気
+	WholeVentSys1F	-sys A	-f A
+	> (6.67e-3)  _OAK K G1 >
+	> (1.33e-2)  _OALD  G1 >
+	> G1  LD  G2 >
+	> (6.67e-3)  _OAJ  Jroom  G2 >
+	> G2 Hall1F  B1 >
+	> (8.89e-3) B1 Hall1Fex >
+	> (8.89e-3) B1 Wroom Wroomex >
+	> (8.89e-3) B1 WC1F WC1Fex >
+	;
+	
+	! 2F計画換気
+	WholeVentSys2F	-sys A	-f A
+	> (6.67e-3) _OAClo  Cloth  G3 >
+	> (6.67e-3) _OAMB  G3 >
+	> G3  MBroom  G5 >
+	> (6.67e-3) _OACBC  CBC  G4 >
+	> (6.67e-3) _OACBE  CBE  G4 >
+	> G4  G5 >
+	> G5  Hall2F  B2 >
+	> (1.33e-2)  B2  Hall2Fex >
+	> (1.33e-2)  B2  WC2F  WC2Fex >
+	;
+	
+%s -v	Kventwd							601-(2.50E-02)-700						1201-(2.50E-02)-1300						1801-(5.00E-02)-1900	1901-(5.00E-02)-2000					;
+%s -v	Kventwe									801-(2.50E-02)-900				1201-(2.50E-02)-1300					1701-(5.00E-02)-1800	1801-(5.00E-02)-1900						;
+%s -v	WC1Fventwd							601-(2.00E-03)-700	701-(6.67E-04)-800		901-(2.67E-04)-1000			1201-(2.67E-04)-1300				1601-(2.67E-04)-1700	1701-(2.67E-04)-1800	1801-(2.67E-04)-1900	1901-(2.67E-04)-2000	2001-(2.67E-04)-2100	2101-(6.67E-04)-2200		2301-(9.33E-04)-2400	;
+%s -v	WC1Fventwe								701-(1.33E-03)-800	801-(1.33E-03)-900		1001-(4.00E-04)-1100	1101-(4.00E-04)-1200					1601-(6.67E-04)-1700	1701-(2.67E-04)-1800		1901-(6.67E-04)-2000	2001-(2.67E-04)-2100		2201-(6.67E-04)-2300	2301-(2.67E-04)-2400	;
+%s -v	Bathventwd																						2101-(1.67E-02)-2200	2201-(8.33E-03)-2300	2301-(3.33E-02)-2400	;
+%s -v	Bathventwe																		1701-(2.50E-02)-1800	1801-(8.33E-03)-1900			2101-(8.33E-03)-2200	2201-(8.33E-03)-2300	2301-(3.33E-02)-2400	;
+																										
+%sn -v	KVent	Kventwd:-Weekday					Kventwe:-Weekend					;														
+%sn -v	WC1FVent	WC1Fventwd:-Weekday					WC1Fventwe:-Weekend					;														
+%sn -v	BathVent	Bathventwd:-Weekday					Bathventwe:-Weekend					;														
+
+*
+
+CONTL
+	LD2KVent=ON ;
+	HAL12HAL2Vent=ON ;
+	KLVent=ON ;
+	WC1FLVent=ON ;
+	BathLVent=ON ;
+	WholeVentSys1F=ON ;
+	WholeVentSys2F=ON ;
+	
+	! LDAC=ACSSNLD ;
+	! MBAC=ACSSNMB ;
+	! CBCAC=ACSSNCBC ;
+	! CBEAC=ACSSNCBE ;
+	LDAC=OFF ;
+	MBAC=OFF ;
+	CBCAC=OFF ;
+	CBEAC=OFF ;
+	LOAD	-e RMACLD	LD_Tr=Trset ;
+	LOAD	-e RMACMB	MBroom_Tr=TrsetMB ;
+	LOAD	-e RMACCBC	CBC_Tr=TrsetCBC ;
+	LOAD	-e RMACCBE	CBE_Tr=TrsetCBE ;
+	LOAD	-e RMACLD	LD_RH=RHset ;
+	LOAD	-e RMACMB	MBroom_RH=RHset ;
+	LOAD	-e RMACCBC	CBC_RH=RHset ;
+	LOAD	-e RMACCBE	CBE_RH=RHset ;
+	RMACLD_chmode=ACMode ;
+	RMACMB_chmode=ACMode ;
+	RMACCBC_chmode=ACMode ;
+	RMACCBE_chmode=ACMode ;
+	
+	%s -v	TrsetI	;
+	%s -v	TrsetH	001-(20)-2400 ;
+	%s -v	TrsetC	001-(27)-2400 ;
+	%s -v	TrsetMBwd	001-(28)-700  701-(27)-2300  2301-(28)-2400 ;
+	%s -v	TrsetMBwe	001-(28)-800  801-(27)-2300  2301-(28)-2400 ;
+	%s -v	TrsetCBCwd	001-(28)-700  701-(27)-2400 ;
+	%s -v	TrsetCBCwe	001-(28)-800  801-(27)-2300  2301-(28)-2400 ;
+	%s -v	TrsetCBEwd	001-(28)-700  701-(27)-2300  2301-(28)-2400 ;
+	%s -v	TrsetCBEwe	001-(28)-800  801-(27)-2300  2301-(28)-2400 ;
+	%s -v	RHsetH	;
+	%s -v	RHsetC	001-(60)-2400 ;
+	%sn -v	Trset	TrsetH:Winter	TrsetC:Summer	TrsetI:Inter ;
+	%sn -v	TrsetMB		TrsetH:Winter	TrsetMBwd:Summer-Weekday	TrsetMBwe:Summer-Weekend	TrsetI:Inter ;
+	%sn -v	TrsetCBC	TrsetH:Winter	TrsetCBCwd:Summer-Weekday	TrsetCBCwe:Summer-Weekend	TrsetI:Inter ;
+	%sn -v	TrsetCBE	TrsetH:Winter	TrsetCBEwd:Summer-Weekday	TrsetCBEwe:Summer-Weekend	TrsetI:Inter ;
+	%sn -v	RHset	RHsetH:Winter	RHsetC:Summer	RHsetH:Inter ;
+	
+	%s -s	ACOFF	;
+	%s -s	ACSWLDwd						601-(-)-700	701-(-)-800	801-(-)-900	901-(-)-1000			1201-(-)-1300	1301-(-)-1400			1601-(-)-1700	1701-(-)-1800	1801-(-)-1900	1901-(-)-2000	2001-(-)-2100	2101-(-)-2200	2201-(-)-2300	2301-(-)-2400			;
+	%s -s	ACSWLDwe							801-(-)-900	901-(-)-1000	1001-(-)-1100	1101-(-)-1200	1201-(-)-1300	1301-(-)-1400			1601-(-)-1700	1701-(-)-1800	1801-(-)-1900	1901-(-)-2000	2001-(-)-2100	2101-(-)-2200	2201-(-)-2300				;
+	%sn -s	ACSSNLD	ACSWLDwd:Summer-Weekday  ACSWLDwe:Summer-Weekend  ACSWLDwd:Winter-Weekday  ACSWLDwe:Winter-Weekend  ACOFF:Inter ;
+	%s -s	ACSWMBwd	001-(-)-700  2301-(-)-2400 ;
+	%s -s	ACSWMBwe	001-(-)-800  2301-(-)-2400 ;
+	%sn -s	ACSSNMB	ACSWMBwd:Summer-Weekday  ACSWMBwe:Summer-Weekend  ACOFF:Winter  ACOFF:Inter ;
+	%s -s	ACSWCBCwdS	001-(-)-700  2001-(-)-2100  2201-(-)-2400 ;
+	%s -s	ACSWCBCweS	001-(-)-1200 1601-(-)-1900 2001-(-)-2400 ;
+	%s -s	ACSWCBCwdW	2001-(-)-2100  2201-(-)-2400 ;
+	%s -s	ACSWCBCweW	801-(-)-1200 1601-(-)-1900 2001-(-)-2300 ;
+	%s -s	ACSWCBEwdS	001-(-)-700 1801-(-)-1900  2101-(-)-2400 ;
+	%s -s	ACSWCBEweS	001-(-)-800 901-(-)-1300 2001-(-)-2400 ;
+	%s -s	ACSWCBEwdW	1801-(-)-1900  2101-(-)-2300 ;
+	%s -s	ACSWCBEweW	901-(-)-1300 2001-(-)-2300 ;
+	%sn -s	ACSSNCBC	ACSWCBCwdS:Summer-Weekday  ACSWCBCweS:Summer-Weekend  ACSWCBCwdW:Winter-Weekday  ACSWCBCweW:Winter-Weekend  ACOFF:Inter ;
+	%sn -s	ACSSNCBE	ACSWCBEwdS:Summer-Weekday  ACSWCBEweS:Summer-Weekend  ACSWCBEwdW:Winter-Weekday  ACSWCBEweW:Winter-Weekend  ACOFF:Inter ;
+	
+	%s -s	Cool	001-(C)-2400 ;
+	%s -s	Heat	001-(H)-2400 ;
+	%sn -s	ACMode	Cool:Summer  Heat:Winter  ACOFF:Inter ;
+	
+%s -v	LDACwdHT						601-(20)-700	701-(20)-800	801-(20)-900	901-(20)-1000			1201-(20)-1300	1301-(20)-1400			1601-(20)-1700	1701-(20)-1800	1801-(20)-1900	1901-(20)-2000	2001-(20)-2100	2101-(20)-2200	2201-(20)-2300	2301-(20)-2400		;
+%s -v	LDACweHT								801-(20)-900	901-(20)-1000	1001-(20)-1100	1101-(20)-1200	1201-(20)-1300	1301-(20)-1400			1601-(20)-1700	1701-(20)-1800	1801-(20)-1900	1901-(20)-2000	2001-(20)-2100	2101-(20)-2200	2201-(20)-2300			;
+%s -v	MBACwdHT																									;
+%s -v	MBACweHT																									;
+%s -v	CBCACwdHT																				2001-(20)-2100		2201-(20)-2300	2301-(20)-2400		;
+%s -v	CBCACweHT								801-(20)-900	901-(20)-1000	1001-(20)-1100	1101-(20)-1200					1601-(20)-1700	1701-(20)-1800	1801-(20)-1900		2001-(20)-2100	2101-(20)-2200	2201-(20)-2300			;
+%s -v	CBEACwdHT																		1801-(20)-1900			2101-(20)-2200	2201-(20)-2300			;
+%s -v	CBEACweHT									901-(20)-1000	1001-(20)-1100	1101-(20)-1200	1201-(20)-1300								2001-(20)-2100	2101-(20)-2200	2201-(20)-2300			;
+																										
+%sn -v	LDACHT	LDACwdHT:-Weekday			LDACweHT:-Weekend		;																			
+%sn -v	MBACHT	MBACwdHT:-Weekday			MBACweHT:-Weekend		;																			
+%sn -v	CBCACHT	CBCACwdHT:-Weekday			CBCACweHT:-Weekend		;																			
+%sn -v	CBEACHT	CBEACwdHT:-Weekday			CBEACweHT:-Weekend		;																			
+
+*
+*

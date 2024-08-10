@@ -152,12 +152,12 @@ func Eespre(bdata0 string, Ipath string, key *int) (string, string, string, stri
 			for _, item := range line[1:] {
 				fmt.Fprintf(fs, "%s ", item)
 			}
-			fs.WriteString(";\n")
+			fs.WriteString("\n")
 		} else if line[0] == "%sn" {
 			for _, item := range line[1:] {
 				fmt.Fprintf(fsn, "%s ", item)
 			}
-			fsn.WriteString(";\n")
+			fsn.WriteString("\n")
 		} else if line[len(line)-1] == "*" {
 			for _, item := range line {
 				fmt.Fprintf(sb, "%s ", item)
@@ -167,9 +167,11 @@ func Eespre(bdata0 string, Ipath string, key *int) (string, string, string, stri
 			for _, item := range line {
 				fmt.Fprintf(sb, "%s ", item)
 			}
-			sb.WriteString(";\n")
+			sb.WriteString("\n")
 		}
 	}
+
+	fmt.Println(sb.String())
 
 	// トークン分割
 	tokens = NewEeTokens(sb.String())
@@ -179,11 +181,6 @@ func Eespre(bdata0 string, Ipath string, key *int) (string, string, string, stri
 		s := tokens.GetToken()
 		if s == "\n" {
 			continue
-		}
-		// sが"SYSCMP"で始まる場合
-		if strings.HasPrefix(s, "SYSCMP") {
-			ii := 0
-			ii = ii + 1
 		}
 
 		// 壁体の材料定義リストを指定
@@ -211,12 +208,13 @@ func Eespre(bdata0 string, Ipath string, key *int) (string, string, string, stri
 			line := tokens.GetLogicalLine()
 
 			// `*` で終わる場合は空セクションを挿入
+			// SYSCMPでは `_OA101	-type FLI	-V t=Ta x=xa * ;`のように*で終端することがある
 			if line[len(line)-1] == "*" {
 				fb.WriteString(strings.Join(line[:len(line)-1], " "))
 				fb.WriteString("\n*\n")
 			} else {
 				fb.WriteString(strings.Join(line, " "))
-				fb.WriteString(" ;\n")
+				fb.WriteString("\n")
 			}
 		}
 	}

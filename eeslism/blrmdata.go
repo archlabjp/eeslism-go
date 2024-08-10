@@ -136,7 +136,7 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 		nr = -1
 
 		// 室のデータの読み取り
-		compnameStart := false
+		compnameStart := false // 部位の設定を読み取り中かどうかを示すフラグ
 		for section.IsEnd() == false {
 			s := section.PeekToken()
 			if s == "\n" {
@@ -153,10 +153,12 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 			nr++
 
 			SdIdx++
+
+			// 壁体データの初期化
 			Sd := Rmsrfinit()
 			var err error
 
-			for i := 0; i < len(line); i++ {
+			for i := 0; i < len(line)-1; i++ {
 				s := line[i]
 				if DEBUG {
 					fmt.Printf("Roomdata1  s=%s\n", s)
@@ -249,9 +251,13 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 						// 読み進めの記録
 						i = ii + 1
 					} else if strings.ContainsRune(s, ':') {
+						// ex: `west: -E	7.50 ;`
+						// ex: `(roomA):	-i	Room	i=roomA ;``
+
 						ss := strings.Split(s, ":")
 
-						regexPattern := `\(([^)]*)\)`
+						// 部位の種類を判定するために、括弧を確認する
+						const regexPattern = `\(([^)]*)\)`
 
 						// 正規表現をコンパイルします。
 						r, err := regexp.Compile(regexPattern)
@@ -265,11 +271,13 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 
 						// マッチした内容が存在し、サブマッチ（ここではカッコ内）が存在する場合、それを表示します。
 						if len(match) > 1 {
+							// 内壁の名前
 							dnxrname = match[1]
 						} else {
+							// 外壁の名前
 							dexsname = ss[0]
 						}
-						compnameStart = true
+						compnameStart = true // 部位の設定を読み取り開始
 					} else if s == "Fij" {
 						// 形態係数の入力 （予め計算済みの形態係数を使用する場合）
 						Rm.fij = 'F'
@@ -300,10 +308,15 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 					} else if s == "rsrnx" {
 						Rm.rsrnx = true
 					} else if s[0] == '-' {
+						// `-E` の様に記述することで、部位の種類を指定する
 						c := s[1]
+
+						// 不正なBLEの場合はエラーを出力
 						if c != 'E' && c != 'R' && c != 'F' && c != 'i' && c != 'c' && c != 'f' && c != 'W' {
 							panic(fmt.Sprintf("Invalid ble '%s' at \"%s\"", string(c), strings.Join(line, " ")))
 						}
+
+						// 部位の種類を設定
 						Sd.ble = BLEType(c)
 					} else if compnameStart {
 						c := Sd.ble
@@ -311,7 +324,8 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 							fmt.Printf("Roomdata3  s=%s  c=%c\n", s, c)
 						}
 
-						if c == 'W' {
+						// 読み取り中の部位が窓の場合
+						if c == BLE_Window {
 							nf := Sd.Nfn
 							Sd.Nfn++
 
@@ -341,6 +355,7 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 								os.Exit(1)
 							}
 						} else {
+							// 読み取り中の部位が窓以外の場合
 							for j := range Rmvls.Wall {
 								w := Rmvls.Wall[j]
 
@@ -691,6 +706,7 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 				}
 			}
 
+			// 壁体情報を追加
 			Rmvls.Sd = append(Rmvls.Sd, Sd)
 		}
 

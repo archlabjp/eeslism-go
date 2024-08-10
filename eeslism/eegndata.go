@@ -62,7 +62,7 @@ func Gdata(section *EeTokens, File string, wfname *string,
 		line := section.GetLogicalLine()
 
 		if line[0] == "FILE" {
-			for _, s := range line[1:] {
+			for _, s := range line[1 : len(line)-1] {
 				if s == "-skyrd" { // 気象データは夜間放射量で定義されている
 					Wd.RNtype = 'R'
 				} else if s == "-intgtsupw" { // 給水温度を補間する
@@ -203,7 +203,7 @@ func Gdata(section *EeTokens, File string, wfname *string,
 			}
 			fmt.Printf("<<Gdata>> dtm=%d\n", *dtm)
 		} else if line[0] == "PRINT" {
-			for _, s := range line[1:] {
+			for _, s := range line[1 : len(line)-1] {
 				switch s {
 				case "*wd":
 					*wdpri = 1

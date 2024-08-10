@@ -49,7 +49,7 @@ func Ventdata(fi *EeTokens, Schdl *SCHDL, Room []*ROOM, Simc *SIMCONTL) {
 		}
 		Rm = Room[i] //室の参照
 
-		for _, s := range line[1:] {
+		for _, s := range line[1 : len(line)-1] {
 			_ss := strings.SplitN(s, "=", 2)
 			key := _ss[0]
 			valstr := _ss[1]

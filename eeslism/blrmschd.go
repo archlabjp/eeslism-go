@@ -29,6 +29,8 @@ import (
 func Windowschdlr(isw []ControlSWType, windows []*WINDOW, ds []*RMSRF) {
 	for i := range ds {
 		sd := ds[i]
+
+		// 壁体の種類が窓の場合
 		if sd.ble == BLE_Window {
 			nsw := sd.Nfn
 
@@ -38,7 +40,11 @@ func Windowschdlr(isw []ControlSWType, windows []*WINDOW, ds []*RMSRF) {
 			// 窓の選択は条件による切り替えが優先される
 			// スケジュールによる窓の変更
 			if nsw > 1 {
-				j = iswmode(rune(isw[sd.fnsw]), nsw, sd.fnmrk[:])
+				var err error
+				j, err = iswmode(rune(isw[sd.fnsw]), nsw, sd.fnmrk[:])
+				if err != nil {
+					panic(fmt.Sprintf("スケジュールによる窓選択先のIDが不正: rm=%d, n=%d, name=%s", sd.rm, sd.n, sd.Name))
+				}
 			}
 
 			w := windows[sd.fnd[j]]

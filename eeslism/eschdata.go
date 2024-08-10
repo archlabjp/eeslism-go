@@ -127,7 +127,7 @@ func Schtable(schtba string, Schdl *SCHDL) {
 			// 季節設定
 
 			fields := tokens.GetLogicalLine()
-			n := len(fields) - 1
+			n := len(fields) - 2
 
 			Sn := SEASN{
 				name: fields[0], // 季節名

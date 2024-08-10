@@ -87,7 +87,7 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 			ex.Rg = dfrg // 日射反射率=デフォルト値
 		}
 
-		for _, s := range line[1:] {
+		for _, s := range line[1 : len(line)-1] {
 			st := strings.IndexRune(s, '=')
 
 			key := s[:st]

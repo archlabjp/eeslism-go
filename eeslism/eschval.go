@@ -17,6 +17,10 @@
 
 package eeslism
 
+import (
+	"errors"
+)
+
 /*  １日スケジュ－ルから設定値の選択   */
 
 func schval(nday, ttmm int, Sch *SCH, Dsch []DSCH) float64 {
@@ -64,16 +68,16 @@ func scwmode(nday, ttmm int, Scw *SCH, Dscw []DSCW) ControlSWType {
 
 /*  スケジュ－ルモ－ドから設定番号の検索   */
 
-func iswmode(c rune, N int, mode []rune) int {
+func iswmode(c rune, N int, mode []rune) (int, error) {
 	if N == 1 {
-		return 0
+		return 0, nil
 	} else {
 		for i := 0; i < N; i++ {
 			if c == mode[i] {
-				return i
+				return i, nil
 			}
 		}
-		return -1
+		return -1, errors.New("スケジュールによる選択先のIDが不正")
 	}
 }
 

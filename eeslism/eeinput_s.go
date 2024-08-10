@@ -102,7 +102,7 @@ func (t *EeTokens) GetLogicalLine() []string {
 	var filtered []string
 
 	//
-	if t.tokens[t.pos] == "*" {
+	if t.tokens[t.pos] == "*" && t.tokens[t.pos-1] == "\n" {
 		logiline = t.tokens[t.pos : t.pos+1]
 		t.pos++
 		return logiline
@@ -112,7 +112,7 @@ func (t *EeTokens) GetLogicalLine() []string {
 	var found bool = false
 	for i := t.pos; i < len(t.tokens); i++ {
 		if t.tokens[i] == ";" {
-			logiline = t.tokens[t.pos:i] // `;` is not included
+			logiline = t.tokens[t.pos : i+1] // `;` is included
 			t.pos = i + 1
 			found = true
 			break

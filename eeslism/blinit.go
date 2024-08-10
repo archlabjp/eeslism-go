@@ -145,7 +145,7 @@ func Walldata(section *EeTokens, fbmlist string, Wall *[]*WALL, dfwl *DFWL, pcm 
 		// (2) 部位・壁体のパラメータを読み取り
 		// 例) `Eo=0.9 Ei=0.9 as=0.7 type=1 APR-100 APR-100/20 <P:80.3> ;`
 		var layer []string
-		for _, s = range line[1:] {
+		for _, s = range line[1 : len(line)-1] {
 			var err error
 			st := strings.IndexRune(s, '=')
 			if st != -1 {
@@ -429,7 +429,7 @@ func Windowdata(section *EeTokens, Window *[]*WINDOW) {
 		}
 
 		// プロパティの設定
-		for _, s := range line[1:] {
+		for _, s := range line[1 : len(line)-1] {
 			// 室内透過日射が窓室内側への入射日射を屋外に透過する場合'y'
 			if s == "-RStrans" {
 				W.RStrans = true
@@ -519,7 +519,7 @@ func Snbkdata(section *EeTokens, dsn string, Snbk *[]*SNBK) {
 		// 入力チェック用
 		code := [7]rune{'.', '.', '.', '.', '.', '.', '.'}
 
-		for _, s := range fields[1:] {
+		for _, s := range fields[1 : len(fields)-1] {
 			// キー・バリューの分離
 			st := strings.IndexRune(s, '=')
 			if st == -1 {

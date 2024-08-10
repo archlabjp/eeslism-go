@@ -26,7 +26,7 @@ import "math"
 //
 //*/
 
-func HOUSEN(w int, LP []P_MENN) {
+func HOUSEN(w int, LP []*P_MENN) {
 	for i := 0; i < w; i++ {
 		x := LP[i].P[1].X - LP[i].P[0].X
 		y := LP[i].P[1].Y - LP[i].P[0].Y

@@ -28,11 +28,11 @@ import (
 )
 
 /*---------------------------------------------------------------------*/
-func DAINYUU_MP(mp *[]P_MENN, op []P_MENN, opn int, mpn int) {
+func DAINYUU_MP(mp *[]*P_MENN, op []*P_MENN, opn int, mpn int) {
 	k := 0
 	for i := 0; i < opn; i++ {
 		(*mp)[k].P = make([]XYZ, op[i].polyd)
-		(*mp)[k] = op[i]
+		*(*mp)[k] = *op[i]
 		(*mp)[k].wd = 0
 		(*mp)[k].sbflg = 0
 		(*mp)[k].wlflg = 0
@@ -95,7 +95,7 @@ func DAINYUU_SMO(opn int, mpn int, op []P_MENN, mp []P_MENN) {
 }
 
 /*-----------------------------------------------------------------------*/
-func DAINYUU_SMO2(opn int, mpn int, op []P_MENN, mp []P_MENN, Sdstr []SHADSTR, dcnt int, tm int) {
+func DAINYUU_SMO2(opn int, mpn int, op []*P_MENN, mp []*P_MENN, Sdstr []*SHADSTR, dcnt int, tm int) {
 	k := 0
 
 	if dcnt == 1 {

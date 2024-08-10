@@ -25,6 +25,12 @@ package eeslism
 
 import "math"
 
+// ZAHYOU converts coordinates  for Monte Carlo method.
+// Op: original coordinates
+// G: coordinates of the center of gravity
+// op: converted coordinates [out]
+// wa: angle of rotation around the Z-axis
+// wb: angle of rotation around the X-axis
 func ZAHYOU(Op, G XYZ, op *XYZ, wa, wb float64) {
 	Cwa := math.Cos(wa * math.Pi / 180)
 	Swa := math.Sin(wa * math.Pi / 180)

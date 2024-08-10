@@ -101,8 +101,7 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 	SdIdx--
 
 	var i int = -1
-	for tokens.IsEnd() == false {
-
+	for _i := 0; _i < N; _i++ {
 		section := tokens.GetSection()
 
 		// 部屋についての一行目の情報を処理
@@ -157,7 +156,8 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 			Sd := Rmsrfinit()
 			var err error
 
-			for _, s := range line {
+			for i := 0; i < len(line); i++ {
+				s := line[i]
 				if DEBUG {
 					fmt.Printf("Roomdata1  s=%s\n", s)
 				}
@@ -210,30 +210,44 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 						Sd.Ctlif = new(CTLIF)
 
 						// Read until the end of the if statement
-						var ss string
-						ss = strings.Trim(tokens.GetToken(), "()")
-						Sd.DynamicCode = ss
+						// ex `if (LD_Tr > 27)`
+						// line[i]を読み進めて `)` まで読み進める
+						ii := i + 1
+						for {
+							ss := line[ii]
+							//ssが`)`が終わるか
+							if ss[len(ss)-1] == ')' {
+								break
+							}
+							ii = ii + 1
+						}
+						Sd.DynamicCode = strings.Trim(strings.Join(line[i+1:ii+1], " "), "()")
 
 						// IF文の展開
 						//ctifdecode(s, Sd->ctlif, Simc, Compnt, Nmpath, Mpath, Wd, Exsf, Schdl);
 
 						// Read the True case window
-						s = tokens.GetToken()
+						target_window := line[ii+1]
+						found := false
 						for j := range Rmvls.Window {
 							W := Rmvls.Window[j]
-							if W.Name == s {
+							if W.Name == target_window {
 								Sd.ifwin = W
 								Sd.Rwall = W.Rwall
 								Sd.CAPwall = 0.0
+								found = true
 								break
 							}
 						}
 
-						if j == len(Rmvls.Window) {
+						if found == false {
 							err := fmt.Sprintf("Room=%s <window> %s", Rm.Name, s)
 							Eprint("<Roomdata>", err)
 							os.Exit(1)
 						}
+
+						// 読み進めの記録
+						i = ii + 1
 					} else if strings.ContainsRune(s, ':') {
 						ss := strings.Split(s, ":")
 
@@ -435,7 +449,7 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 							var err error
 							st1 := strings.IndexRune(stbuf, ')')
 							st2 := strings.IndexRune(stbuf, ',')
-							Rm.mPCM, err = readFloat(s[st2+2 : st1])
+							Rm.mPCM, err = readFloat(stbuf[st2+1 : st1])
 							if err != nil {
 								panic(err)
 							}

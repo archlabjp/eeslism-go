@@ -24,6 +24,7 @@ package eeslism
 
 import "math"
 
+// CAT truncates the decimal point.
 func CAT(a, b, c *float64) {
 	*a = math.Floor((*a)*10000.0 + 0.5)
 	*b = math.Floor((*b)*10000.0 + 0.5)
@@ -33,13 +34,13 @@ func CAT(a, b, c *float64) {
 	*b = (*b) / 10000.0
 	*c = (*c) / 10000.0
 
-	if math.Signbit(*a) {
+	if (*a) == -0.0 {
 		*a = 0.0
 	}
-	if math.Signbit(*b) {
+	if (*b) == -0.0 {
 		*b = 0.0
 	}
-	if math.Signbit(*c) {
+	if (*c) == -0.0 {
 		*c = 0.0
 	}
 }

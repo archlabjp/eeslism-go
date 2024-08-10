@@ -39,14 +39,23 @@ func Entry(InFile string, efl_path string) {
 	var Soldy []float64  // 日集計データ
 	var Solmon []float64 // 月集計データ
 
-	var uop, ulp []bekt
-	var ullp, ulmp *bekt
+	var uop, ulp []*bekt
+	var ullp, ulmp []*bekt
 
 	/*---------------higuchi add-------------------start*/
 
-	var bdpn, obsn, lpn, opn, mpn, monten, polyn, treen, shadn int
+	var bdpn int = 0      // BDPの総数
+	var obsn int = 0      // OBSの総数
+	var lpn int = 0       // LP(被受照面)の総数
+	var opn int = 0       // OP(受照面)の総数
+	var mpn int = 0       // MP(受照面)の総数
+	var monten int = 1000 // モンテカルロ法の際の射出数
+	var polyn int = 0     // 直接座標入力するポリゴンの総数
+	var treen int = 0     // TREE(樹木)の総数
+	var shadn int = 0     // 日射遮蔽率テーブルの総数
 
-	var DE, co float64
+	var DE float64 = 100.0 // 壁面の分割による微小四角形の辺の長さ
+	var co float64 = 0.0   // 壁面への太陽光線の入射角
 
 	var wap []float64
 	var wip [][]float64
@@ -58,12 +67,12 @@ func Entry(InFile string, efl_path string) {
 
 	var fp1, fp2, fp3, fp4 *os.File
 
-	var BDP []BBDP
-	var obs []OBS
-	var tree []TREE     /*-樹木データ-*/
-	var poly []POLYGN   /*--POLYGON--*/
-	var shadtb []SHADTB /*-LP面の日射遮蔽率スケジュール-*/
-	var op, lp, mp []P_MENN
+	var BDP []*BBDP
+	var obs []*OBS
+	var tree []*TREE     /*-樹木データ-*/
+	var poly []*POLYGN   /*--POLYGON--*/
+	var shadtb []*SHADTB /*-LP面の日射遮蔽率スケジュール-*/
+	var op, lp, mp []*P_MENN
 	var Noplpmp NOPLPMP // OP、LP、MPの定義数
 
 	var Datintvl int
@@ -155,8 +164,8 @@ func Entry(InFile string, efl_path string) {
 		&bdpn, &obsn, &treen, &shadn, &polyn, &BDP, &obs, &tree, &shadtb, &poly, &monten, &gpn, &DE, &Noplpmp)
 
 	// 外部障害物のメモリを確保
-	op = make([]P_MENN, Noplpmp.Nop)
-	lp = make([]P_MENN, Noplpmp.Nlp)
+	op = make([]*P_MENN, Noplpmp.Nop)
+	lp = make([]*P_MENN, Noplpmp.Nlp)
 	P_MENNinit(op, Noplpmp.Nop)
 	P_MENNinit(lp, Noplpmp.Nlp)
 
@@ -228,7 +237,7 @@ func Entry(InFile string, efl_path string) {
 		}
 
 		//---- mpの総数をカウント mpは、OP面+OPW面 ---------------
-		mpn := 0
+		mpn = 0
 		for i := 0; i < opn; i++ {
 			mpn += 1
 			for j := 0; j < op[i].wd; j++ {
@@ -237,8 +246,8 @@ func Entry(InFile string, efl_path string) {
 		}
 
 		//---窓壁のカウンター変数の初期化---
-		//wap := make([]float64, opn)
-		wip := make([][]float64, opn)
+		wap = make([]float64, opn)
+		wip = make([][]float64, opn)
 		for i := 0; i < opn; i++ {
 			if op[i].wd != 0 {
 				wip[i] = make([]float64, op[i].wd)
@@ -246,13 +255,13 @@ func Entry(InFile string, efl_path string) {
 		}
 
 		//---領域の確保   gp 地面の座標(X,Y,Z)---
-		gp := make([][]XYZ, mpn)
+		gp = make([][]XYZ, mpn)
 		for i := 0; i < mpn; i++ {
 			gp[i] = make([]XYZ, gpn+1)
 		}
 
 		//---領域の確保 mp---
-		mp := make([]P_MENN, Noplpmp.Nmp)
+		mp = make([]*P_MENN, Noplpmp.Nmp)
 		P_MENNinit(mp, mpn)
 
 		//----OP,OPWの構造体をMPへ代入する----
@@ -264,8 +273,9 @@ func Entry(InFile string, efl_path string) {
 
 		//---ベクトルの向きを判別する変数の初期化---
 		//---opから見たopの位置---
-		uop := make([]bekt, opn)
+		uop = make([]*bekt, opn)
 		for i := 0; i < opn; i++ {
+			uop[i] = new(bekt)
 			uop[i].ps = make([][]float64, opn)
 			for j := 0; j < opn; j++ {
 				uop[i].ps[j] = make([]float64, op[j].polyd)
@@ -273,8 +283,9 @@ func Entry(InFile string, efl_path string) {
 		}
 
 		//---opから見たlpの位置---
-		ulp := make([]bekt, opn)
+		ulp = make([]*bekt, opn)
 		for i := 0; i < opn; i++ {
+			ulp[i] = new(bekt)
 			ulp[i].ps = make([][]float64, lpn)
 			for j := 0; j < lpn; j++ {
 				ulp[i].ps[j] = make([]float64, lp[j].polyd)
@@ -282,8 +293,9 @@ func Entry(InFile string, efl_path string) {
 		}
 
 		//---lpから見たlpの位置---
-		ullp := make([]bekt, lpn)
+		ullp = make([]*bekt, lpn)
 		for i := 0; i < lpn; i++ {
+			ullp[i] = new(bekt)
 			ullp[i].ps = make([][]float64, lpn)
 			for j := 0; j < lpn; j++ {
 				ullp[i].ps[j] = make([]float64, lp[j].polyd)
@@ -291,8 +303,9 @@ func Entry(InFile string, efl_path string) {
 		}
 
 		//---lpから見たmpの位置---
-		ulmp := make([]bekt, lpn)
+		ulmp = make([]*bekt, lpn)
 		for i := 0; i < lpn; i++ {
+			ulmp[i] = new(bekt)
 			ulmp[i].ps = make([][]float64, mpn)
 			for j := 0; j < mpn; j++ {
 				ulmp[i].ps[j] = make([]float64, mp[j].polyd)
@@ -305,7 +318,7 @@ func Entry(InFile string, efl_path string) {
 		//----前面地面代表点および壁面の中心点を求める--------
 		GRGPOINT(mp, mpn)
 		for i := 0; i < lpn; i++ {
-			GDATA(&lp[i], &lp[i].G)
+			GDATA(lp[i], &lp[i].G)
 		}
 
 		// 20170426 higuchi add 条件追加　形態係数を計算しないパターンを組み込んだ
@@ -457,8 +470,9 @@ func Entry(InFile string, efl_path string) {
 	mtb := (24 * 60) / dminute
 	//mtb = 12;
 	// 110413 higuchi add  影面積をストアして、影計算を10日おきにする
-	Sdstr := make([]SHADSTR, mpn)
+	Sdstr := make([]*SHADSTR, mpn)
 	for i := 0; i < mpn; i++ {
+		Sdstr[i] = new(SHADSTR)
 		Sdstr[i].sdsum = make([]float64, mtb)
 		for jj := 0; jj < mtb; jj++ {
 			Sdstr[i].sdsum[jj] = 0.0
@@ -619,7 +633,7 @@ func Entry(InFile string, efl_path string) {
 							}
 							CINC(op[j], ls, ms, ns, &co)
 							if co > 0.0 {
-								SHADOW(j, DE, opn, lpn, ls, ms, ns, &uop[j], &ulp[j], &op[j], op, lp, &wap[j], wip[j], day)
+								SHADOW(j, DE, opn, lpn, ls, ms, ns, uop[j], ulp[j], op[j], op, lp, &wap[j], wip[j], day)
 							} else {
 								op[j].sum = 1.0
 								for i := 0; i < op[j].wd; i++ {
@@ -1066,10 +1080,10 @@ func matiniti(A []int, N int) {
 	}
 }
 
-func P_MENNinit(_pm []P_MENN, N int) {
+func P_MENNinit(_pm []*P_MENN, N int) {
 	const pmax = 200
 	for i := 0; i < N; i++ {
-		pm := &_pm[i]
+		pm := new(P_MENN)
 		pm.Nopw = 0
 		pm.opname = ""
 		matinit(pm.rgb[:], 3)
@@ -1082,5 +1096,6 @@ func P_MENNinit(_pm []P_MENN, N int) {
 		pm.alo, pm.as, pm.Eo = 0.0, 0.0, 0.0
 		pm.polyd, pm.sbflg = 0, 0
 		pm.P, pm.opw = nil, nil
+		_pm[i] = pm
 	}
 }

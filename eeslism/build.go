@@ -113,8 +113,8 @@ type RMSRF struct {
 	dynamicwin int     // 動的に窓を切り替える場合'Y'
 	ifwin      *WINDOW // Trueの時の窓
 	//falsewin *WINDOW	// Falseの時の窓
-	Ctlif       *CTLIF // 動的窓の制御
-	DynamicCode string // 動的窓 ex) "A > B" のような評価式
+	Ctlif       *CTLIF // 動的窓(動的カーテン)の制御
+	DynamicCode string // 動的窓(動的カーテン) ex) "A > B" のような評価式
 
 	rm       int    // 室番号
 	n        int    // 室壁体番号

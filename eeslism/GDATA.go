@@ -23,6 +23,7 @@
 
 package eeslism
 
+// GDATA calculates the center of gravity of a polygon.
 func GDATA(OP *P_MENN, G *XYZ) {
 	var x, y, z float64
 

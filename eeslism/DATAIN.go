@@ -172,7 +172,7 @@ func SCREEN(fi *EeTokens, sb *sunblk) {
 
 /*----------------------------------------------------------------*/
 
-func rmpdata(fi *EeTokens, rp *RRMP, _wp []MADO) {
+func rmpdata(fi *EeTokens, rp *RRMP, _wp []*MADO) {
 	rp.ref = 0.0
 	rp.grpx = 1.0
 
@@ -186,6 +186,7 @@ func rmpdata(fi *EeTokens, rp *RRMP, _wp []MADO) {
 	for fi.IsEnd() == false {
 		NAME := fi.GetToken()
 		if NAME[0] == ';' {
+			fi.SkipToEndOfLine()
 			break
 		}
 
@@ -209,10 +210,12 @@ func rmpdata(fi *EeTokens, rp *RRMP, _wp []MADO) {
 		}
 	}
 
+	// ex: `WD  window  -xyr 1.325 1.05 -WH 3.3 1.05`
 	rp.sumWD = 0
 	for _, wp := range _wp {
 		NAME := fi.GetToken()
 		if NAME[0] == ';' {
+			fi.SkipToEndOfLine()
 			break
 		}
 
@@ -420,7 +423,7 @@ func dividdata(fi *EeTokens, monten *int, DE *float64) {
 	NAME = fi.GetToken()
 }
 
-func treedata(fi *EeTokens, treen *int, tree *[]TREE) {
+func treedata(fi *EeTokens, treen *int, tree *[]*TREE) {
 	var i int
 	var Ntree int
 	var tred *TREE
@@ -430,11 +433,11 @@ func treedata(fi *EeTokens, treen *int, tree *[]TREE) {
 	fmt.Printf("<treedata> Ntree=%d\n", Ntree)
 
 	if Ntree > 0 {
-		*tree = make([]TREE, Ntree)
+		*tree = make([]*TREE, Ntree)
 
 		// 構造体の初期化
 		for i = 0; i < Ntree; i++ {
-			tred = &(*tree)[i]
+			tred = new(TREE)
 
 			tred.treename = ""
 			tred.treetype = ""
@@ -448,13 +451,15 @@ func treedata(fi *EeTokens, treen *int, tree *[]TREE) {
 			tred.H1 = 0.0
 			tred.H2 = 0.0
 			tred.H3 = 0.0
+
+			(*tree)[i] = tred
 		}
 	}
 
 	*treen = 0
 
 	for i = 0; i < Ntree; i++ {
-		tred = &(*tree)[i]
+		tred = (*tree)[i]
 
 		var NAME string
 		NAME = fi.GetToken()
@@ -504,7 +509,7 @@ func treedata(fi *EeTokens, treen *int, tree *[]TREE) {
 }
 
 /*-------------------------*/
-func polydata(fi *EeTokens, polyn *int, poly *[]POLYGN) {
+func polydata(fi *EeTokens, polyn *int, poly *[]*POLYGN) {
 	var i int
 	var Npoly int
 	var polyp *POLYGN
@@ -514,11 +519,11 @@ func polydata(fi *EeTokens, polyn *int, poly *[]POLYGN) {
 	fmt.Printf("<polydata> Npoly=%d\n", Npoly)
 
 	if Npoly > 0 {
-		*poly = make([]POLYGN, Npoly)
+		*poly = make([]*POLYGN, Npoly)
 
 		// 構造体の初期化
 		for i = 0; i < Npoly; i++ {
-			polyp = &(*poly)[i]
+			polyp = new(POLYGN)
 			polyp.polyknd = ""
 			polyp.polyname = ""
 			polyp.wallname = ""
@@ -528,12 +533,13 @@ func polydata(fi *EeTokens, polyn *int, poly *[]POLYGN) {
 			polyp.grpx = 0.0
 			polyp.P = nil
 			matinit(polyp.rgb[:], 3)
+			(*poly)[i] = polyp
 		}
 	}
 
 	*polyn = 0
 	for i = 0; i < Npoly; i++ {
-		polyp = &(*poly)[i]
+		polyp = (*poly)[i]
 
 		var NAME string
 		NAME = fi.GetToken()
@@ -593,10 +599,13 @@ func polydata(fi *EeTokens, polyn *int, poly *[]POLYGN) {
 }
 
 /*---------------------------------------------------------------------------*/
-func bdpdata(fi *EeTokens, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
+// BDP, SBLK データの読み込み
+// 例: BDP Ssrfs -xyz 0 0 0.5 -exs south -WH 5.95 2.9 ;
+// 例: SBLK HISASI Ssblk -xy 1.125 2.9 -DW 0.9 3.7 -a 90 ;
+// 例: RMP Swall LD -xyb 0 0 -WH 5.95 2.9 -ref 0.1 ;
+func bdpdata(fi *EeTokens, bdpn *int, bp *[]*BBDP, Exsf *EXSFS) {
 
 	var rp *RRMP
-	var wp *MADO
 	var sb *sunblk
 	var Nbdp int
 	var bbdp *BBDP
@@ -605,14 +614,15 @@ func bdpdata(fi *EeTokens, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
 	Nbdp = InputCount(fi, "*")
 	//printf("<bdpdata> Nbdp=%d\n", Nbdp)
 
+	// メモリの確保
 	if Nbdp > 0 {
-		*bp = make([]BBDP, Nbdp)
+		*bp = make([]*BBDP, Nbdp)
 		if *bp == nil {
 			fmt.Printf("<bdpdata> bpのメモリが確保できません\n")
 		}
 
 		for i := 0; i < Nbdp; i++ {
-			bbdp = &(*bp)[i]
+			bbdp = new(BBDP)
 			bbdp.bdpname = ""
 			bbdp.exh = 0
 			bbdp.exw = 0.
@@ -626,13 +636,16 @@ func bdpdata(fi *EeTokens, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
 			bbdp.SBLK = nil
 			bbdp.RMP = nil
 			bbdp.exsfname = ""
+			(*bp)[i] = bbdp
 		}
 	}
 
+	// BDPデータ数の初期化
 	*bdpn = 0
 
+	// BDPデータの読み込み
 	for i := 0; i < Nbdp; i++ {
-		bbdp = &(*bp)[i]
+		bbdp = (*bp)[i]
 
 		var NAME string
 		NAME = fi.GetToken()
@@ -650,6 +663,7 @@ func bdpdata(fi *EeTokens, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
 		for fi.IsEnd() == false {
 			NAME = fi.GetToken()
 			if NAME[0] == ';' {
+				fi.SkipToEndOfLine()
 				break
 			}
 
@@ -668,7 +682,7 @@ func bdpdata(fi *EeTokens, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
 				// Satoh修正（2018/1/23）
 				bbdp.exsfname = fi.GetToken()
 
-				//外表面の検索
+				//外表面の検索して、Wa,Wbを設定
 				id := false
 				for _, Exs := range Exsf.Exs {
 					if bbdp.exsfname == Exs.Name {
@@ -690,10 +704,10 @@ func bdpdata(fi *EeTokens, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
 		// SBLKの個数を数えてメモリを確保
 		Nsblk := SBLKCount(fi)
 		if Nsblk > 0 {
-			bbdp.SBLK = make([]sunblk, Nsblk)
+			bbdp.SBLK = make([]*sunblk, Nsblk)
 
 			for i := 0; i < Nsblk; i++ {
-				sb = &bbdp.SBLK[i]
+				sb = new(sunblk)
 
 				sb.D = 0.0
 				sb.H = 0.0
@@ -706,15 +720,17 @@ func bdpdata(fi *EeTokens, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
 				sb.sbfname = ""
 				sb.snbname = ""
 				matinit(sb.rgb[:], 3)
+
+				bbdp.SBLK[i] = sb
 			}
 		}
 
 		// RMPの個数を数えてメモリを確保
 		Nrmp := RMPCount(fi)
 		if Nrmp > 0 {
-			bbdp.RMP = make([]RRMP, Nrmp)
+			bbdp.RMP = make([]*RRMP, Nrmp)
 			for i := 0; i < Nrmp; i++ {
-				rp = &bbdp.RMP[i]
+				rp = new(RRMP)
 				rp.rmpname = ""
 				rp.wallname = ""
 				rp.sumWD = 0
@@ -726,6 +742,8 @@ func bdpdata(fi *EeTokens, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
 				rp.grpx = 0.0
 				matinit(rp.rgb[:], 3)
 				rp.WD = nil
+
+				bbdp.RMP[i] = rp
 			}
 		}
 
@@ -735,11 +753,9 @@ func bdpdata(fi *EeTokens, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
 
 		sb_idx := 0
 		rp_idx := 0
-		for i := 0; i < len(*bp); i++ {
-			bbdp = &(*bp)[i]
-
-			sb = &bbdp.SBLK[sb_idx]
-			rp = &bbdp.RMP[rp_idx]
+		// SBLK, RMPの読み込み
+		for fi.IsEnd() == false {
+			bbdp = (*bp)[i]
 
 			NAME = fi.GetToken()
 			if NAME[0] == '*' {
@@ -747,6 +763,7 @@ func bdpdata(fi *EeTokens, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
 			}
 
 			if NAME == "SBLK" {
+				sb = bbdp.SBLK[sb_idx]
 				sb.ref = 0.0
 				sb.sbfname = fi.GetToken()
 
@@ -763,16 +780,20 @@ func bdpdata(fi *EeTokens, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
 					os.Exit(1)
 				}
 
+				fi.SkipToEndOfLine()
+
 				sb_idx++
 				bbdp.sumsblk++
 			} else if NAME == "RMP" {
+				rp = bbdp.RMP[rp_idx]
+
 				// WDの数を数えてメモリを確保
 				Nwd := WDCount(fi)
 
 				if Nwd > 0 {
-					rp.WD = make([]MADO, Nwd)
+					rp.WD = make([]*MADO, Nwd)
 					for i := 0; i < Nwd; i++ {
-						wp = &rp.WD[i]
+						wp := new(MADO)
 						wp.winname = ""
 						matinit(wp.rgb[:], 3)
 						wp.grpx = 0.0
@@ -780,11 +801,13 @@ func bdpdata(fi *EeTokens, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
 						wp.Wh = 0.0
 						wp.xr = 0.0
 						wp.yr = 0.0
+						rp.WD[i] = wp
 					}
 				}
 				rp.ref = 0.0
 				bbdp.sumRMP++
 				rmpdata(fi, rp, rp.WD)
+				fi.SkipToEndOfLine()
 
 				rp_idx++
 			} else {
@@ -798,16 +821,16 @@ func bdpdata(fi *EeTokens, bdpn *int, bp *[]BBDP, Exsf *EXSFS) {
 }
 
 /*--------------------------------------------------------------------------*/
-func obsdata(fi *EeTokens, obsn *int, obs *[]OBS) {
+func obsdata(fi *EeTokens, obsn *int, obs *[]*OBS) {
 	var i, Nobs int
 	var obsp *OBS
 
 	// Count the number of OBS entries
 	Nobs = InputCount(fi, ";")
 	if Nobs > 0 {
-		*obs = make([]OBS, Nobs)
+		*obs = make([]*OBS, Nobs)
 		for i = 0; i < Nobs; i++ {
-			obsp = &(*obs)[i]
+			obsp = new(OBS)
 			obsp.fname = ""
 			obsp.obsname = ""
 			obsp.x = 0.0
@@ -820,12 +843,13 @@ func obsdata(fi *EeTokens, obsn *int, obs *[]OBS) {
 			obsp.Wb = 0.0
 			matinit(obsp.ref[:], 4)
 			matinit(obsp.rgb[:], 3)
+			(*obs)[i] = obsp
 		}
 	}
 
 	*obsn = 0
 	for i = 0; i < Nobs; i++ {
-		obsp = &(*obs)[i]
+		obsp = (*obs)[i]
 
 		NAME := fi.GetToken()
 		if NAME[0] == '*' {
@@ -947,20 +971,20 @@ func WDCount(fi *EeTokens) int {
 	return N
 }
 
-func OPcount(Nbdp int, _Bdp []BBDP, Npoly int, _poly []POLYGN) int {
+func OPcount(Nbdp int, _Bdp []*BBDP, Npoly int, _poly []*POLYGN) int {
 	Nop := 0
 
 	for i := 0; i < Nbdp; i++ {
-		Bdp := &_Bdp[i]
+		Bdp := _Bdp[i]
 		Nop += Bdp.sumRMP
 		for j := 0; j < Bdp.sumRMP; j++ {
-			RMP := &Bdp.RMP[i]
+			RMP := Bdp.RMP[i]
 			Nop += RMP.sumWD
 		}
 	}
 
 	for i := 0; i < Npoly; i++ {
-		poly := &_poly[i]
+		poly := _poly[i]
 		if poly.polyknd == "RMP" {
 			Nop++
 		}
@@ -969,14 +993,14 @@ func OPcount(Nbdp int, _Bdp []BBDP, Npoly int, _poly []POLYGN) int {
 	return Nop
 }
 
-func LPcount(Nbdp int, _Bdp []BBDP, Nobs int, _Obs []OBS, Ntree int, Npoly int, _poly []POLYGN) int {
+func LPcount(Nbdp int, _Bdp []*BBDP, Nobs int, _Obs []*OBS, Ntree int, Npoly int, _poly []*POLYGN) int {
 	Nlp := 0
 
 	//初期化
 	for i := 0; i < Nbdp; i++ {
-		Bdp := &_Bdp[i]
+		Bdp := _Bdp[i]
 		for j := 0; j < Bdp.sumsblk; j++ {
-			snbk := &Bdp.SBLK[j]
+			snbk := Bdp.SBLK[j]
 			if snbk.sbfname == "BARUKONI" {
 				Nlp += 5
 			} else {
@@ -986,7 +1010,7 @@ func LPcount(Nbdp int, _Bdp []BBDP, Nobs int, _Obs []OBS, Ntree int, Npoly int, 
 	}
 
 	for i := 0; i < Nobs; i++ {
-		Obs := &_Obs[i]
+		Obs := _Obs[i]
 		if Obs.fname == "cube" {
 			Nlp += 4
 		} else {
@@ -999,7 +1023,7 @@ func LPcount(Nbdp int, _Bdp []BBDP, Nobs int, _Obs []OBS, Ntree int, Npoly int, 
 
 	// ポリゴン
 	for i := 0; i < Npoly; i++ {
-		poly := &_poly[i]
+		poly := _poly[i]
 		if poly.polyknd == "RMP" || poly.polyknd == "OBS" {
 			Nlp++
 		}

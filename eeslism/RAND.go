@@ -28,8 +28,14 @@ import (
 	"math/rand"
 )
 
+// RANDはランダムな数値を生成します。
+// aは方位角、vは仰角です。
 func RAND(a, v *float64) {
-	const RAND_MAX = 2147483647
-	*a = 2.0 * math.Pi * (float64(rand.Intn(RAND_MAX)) / float64(RAND_MAX))
-	*v = math.Acos(math.Sqrt(1.0 - (float64(rand.Intn(RAND_MAX)) / float64(RAND_MAX))))
+	// a is azimuth, v is elevation
+	*a = 2.0 * math.Pi * rand.Float64()
+	*v = math.Acos(math.Sqrt(1.0 - rand.Float64()))
+
+	//TEST
+	// *a = math.Pi
+	// *v = math.Acos(math.Sqrt(0.5))
 }

@@ -95,9 +95,18 @@ func (t *EeTokens) GetLine() []string {
 }
 
 // Return tokens from current position to `;`
+// ex: `LD	Inf=(0.0172233333333333,0.6) ;`
+// ex: `SYSCMP\n*`
 func (t *EeTokens) GetLogicalLine() []string {
 	var logiline []string
 	var filtered []string
+
+	//
+	if t.tokens[t.pos] == "*" {
+		logiline = t.tokens[t.pos : t.pos+1]
+		t.pos++
+		return logiline
+	}
 
 	// find `;`
 	var found bool = false
@@ -107,8 +116,14 @@ func (t *EeTokens) GetLogicalLine() []string {
 			t.pos = i + 1
 			found = true
 			break
+		} else if i > 0 && t.tokens[i-1] == "\n" && t.tokens[i] == "*" {
+			logiline = t.tokens[t.pos : i+1] // `\n*` is included
+			t.pos = i + 1                    // `\n` will be skipped
+			found = true
+			break
 		}
 	}
+
 	// not found
 	if found == false {
 		logiline = t.tokens[t.pos:]
@@ -127,6 +142,14 @@ func (t *EeTokens) GetLogicalLine() []string {
 // Skip `;` or `\n`
 func (t *EeTokens) SkipToEndOfLine() {
 	for t.pos < len(t.tokens) && (t.tokens[t.pos] == "\n" || t.tokens[t.pos] == ";") {
+		t.pos++
+	}
+	// もし、`;` が連続している場合は、最後の`;`までスキップする
+	if t.pos < len(t.tokens) && t.tokens[t.pos] == ";" {
+		t.pos++
+	}
+	// もし、改行が連続している場合は、最後の改行までスキップする
+	if t.pos < len(t.tokens) && t.tokens[t.pos] == "\n" {
 		t.pos++
 	}
 }
@@ -186,6 +209,7 @@ func (t *EeTokens) GetInt() int {
 }
 
 // 建築・設備システムデータ入力
+// - 外部障害物 Noplpmp
 func Eeinput(Ipath string, efl_path string, bdata, week, schtba, schnma string, Simc *SIMCONTL,
 	Exsf *EXSFS, Rmvls *RMVLS, Eqcat *EQCAT, Eqsys *EQSYS,
 	Compnt *[]*COMPNT,
@@ -199,7 +223,12 @@ func Eeinput(Ipath string, efl_path string, bdata, week, schtba, schnma string, 
 	Ctlst *[]*CTLST,
 	Wd *WDAT, Daytm *DAYTM, key int,
 	bdpn *int, obsn *int, treen *int, shadn *int, polyn *int,
-	bp *[]BBDP, obs *[]OBS, tree *[]TREE, shadtb *[]SHADTB, poly *[]POLYGN, monten *int, gpn *int, DE *float64, Noplpmp *NOPLPMP) (*SCHDL, []*FLOUT) {
+	bp *[]*BBDP,
+	obs *[]*OBS,
+	tree *[]*TREE,
+	shadtb *[]*SHADTB,
+	poly *[]*POLYGN, monten *int, gpn *int, DE *float64,
+	Noplpmp *NOPLPMP) (*SCHDL, []*FLOUT) {
 
 	var Twallinit float64
 	var j int
@@ -271,10 +300,13 @@ func Eeinput(Ipath string, efl_path string, bdata, week, schtba, schnma string, 
 
 	for !tokens.IsEnd() {
 		s := tokens.GetToken()
-		if s == "\n" || s == ";" || s == "*" {
+		if s == "\n" || s == ";" {
 			continue
 		}
 		fmt.Printf("=== %s\n", s)
+		if s == "*" {
+			continue
+		}
 
 		switch s {
 		case "TITLE":
@@ -441,7 +473,7 @@ func Eeinput(Ipath string, efl_path string, bdata, week, schtba, schnma string, 
 			section.Reset()
 
 			if Nshadn > 0 {
-				*shadtb = make([]SHADTB, Nshadn)
+				*shadtb = make([]*SHADTB, Nshadn)
 			}
 
 			i := 0

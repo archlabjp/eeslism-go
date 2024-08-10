@@ -24,7 +24,7 @@ import "math"
 //						   Create Date=1999.6.7
 //						   */
 
-func CINC(op P_MENN, ls, ms, ns float64, co *float64) {
+func CINC(op *P_MENN, ls, ms, ns float64, co *float64) {
 	Wz := math.Cos(op.wb * math.Pi / 180)
 	Ww := -math.Sin(op.wb*math.Pi/180) * math.Sin(op.wa*math.Pi/180)
 	Ws := -math.Sin(op.wb*math.Pi/180) * math.Cos(op.wa*math.Pi/180)

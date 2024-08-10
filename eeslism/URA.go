@@ -26,7 +26,7 @@ package eeslism
 import "math"
 
 /*---------------------------------------------------------*/
-func URA(u, w int, LP []P_MENN, t []bekt, OP []P_MENN) {
+func URA(u, w int, LP []*P_MENN, t []*bekt, OP []*P_MENN) {
 	for j := 0; j < u; j++ {
 		for i := 0; i < w; i++ {
 			for k := 0; k < LP[i].polyd; k++ {

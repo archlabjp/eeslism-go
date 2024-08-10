@@ -33,8 +33,8 @@ func MONTE_CARLO(
 	mpn int,
 	lpn int,
 	NUM int,
-	MP []P_MENN,
-	LP []P_MENN,
+	MP []*P_MENN,
+	LP []*P_MENN,
 	GP [][]XYZ,
 	gpn int,
 	nday int,
@@ -45,7 +45,7 @@ func MONTE_CARLO(
 	var suma, sumg float64
 	var sumwall []float64
 	var G, O, OO, E XYZ
-	var mlp []P_MENN
+	var mlp []*P_MENN
 	var a, va, FF float64
 	var gcnt int /*--地面の代表点カウンター--*/
 
@@ -56,7 +56,7 @@ func MONTE_CARLO(
 	/*--------メモリーの確保-----------------*/
 	mlpn = mpn + lpn
 	sumwall = make([]float64, mlpn)
-	mlp = make([]P_MENN, mlpn)
+	mlp = make([]*P_MENN, mlpn)
 
 	suma = 0
 	sumg = 0
@@ -67,10 +67,11 @@ func MONTE_CARLO(
 
 	for j = 0; j < mpn; j++ {
 		/*-----op面の中心点の座標を求める--------*/
-		GDATA(&MP[j], &G)
+		GDATA(MP[j], &G)
 		//printf("MP[%d].opname=%s wlflg=%d\n",j,MP[j].opname,MP[j].wlflg) ;
 		/*-----------初期化---------------*/
 		for i = 0; i < mlpn; i++ {
+			mlp[i] = new(P_MENN)
 			mlp[i].e.X = 0.0
 			mlp[i].e.Y = 0.0
 			mlp[i].e.Z = 0.0
@@ -186,7 +187,7 @@ func MONTE_CARLO(
 }
 
 /*-----------地面から見た天空に対する形態係数-----------------------*/
-func GR_MONTE_CARLO(mp []P_MENN, mpn int, lp []P_MENN, lpn int, monten int, day int) {
+func GR_MONTE_CARLO(mp []*P_MENN, mpn int, lp []*P_MENN, lpn int, monten int, day int) {
 	var rp int
 	var i, n, l, mlpn, k, h int
 	var ls, ms, ns float64
@@ -194,12 +195,12 @@ func GR_MONTE_CARLO(mp []P_MENN, mpn int, lp []P_MENN, lpn int, monten int, day 
 	var Px, Py, Pz, U, PX, PY, PZ float64
 	var S, T float64
 	var shad, sum float64
-	var mlp []P_MENN
+	var mlp []*P_MENN
 
 	shad = 0.0
 	sum = 0.0
 	mlpn = mpn + lpn
-	mlp = make([]P_MENN, mlpn)
+	mlp = make([]*P_MENN, mlpn)
 
 	/*---MPとLPの結合--*/
 	for i = 0; i < mlpn; i++ {
@@ -218,25 +219,39 @@ func GR_MONTE_CARLO(mp []P_MENN, mpn int, lp []P_MENN, lpn int, monten int, day 
 
 	for i = 0; i < mpn; i++ {
 		for n = 0; n < monten; n++ {
+			// ランダムな太陽位置
+			// a: 太陽方位角
+			// va: 太陽高度
 			RAND(&a, &va)
 
+			// ls: 3D空間におけるX軸方向の成分（東西方向）
+			// ms: 3D空間におけるY軸方向の成分（南北方向）
+			// ns: 3D空間におけるZ軸方向の成分（垂直方向）
 			ls = math.Sin(va) * math.Cos(a)
 			ms = math.Sin(va) * math.Sin(a)
 			ns = math.Cos(va)
 
 			for l = 0; l < mlpn; l++ {
-				KOUTEN(mp[i].grp.X, mp[i].grp.Y, mp[i].grp.Z, ls, ms, ns,
-					&Px, &Py, &Pz, mlp[l].P[0], mlp[l].e)
+				// 前面地面代表点から太陽方向のベクトルとXXの交点 (Px,Py,Pz)を求める
+				KOUTEN(
+					mp[i].grp.X, mp[i].grp.Y, mp[i].grp.Z,
+					ls, ms, ns,
+					&Px, &Py, &Pz,
+					mlp[l].P[0], mlp[l].e)
 
+				// 交点(Px,Py,Pz)の移動してベクトル(PX,PY,PZ)を求める
 				PX = Px - mp[i].grp.X
 				PY = Py - mp[i].grp.Y
 				PZ = Pz - mp[i].grp.Z
+
+				// ベクトル(PX,PY,PZ)の
 				PRA(&U, ls, ms, ns, PX, PY, PZ)
 
 				rp = mlp[l].polyd - 2
 				/*--多角形ループ　三角形：１回、四角形：２回、、、---*/
 				for h = 0; h < rp; h++ {
 					INOROUT(Px, Py, Pz, mlp[l].P[0], mlp[l].P[h+1], mlp[l].P[h+2], &S, &T)
+
 					if ((S >= 0.0 && T >= 0.0) && ((S + T) <= 1.0)) && (U > 0.0) {
 						if mlp[l].shad[day] > 0.0 {
 							if shad == 0.0 {
@@ -258,105 +273,107 @@ func GR_MONTE_CARLO(mp []P_MENN, mpn int, lp []P_MENN, lpn int, monten int, day 
 }
 
 /*---------障害物LPから見た天空に対する形態係数-----------*/
-func FFACTOR_LP(lpn int, mpn int, NUM int, LP []P_MENN, MP []P_MENN) {
+func FFACTOR_LP(lpn int, mpn int, NUM int, LP []*P_MENN, MP []*P_MENN) {
 
 	var flg int
 	var rp int /*--多角形のループ回数---*/
 	var j, h, l, n, i, mlpn, sum int
-	var G XYZ
-	var mlp []P_MENN
+	var G XYZ // 中心座標
+	var mlp []*P_MENN
 	var a, va, x, y, z, Px, Py, Pz, U float64
 	var S, T float64
 
 	/*---------メモリーの確保-----------------*/
 	mlpn = lpn + mpn
-	mlp = make([]P_MENN, mlpn)
+	mlp = make([]*P_MENN, mlpn)
 
 	sum = 0
 
 	for j = 0; j < lpn; j++ {
 		/*-----lp面の中心点の座標を求める--------*/
-		GDATA(&LP[j], &G)
-	}
+		GDATA(LP[j], &G)
 
-	/*-------初期化---------------*/
-	for i = 0; i < mlpn; i++ {
-		mlp[i].e.X = 0.0
-		mlp[i].e.Y = 0.0
-		mlp[i].e.Z = 0.0
-	}
-	//MATINIT(mlp,mlpn) ;
-
-	/*---------lp面の座標変換---------*/
-	for h = 0; h < mlpn; h++ {
-		if h < lpn {
-
-			mlp[h].polyd = LP[h].polyd
-			mlp[h].P = make([]XYZ, mlp[h].polyd)
-			for i = 0; i < mlp[h].polyd; i++ {
-				mlp[h].P[i].X = 0.0
-				mlp[h].P[i].Y = 0.0
-				mlp[h].P[i].Z = 0.0
-			}
-
-			for l = 0; l < mlp[h].polyd; l++ {
-				ZAHYOU(LP[h].P[l], G, &mlp[h].P[l], LP[j].wa, LP[j].wb)
-			}
-		} else {
-			mlp[h].polyd = MP[h-lpn].polyd
-			mlp[h].P = make([]XYZ, mlp[h].polyd)
-			for i = 0; i < mlp[h].polyd; i++ {
-				mlp[h].P[i].X = 0.0
-				mlp[h].P[i].Y = 0.0
-				mlp[h].P[i].Z = 0.0
-			}
-
-			for l = 0; l < mlp[h].polyd; l++ {
-				ZAHYOU(MP[h-lpn].P[l], G, &mlp[h].P[l], LP[j].wa, LP[j].wb)
-			}
-		}
-	}
-
-	/*-------mlp面の法線ベクトルを求める----------*/
-	HOUSEN(mlpn, mlp)
-
-	/*---------点を射出する----------------*/
-	for n = 0; n < NUM; n++ {
-		var ls, ms, ns, s float64
-
-		/*----------乱数の発生--------------*/
-		RAND(&a, &va)
-
-		ls = math.Sin(va) * math.Cos(a)
-		ms = math.Sin(va) * math.Sin(a)
-		ns = math.Cos(va)
-
-		URA_M(ls, ms, ns, &s, LP[j].wb)
-		if s < 0.0 {
-			sum = sum + 1
-			continue
-		}
-		flg = 0 /*--内側フラグ初期化--*/
+		/*-------初期化---------------*/
 		for i = 0; i < mlpn; i++ {
-			KOUTEN(x, y, z, ls, ms, ns, &Px, &Py, &Pz, mlp[i].P[0], mlp[i].e)
-			PRA(&U, ls, ms, ns, Px, Py, Pz)
-			rp = mlp[i].polyd - 2
+			mlp[i] = new(P_MENN)
+			mlp[i].e.X = 0.0
+			mlp[i].e.Y = 0.0
+			mlp[i].e.Z = 0.0
+		}
+		//MATINIT(mlp,mlpn) ;
 
-			for h = 0; h < rp; h++ {
-				INOROUT(Px, Py, Pz, mlp[i].P[0], mlp[i].P[h+1], mlp[i].P[h+2], &S, &T)
-				if ((S >= 0.0 && T >= 0.0) && ((S + T) <= 1.0)) && (U > 0.0) {
-					sum = sum + 1
-					flg = 1
+		/*---------lp面の座標変換---------*/
+		for h = 0; h < mlpn; h++ {
+			if h < lpn {
+
+				mlp[h].polyd = LP[h].polyd
+				mlp[h].P = make([]XYZ, mlp[h].polyd)
+				for i = 0; i < mlp[h].polyd; i++ {
+					mlp[h].P[i].X = 0.0
+					mlp[h].P[i].Y = 0.0
+					mlp[h].P[i].Z = 0.0
+				}
+
+				for l = 0; l < mlp[h].polyd; l++ {
+					ZAHYOU(LP[h].P[l], G, &mlp[h].P[l], LP[j].wa, LP[j].wb)
+				}
+			} else {
+				mlp[h].polyd = MP[h-lpn].polyd
+				mlp[h].P = make([]XYZ, mlp[h].polyd)
+				for i = 0; i < mlp[h].polyd; i++ {
+					mlp[h].P[i].X = 0.0
+					mlp[h].P[i].Y = 0.0
+					mlp[h].P[i].Z = 0.0
+				}
+
+				for l = 0; l < mlp[h].polyd; l++ {
+					ZAHYOU(MP[h-lpn].P[l], G, &mlp[h].P[l], LP[j].wa, LP[j].wb)
+				}
+			}
+		}
+
+		/*-------mlp面の法線ベクトルを求める----------*/
+		HOUSEN(mlpn, mlp)
+
+		/*---------点を射出する----------------*/
+		for n = 0; n < NUM; n++ {
+			var ls, ms, ns, s float64
+
+			/*----------乱数の発生--------------*/
+			RAND(&a, &va)
+
+			ls = math.Sin(va) * math.Cos(a)
+			ms = math.Sin(va) * math.Sin(a)
+			ns = math.Cos(va)
+
+			URA_M(ls, ms, ns, &s, LP[j].wb)
+
+			if s < 0.0 {
+				sum = sum + 1
+				continue
+			}
+			flg = 0 /*--内側フラグ初期化--*/
+			for i = 0; i < mlpn; i++ {
+				KOUTEN(x, y, z, ls, ms, ns, &Px, &Py, &Pz, mlp[i].P[0], mlp[i].e)
+				PRA(&U, ls, ms, ns, Px, Py, Pz)
+				rp = mlp[i].polyd - 2
+
+				for h = 0; h < rp; h++ {
+					INOROUT(Px, Py, Pz, mlp[i].P[0], mlp[i].P[h+1], mlp[i].P[h+2], &S, &T)
+					if ((S >= 0.0 && T >= 0.0) && ((S + T) <= 1.0)) && (U > 0.0) {
+						sum = sum + 1
+						flg = 1
+						break
+					}
+				}
+				if flg > 0 {
 					break
 				}
 			}
-			if flg > 0 {
-				break
-			}
 		}
-	}
 
-	LP[j].faia = float64(NUM-sum) / float64(NUM)
+		LP[j].faia = float64(NUM-sum) / float64(NUM)
+	}
 
 	//printf("sum=%d NUM=%d LP[%d].faia=%f\n", sum,NUM,j, LP[j].faia);
 	sum = 0

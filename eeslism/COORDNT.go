@@ -34,11 +34,11 @@ func LP_COORDNT(
 	obsn int,
 	treen int,
 	polyn int,
-	poly []POLYGN,
-	tree []TREE,
-	obs []OBS,
-	BDP []BBDP,
-	lp []P_MENN,
+	poly []*POLYGN,
+	tree []*TREE,
+	obs []*OBS,
+	BDP []*BBDP,
+	lp []*P_MENN,
 ) {
 	var name string
 	var i, j, k, p int
@@ -1594,7 +1594,7 @@ func LP_COORDNT(
 
 受照面OPに変換する関数               1999.5.22
 ------------------------*/
-func OP_COORDNT(opn *int, bdpn int, BDP []BBDP, op []P_MENN, polyn int, poly []POLYGN) {
+func OP_COORDNT(opn *int, bdpn int, BDP []*BBDP, op []*P_MENN, polyn int, poly []*POLYGN) {
 	var l, j, i, v, sumop, k int
 	var cWa, sWa, cWb, sWb, a, b, c float64
 	var ax, by, cz float64

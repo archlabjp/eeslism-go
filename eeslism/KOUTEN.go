@@ -15,13 +15,18 @@
 
 package eeslism
 
-///*
-//
-//                         直線と平面の交点を求める
-//                                    FILE=KOUTEN.c
-//                                    Create Date=1998.10.26
-//*/
+/*
+直線と平面の交点を求める
+FILE=KOUTEN.c
+Create Date=1998.10.26
+*/
 
+// KOUTEN は直線と平面の交点を計算します。
+// Qx, Qy, Qz: 直線の座標
+// ls, ms, ns: 直線の方向
+// Px, Py, Pz: 交点の座標 [出力]
+// lp: 交点の座標
+// E: 平面の座標
 func KOUTEN(Qx, Qy, Qz, ls, ms, ns float64, Px, Py, Pz *float64, lp, E XYZ) {
 	t := (E.X*lp.X + E.Y*lp.Y + E.Z*lp.Z - E.X*Qx - E.Y*Qy - E.Z*Qz) / (E.X*ls + E.Y*ms + E.Z*ns)
 	*Px = t*ls + Qx

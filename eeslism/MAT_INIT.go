@@ -36,7 +36,7 @@ func MATINIT(q []*P_MENN, n int) {
 	}
 }
 
-func MATINIT_sum(opn int, op []P_MENN) {
+func MATINIT_sum(opn int, op []*P_MENN) {
 	for j := 0; j < opn; j++ {
 		op[j].sum = 0.0
 		for i := 0; i < op[j].wd; i++ {
@@ -45,7 +45,7 @@ func MATINIT_sum(opn int, op []P_MENN) {
 	}
 }
 
-func MATINIT_sdstr(mpn, mtb int, Sdstr []SHADSTR) {
+func MATINIT_sdstr(mpn, mtb int, Sdstr []*SHADSTR) {
 	for j := 0; j < mpn; j++ {
 		for i := 0; i < mtb; i++ {
 			Sdstr[j].sdsum[i] = 0.0

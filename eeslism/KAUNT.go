@@ -46,7 +46,7 @@ func KAUNT(
 	sumg *float64,
 	sumwall []float64,
 	s float64,
-	mlp []P_MENN,
+	mlp []*P_MENN,
 	p []XYZ,
 	O XYZ,
 	E XYZ,

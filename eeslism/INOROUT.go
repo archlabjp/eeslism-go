@@ -29,6 +29,11 @@ import (
 	"os"
 )
 
+// INOROUT determines whether the intersection point of a point and a plane is inside or outside the plane.
+// T: intersection point [out]
+// S: intersection point [out]
+// Px, Py, Pz: point coordinates
+// P0, P1, P2: plane coordinates
 func INOROUT(Px, Py, Pz float64, P0, P1, P2 XYZ, S, T *float64) {
 	var Sx01, Sy01, Sz01, Tx03, Ty03, Tz03 float64
 	var AA1, BB1, CC1, aa1, bb1, cc1 float64
@@ -39,6 +44,10 @@ func INOROUT(Px, Py, Pz float64, P0, P1, P2 XYZ, S, T *float64) {
 	Tx03 = P2.X - P0.X
 	Ty03 = P2.Y - P0.Y
 	Tz03 = P2.Z - P0.Z
+
+	// fmt.Printf("P0 X=%f Y=%f Z=%f\n", P0.X, P0.Y, P0.Z)
+	// fmt.Printf("P1 X=%f Y=%f Z=%f\n", P1.X, P1.Y, P1.Z)
+	// fmt.Printf("P2 X=%f Y=%f Z=%f\n", P2.X, P2.Y, P2.Z)
 
 	AA1 = Tx03*Sy01 - Ty03*Sx01
 	BB1 = Ty03*Sz01 - Tz03*Sy01
@@ -55,7 +64,7 @@ func INOROUT(Px, Py, Pz float64, P0, P1, P2 XYZ, S, T *float64) {
 	} else {
 		fmt.Printf("error inorout\n0X=%f 0Y=%f 0Z=%f\n1X=%f 1Y=%f 1Z=%f\n2X=%f 2Y=%f 2Z=%f\n",
 			P0.X, P0.Y, P0.Z, P1.X, P1.Y, P1.Z, P2.X, P2.Y, P2.Z)
-		// Exit the program with an error code
+		os.Exit(1)
 	}
 
 	aa1 = Sx01

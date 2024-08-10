@@ -26,11 +26,11 @@ import "math"
 //
 //*/
 
-func GRGPOINT(mp []P_MENN, mpn int) {
+func GRGPOINT(mp []*P_MENN, mpn int) {
 	const M_rad = math.Pi / 180.0
 
 	for i := 0; i < mpn; i++ {
-		GDATA(&mp[i], &mp[i].G)
+		GDATA(mp[i], &mp[i].G)
 
 		ex := mp[i].P[1].X - mp[i].P[0].X
 		ey := mp[i].P[1].Y - mp[i].P[0].Y

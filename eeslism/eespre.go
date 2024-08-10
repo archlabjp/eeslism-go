@@ -133,15 +133,19 @@ func Eespre(bdata0 string, Ipath string, key *int) (string, string, string, stri
 	for !tokens.IsEnd() {
 
 		line := tokens.GetLogicalLine()
-		if line[0] == "*" {
-			sb.WriteString("*\n")
-			line = line[1:]
+		if len(line) == 0 {
+			sb.WriteString("\n")
+			continue
 		}
 
+		// セクションマーカーは必ず改行
 		if slices.Contains(section_marker, line[0]) {
 			sb.WriteString(line[0])
 			sb.WriteString("\n")
 			line = line[1:]
+			if len(line) == 0 {
+				continue
+			}
 		}
 
 		if line[0] == "%s" {
@@ -154,6 +158,11 @@ func Eespre(bdata0 string, Ipath string, key *int) (string, string, string, stri
 				fmt.Fprintf(fsn, "%s ", item)
 			}
 			fsn.WriteString(";\n")
+		} else if line[len(line)-1] == "*" {
+			for _, item := range line {
+				fmt.Fprintf(sb, "%s ", item)
+			}
+			sb.WriteString("\n")
 		} else {
 			for _, item := range line {
 				fmt.Fprintf(sb, "%s ", item)
@@ -166,9 +175,15 @@ func Eespre(bdata0 string, Ipath string, key *int) (string, string, string, stri
 	tokens = NewEeTokens(sb.String())
 	for !tokens.IsEnd() {
 
+		pos := tokens.GetPos()
 		s := tokens.GetToken()
 		if s == "\n" {
 			continue
+		}
+		// sが"SYSCMP"で始まる場合
+		if strings.HasPrefix(s, "SYSCMP") {
+			ii := 0
+			ii = ii + 1
 		}
 
 		// 壁体の材料定義リストを指定
@@ -188,23 +203,28 @@ func Eespre(bdata0 string, Ipath string, key *int) (string, string, string, stri
 			}
 			fw.WriteByte(';')
 		} else if s == "*" {
+			// 単独のセクション終端記号
 			fb.WriteString("*\n")
 		} else {
-			fb.WriteString(s)
+			//fb.WriteString(s)
+			tokens.RestorePos(pos)
 			line := tokens.GetLogicalLine()
 
-			for _, item := range line {
-				fmt.Fprintf(fb, " %s", item)
+			// `*` で終わる場合は空セクションを挿入
+			if line[len(line)-1] == "*" {
+				fb.WriteString(strings.Join(line[:len(line)-1], " "))
+				fb.WriteString("\n*\n")
+			} else {
+				fb.WriteString(strings.Join(line, " "))
+				fb.WriteString(" ;\n")
 			}
-
-			fb.WriteString(" ; \n")
 		}
 	}
 
 	fmt.Fprintln(fb, "")
 	//fb.Seek(0, 1)
 
-	fmt.Fprintln(fb, " *")
+	//fmt.Fprintln(fb, " *")
 	fmt.Fprintln(fw, "")
 	fmt.Fprintln(fs, "*")
 	fmt.Fprintln(fsn, "*")

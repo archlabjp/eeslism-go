@@ -26,7 +26,7 @@ import (
 	"os"
 )
 
-func HOUSING_PLACE(lpn, mpn int, lp, mp []P_MENN, RET string) {
+func HOUSING_PLACE(lpn, mpn int, lp, mp []*P_MENN, RET string) {
 
 	mlpn := lpn + mpn
 

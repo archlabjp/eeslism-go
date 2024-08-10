@@ -29,6 +29,10 @@ import (
 	"os"
 )
 
+// PRA determines the direction of the vector.
+// U: direction of the vector [out]
+// ls, ms, ns: 太陽方位ベクトル
+// x, y, z: coordinates of the vector
 func PRA(U *float64, ls, ms, ns, x, y, z float64) {
 	epsilon := 1.0e-6
 

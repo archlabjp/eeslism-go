@@ -67,7 +67,7 @@ func MONTE_CARLO(
 
 	for j = 0; j < mpn; j++ {
 		/*-----op面の中心点の座標を求める--------*/
-		GDATA(MP[j], &G)
+		G = GDATA(MP[j])
 		//printf("MP[%d].opname=%s wlflg=%d\n",j,MP[j].opname,MP[j].wlflg) ;
 		/*-----------初期化---------------*/
 		for i = 0; i < mlpn; i++ {
@@ -126,12 +126,14 @@ func MONTE_CARLO(
 		const M_rad = math.Pi / 180.0
 
 		ZAHYOU(O, G, &OO, MP[j].wa, MP[j].wb)
+
+		// EはMP面の太陽傾斜ベクトル??
 		E.X = 0.0
 		E.Y = -math.Sin((-MP[j].wb) * M_rad)
 		E.Z = math.Cos((-MP[j].wb) * M_rad)
 
 		/*-------op面の法線ベクトルを求める----------*/
-		HOUSEN(mlpn, mlp)
+		HOUSEN(mlp)
 
 		/*-------------点を射出する-------------------*/
 		for n = 0; n < NUM; n++ {
@@ -140,11 +142,14 @@ func MONTE_CARLO(
 			/*----------乱数の発生--------------*/
 			RAND(&a, &va)
 
+			// ls: 3D空間におけるX軸方向の成分（東西方向）
+			// ms: 3D空間におけるY軸方向の成分（南北方向）
+			// ns: 3D空間におけるZ軸方向の成分（垂直方向）
 			ls = math.Sin(va) * math.Cos(a)
 			ms = math.Sin(va) * math.Sin(a)
 			ns = math.Cos(va)
 
-			URA_M(ls, ms, ns, &s, MP[j].wb)
+			s = URA_M(ls, ms, ns, MP[j].wb)
 			KAUNT(mlpn, ls, ms, ns, &suma, &sumg, sumwall, s,
 				mlp, GP[j], OO, E, MP[j].wa, MP[j].wb, G, gpn,
 				nday, &gcnt, startday, MP[j].wlflg)
@@ -273,28 +278,30 @@ func GR_MONTE_CARLO(mp []*P_MENN, mpn int, lp []*P_MENN, lpn int, monten int, da
 }
 
 /*---------障害物LPから見た天空に対する形態係数-----------*/
-func FFACTOR_LP(lpn int, mpn int, NUM int, LP []*P_MENN, MP []*P_MENN) {
+// NUM回試行することで、天空に対する形態係数を求める。
+// LP[j].faiaに代入される。
+// -------------
+// NUM: 試行回数
+// LP: 障害物1(被受光面)
+// MP: 障害物2(受光面)
+func FFACTOR_LP(NUM int, LP []*P_MENN, MP []*P_MENN) {
 
-	var flg int
-	var rp int /*--多角形のループ回数---*/
-	var j, h, l, n, i, mlpn, sum int
-	var G XYZ // 中心座標
-	var mlp []*P_MENN
+	var l, i int
 	var a, va, x, y, z, Px, Py, Pz, U float64
 	var S, T float64
 
 	/*---------メモリーの確保-----------------*/
-	mlpn = lpn + mpn
-	mlp = make([]*P_MENN, mlpn)
+	lpn := len(LP)
+	mpn := len(MP)
+	mlp := make([]*P_MENN, lpn+mpn) // 全ての面
 
-	sum = 0
-
-	for j = 0; j < lpn; j++ {
+	// 被受光面の形態係数を求める
+	for j := range LP {
 		/*-----lp面の中心点の座標を求める--------*/
-		GDATA(LP[j], &G)
+		G := GDATA(LP[j])
 
 		/*-------初期化---------------*/
-		for i = 0; i < mlpn; i++ {
+		for i := range mlp {
 			mlp[i] = new(P_MENN)
 			mlp[i].e.X = 0.0
 			mlp[i].e.Y = 0.0
@@ -303,9 +310,9 @@ func FFACTOR_LP(lpn int, mpn int, NUM int, LP []*P_MENN, MP []*P_MENN) {
 		//MATINIT(mlp,mlpn) ;
 
 		/*---------lp面の座標変換---------*/
-		for h = 0; h < mlpn; h++ {
+		for h := range mlp {
 			if h < lpn {
-
+				// LP -> MLP
 				mlp[h].polyd = LP[h].polyd
 				mlp[h].P = make([]XYZ, mlp[h].polyd)
 				for i = 0; i < mlp[h].polyd; i++ {
@@ -318,6 +325,7 @@ func FFACTOR_LP(lpn int, mpn int, NUM int, LP []*P_MENN, MP []*P_MENN) {
 					ZAHYOU(LP[h].P[l], G, &mlp[h].P[l], LP[j].wa, LP[j].wb)
 				}
 			} else {
+				// MP -> MLP
 				mlp[h].polyd = MP[h-lpn].polyd
 				mlp[h].P = make([]XYZ, mlp[h].polyd)
 				for i = 0; i < mlp[h].polyd; i++ {
@@ -333,48 +341,58 @@ func FFACTOR_LP(lpn int, mpn int, NUM int, LP []*P_MENN, MP []*P_MENN) {
 		}
 
 		/*-------mlp面の法線ベクトルを求める----------*/
-		HOUSEN(mlpn, mlp)
+		HOUSEN(mlp)
 
 		/*---------点を射出する----------------*/
-		for n = 0; n < NUM; n++ {
-			var ls, ms, ns, s float64
+		// NUM回試行
+		sum := 0
+		for n := 0; n < NUM; n++ {
 
 			/*----------乱数の発生--------------*/
 			RAND(&a, &va)
 
-			ls = math.Sin(va) * math.Cos(a)
-			ms = math.Sin(va) * math.Sin(a)
-			ns = math.Cos(va)
+			// ls: 3D空間におけるX軸方向の成分（東西方向）
+			// ms: 3D空間におけるY軸方向の成分（南北方向）
+			// ns: 3D空間におけるZ軸方向の成分（垂直方向）
+			ls := math.Sin(va) * math.Cos(a)
+			ms := math.Sin(va) * math.Sin(a)
+			ns := math.Cos(va)
 
-			URA_M(ls, ms, ns, &s, LP[j].wb)
-
+			s := URA_M(ls, ms, ns, LP[j].wb)
 			if s < 0.0 {
+				// 逆向きの光線は計算しない
 				sum = sum + 1
 				continue
 			}
-			flg = 0 /*--内側フラグ初期化--*/
-			for i = 0; i < mlpn; i++ {
-				KOUTEN(x, y, z, ls, ms, ns, &Px, &Py, &Pz, mlp[i].P[0], mlp[i].e)
-				PRA(&U, ls, ms, ns, Px, Py, Pz)
-				rp = mlp[i].polyd - 2
 
-				for h = 0; h < rp; h++ {
-					INOROUT(Px, Py, Pz, mlp[i].P[0], mlp[i].P[h+1], mlp[i].P[h+2], &S, &T)
+			flg := false /*--内側フラグ初期化--*/
+			for _, _mlp := range mlp {
+				// 交点(Px,Py,Pz)を求める
+				KOUTEN(x, y, z, ls, ms, ns, &Px, &Py, &Pz, _mlp.P[0], _mlp.e)
+
+				// ベクトルの向きUを求める
+				PRA(&U, ls, ms, ns, Px, Py, Pz)
+
+				// 多角形のループ
+				rp := _mlp.polyd - 2
+				for h := 0; h < rp; h++ {
+					INOROUT(Px, Py, Pz, _mlp.P[0], _mlp.P[h+1], _mlp.P[h+2], &S, &T)
 					if ((S >= 0.0 && T >= 0.0) && ((S + T) <= 1.0)) && (U > 0.0) {
+						// 内側に入っている?
 						sum = sum + 1
-						flg = 1
+						flg = true
 						break
 					}
 				}
-				if flg > 0 {
+				if flg {
 					break
 				}
 			}
 		}
 
+		// 形態係数
 		LP[j].faia = float64(NUM-sum) / float64(NUM)
-	}
 
-	//printf("sum=%d NUM=%d LP[%d].faia=%f\n", sum,NUM,j, LP[j].faia);
-	sum = 0
+		//printf("sum=%d NUM=%d LP[%d].faia=%f\n", sum,NUM,j, LP[j].faia);
+	}
 }

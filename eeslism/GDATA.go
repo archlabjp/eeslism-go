@@ -24,16 +24,20 @@
 package eeslism
 
 // GDATA calculates the center of gravity of a polygon.
-func GDATA(OP *P_MENN, G *XYZ) {
+func GDATA(OP *P_MENN) XYZ {
 	var x, y, z float64
 
-	for i := 0; i < OP.polyd; i++ {
+	for i := range OP.P {
 		x += OP.P[i].X
 		y += OP.P[i].Y
 		z += OP.P[i].Z
 	}
 
-	G.X = x / float64(OP.polyd)
-	G.Y = y / float64(OP.polyd)
-	G.Z = z / float64(OP.polyd)
+	// the center of gravity of the polygon.
+	d := float64(len(OP.P))
+	return XYZ{
+		X: x / d,
+		Y: y / d,
+		Z: z / d,
+	}
 }

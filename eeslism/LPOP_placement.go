@@ -26,10 +26,14 @@ import (
 	"os"
 )
 
+// CG確認用データ作成
+// NOTE: 独自形式で出力しているので、他のプログラムで直接読み込むことはできない
+//       Wavefront OBJ形式などに変換する必要がある
 func HOUSING_PLACE(lpn, mpn int, lp, mp []*P_MENN, RET string) {
 
 	mlpn := lpn + mpn
 
+	// LPの位置データ用ファイル fp1
 	NAMAE1 := RET + "_placeLP.gchi"
 	fp1, err := os.Create(NAMAE1)
 	if err != nil {
@@ -38,6 +42,7 @@ func HOUSING_PLACE(lpn, mpn int, lp, mp []*P_MENN, RET string) {
 	}
 	defer fp1.Close()
 
+	// OPの位置データ用ファイル fp2
 	NAMAE2 := RET + "_placeOP.gchi"
 	fp2, err := os.Create(NAMAE2)
 	if err != nil {
@@ -46,6 +51,7 @@ func HOUSING_PLACE(lpn, mpn int, lp, mp []*P_MENN, RET string) {
 	}
 	defer fp2.Close()
 
+	// LPとOPの位置データ用ファイル fp3
 	NAMAE3 := RET + "_placeALL.gchi"
 	fp3, err := os.Create(NAMAE3)
 	if err != nil {
@@ -54,6 +60,7 @@ func HOUSING_PLACE(lpn, mpn int, lp, mp []*P_MENN, RET string) {
 	}
 	defer fp3.Close()
 
+	// LPの位置データの書き込み => fp1, fp3
 	fmt.Fprintf(fp1, "%d ", lpn)
 	fmt.Fprintf(fp3, "%d ", mlpn)
 	for i := 0; i < lpn; i++ {
@@ -67,6 +74,7 @@ func HOUSING_PLACE(lpn, mpn int, lp, mp []*P_MENN, RET string) {
 		}
 	}
 
+	// OPの位置データの書き込み => fp2, fp3
 	fmt.Fprintf(fp2, "%d ", mpn)
 	for i := 0; i < mpn; i++ {
 		fmt.Fprintf(fp2, "%s %d\n", mp[i].opname, mp[i].polyd)

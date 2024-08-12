@@ -28,7 +28,10 @@ import (
   Create Date=1999.6.7
 */
 
+// 庇
+// `SBLK HISASI <snbname> -xy <x> <y> -DW <D> <W> -a <WA> -rgb <r> <g> <b> ;`
 func HISASHI(fi *EeTokens, sb *sunblk) {
+	// 付設障害物名
 	sb.snbname = fi.GetToken()
 
 	// 色の初期値
@@ -36,7 +39,7 @@ func HISASHI(fi *EeTokens, sb *sunblk) {
 	sb.rgb[1] = 0.2
 	sb.rgb[2] = 0.0
 
-	for fi.IsEnd() == false {
+	for !fi.IsEnd() {
 		NAME := fi.GetToken()
 		if NAME[0] == ';' {
 			break
@@ -51,6 +54,7 @@ func HISASHI(fi *EeTokens, sb *sunblk) {
 		} else if NAME == "-a" {
 			sb.WA = fi.GetFloat()
 		} else if NAME == "-rgb" {
+			// 色
 			sb.rgb[0] = fi.GetFloat()
 			sb.rgb[1] = fi.GetFloat()
 			sb.rgb[2] = fi.GetFloat()
@@ -64,13 +68,18 @@ func HISASHI(fi *EeTokens, sb *sunblk) {
 
 /*--------------------------------------------------------------*/
 
+// バルコニー
+// `SBLK BARUKONI <snbname> -xy <x> <y> -DHWh <D> <H> <W> <h> -ref <ref> -rgb <r> <g> <b> ;`
 func BARUKO(fi *EeTokens, sb *sunblk) {
+	// 反射率の初期値
 	sb.ref = 0.0
 
+	// 色の初期値
 	sb.rgb[0] = 0.0
 	sb.rgb[1] = 0.2
 	sb.rgb[2] = 0.0
 
+	// 付設障害物名
 	sb.snbname = fi.GetToken()
 
 	for fi.IsEnd() == false {
@@ -88,8 +97,10 @@ func BARUKO(fi *EeTokens, sb *sunblk) {
 			sb.W = fi.GetFloat()
 			sb.h = fi.GetFloat()
 		} else if NAME == "-ref" {
+			// 反射率
 			sb.ref = fi.GetFloat()
 		} else if NAME == "-rgb" {
+			// 色
 			sb.rgb[0] = fi.GetFloat()
 			sb.rgb[1] = fi.GetFloat()
 			sb.rgb[2] = fi.GetFloat()
@@ -103,14 +114,18 @@ func BARUKO(fi *EeTokens, sb *sunblk) {
 
 /*------------------------------------------------------------------*/
 
+// 袖壁
+// `SBLK SODEKABE <snbname> -xy <x> <y> -DH <D> <H> -rgb <r> <g> <b> ;`
 func SODEK(fi *EeTokens, sb *sunblk) {
+	// 色の初期値
 	sb.rgb[0] = 0.0
 	sb.rgb[1] = 0.2
 	sb.rgb[2] = 0.0
 
+	// 付設障害物名
 	sb.snbname = fi.GetToken()
 
-	for fi.IsEnd() == false {
+	for !fi.IsEnd() {
 		NAME := fi.GetToken()
 		if NAME[0] == ';' {
 			break
@@ -125,6 +140,7 @@ func SODEK(fi *EeTokens, sb *sunblk) {
 		} else if NAME == "-a" {
 			sb.WA = fi.GetFloat()
 		} else if NAME == "-rgb" {
+			// 色
 			sb.rgb[0] = fi.GetFloat()
 			sb.rgb[1] = fi.GetFloat()
 			sb.rgb[2] = fi.GetFloat()
@@ -138,6 +154,8 @@ func SODEK(fi *EeTokens, sb *sunblk) {
 
 /*-----------------------------------------------------------------------*/
 
+// 日よけ
+// `SBLK MADOHIYOKE <snbname> -xy <x> <y> -DHW <D> <W> <H> -rgb <r> <g> <b> ;`
 func SCREEN(fi *EeTokens, sb *sunblk) {
 	sb.rgb[0] = 0.0
 	sb.rgb[1] = 0.2
@@ -145,7 +163,7 @@ func SCREEN(fi *EeTokens, sb *sunblk) {
 
 	sb.snbname = fi.GetToken()
 
-	for fi.IsEnd() == false {
+	for !fi.IsEnd() {
 		NAME := fi.GetToken()
 		if NAME[0] == ';' {
 			break
@@ -171,19 +189,24 @@ func SCREEN(fi *EeTokens, sb *sunblk) {
 }
 
 /*----------------------------------------------------------------*/
+// 以下のようなRMPデータ(WD含む)を読み取る。
+// WDデータ複数行ある場合があるので注意する。
+// ---------------------------------------------------------
+// RMP <rmpname> <wallname> -xyb <xb0> <yb0> -WH <Rw> <Rh> -ref <ref> -grpx <grpx> -rgb <r> <g> <b> ;
+//   WD <winname> -xyr <xr> <yr> -WH <Ww> <Wh> -ref <ref> -grpx <grpx> -rgb <r> <g> <b> ;
+//   WD <winname> -xyr <xr> <yr> -WH <Ww> <Wh> -ref <ref> -grpx <grpx> -rgb <r> <g> <b> ;
+// ;
+// ---------------------------------------------------------
+func rmpdata(fi *EeTokens) *RRMP {
+	rp := RRMPInit()
 
-func rmpdata(fi *EeTokens, rp *RRMP, _wp []*MADO) {
-	rp.ref = 0.0
-	rp.grpx = 1.0
-
-	rp.rgb[0] = 0.9
-	rp.rgb[1] = 0.9
-	rp.rgb[2] = 0.9
-
+	// RMP名
 	rp.rmpname = fi.GetToken()
+
+	// 壁名称
 	rp.wallname = fi.GetToken()
 
-	for fi.IsEnd() == false {
+	for !fi.IsEnd() {
 		NAME := fi.GetToken()
 		if NAME[0] == ';' {
 			fi.SkipToEndOfLine()
@@ -191,16 +214,21 @@ func rmpdata(fi *EeTokens, rp *RRMP, _wp []*MADO) {
 		}
 
 		if NAME == "-xyb" {
+			// 左下頂点座標
 			rp.xb0 = fi.GetFloat()
 			rp.yb0 = fi.GetFloat()
 		} else if NAME == "-WH" {
+			// 巾、高さ
 			rp.Rw = fi.GetFloat()
 			rp.Rh = fi.GetFloat()
 		} else if NAME == "-ref" {
+			// 反射率
 			rp.ref = fi.GetFloat()
 		} else if NAME == "-grpx" {
+			// 前面地面の代表点までの距離
 			rp.grpx = fi.GetFloat()
 		} else if NAME == "-rgb" {
+			// 色
 			rp.rgb[0] = fi.GetFloat()
 			rp.rgb[1] = fi.GetFloat()
 			rp.rgb[2] = fi.GetFloat()
@@ -211,59 +239,90 @@ func rmpdata(fi *EeTokens, rp *RRMP, _wp []*MADO) {
 	}
 
 	// ex: `WD  window  -xyr 1.325 1.05 -WH 3.3 1.05`
-	rp.sumWD = 0
-	for _, wp := range _wp {
-		NAME := fi.GetToken()
-		if NAME[0] == ';' {
-			fi.SkipToEndOfLine()
+	rp.WD = make([]*MADO, 0)
+
+	pos := fi.GetPos()
+
+	for !fi.IsEnd() {
+		line := new(EeTokens)
+		line.tokens = fi.GetLogicalLine()
+		line.pos = 0
+
+		// 空行の場合は終了
+		if len(line.tokens) == 1 && line.tokens[0] == ";" {
 			break
 		}
 
-		wp.ref = 0.0
-		wp.grpx = 1.0
+		NAME := line.GetToken()
 
-		wp.rgb[0] = 0.0
-		wp.rgb[1] = 0.3
-		wp.rgb[2] = 0.8
+		if NAME == "WD" {
+			wp := MADOInit()
 
-		if NAME != "WD" {
-			fmt.Printf("ERROR parameter----WD: %s\n", NAME)
-			os.Exit(1)
-		}
+			wp.winname = line.GetToken()
 
-		rp.sumWD++
+			for !line.IsEnd() {
+				NAME := line.GetToken()
+				if NAME[0] == ';' {
+					break
+				}
 
-		wp.winname = fi.GetToken()
-
-		for fi.IsEnd() == false {
-			NAME := fi.GetToken()
-			if NAME[0] == ';' {
-				break
+				if NAME == "-xyr" {
+					// 左下頂点座標
+					wp.xr = line.GetFloat()
+					wp.yr = line.GetFloat()
+				} else if NAME == "-WH" {
+					// 巾、高さ
+					wp.Ww = line.GetFloat()
+					wp.Wh = line.GetFloat()
+				} else if NAME == "-ref" {
+					// 反射率
+					wp.ref = line.GetFloat()
+				} else if NAME == "-grpx" {
+					// 前面地面の代表点までの距離
+					wp.grpx = line.GetFloat()
+				} else if NAME == "-rgb" {
+					// 色
+					wp.rgb[0] = line.GetFloat()
+					wp.rgb[1] = line.GetFloat()
+					wp.rgb[2] = line.GetFloat()
+				} else {
+					fmt.Printf("ERROR parameter----WD: %s\n", NAME)
+					os.Exit(1)
+				}
 			}
 
-			if NAME == "-xyr" {
-				wp.xr = fi.GetFloat()
-				wp.yr = fi.GetFloat()
-			} else if NAME == "-WH" {
-				wp.Ww = fi.GetFloat()
-				wp.Wh = fi.GetFloat()
-			} else if NAME == "-ref" {
-				wp.ref = fi.GetFloat()
-			} else if NAME == "-grpx" {
-				wp.grpx = fi.GetFloat()
-			} else if NAME == "-rgb" {
-				wp.rgb[0] = fi.GetFloat()
-				wp.rgb[1] = fi.GetFloat()
-				wp.rgb[2] = fi.GetFloat()
-			} else {
-				fmt.Printf("ERROR parameter----WD: %s\n", NAME)
-				os.Exit(1)
-			}
+			rp.WD = append(rp.WD, wp)
+		} else if NAME == "RMP" {
+			fi.RestorePos(pos)
+			break
 		}
 	}
+
+	return rp
+}
+
+func MADOInit() *MADO {
+	wp := new(MADO)
+	wp.winname = ""
+	matinit(wp.rgb[:], 3)
+	wp.grpx = 1.0 // 前面地面の代表点までの距離 = 1
+	wp.ref = 0.0
+	wp.Wh = 0.0
+	wp.xr = 0.0
+	wp.yr = 0.0
+
+	wp.ref = 0.0 // 反射率 = 0
+
+	wp.rgb[0] = 0.0
+	wp.rgb[1] = 0.3
+	wp.rgb[2] = 0.8
+
+	return wp
 }
 
 /*------------------------------------------------------------------*/
+
+// `rect <obsname> -xyz <x> <y> <z> -WH <W> <H> -WaWb <Wa> <Wb> -ref <ref> -rgb <r> <g> <b> ;`
 func rectdata(fi *EeTokens, obs *OBS) {
 	obs.ref[0] = 0.0
 
@@ -271,27 +330,33 @@ func rectdata(fi *EeTokens, obs *OBS) {
 	obs.rgb[1] = 0.7
 	obs.rgb[2] = 0.7
 
+	// 名前
 	obs.obsname = fi.GetToken()
 
-	for fi.IsEnd() == false {
+	for !fi.IsEnd() {
 		NAME := fi.GetToken()
 		if NAME[0] == ';' {
 			break
 		}
 
 		if NAME == "-xyz" {
+			// 左下頂点座標
 			obs.x = fi.GetFloat()
 			obs.y = fi.GetFloat()
 			obs.z = fi.GetFloat()
 		} else if NAME == "-WH" {
+			// 巾、高さ
 			obs.W = fi.GetFloat()
 			obs.H = fi.GetFloat()
 		} else if NAME == "-WaWb" {
+			// 方位角、傾斜角
 			obs.Wa = fi.GetFloat()
 			obs.Wb = fi.GetFloat()
 		} else if NAME == "-ref" {
+			// 反射率
 			obs.ref[0] = fi.GetFloat()
 		} else if NAME == "-rgb" {
+			// 色
 			obs.rgb[0] = fi.GetFloat()
 			obs.rgb[1] = fi.GetFloat()
 			obs.rgb[2] = fi.GetFloat()
@@ -303,6 +368,8 @@ func rectdata(fi *EeTokens, obs *OBS) {
 }
 
 /*------------------------------------------------------------------*/
+
+// `cube <obsname> -xyz <x> <y> <z> -WDH <W> <D> <H> -Wa <Wa> -ref0 <ref0> -ref1 <ref1> -ref2 <ref2> -ref3 <ref3> -rgb <r> <g> <b> ;`
 func cubdata(fi *EeTokens, obs *OBS) {
 	for i := 0; i < 3; i++ {
 		obs.ref[i] = 0.0
@@ -312,6 +379,7 @@ func cubdata(fi *EeTokens, obs *OBS) {
 	obs.rgb[1] = 0.7
 	obs.rgb[2] = 0.7
 
+	// 名前
 	obs.obsname = fi.GetToken()
 
 	for fi.IsEnd() == false {
@@ -321,24 +389,32 @@ func cubdata(fi *EeTokens, obs *OBS) {
 		}
 
 		if NAME == "-xyz" {
+			// 左下頂点座標
 			obs.x = fi.GetFloat()
 			obs.y = fi.GetFloat()
 			obs.z = fi.GetFloat()
 		} else if NAME == "-WDH" {
+			// 巾、奥行き、高さ
 			obs.W = fi.GetFloat()
 			obs.D = fi.GetFloat()
 			obs.H = fi.GetFloat()
 		} else if NAME == "-Wa" {
+			// 方位角
 			obs.Wa = fi.GetFloat()
 		} else if NAME == "-ref0" {
+			// 反射率
 			obs.ref[0] = fi.GetFloat()
 		} else if NAME == "-ref1" {
+			// 反射率
 			obs.ref[1] = fi.GetFloat()
 		} else if NAME == "-ref2" {
+			// 反射率
 			obs.ref[2] = fi.GetFloat()
 		} else if NAME == "-ref3" {
+			// 反射率
 			obs.ref[3] = fi.GetFloat()
 		} else if NAME == "-rgb" {
+			// 色
 			obs.rgb[0] = fi.GetFloat()
 			obs.rgb[1] = fi.GetFloat()
 			obs.rgb[2] = fi.GetFloat()
@@ -350,6 +426,9 @@ func cubdata(fi *EeTokens, obs *OBS) {
 }
 
 /*-------------------------------------------------------------------*/
+
+// `r_tri <obsname> -xyz <x> <y> <z> -WH <W> <H> -WaWb <Wa> <Wb> -ref <ref> -rgb <r> <g> <b> ;`
+// `i_tri <obsname> -xyz <x> <y> <z> -WH <W> <H> -WaWb <Wa> <Wb> -ref <ref> -rgb <r> <g> <b> ;`
 func tridata(fi *EeTokens, obs *OBS) {
 	obs.ref[0] = 0.0
 
@@ -357,27 +436,33 @@ func tridata(fi *EeTokens, obs *OBS) {
 	obs.rgb[1] = 0.7
 	obs.rgb[2] = 0.7
 
+	// 名前
 	obs.obsname = fi.GetToken()
 
-	for fi.IsEnd() == false {
+	for !fi.IsEnd() {
 		NAME := fi.GetToken()
 		if NAME[0] == ';' {
 			break
 		}
 
 		if NAME == "-xyz" {
+			// 左下頂点座標
 			obs.x = fi.GetFloat()
 			obs.y = fi.GetFloat()
 			obs.z = fi.GetFloat()
 		} else if NAME == "-WH" {
+			// 巾、高さ
 			obs.W = fi.GetFloat()
 			obs.H = fi.GetFloat()
 		} else if NAME == "-WaWb" {
+			// 方位角、傾斜角
 			obs.Wa = fi.GetFloat()
 			obs.Wb = fi.GetFloat()
 		} else if NAME == "-ref" {
+			// 反射率
 			obs.ref[0] = fi.GetFloat()
 		} else if NAME == "-rgb" {
+			// 色
 			obs.rgb[0] = fi.GetFloat()
 			obs.rgb[1] = fi.GetFloat()
 			obs.rgb[2] = fi.GetFloat()
@@ -389,17 +474,23 @@ func tridata(fi *EeTokens, obs *OBS) {
 }
 
 /*-------------------------------------------------------------------*/
+// fi から入力データを読み取り、monten と DE に値を設定する。
 // 20170503 higuchi add
+// ------------------------------
+// `DIVID
+//    DE <DE> MONT <monte> ;
+//  *`
 func dividdata(fi *EeTokens, monten *int, DE *float64) {
 	var NAME string
 
-	for fi.IsEnd() == false {
+	for !fi.IsEnd() {
 		NAME = fi.GetToken()
 		if NAME[0] == ';' {
 			break
 		}
 
 		if NAME == "DE" {
+			// DE: 壁の分割[mm]
 			var err error
 			s := fi.GetToken()
 			*DE, err = strconv.ParseFloat(s, 64)
@@ -407,6 +498,7 @@ func dividdata(fi *EeTokens, monten *int, DE *float64) {
 				fmt.Printf("ERROR parameter----DIVID: %s\n", NAME)
 			}
 		} else if NAME == "MONT" {
+			// monte: モンテカルロ法の計算回数
 			var err error
 			s := fi.GetToken()
 			*monten, err = strconv.Atoi(s)
@@ -419,81 +511,60 @@ func dividdata(fi *EeTokens, monten *int, DE *float64) {
 			os.Exit(1)
 		}
 	}
-
-	NAME = fi.GetToken()
 }
 
-func treedata(fi *EeTokens, treen *int, tree *[]*TREE) {
-	var i int
-	var Ntree int
+// `TREE <treetype> <treename> -xyz <x> <y> <z> -WH1 <W1> <H1> -WH2 <W2> <H2> -WH3 <W3> <H3> -WH4 <W4> -rgb <r> <g> <b> ;`
+func treedata(fi *EeTokens, tree *[]*TREE) {
 	var tred *TREE
 
-	// BDPの数を数える
-	Ntree = InputCount(fi, ";")
-	fmt.Printf("<treedata> Ntree=%d\n", Ntree)
+	*tree = make([]*TREE, 0)
 
-	if Ntree > 0 {
-		*tree = make([]*TREE, Ntree)
+	for !fi.IsEnd() {
+		tred = treeinit()
 
-		// 構造体の初期化
-		for i = 0; i < Ntree; i++ {
-			tred = new(TREE)
-
-			tred.treename = ""
-			tred.treetype = ""
-			tred.x = 0.0
-			tred.y = 0.0
-			tred.z = 0.0
-			tred.W1 = 0.0
-			tred.W2 = 0.0
-			tred.W3 = 0.0
-			tred.W4 = 0.0
-			tred.H1 = 0.0
-			tred.H2 = 0.0
-			tred.H3 = 0.0
-
-			(*tree)[i] = tred
-		}
-	}
-
-	*treen = 0
-
-	for i = 0; i < Ntree; i++ {
-		tred = (*tree)[i]
+		line := new(EeTokens)
+		line.tokens = fi.GetLogicalLine()
+		line.pos = 0
 
 		var NAME string
-		NAME = fi.GetToken()
+		NAME = line.GetToken()
 		if NAME[0] == '*' {
 			break
 		}
 
+		// 樹木の形
 		tred.treetype = NAME
 
-		NAME = fi.GetToken()
-		tred.treename = NAME
+		// 名前
+		tred.treename = line.GetToken()
 
 		if tred.treetype == "treeA" {
-			for fi.IsEnd() == false {
-				NAME = fi.GetToken()
+			for !line.IsEnd() {
+				NAME = line.GetToken()
 				if NAME[0] == ';' {
 					break
 				}
 
 				if NAME == "-xyz" {
-					tred.x = fi.GetFloat()
-					tred.y = fi.GetFloat()
-					tred.z = fi.GetFloat()
+					// 幹部下面の中心座標
+					tred.x = line.GetFloat()
+					tred.y = line.GetFloat()
+					tred.z = line.GetFloat()
 				} else if NAME == "-WH1" {
-					tred.W1 = fi.GetFloat()
-					tred.H1 = fi.GetFloat()
+					// 幹太さ、幹高さ
+					tred.W1 = line.GetFloat()
+					tred.H1 = line.GetFloat()
 				} else if NAME == "-WH2" {
-					tred.W2 = fi.GetFloat()
-					tred.H2 = fi.GetFloat()
+					// 葉部下面巾、葉部下側高さ
+					tred.W2 = line.GetFloat()
+					tred.H2 = line.GetFloat()
 				} else if NAME == "-WH3" {
-					tred.W3 = fi.GetFloat()
-					tred.H3 = fi.GetFloat()
-				} else if NAME == "-WH4" {
-					tred.W4 = fi.GetFloat()
+					// 葉部中央巾、葉部上側高さ
+					tred.W3 = line.GetFloat()
+					tred.H3 = line.GetFloat()
+				} else if NAME == "-WH4" || NAME == "-W4" {
+					// 葉部上面巾
+					tred.W4 = line.GetFloat()
 				} else {
 					fmt.Printf("ERROR parameter----TREE: %s %s\n", tred.treename, NAME)
 					os.Exit(1)
@@ -504,55 +575,63 @@ func treedata(fi *EeTokens, treen *int, tree *[]*TREE) {
 			os.Exit(1)
 		}
 
-		(*treen)++
+		*tree = append(*tree, tred)
 	}
 }
 
+func treeinit() *TREE {
+	tred := new(TREE)
+
+	tred.treename = ""
+	tred.treetype = ""
+	tred.x = 0.0
+	tred.y = 0.0
+	tred.z = 0.0
+	tred.W1 = 0.0
+	tred.W2 = 0.0
+	tred.W3 = 0.0
+	tred.W4 = 0.0
+	tred.H1 = 0.0
+	tred.H2 = 0.0
+	tred.H3 = 0.0
+
+	return tred
+}
+
 /*-------------------------*/
-func polydata(fi *EeTokens, polyn *int, poly *[]*POLYGN) {
+
+// `POLYGON
+//   <polyknd> <polyd> <polyname> <wallname> -xyz [<x> <y> <z>]+ -rgb <r> <g> <b> -ref <ref> -refg <refg> -grpx <grpx> ;`
+//   <polyknd> <polyd> <polyname> <wallname> -xyz [<x> <y> <z>]+ -rgb <r> <g> <b> -ref <ref> -refg <refg> -grpx <grpx> ;`
+//  *`
+func polydata(fi *EeTokens, poly *[]*POLYGN) {
 	var i int
 	var Npoly int
-	var polyp *POLYGN
 
-	// BDPの数を数える
-	Npoly = InputCount(fi, ";")
-	fmt.Printf("<polydata> Npoly=%d\n", Npoly)
+	*poly = make([]*POLYGN, Npoly)
 
-	if Npoly > 0 {
-		*poly = make([]*POLYGN, Npoly)
+	for !fi.IsEnd() {
+		polyp := polyinit()
 
-		// 構造体の初期化
-		for i = 0; i < Npoly; i++ {
-			polyp = new(POLYGN)
-			polyp.polyknd = ""
-			polyp.polyname = ""
-			polyp.wallname = ""
-			polyp.polyd = 0
-			polyp.ref = 0.0
-			polyp.refg = 0.0
-			polyp.grpx = 0.0
-			polyp.P = nil
-			matinit(polyp.rgb[:], 3)
-			(*poly)[i] = polyp
-		}
-	}
-
-	*polyn = 0
-	for i = 0; i < Npoly; i++ {
-		polyp = (*poly)[i]
+		line := new(EeTokens)
+		line.tokens = fi.GetLogicalLine()
+		line.pos = 0
 
 		var NAME string
-		NAME = fi.GetToken()
+		NAME = line.GetToken()
 		if NAME[0] == '*' {
 			break
 		}
 
+		// 前面地面の代表点までの距離の初期値
 		polyp.grpx = 1.0
 
+		// 色の初期値
 		polyp.rgb[0] = 0.9
 		polyp.rgb[1] = 0.9
 		polyp.rgb[2] = 0.9
 
+		// ポリゴン種類
 		polyp.polyknd = NAME
 
 		if polyp.polyknd != "RMP" && polyp.polyknd != "OBS" {
@@ -560,42 +639,83 @@ func polydata(fi *EeTokens, polyn *int, poly *[]*POLYGN) {
 			os.Exit(1)
 		}
 
-		polyp.polyd = fi.GetInt()
+		// 頂点数
+		polyp.polyd = line.GetInt()
 		polyp.P = make([]XYZ, polyp.polyd)
 
-		polyp.polyname = fi.GetToken()
-		polyp.wallname = fi.GetToken()
+		// 名前
+		polyp.polyname = line.GetToken()
 
-		for fi.IsEnd() == false {
-			NAME = fi.GetToken()
+		// 壁名
+		polyp.wallname = line.GetToken()
+
+		for !line.IsEnd() {
+			NAME = line.GetToken()
 			if NAME[0] == ';' {
 				break
 			}
 
 			if NAME == "-xyz" {
+				// 頂点座標
 				for i = 0; i < polyp.polyd; i++ {
-					polyp.P[i].X = fi.GetFloat()
-					polyp.P[i].Y = fi.GetFloat()
-					polyp.P[i].Z = fi.GetFloat()
+					polyp.P[i].X = line.GetFloat()
+					polyp.P[i].Y = line.GetFloat()
+					polyp.P[i].Z = line.GetFloat()
 				}
 
 			} else if NAME == "-rgb" {
-				polyp.rgb[0] = fi.GetFloat()
-				polyp.rgb[1] = fi.GetFloat()
-				polyp.rgb[2] = fi.GetFloat()
+				// 色
+				polyp.rgb[0] = line.GetFloat()
+				polyp.rgb[1] = line.GetFloat()
+				polyp.rgb[2] = line.GetFloat()
 			} else if NAME == "-ref" {
-				polyp.ref = fi.GetFloat()
+				// 反射率
+				polyp.ref = line.GetFloat()
 			} else if NAME == "-refg" {
-				polyp.refg = fi.GetFloat()
+				// 前面地面の反射率
+				polyp.refg = line.GetFloat()
 			} else if NAME == "-grpx" {
-				polyp.grpx = fi.GetFloat()
+				// 前面地面の代表点までの距離
+				polyp.grpx = line.GetFloat()
 			} else {
 				fmt.Printf("ERROR parameter----POLYGON: %s\n", NAME)
 				os.Exit(1)
 			}
 		}
-		(*polyn)++
+
+		*poly = append(*poly, polyp)
 	}
+}
+
+func polyinit() *POLYGN {
+	polyp := new(POLYGN)
+
+	// ポリゴン種類
+	polyp.polyknd = ""
+
+	// 名前
+	polyp.polyname = ""
+
+	// 壁名
+	polyp.wallname = ""
+
+	// 反射率
+	polyp.ref = 0.0
+
+	// 前面地面の反射率
+	polyp.refg = 0.0
+
+	// 前面地面の代表点までの距離 = 1
+	polyp.grpx = 1.0
+
+	// 頂点
+	polyp.polyd = 0
+	polyp.P = nil
+
+	// 色
+	matinit(polyp.rgb[:], 3)
+
+	return polyp
 }
 
 /*---------------------------------------------------------------------------*/
@@ -603,49 +723,13 @@ func polydata(fi *EeTokens, polyn *int, poly *[]*POLYGN) {
 // 例: BDP Ssrfs -xyz 0 0 0.5 -exs south -WH 5.95 2.9 ;
 // 例: SBLK HISASI Ssblk -xy 1.125 2.9 -DW 0.9 3.7 -a 90 ;
 // 例: RMP Swall LD -xyb 0 0 -WH 5.95 2.9 -ref 0.1 ;
-func bdpdata(fi *EeTokens, bdpn *int, bp *[]*BBDP, Exsf *EXSFS) {
+func bdpdata(fi *EeTokens, bp *[]*BBDP, Exsf *EXSFS) {
 
-	var rp *RRMP
 	var sb *sunblk
-	var Nbdp int
-	var bbdp *BBDP
-
-	// BDPの数を数える
-	Nbdp = InputCount(fi, "*")
-	//printf("<bdpdata> Nbdp=%d\n", Nbdp)
-
-	// メモリの確保
-	if Nbdp > 0 {
-		*bp = make([]*BBDP, Nbdp)
-		if *bp == nil {
-			fmt.Printf("<bdpdata> bpのメモリが確保できません\n")
-		}
-
-		for i := 0; i < Nbdp; i++ {
-			bbdp = new(BBDP)
-			bbdp.bdpname = ""
-			bbdp.exh = 0
-			bbdp.exw = 0.
-			bbdp.sumRMP = 0
-			bbdp.sumsblk = 0
-			bbdp.x0 = 0
-			bbdp.y0 = 0
-			bbdp.z0 = 0.
-			bbdp.Wa = 0
-			bbdp.Wb = 0.
-			bbdp.SBLK = nil
-			bbdp.RMP = nil
-			bbdp.exsfname = ""
-			(*bp)[i] = bbdp
-		}
-	}
-
-	// BDPデータ数の初期化
-	*bdpn = 0
 
 	// BDPデータの読み込み
-	for i := 0; i < Nbdp; i++ {
-		bbdp = (*bp)[i]
+	for !fi.IsEnd() {
+		bbdp := bdpinit()
 
 		var NAME string
 		NAME = fi.GetToken()
@@ -660,7 +744,7 @@ func bdpdata(fi *EeTokens, bdpn *int, bp *[]*BBDP, Exsf *EXSFS) {
 
 		bbdp.bdpname = fi.GetToken()
 
-		for fi.IsEnd() == false {
+		for !fi.IsEnd() {
 			NAME = fi.GetToken()
 			if NAME[0] == ';' {
 				fi.SkipToEndOfLine()
@@ -702,60 +786,18 @@ func bdpdata(fi *EeTokens, bdpn *int, bp *[]*BBDP, Exsf *EXSFS) {
 		}
 
 		// SBLKの個数を数えてメモリを確保
-		Nsblk := SBLKCount(fi)
-		if Nsblk > 0 {
-			bbdp.SBLK = make([]*sunblk, Nsblk)
+		bbdp.SBLK = make([]*sunblk, 0)
 
-			for i := 0; i < Nsblk; i++ {
-				sb = new(sunblk)
-
-				sb.D = 0.0
-				sb.H = 0.0
-				sb.h = 0.0
-				sb.ref = 0.0
-				sb.W = 0.0
-				sb.WA = 0.0
-				sb.x = 0.0
-				sb.y = 0.0
-				sb.sbfname = ""
-				sb.snbname = ""
-				matinit(sb.rgb[:], 3)
-
-				bbdp.SBLK[i] = sb
-			}
-		}
-
-		// RMPの個数を数えてメモリを確保
-		Nrmp := RMPCount(fi)
-		if Nrmp > 0 {
-			bbdp.RMP = make([]*RRMP, Nrmp)
-			for i := 0; i < Nrmp; i++ {
-				rp = new(RRMP)
-				rp.rmpname = ""
-				rp.wallname = ""
-				rp.sumWD = 0
-				rp.ref = 0.0
-				rp.xb0 = 0.0
-				rp.yb0 = 0.0
-				rp.Rw = 0.0
-				rp.Rh = 0.0
-				rp.grpx = 0.0
-				matinit(rp.rgb[:], 3)
-				rp.WD = nil
-
-				bbdp.RMP[i] = rp
-			}
-		}
+		// RMPのメモリを確保
+		bbdp.RMP = make([]*RRMP, 0)
 
 		// if rp != nil {
 		// 	wp = rp.WD
 		// }
 
-		sb_idx := 0
-		rp_idx := 0
 		// SBLK, RMPの読み込み
-		for fi.IsEnd() == false {
-			bbdp = (*bp)[i]
+		for !fi.IsEnd() {
+			//bbdp = (*bp)[i]
 
 			NAME = fi.GetToken()
 			if NAME[0] == '*' {
@@ -763,10 +805,13 @@ func bdpdata(fi *EeTokens, bdpn *int, bp *[]*BBDP, Exsf *EXSFS) {
 			}
 
 			if NAME == "SBLK" {
-				sb = bbdp.SBLK[sb_idx]
+				// 日よけ
+				// `SBLK <sbfname> <snbname> -xy <x> <y> -DW <D> <W> -a <WA> -rgb <r> <g> <b> ;`
+				sb = SBLKInit()
 				sb.ref = 0.0
 				sb.sbfname = fi.GetToken()
 
+				// 日よけの種類に応じた読み取り処理
 				if sb.sbfname == "HISASI" {
 					HISASHI(fi, sb)
 				} else if sb.sbfname == "BARUKONI" {
@@ -782,210 +827,196 @@ func bdpdata(fi *EeTokens, bdpn *int, bp *[]*BBDP, Exsf *EXSFS) {
 
 				fi.SkipToEndOfLine()
 
-				sb_idx++
-				bbdp.sumsblk++
+				bbdp.SBLK = append(bbdp.SBLK, sb)
 			} else if NAME == "RMP" {
-				rp = bbdp.RMP[rp_idx]
 
-				// WDの数を数えてメモリを確保
-				Nwd := WDCount(fi)
+				// RMP 読み取り処理
+				rp := rmpdata(fi)
 
-				if Nwd > 0 {
-					rp.WD = make([]*MADO, Nwd)
-					for i := 0; i < Nwd; i++ {
-						wp := new(MADO)
-						wp.winname = ""
-						matinit(wp.rgb[:], 3)
-						wp.grpx = 0.0
-						wp.ref = 0.0
-						wp.Wh = 0.0
-						wp.xr = 0.0
-						wp.yr = 0.0
-						rp.WD[i] = wp
-					}
-				}
-				rp.ref = 0.0
-				bbdp.sumRMP++
-				rmpdata(fi, rp, rp.WD)
 				fi.SkipToEndOfLine()
 
-				rp_idx++
+				bbdp.RMP = append(bbdp.RMP, rp)
 			} else {
 				fmt.Printf("ERROR----<SBLK> or <RMP> : %s \n", NAME)
 				os.Exit(1)
 			}
 		}
 
-		(*bdpn)++
+		(*bp) = append(*bp, bbdp)
 	}
 }
 
+func bdpinit() *BBDP {
+	bbdp := new(BBDP)
+	bbdp.bdpname = ""
+	bbdp.exh = 0
+	bbdp.exw = 0.
+	bbdp.x0 = 0
+	bbdp.y0 = 0
+	bbdp.z0 = 0.
+	bbdp.Wa = 0
+	bbdp.Wb = 0.
+	bbdp.SBLK = nil
+	bbdp.RMP = nil
+	bbdp.exsfname = ""
+	return bbdp
+}
+
+func RRMPInit() *RRMP {
+	rp := new(RRMP)
+
+	// RMP名
+	rp.rmpname = ""
+
+	// 壁名称
+	rp.wallname = ""
+
+	// 反射率
+	rp.ref = 0.0
+
+	// 左下頂点座標
+	rp.xb0 = 0.0
+	rp.yb0 = 0.0
+
+	// 巾、高さ
+	rp.Rw = 0.0
+	rp.Rh = 0.0
+
+	// 色
+	matinit(rp.rgb[:], 3)
+	rp.rgb[0] = 0.9
+	rp.rgb[1] = 0.9
+	rp.rgb[2] = 0.9
+
+	// 窓
+	rp.WD = nil
+
+	// 前面地面の代表点までの距離
+	rp.grpx = 1.0
+
+	return rp
+}
+
+func SBLKInit() *sunblk {
+	sb := new(sunblk)
+
+	sb.D = 0.0
+	sb.H = 0.0
+	sb.h = 0.0
+	sb.ref = 0.0
+	sb.W = 0.0
+	sb.WA = 0.0
+	sb.x = 0.0
+	sb.y = 0.0
+	sb.sbfname = ""
+	sb.snbname = ""
+	matinit(sb.rgb[:], 3)
+
+	return sb
+}
+
 /*--------------------------------------------------------------------------*/
+// OBS
+//   rect obs0 -xyz 22.5 -7.5 0.0 -WH 9.000 8.150 -WaWb 180 90 -ref 0.3 ;
+//   rect obs11 -xyz -13.5 15.0 0 -WH 9.000 8.150 -WaWb 0 90 -ref 0.3 ;
+//   cube obs12 -xyz 25 20 0 -WDH 20 20 30 -Wa 0 ;
+// *
 func obsdata(fi *EeTokens, obsn *int, obs *[]*OBS) {
 	var i, Nobs int
 	var obsp *OBS
 
-	// Count the number of OBS entries
-	Nobs = InputCount(fi, ";")
-	if Nobs > 0 {
-		*obs = make([]*OBS, Nobs)
-		for i = 0; i < Nobs; i++ {
-			obsp = new(OBS)
-			obsp.fname = ""
-			obsp.obsname = ""
-			obsp.x = 0.0
-			obsp.y = 0.0
-			obsp.z = 0.0
-			obsp.H = 0.0
-			obsp.D = 0.0
-			obsp.W = 0.0
-			obsp.Wa = 0.0
-			obsp.Wb = 0.0
-			matinit(obsp.ref[:], 4)
-			matinit(obsp.rgb[:], 3)
-			(*obs)[i] = obsp
-		}
-	}
-
+	*obs = make([]*OBS, Nobs)
 	*obsn = 0
-	for i = 0; i < Nobs; i++ {
-		obsp = (*obs)[i]
 
-		NAME := fi.GetToken()
+	for !fi.IsEnd() {
+		obsp = obsinit()
+
+		line := new(EeTokens)
+		line.tokens = fi.GetLogicalLine()
+		line.pos = 0
+
+		NAME := line.GetToken()
 		if NAME[0] == '*' {
 			break
 		}
 
+		// 外部障害物の種類
 		obsp.fname = NAME
 
+		// 反射率の初期化
 		for i = 0; i < 4; i++ {
 			obsp.ref[i] = 0.0
 		}
 
+		// 外部障害物の種類に応じた読み取り処理
 		if obsp.fname == "rect" {
-			rectdata(fi, obsp)
+			// 長方形（平面）
+			rectdata(line, obsp)
 		} else if obsp.fname == "cube" {
-			cubdata(fi, obsp)
+			// 直方体
+			cubdata(line, obsp)
 		} else if obsp.fname == "r_tri" || obsp.fname == "i_tri" {
-			tridata(fi, obsp)
+			// 三角形
+			tridata(line, obsp)
 		} else {
 			fmt.Printf("ERROR parameter----OBS : %s\n", obsp.fname)
 			os.Exit(1)
 		}
 
+		*obs = append(*obs, obsp)
 		(*obsn)++
 	}
 }
 
-func InputCount(fi *EeTokens, key string) int {
-	N := 0
-	ad := fi.GetPos()
+func obsinit() *OBS {
+	obsp := new(OBS)
 
-	for fi.IsEnd() == false {
-		s := fi.GetToken()
-		if s == "*" {
-			break
-		}
+	// 外部障害物の種類
+	obsp.fname = ""
 
-		N++
+	// 名前
+	obsp.obsname = ""
 
-		for fi.IsEnd() == false {
-			s = fi.GetToken()
+	// 左下頂点座標
+	obsp.x = 0.0
+	obsp.y = 0.0
+	obsp.z = 0.0
 
-			if s == key {
-				break
-			}
-		}
-	}
+	// 巾、奥行き、高さ
+	obsp.H = 0.0
+	obsp.D = 0.0
+	obsp.W = 0.0
 
-	fi.RestorePos(ad)
-	return N
+	// 方位角、傾斜角
+	obsp.Wa = 0.0
+	obsp.Wb = 0.0
+
+	// 反射率
+	matinit(obsp.ref[:], 4)
+
+	// 色
+	matinit(obsp.rgb[:], 3)
+
+	return obsp
 }
 
-func SBLKCount(fi *EeTokens) int {
-	N := 0
-	ad := fi.GetPos()
-
-	var s string
-	for fi.IsEnd() == false {
-		s = fi.GetToken()
-		if s == "*" {
-			break
-		}
-
-		if s == "SBLK" {
-			N++
-		}
-	}
-
-	fi.RestorePos(ad)
-	return N
-}
-
-func RMPCount(fi *EeTokens) int {
-	N := 0
-	ad := fi.GetPos()
-
-	var s string
-	for fi.IsEnd() == false {
-		s = fi.GetToken()
-		if s == "*" {
-			break
-		}
-
-		if s == "RMP" {
-			N++
-		}
-	}
-
-	fi.RestorePos(ad)
-
-	return N
-}
-
-func WDCount(fi *EeTokens) int {
-	N := 0
-	ad := fi.GetPos()
-
-	Flg := 0
-	for fi.IsEnd() == false {
-		s := fi.GetToken()
-
-		if s == "WD" {
-			N++
-		}
-
-		if s == ";" {
-			if Flg == 1 {
-				break
-			} else {
-				Flg = 1
-			}
-		} else {
-			Flg = 0
-		}
-	}
-
-	fi.RestorePos(ad)
-
-	return N
-}
-
-func OPcount(Nbdp int, _Bdp []*BBDP, Npoly int, _poly []*POLYGN) int {
+// OP(受照面)のカウント？
+func OPcount(_Bdp []*BBDP, _poly []*POLYGN) int {
 	Nop := 0
 
-	for i := 0; i < Nbdp; i++ {
-		Bdp := _Bdp[i]
-		Nop += Bdp.sumRMP
-		for j := 0; j < Bdp.sumRMP; j++ {
-			RMP := Bdp.RMP[i]
-			Nop += RMP.sumWD
+	// BDPの受光面 = RMP + WD
+	// (日よけは含まない)
+	for _, Bdp := range _Bdp {
+		Nop += len(Bdp.RMP)
+		for _, RMP := range Bdp.RMP {
+			Nop += len(RMP.WD)
 		}
 	}
 
-	for i := 0; i < Npoly; i++ {
-		poly := _poly[i]
+	// ポリゴン指定の受照面
+	for _, poly := range _poly {
 		if poly.polyknd == "RMP" {
+			// OBS(Obstacle)は受光面に含まない
 			Nop++
 		}
 	}
@@ -993,15 +1024,15 @@ func OPcount(Nbdp int, _Bdp []*BBDP, Npoly int, _poly []*POLYGN) int {
 	return Nop
 }
 
-func LPcount(Nbdp int, _Bdp []*BBDP, Nobs int, _Obs []*OBS, Ntree int, Npoly int, _poly []*POLYGN) int {
+// LP(被受照面)のカウント？
+func LPcount(_Bdp []*BBDP, _Obs []*OBS, _tree []*TREE, _poly []*POLYGN) int {
 	Nlp := 0
 
-	//初期化
-	for i := 0; i < Nbdp; i++ {
-		Bdp := _Bdp[i]
-		for j := 0; j < Bdp.sumsblk; j++ {
-			snbk := Bdp.SBLK[j]
+	// BDPの被光面 = 日よけ
+	for _, Bdp := range _Bdp {
+		for _, snbk := range Bdp.SBLK {
 			if snbk.sbfname == "BARUKONI" {
+				// 日よけの種類がバルコニーの場合
 				Nlp += 5
 			} else {
 				Nlp++
@@ -1009,9 +1040,10 @@ func LPcount(Nbdp int, _Bdp []*BBDP, Nobs int, _Obs []*OBS, Ntree int, Npoly int
 		}
 	}
 
-	for i := 0; i < Nobs; i++ {
-		Obs := _Obs[i]
+	// OBSの被光面
+	for _, Obs := range _Obs {
 		if Obs.fname == "cube" {
+			// 外部依存障害物の種類が立方体の場合
 			Nlp += 4
 		} else {
 			Nlp++
@@ -1019,12 +1051,12 @@ func LPcount(Nbdp int, _Bdp []*BBDP, Nobs int, _Obs []*OBS, Ntree int, Npoly int
 	}
 
 	// 樹木用
-	Nlp += Ntree * 20
+	Nlp += len(_tree) * 20
 
-	// ポリゴン
-	for i := 0; i < Npoly; i++ {
-		poly := _poly[i]
+	// ポリゴン指定の被照面
+	for _, poly := range _poly {
 		if poly.polyknd == "RMP" || poly.polyknd == "OBS" {
+			// RMPは受光面であり被受光面でもある
 			Nlp++
 		}
 	}

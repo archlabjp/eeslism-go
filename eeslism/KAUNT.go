@@ -37,6 +37,8 @@ func minval(span []float64, u int, min *int, val *float64) {
 	}
 }
 
+// KAUNT counts the total number of points that hit obstacles.
+// E: MP面の太陽傾斜ベクトル??
 func KAUNT(
 	mlpn int,
 	ls float64,

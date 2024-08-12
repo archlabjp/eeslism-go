@@ -57,7 +57,8 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 	brs = 0
 	//var s, ss string
 	//var st, ce, stt string
-	var dexsname, dnxrname string
+	var dexsname string // 外壁の名前 => EXSRFで定義される
+	var dnxrname string // 内壁の名前
 	var Er string
 	var sfemark bool
 	var RmnameEr string
@@ -250,7 +251,7 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 
 						// 読み進めの記録
 						i = ii + 1
-					} else if strings.ContainsRune(s, ':') {
+					} else if strings.HasSuffix(s, ":") {
 						// ex: `west: -E	7.50 ;`
 						// ex: `(roomA):	-i	Room	i=roomA ;``
 
@@ -620,25 +621,19 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 
 			switch Sd.ble {
 			case 'E', 'R', 'F', 'W':
-				// 外壁, 屋根, 床(外部) or 窓の場合
+				// 外壁, 屋根, 外気に接する床 or 窓の場合
 				if Sd.exs == -1 {
-					var Nexs int
-					if Exs != nil {
-						Nexs = len(Exs)
-					} else {
-						fmt.Println("EXSRFが未定義です。")
-						Nexs = 0
-						os.Exit(1)
-					}
-
+					// 外壁の名前から外壁の情報を取得
 					for j, e := range Exs {
 						if e.Name == dexsname {
 							Sd.exs = j
 							break
 						}
 					}
-					if j == Nexs {
-						err := fmt.Sprintf("Room=%s  (%s)\n", Rm.Name, dexsname)
+
+					// 外壁の名前が見つからない場合
+					if Sd.exs == -1 {
+						err := fmt.Sprintf("Room=%s  (%s)\n --- %s", Rm.Name, dexsname, strings.Join(line, " "))
 						Eprint("<Roomdata>", err)
 						os.Exit(1)
 					}
@@ -1127,7 +1122,7 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 }
 
 func readFloat(value string) (float64, error) {
-	return strconv.ParseFloat(value, 64)
+	return strconv.ParseFloat(strings.Trim(value, "\""), 64)
 }
 
 func readRoomVol(value string) (float64, error) {

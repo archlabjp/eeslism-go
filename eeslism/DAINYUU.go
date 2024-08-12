@@ -28,46 +28,76 @@ import (
 )
 
 /*---------------------------------------------------------------------*/
-func DAINYUU_MP(mp *[]*P_MENN, op []*P_MENN, opn int, mpn int) {
-	k := 0
-	for i := 0; i < opn; i++ {
-		(*mp)[k].P = make([]XYZ, op[i].polyd)
-		*(*mp)[k] = *op[i]
-		(*mp)[k].wd = 0
-		(*mp)[k].sbflg = 0
-		(*mp)[k].wlflg = 0
-		(*mp)[k].opname = op[i].opname
+func DAINYUU_MP(op []*P_MENN) []*P_MENN {
+	mp := make([]*P_MENN, 0)
 
-		for j := 0; j < op[i].wd; j++ {
-			k++
-			(*mp)[k].wd = 0
-			(*mp)[k].sbflg = 0
-			(*mp)[k].wlflg = 1
-			(*mp)[k].refg = op[i].refg
-			(*mp)[k].ref = op[i].opw[j].ref
-			(*mp)[k].rgb[0] = op[i].opw[j].rgb[0]
-			(*mp)[k].rgb[1] = op[i].opw[j].rgb[1]
-			(*mp)[k].rgb[2] = op[i].opw[j].rgb[2]
-			(*mp)[k].polyd = op[i].opw[j].polyd
-			(*mp)[k].P = make([]XYZ, op[i].opw[j].polyd)
-			(*mp)[k].grpx = op[i].opw[j].grpx
-			(*mp)[k].wb = op[i].wb
-			(*mp)[k].wa = op[i].wa
-			(*mp)[k].e = op[i].e
-			(*mp)[k].opname = op[i].opw[j].opwname
+	for _, _op := range op {
+		// op -> mp
+		_mp := new(P_MENN)
+		_mp.P = make([]XYZ, _op.polyd)
+		*_mp = *_op
+		_mp.wd = 0
+		_mp.sbflg = 0
+		_mp.wlflg = 0
+		_mp.opname = _op.opname
+		mp = append(mp, _mp)
 
-			for l := 0; l < (*mp)[k].polyd; l++ {
-				(*mp)[k].P[l] = op[i].opw[j].P[l]
+		for j := 0; j < _op.wd; j++ {
+			// opw -> mp
+			_mpw := new(P_MENN)
+			_mpw.wd = 0
+			_mpw.sbflg = 0 // 0=その他
+			_mpw.wlflg = 1 // 1=窓
+
+			// 反射率、前面地面の反射率
+			_mpw.refg = _op.refg
+			_mpw.ref = _op.opw[j].ref
+
+			// 色
+			_mpw.rgb[0] = _op.opw[j].rgb[0]
+			_mpw.rgb[1] = _op.opw[j].rgb[1]
+			_mpw.rgb[2] = _op.opw[j].rgb[2]
+
+			// 頂点
+			_mpw.polyd = len(_op.opw[j].P)
+			_mpw.P = make([]XYZ, len(_op.opw[j].P))
+			for l := 0; l < _mpw.polyd; l++ {
+				_mpw.P[l] = _op.opw[j].P[l]
 			}
+
+			// 前面地面の代表点までの距離
+			_mpw.grpx = _op.opw[j].grpx
+
+			// 方位角、傾斜角
+			_mpw.wb = _op.wb
+			_mpw.wa = _op.wa
+
+			// 法線ベクトル
+			_mpw.e = _op.e
+
+			// 名前
+			_mpw.opname = _op.opw[j].opwname
+
+			mp = append(mp, _mpw)
 		}
-		k++
+
 	}
+
+	return mp
 }
 
 /*-------------------------------------------------------------------------*/
+
+// p: 代入先
+// O: 代入元
+// E: 代入元
+// ls: 代入元
+// ms: 代入元
+// ns: 代入元
 func DAINYUU_GP(p *XYZ, O XYZ, E XYZ, ls float64, ms float64, ns float64) {
 	var t, u float64
 
+	// u : 法線ベクトルと光線ベクトルの内積
 	u = E.X*ls + E.Y*ms + E.Z*ns
 
 	if u != 0.0 {
@@ -82,37 +112,24 @@ func DAINYUU_GP(p *XYZ, O XYZ, E XYZ, ls float64, ms float64, ns float64) {
 }
 
 /*-----------------------------------------------------------------------*/
-func DAINYUU_SMO(opn int, mpn int, op []P_MENN, mp []P_MENN) {
-	k := 0
-	for i := 0; i < opn; i++ {
-		mp[k].sum = op[i].sum
-		for j := 0; j < op[i].wd; j++ {
-			k++
-			mp[k].sum = op[i].opw[j].sumw
-		}
-		k++
-	}
-}
-
-/*-----------------------------------------------------------------------*/
 func DAINYUU_SMO2(opn int, mpn int, op []*P_MENN, mp []*P_MENN, Sdstr []*SHADSTR, dcnt int, tm int) {
 	k := 0
 
 	if dcnt == 1 {
 		// 過去の影で近似しない時間
-		for i := 0; i < opn; i++ {
-			mp[k].sum = op[i].sum
+		for _, _op := range op {
+			mp[k].sum = _op.sum
 			Sdstr[k].sdsum[tm] = mp[k].sum
-			for j := 0; j < op[i].wd; j++ {
+			for j := 0; j < _op.wd; j++ {
 				k++
-				mp[k].sum = op[i].opw[j].sumw
+				mp[k].sum = _op.opw[j].sumw
 				Sdstr[k].sdsum[tm] = mp[k].sum
 			}
 			k++
 		}
 	} else {
 		//過去の影で近似する時間
-		for k = 0; k < mpn; k++ {
+		for k := range mp {
 			mp[k].sum = Sdstr[k].sdsum[tm]
 		}
 	}

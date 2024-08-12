@@ -52,6 +52,10 @@ func bdhpri(ofile string, rmvls *RMVLS, exs *EXSFS) {
 		for j := 0; j < room.N; j++ {
 			r := room.rsrf[j]
 			if r.ble == BLE_ExternalWall || r.ble == BLE_Window || r.ble == BLE_Roof || r.ble == BLE_Floor {
+				// 外壁、窓、屋根、床の場合
+				if r.exs < 0 {
+					panic("bdhpri: exs < 0")
+				}
 				er := e[r.exs]
 				fmt.Fprintf(fp, "\t%s", er.Name)
 			} else if r.nextroom != nil && r.nextroom.Name != "" {

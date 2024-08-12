@@ -95,6 +95,7 @@ func e_printf(n int, p []P_MENN, name string) {
 }
 
 /*---------------影面積の出力--------------------*/
+// <input>_shadow.gchi への出力
 func shadow_printf(fp io.Writer, M, D int, mt float64, mpn int, mp []*P_MENN) {
 	var i int
 

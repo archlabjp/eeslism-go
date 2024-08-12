@@ -118,7 +118,7 @@ type RMSRF struct {
 
 	rm       int    // 室番号
 	n        int    // 室壁体番号
-	exs      int    // 方位番号
+	exs      int    // 方位番号 (外気に接する部位の場合は方位の指定が必要; Exsf.Exsのインデックス)
 	nxrmname string //隣室名
 	nxrm     int    // 隣室番号
 	nxn      int    // 隣室室壁体番号
@@ -317,7 +317,7 @@ const (
 	BLE_None         BLEType = 0
 	BLE_ExternalWall BLEType = 'E' // 外壁
 	BLE_Roof         BLEType = 'R' // 屋根
-	BLE_Floor        BLEType = 'F' // 外部に接する床
+	BLE_Floor        BLEType = 'F' // 外気に接する床
 	BLE_InnerWall    BLEType = 'i' // 内壁
 	BLE_Ceil         BLEType = 'c' // 天井(内部)
 	BLE_InnerFloor   BLEType = 'f' // 床(内部)

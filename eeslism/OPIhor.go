@@ -29,8 +29,8 @@ import (
 )
 
 func OPIhor(
-	fp io.Writer,
-	fp1 io.Writer,
+	fp io.Writer, // _I.gchi : MPの日射量の出力
+	fp1 io.Writer, // _lwr.gchi : MPの長波長放射量の出力
 	lpn int,
 	mpn int,
 	mp []*P_MENN,

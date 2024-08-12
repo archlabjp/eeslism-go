@@ -26,23 +26,28 @@ import "math"
 //
 //*/
 
-func HOUSEN(w int, LP []*P_MENN) {
-	for i := 0; i < w; i++ {
-		x := LP[i].P[1].X - LP[i].P[0].X
-		y := LP[i].P[1].Y - LP[i].P[0].Y
-		z := LP[i].P[1].Z - LP[i].P[0].Z
-		x1 := LP[i].P[2].X - LP[i].P[0].X
-		y1 := LP[i].P[2].Y - LP[i].P[0].Y
-		z1 := LP[i].P[2].Z - LP[i].P[0].Z
+// HOUSEN calculates the normal vector of a polygon.
+// LP[i].e に法線ベクトルが入る
+func HOUSEN(LP []*P_MENN) {
+	for _, _lp := range LP {
+		// 多角形のうち2辺のベクトルを求める
+		x := _lp.P[1].X - _lp.P[0].X
+		y := _lp.P[1].Y - _lp.P[0].Y
+		z := _lp.P[1].Z - _lp.P[0].Z
+		x1 := _lp.P[2].X - _lp.P[0].X
+		y1 := _lp.P[2].Y - _lp.P[0].Y
+		z1 := _lp.P[2].Z - _lp.P[0].Z
 
-		LP[i].e.X = y*z1 - z*y1
-		LP[i].e.Y = z*x1 - x*z1
-		LP[i].e.Z = x*y1 - y*x1
+		// 法線ベクトルを求める
+		_lp.e.X = y*z1 - z*y1
+		_lp.e.Y = z*x1 - x*z1
+		_lp.e.Z = x*y1 - y*x1
 
-		el := math.Sqrt(LP[i].e.X*LP[i].e.X + LP[i].e.Y*LP[i].e.Y + LP[i].e.Z*LP[i].e.Z)
-		LP[i].e.X = LP[i].e.X / el
-		LP[i].e.Y = LP[i].e.Y / el
-		LP[i].e.Z = LP[i].e.Z / el
+		// 法線ベクトルの正規化
+		el := math.Sqrt(_lp.e.X*_lp.e.X + _lp.e.Y*_lp.e.Y + _lp.e.Z*_lp.e.Z)
+		_lp.e.X = _lp.e.X / el
+		_lp.e.Y = _lp.e.Y / el
+		_lp.e.Z = _lp.e.Z / el
 	}
 }
 

@@ -39,20 +39,18 @@ func Entry(InFile string, efl_path string) {
 	var Soldy []float64  // 日集計データ
 	var Solmon []float64 // 月集計データ
 
-	var uop, ulp []*bekt
-	var ullp, ulmp []*bekt
+	var uop []*bekt  // uop: opから見たopの位置
+	var ulp []*bekt  // ulp: opから見たlpの位置
+	var ullp []*bekt // ullp: lpから見たlpの位置
+	var ulmp []*bekt // ulmp: lpから見たmpの位置
 
 	/*---------------higuchi add-------------------start*/
 
-	var bdpn int = 0      // BDPの総数
 	var obsn int = 0      // OBSの総数
 	var lpn int = 0       // LP(被受照面)の総数
 	var opn int = 0       // OP(受照面)の総数
-	var mpn int = 0       // MP(受照面)の総数
+	var mpn int = 0       // MP(受照面)の総数　(OP+OPW)
 	var monten int = 1000 // モンテカルロ法の際の射出数
-	var polyn int = 0     // 直接座標入力するポリゴンの総数
-	var treen int = 0     // TREE(樹木)の総数
-	var shadn int = 0     // 日射遮蔽率テーブルの総数
 
 	var DE float64 = 100.0 // 壁面の分割による微小四角形の辺の長さ
 	var co float64 = 0.0   // 壁面への太陽光線の入射角
@@ -65,15 +63,20 @@ func Entry(InFile string, efl_path string) {
 	var gp [][]XYZ
 	var gpn int
 
-	var fp1, fp2, fp3, fp4 *os.File
+	var fp1 *os.File // _shadow.gchi : MPの影面積の出力
+	var fp2 *os.File // _I.gchi : MPの日射量の出力
+	var fp3 *os.File // _lwr.gchi : MPの長波長放射量の出力
+	var fp4 *os.File // _ffactor.gchi : MPの形態係数の出力
 
 	var BDP []*BBDP
 	var obs []*OBS
 	var tree []*TREE     /*-樹木データ-*/
 	var poly []*POLYGN   /*--POLYGON--*/
 	var shadtb []*SHADTB /*-LP面の日射遮蔽率スケジュール-*/
-	var op, lp, mp []*P_MENN
-	var Noplpmp NOPLPMP // OP、LP、MPの定義数
+	var op []*P_MENN     // OP面(受光面)
+	var lp []*P_MENN     // LP面(被受光面)
+	var mp []*P_MENN     // MP面(OP+OPW)
+	var Noplpmp NOPLPMP  // OP、LP、MPの定義数
 
 	var Datintvl int
 	var dcnt int
@@ -161,13 +164,7 @@ func Entry(InFile string, efl_path string) {
 		&Ctlst,
 		&Wd,
 		&Daytm, key,
-		&bdpn, &obsn, &treen, &shadn, &polyn, &BDP, &obs, &tree, &shadtb, &poly, &monten, &gpn, &DE, &Noplpmp)
-
-	// 外部障害物のメモリを確保
-	op = make([]*P_MENN, Noplpmp.Nop)
-	lp = make([]*P_MENN, Noplpmp.Nlp)
-	P_MENNinit(op, Noplpmp.Nop)
-	P_MENNinit(lp, Noplpmp.Nlp)
+		&obsn, &BDP, &obs, &tree, &shadtb, &poly, &monten, &gpn, &DE, &Noplpmp)
 
 	// 最大収束回数のセット
 	LOOP_MAX := Simc.MaxIterate
@@ -181,7 +178,7 @@ func Entry(InFile string, efl_path string) {
 		}
 	}
 
-	if bdpn != 0 {
+	if len(BDP) != 0 {
 
 		RET := STRCUT(s, ".")
 		RET1 := RET
@@ -216,18 +213,21 @@ func Entry(InFile string, efl_path string) {
 		}
 
 		// 座標の変換
-		LP_COORDNT(&lpn, bdpn, obsn, treen, polyn, poly, tree, obs, BDP, lp)
+		// 多面体、樹木、障害物、BDPの座標変換し、LP, OPに集約する
+		lp = LP_COORDNT(poly, tree, obs, BDP)
+		op = OP_COORDNT(BDP, poly)
 
-		OP_COORDNT(&opn, bdpn, BDP, op, polyn, poly)
+		lpn = len(lp)
+		opn = len(op)
 
 		// LPの構造体に日毎の日射遮蔽率を代入
-		for i := 0; i < lpn; i++ {
-			for j := 0; j < shadn; j++ {
-				if lp[i].opname == shadtb[j].lpname {
+		for _, _lp := range lp {
+			for _, _shadtb := range shadtb {
+				if _lp.opname == _shadtb.lpname {
 					for k := 1; k < 366; k++ {
-						for l := 0; l < shadtb[j].indatn; l++ {
-							if k >= shadtb[j].ndays[l] && k <= shadtb[j].ndaye[l] {
-								lp[i].shad[k] = shadtb[j].shad[l]
+						for l := 0; l < _shadtb.indatn; l++ {
+							if k >= _shadtb.ndays[l] && k <= _shadtb.ndaye[l] {
+								_lp.shad[k] = _shadtb.shad[l]
 								break
 							}
 						}
@@ -237,6 +237,7 @@ func Entry(InFile string, efl_path string) {
 		}
 
 		//---- mpの総数をカウント mpは、OP面+OPW面 ---------------
+		// OP面 = 授照面、OPW面 = 受照窓面
 		mpn = 0
 		for i := 0; i < opn; i++ {
 			mpn += 1
@@ -260,12 +261,12 @@ func Entry(InFile string, efl_path string) {
 			gp[i] = make([]XYZ, gpn+1)
 		}
 
-		//---領域の確保 mp---
-		mp = make([]*P_MENN, Noplpmp.Nmp)
-		P_MENNinit(mp, mpn)
+		// //---領域の確保 mp---
+		// mp = make([]*P_MENN, Noplpmp.Nmp)
+		// P_MENNinit(mp, mpn)
 
 		//----OP,OPWの構造体をMPへ代入する----
-		DAINYUU_MP(&mp, op, opn, mpn)
+		mp = DAINYUU_MP(op)
 
 		for i := 0; i < mpn; i++ {
 			fmt.Fprintf(fp1, "%s\n", mp[i].opname)
@@ -274,71 +275,57 @@ func Entry(InFile string, efl_path string) {
 		//---ベクトルの向きを判別する変数の初期化---
 		//---opから見たopの位置---
 		uop = make([]*bekt, opn)
-		for i := 0; i < opn; i++ {
-			uop[i] = new(bekt)
-			uop[i].ps = make([][]float64, opn)
-			for j := 0; j < opn; j++ {
-				uop[i].ps[j] = make([]float64, op[j].polyd)
-			}
+		for i := range op {
+			uop[i] = Newbekt(op)
 		}
 
 		//---opから見たlpの位置---
 		ulp = make([]*bekt, opn)
-		for i := 0; i < opn; i++ {
-			ulp[i] = new(bekt)
-			ulp[i].ps = make([][]float64, lpn)
-			for j := 0; j < lpn; j++ {
-				ulp[i].ps[j] = make([]float64, lp[j].polyd)
-			}
+		for i := range op {
+			ulp[i] = Newbekt(lp)
 		}
 
 		//---lpから見たlpの位置---
 		ullp = make([]*bekt, lpn)
-		for i := 0; i < lpn; i++ {
-			ullp[i] = new(bekt)
-			ullp[i].ps = make([][]float64, lpn)
-			for j := 0; j < lpn; j++ {
-				ullp[i].ps[j] = make([]float64, lp[j].polyd)
-			}
+		for i := range lp {
+			ullp[i] = Newbekt(lp)
 		}
 
 		//---lpから見たmpの位置---
 		ulmp = make([]*bekt, lpn)
-		for i := 0; i < lpn; i++ {
-			ulmp[i] = new(bekt)
-			ulmp[i].ps = make([][]float64, mpn)
-			for j := 0; j < mpn; j++ {
-				ulmp[i].ps[j] = make([]float64, mp[j].polyd)
-			}
+		for i := range lp {
+			ulmp[i] = Newbekt(mp)
 		}
 
 		//------CG確認用データ作成-------
 		HOUSING_PLACE(lpn, mpn, lp, mp, RET15)
 
-		//----前面地面代表点および壁面の中心点を求める--------
+		//----前面地面代表点および壁面の中心点Gを求める--------
 		GRGPOINT(mp, mpn)
-		for i := 0; i < lpn; i++ {
-			GDATA(lp[i], &lp[i].G)
+		for _, _lp := range lp {
+			_lp.G = GDATA(_lp)
 		}
 
 		// 20170426 higuchi add 条件追加　形態係数を計算しないパターンを組み込んだ
 		if monten > 0 {
-			//---LPから見た天空に対する形態係数算出------
-			FFACTOR_LP(lpn, mpn, monten, lp, mp)
+			//---LPから見た天空に対する形態係数faia算出------
+			FFACTOR_LP(monten, lp, mp)
 		}
 
-		for i := 0; i < mpn; i++ {
+		// 各MP面に方位、日射吸収率等を壁体情報から取得
+		for _, _mp := range mp {
 			for j := range Rmvls.Sd {
-				if Rmvls.Sd[j].Sname == mp[i].opname {
-					mp[i].exs = Rmvls.Sd[j].exs
-					mp[i].as = Rmvls.Sd[j].as
-					mp[i].alo = Rmvls.Sd[j].alo
-					mp[i].Eo = Rmvls.Sd[j].Eo
+				if Rmvls.Sd[j].Sname == _mp.opname {
+					_mp.exs = Rmvls.Sd[j].exs
+					_mp.as = Rmvls.Sd[j].as
+					_mp.alo = Rmvls.Sd[j].alo
+					_mp.Eo = Rmvls.Sd[j].Eo
 					break
 				}
 			}
 		}
 
+		// 前面地面の反射率を取得
 		for i := 0; i < mpn; i++ {
 			mp[i].refg = Exsf.Exs[mp[i].exs].Rg
 			//fmt.Printf("mp[%d].refg=%f\n", i, mp[i].refg)
@@ -573,7 +560,7 @@ func Entry(InFile string, efl_path string) {
 				//fmt.Printf("bdpn=%d\n",bdpn) ;
 
 				// 20170426 higuchi add 形態係数を計算しない処理の追加
-				if bdpn != 0 && monten > 0 {
+				if len(BDP) != 0 && monten > 0 {
 					if nday == Simc.Daystartx {
 						fmt.Printf("form_factor calcuration start\n")
 						GR_MONTE_CARLO(mp, mpn, lp, lpn, monten, day)
@@ -610,7 +597,7 @@ func Entry(InFile string, efl_path string) {
 			Exsf.Exsfsol(&Wd)
 
 			/*==transplantation to eeslism from KAGExSUN by higuchi 070918==start*/
-			if bdpn != 0 {
+			if len(BDP) != 0 {
 
 				MATINIT_sum(opn, op)
 				MATINIT_sum(mpn, mp)
@@ -646,6 +633,7 @@ func Entry(InFile string, efl_path string) {
 
 						// 20170426 higuchi add 条件追加
 						if dayprn {
+							// 陰面積の出力
 							shadow_printf(fp1, Daytm.Mon, Daytm.Day, Daytm.Time, mpn, mp)
 						}
 
@@ -654,6 +642,7 @@ func Entry(InFile string, efl_path string) {
 						DAINYUU_SMO2(opn, mpn, op, mp, Sdstr, dcnt, mt)
 						// 20170426 higuchi add 条件追加
 						if dayprn {
+							// 陰面積の出力
 							shadow_printf(fp1, Daytm.Mon, Daytm.Day, Daytm.Time, mpn, mp)
 						}
 					}
@@ -1063,7 +1052,7 @@ func Entry(InFile string, efl_path string) {
 	Eeflclose(Flout)
 
 	/*------------------higuchi add---------------------start*/
-	if bdpn != 0 {
+	if len(BDP) != 0 {
 
 		defer fp1.Close()
 		defer fp2.Close()
@@ -1074,6 +1063,15 @@ func Entry(InFile string, efl_path string) {
 	/*---------------------higuchi 1999.7.21-----------end*/
 }
 
+func Newbekt(op []*P_MENN) *bekt {
+	uop := new(bekt)
+	uop.ps = make([][]float64, len(op))
+	for j := range op {
+		uop.ps[j] = make([]float64, op[j].polyd)
+	}
+	return uop
+}
+
 func matiniti(A []int, N int) {
 	for i := 0; i < N; i++ {
 		A[i] = 0
@@ -1081,21 +1079,26 @@ func matiniti(A []int, N int) {
 }
 
 func P_MENNinit(_pm []*P_MENN, N int) {
-	const pmax = 200
 	for i := 0; i < N; i++ {
-		pm := new(P_MENN)
-		pm.Nopw = 0
-		pm.opname = ""
-		matinit(pm.rgb[:], 3)
-		matinit(pm.faiwall[:], pmax)
-		pm.wd = 0
-		pm.exs = 0
-		pm.grpx, pm.faia, pm.faig, pm.grpfaia, pm.sum, pm.ref, pm.refg, pm.wa, pm.wb = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-		pm.Ihor, pm.Idre, pm.Idf, pm.Iw, pm.Reff, pm.rn, pm.Te, pm.Teg = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
-		matinit(pm.shad[:], 365)
-		pm.alo, pm.as, pm.Eo = 0.0, 0.0, 0.0
-		pm.polyd, pm.sbflg = 0, 0
-		pm.P, pm.opw = nil, nil
-		_pm[i] = pm
+		_pm[i] = NewP_MENN()
 	}
+}
+
+func NewP_MENN() *P_MENN {
+	const pmax = 200
+
+	pm := new(P_MENN)
+	pm.Nopw = 0
+	pm.opname = ""
+	matinit(pm.rgb[:], 3)
+	matinit(pm.faiwall[:], pmax)
+	pm.wd = 0
+	pm.exs = 0
+	pm.grpx, pm.faia, pm.faig, pm.grpfaia, pm.sum, pm.ref, pm.refg, pm.wa, pm.wb = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+	pm.Ihor, pm.Idre, pm.Idf, pm.Iw, pm.Reff, pm.rn, pm.Te, pm.Teg = 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+	matinit(pm.shad[:], 365)
+	pm.alo, pm.as, pm.Eo = 0.0, 0.0, 0.0
+	pm.polyd, pm.sbflg = 0, 0
+	pm.P, pm.opw = nil, nil
+	return pm
 }

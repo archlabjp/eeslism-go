@@ -222,8 +222,7 @@ func Eeinput(Ipath string, efl_path string, bdata, week, schtba, schnma string, 
 	Ctlif *[]*CTLIF,
 	Ctlst *[]*CTLST,
 	Wd *WDAT, Daytm *DAYTM, key int,
-	bdpn *int, obsn *int, treen *int, shadn *int, polyn *int,
-	bp *[]*BBDP,
+	obsn *int, bp *[]*BBDP,
 	obs *[]*OBS,
 	tree *[]*TREE,
 	shadtb *[]*SHADTB,
@@ -444,8 +443,17 @@ func Eeinput(Ipath string, efl_path string, bdata, week, schtba, schnma string, 
 
 		/*--対象建物データ読み込み--*/
 		case "COORDNT":
-			section := tokens.GetSection()
-			bdpdata(section, bdpn, bp, Exsf)
+			// メモリの確保
+			*bp = make([]*BBDP, 0)
+
+			for {
+				section := tokens.GetSection()
+				if section.PeekToken() == "*" {
+					break
+				}
+				bdpdata(section, bp, Exsf)
+				tokens.SkipToEndOfLine()
+			}
 
 		/*--障害物データ読み込み--*/
 		case "OBS":
@@ -455,43 +463,40 @@ func Eeinput(Ipath string, efl_path string, bdata, week, schtba, schnma string, 
 		/*--樹木データ読み込み--*/
 		case "TREE":
 			section := tokens.GetSection()
-			treedata(section, treen, tree)
+			treedata(section, tree)
 
 		/*--多角形障害物直接入力分の読み込み--*/
 		case "POLYGON":
 			section := tokens.GetSection()
-			polydata(section, polyn, poly)
+			polydata(section, poly)
 
 		/*--落葉スケジュール読み込み--*/
 		case "SHDSCHTB":
-			*shadn = 0
-			var Nshadn int
-			//var shdp *SHADTB
 			// 落葉スケジュールの数を数える
 			section := tokens.GetSection()
-			Nshadn = InputCount(section, ";")
-			section.Reset()
 
-			if Nshadn > 0 {
-				*shadtb = make([]*SHADTB, Nshadn)
-			}
+			*shadtb = make([]*SHADTB, 0)
 
-			i := 0
-			for section.IsEnd() == false {
-				s = section.GetToken()
+			for !section.IsEnd() {
+				line := new(EeTokens)
+				line.tokens = section.GetLogicalLine()
+				line.pos = 0
+
+				s = line.GetToken()
 				if s[0] == '*' {
 					break
 				}
-				shdp := (*shadtb)[i]
+
+				shdp := new(SHADTB)
 				shdp.lpname = s
-				(*shadn)++
 				shdp.indatn = 0
 
-				for section.IsEnd() == false {
-					s = section.GetToken()
-					if s[0] == '*' {
+				for !line.IsEnd() {
+					s = line.GetToken()
+					if s == ";" {
 						break
 					}
+
 					_, err = fmt.Sscanf(s, "%d/%d-%f-%d/%d", &smonth, &sday, &shdp.shad[shdp.indatn], &emonth, &eday)
 					if err != nil {
 						panic(err)
@@ -500,7 +505,8 @@ func Eeinput(Ipath string, efl_path string, bdata, week, schtba, schnma string, 
 					shdp.ndaye[shdp.indatn] = nennkann(emonth, eday)
 					shdp.indatn = shdp.indatn + 1
 				}
-				i++
+
+				*shadtb = append(*shadtb, shdp)
 			}
 
 		/*----------higuchi add-----------------end-*/
@@ -512,15 +518,15 @@ func Eeinput(Ipath string, efl_path string, bdata, week, schtba, schnma string, 
 	}
 
 	/*--------------higuchi 070918-------------------start-*/
-	if *bdpn != 0 {
+	if len(*bp) != 0 {
 		fmt.Printf("deviding of wall mm: %f\n", *DE)
 		fmt.Printf("number of point in montekalro: %d\n", *monten)
 	}
 	/*----------------higuchi 7.11,061123------------------end*/
 
 	// 外部障害物の数を数える
-	Noplpmp.Nop = OPcount(*bdpn, *bp, *polyn, *poly)
-	Noplpmp.Nlp = LPcount(*bdpn, *bp, *obsn, *obs, *treen, *polyn, *poly)
+	Noplpmp.Nop = OPcount(*bp, *poly)
+	Noplpmp.Nlp = LPcount(*bp, *obs, *tree, *poly)
 	Noplpmp.Nmp = Noplpmp.Nop + Noplpmp.Nlp
 
 	//////////////////////////////////////
@@ -662,6 +668,23 @@ func Eeinput(Ipath string, efl_path string, bdata, week, schtba, schnma string, 
 		addFlout(PRTDWD) // 日別計算値(気象データ日集計値出力)
 		addFlout(PRTMWD) // 月別計算値(気象データ月集計値出力)
 	}
+
+	// DEBUG
+	fmt.Printf("読み取りデータ数\n")
+	fmt.Printf("SHDSCHTB: %d\n", len(*shadtb))    // 落葉スケジュール
+	fmt.Printf("TREE: %d\n", len(*tree))          // 樹木データ
+	fmt.Printf("OBS: %d\n", len(*obs))            // 障害物データ
+	fmt.Printf("POLYGON: %d\n", len(*poly))       // 多角形障害物直接入力分
+	fmt.Printf("COORDNT: %d\n", len(*bp))         // 対象建物データ
+	fmt.Printf("WINDOW: %d\n", len(Rmvls.Window)) // 窓データ
+	fmt.Printf("WALL: %d\n", len(Rmvls.Wall))     // 壁データ
+
+	fmt.Printf("RESI: %d\n", len(Rmvls.Room))
+	fmt.Printf("SYSCMP: %d\n", len(*Compnt))
+	fmt.Printf("SYSPTH: %d\n", len(*Mpath))
+	fmt.Printf("ROOM: %d\n", len(Rmvls.Room))
+	fmt.Printf("EXSRF: %d\n", len(Exsf.Exs))
+	fmt.Printf("CONTL: %d\n", len(*Contl))
 
 	return Schdl, Flout
 }

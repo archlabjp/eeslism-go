@@ -26,10 +26,14 @@ package eeslism
 import "math"
 
 /*---------------------------------------------------------*/
+// NOTE: すべてのポリゴンの頂点数が同じであることを前提としているようだ
+//       POLYGON命令で指定した場合は、任意の頂点数になるので正しく動作しないように思う。
 func URA(u, w int, LP []*P_MENN, t []*bekt, OP []*P_MENN) {
 	for j := 0; j < u; j++ {
 		for i := 0; i < w; i++ {
-			for k := 0; k < LP[i].polyd; k++ {
+			// NOTE: 一旦、polydを4固定にする
+			//for k := 0; k < LP[i].polyd; k++ {
+			for k := 0; k < 4; k++ {
 
 				t[j].ps[i][k] = -(OP[j].e.X*OP[j].P[k].X + OP[j].e.Y*OP[j].P[k].Y +
 					OP[j].e.Z*OP[j].P[k].Z - OP[j].e.X*LP[i].P[k].X -
@@ -43,10 +47,12 @@ func URA(u, w int, LP []*P_MENN, t []*bekt, OP []*P_MENN) {
 
 /*-------------------------------------------------------------*/
 
-func URA_M(ls, ms, ns float64, s *float64, wb float64) {
+// wb: 傾斜角
+func URA_M(ls, ms, ns float64, wb float64) float64 {
 	ex := 0.0
 	ey := -math.Sin((-wb) * math.Pi / 180)
 	ez := math.Cos((-wb) * math.Pi / 180)
 
-	*s = (ex*ls + ey*ms + ez*ns) / (ex*ex + ey*ey + ez*ez)
+	s := (ex*ls + ey*ms + ez*ns) / (ex*ex + ey*ey + ez*ez)
+	return s
 }

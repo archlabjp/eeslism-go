@@ -50,7 +50,8 @@ func roomptr(s string, Compnt []*COMPNT) *ROOM {
 }
 
 func isStrDigit(s string) bool {
-	_, err := strconv.ParseFloat(s, 64)
+	// "123.45" などの文字列が数値かどうかを判定する
+	_, err := strconv.ParseFloat(strings.Trim(s, "\""), 64)
 	return err == nil
 }
 

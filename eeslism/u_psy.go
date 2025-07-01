@@ -508,7 +508,13 @@ FNRhtp (Function for Relative Humidity from Temperature and Water Vapor Pressure
 および室内快適性評価を行うための基礎的な役割を果たします。
 */
 func FNRhtp(T, Pw float64) float64 {
-	return 100.0 * Pw / FNPws(T)
+	pws := FNPws(T)
+	if pws == 0 {
+		return 0 // Avoid division by zero, or handle as an error case
+	}
+	rh := 100.0 * Pw / pws
+	// Clamp the relative humidity to be within 0 and 100
+	return math.Min(100.0, math.Max(0.0, rh))
 }
 
 // 温度 T [C] および 相対湿度 Rh [%] から 湿り空気の水蒸気分圧 Pw [kPa] を求める。
@@ -578,7 +584,15 @@ FNRhtx (Function for Relative Humidity from Temperature and Absolute Humidity)
 および室内快適性評価を行うための基礎的な役割を果たします。
 */
 func FNRhtx(T, X float64) float64 {
-	return FNRhtp(T, FNPwx(X))
+	rh := FNRhtp(T, FNPwx(X))
+	// Clamp the relative humidity to be within 0 and 100
+	if rh < 0 {
+		return 0
+	}
+	if rh > 100 {
+		return 100
+	}
+	return rh
 }
 
 // 乾燥空気の温度 t [C] と絶対湿度 x [kg/kg] から、湿り空気のエンタルピ h [J/kg] を求める。

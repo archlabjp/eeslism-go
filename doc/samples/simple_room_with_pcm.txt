@@ -1,0 +1,90 @@
+! PCM（潜熱蓄熱材）付き1室モデル - チュートリアル用サンプル
+
+WEEK
+    1/1=Sun ;
+
+TITLE
+    Simple Room with PCM Wall ;
+
+GDAT
+    FILE    w=tokyo_3column_SI.has ;
+    RUN     7/1-7/7 dTime=1800 ;
+    PRINT   7/1-7/7 *wd ;
+*
+
+SCHTB
+    %s -s    AllDay   001-(1)-2400 ;
+    %s -ssn  Summer   7/1-8/31 ;
+*
+
+EXSRF
+    r=0.1 ;
+    south   a=0. alo=35.7 ;
+    west    a=90. alo=35.7 ;
+    north   a=180. alo=35.7 ;
+    east    a=270. alo=35.7 ;
+    Hor     alo=35.7 ;
+*
+
+PCM
+    ParaffinWax28
+    Ql=200000000
+    Condl=0.15
+    Conds=0.20
+    Crol=1000000
+    Cros=1000000
+    Ts=26.0
+    Tl=30.0
+    Tp=28.0
+    -iterate
+    ;
+*
+
+WALL
+    exterior_wall
+    3
+    concrete    0.15
+    insulation  0.10
+    gypsum      0.012
+    ;
+    
+    pcm_wall
+    4
+    concrete        0.15
+    insulation      0.05
+    ParaffinWax28   0.02
+    gypsum          0.012
+    ;
+    
+    interior_wall
+    1
+    gypsum      0.012
+    ;
+*
+
+WINDOW
+    single_glass
+    glass=6 frame=20 ;
+*
+
+ROOM
+    SimpleRoom
+    Rg=500.0 Cg=1000000 Ag=50.0
+    
+    south   pcm_wall        10.0    single_glass    5.0     south
+    west    pcm_wall        8.0     -               -       west
+    north   exterior_wall   10.0    -               -       north
+    east    interior_wall   8.0     -               -       -
+    roof    exterior_wall   50.0    -               -       Hor
+    floor   interior_wall   50.0    -               -       -
+    ;
+*
+
+SCHNM
+    Room_Schedule   SimpleRoom  ;
+*
+
+VCFILE
+    Room_Schedule
+    %v -t   RoomTemp    AllDay  -999    ;
+*

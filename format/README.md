@@ -19,12 +19,20 @@
 - [RAICH,VENT](VENT.md) 換気量
 - [RESI](RESI.md) 居住者
 - [APPL](AAPL.md) 照明・機器
-- [PCM](PCM.md) 潜熱蓄熱材 (Ver7.2時点では未定義)
+- [PCM](PCM.md) 潜熱蓄熱材
 
 ## 設備機器データ
 
 - [EQPCAT](EQPCAT.md) 機器仕様
 - [SYSCMP](SYSCMP.md) システム構成要素機器
+- [VAV](VAV.md) 変風量ユニット
+- [COLL](COLL.md) 太陽熱集熱器
+- [STANK](STANK.md) 蓄熱槽
+- [PV](PV.md) 太陽光発電システム
+- [THEX](THEX.md) 全熱交換器
+- [STHEAT](STHEAT.md) 電気蓄熱暖房器
+- [EVAC](EVAC.md) 気化冷却器
+- [DESICCANT](DESICCANT.md) デシカント空調機
 
 ## システム経路データ
 

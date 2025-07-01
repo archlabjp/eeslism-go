@@ -9,6 +9,23 @@ $ go tool cover -html=cover.out -o cover.html
 $ open cover.html
 ```
 
+## Run Equipment Tests
+
+```
+# Run all equipment tests
+$ cd eeslism
+$ go test -run "Test.*" -v
+
+# Run specific equipment tests
+$ go test -run TestPV -v
+$ go test -run TestVAV -v
+$ go test -run TestCOL -v
+$ go test -run TestSTANK -v
+
+# Run equipment tests with benchmarks
+$ go test -run TestPV -bench BenchmarkPVCalculation -v
+```
+
 ## Test Status
 
 | Data Type | Status |
@@ -43,20 +60,20 @@ $ open cover.html
 
 | Equipment Type | Status |
 | -------------- | ------ |
-| BOI | No |
-| REFA | No |
-| COL | No |
-| STANK | No |
-| HEX | No |
-| HCC | No |
-| PIPE | No |
-| DUCT | No |
-| PUMP | No |
-| FAN | No |
-| VAV | No |
-| STHEAT | No |
-| THEX | No |
-| PV | No |
-| OMVAV | No |
-| DESI | No |
-| EVAC | No |
+| BOI | OK |
+| REFA | OK |
+| COL | OK |
+| STANK | OK |
+| HEX | OK |
+| HCC | OK |
+| PIPE | OK |
+| DUCT | OK |
+| PUMP | OK |
+| FAN | OK |
+| VAV | OK |
+| STHEAT | OK |
+| THEX | OK |
+| PV | OK |
+| OMVAV | OK |
+| DESI | OK |
+| EVAC | OK |

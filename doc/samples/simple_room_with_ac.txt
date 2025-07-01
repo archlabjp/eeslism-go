@@ -1,0 +1,91 @@
+! 空調システム付き1室モデル - チュートリアル用サンプル
+
+WEEK
+    1/1=Sun ;
+
+TITLE
+    Simple Room with Air Conditioning ;
+
+GDAT
+    FILE    w=tokyo_3column_SI.has ;
+    RUN     1/1-1/31 dTime=3600 ;
+    PRINT   1/1-1/31 *wd ;
+*
+
+SCHTB
+    %s -s    AllDay   001-(1)-2400 ;
+    %s -ssn  Winter   12/1-2/28 ;
+    %s -ssn  Summer   6/1-9/30 ;
+    %s -ssn  Inter    3/1-5/31 10/1-11/30 ;
+*
+
+EXSRF
+    r=0.1 ;
+    south   a=0. alo=35.7 ;
+    west    a=90. alo=35.7 ;
+    north   a=180. alo=35.7 ;
+    east    a=270. alo=35.7 ;
+    Hor     alo=35.7 ;
+*
+
+WALL
+    exterior_wall
+    3
+    concrete    0.15
+    insulation  0.10
+    gypsum      0.012
+    ;
+    
+    interior_wall
+    1
+    gypsum      0.012
+    ;
+*
+
+WINDOW
+    single_glass
+    glass=6 frame=20 ;
+*
+
+ROOM
+    SimpleRoom
+    Rg=100.0 Cg=1000000 Ag=50.0
+    
+    south   exterior_wall   10.0    single_glass    5.0     south
+    west    exterior_wall   8.0     -               -       west
+    north   exterior_wall   10.0    -               -       north
+    east    interior_wall   8.0     -               -       -
+    roof    exterior_wall   50.0    -               -       Hor
+    floor   interior_wall   50.0    -               -       -
+    ;
+*
+
+EQPCAT
+    HCLOAD
+    SimpleAC D 5000 3.0 ;
+*
+
+SYSCMP
+    HCLOAD  AC_SimpleRoom   SimpleAC ;
+*
+
+SYSPTH
+    AC_SimpleRoom   SimpleRoom ;
+*
+
+SCHNM
+    Room_Schedule   SimpleRoom  ;
+    AC_Schedule     AC_SimpleRoom ;
+*
+
+VCFILE
+    Room_Schedule
+    %v -t   RoomTemp    AllDay  20.0    ;
+*
+
+CONTL
+    AC_SimpleRoom
+    %v -t   SetTemp_Cool    Summer  26.0    ;
+    %v -t   SetTemp_Heat    Winter  20.0    ;
+    %v -t   SetTemp_Off     Inter   -999    ;
+*

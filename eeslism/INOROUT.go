@@ -29,11 +29,32 @@ import (
 	"os"
 )
 
-// INOROUT determines whether the intersection point of a point and a plane is inside or outside the plane.
-// T: intersection point [out]
-// S: intersection point [out]
-// Px, Py, Pz: point coordinates
-// P0, P1, P2: plane coordinates
+/*
+INOROUT (Inside or Outside Plane Determination)
+
+この関数は、3次元空間内の点（`Px`, `Py`, `Pz`）が、
+3つの点（`P0`, `P1`, `P2`）で定義される平面の内側にあるか外側にあるかを判別します。
+これは、日影計算において、太陽光線が障害物のどの面に当たるかを特定する際に用いられます。
+
+建築環境工学的な観点:
+- **日影計算の幾何学**: 日影は、太陽光線が障害物によって遮られることで形成されます。
+  この関数は、太陽光線が障害物の多角形表面と交差する点を計算し、
+  その交点が多角形の内部にあるか外部にあるかを判断します。
+  これにより、日影の形状と範囲を正確に特定できます。
+- **光線追跡の基礎**: この計算は、
+  日影の形状や範囲を正確に特定するための光線追跡（Ray Tracing）の基礎となります。
+  太陽光線が多角形表面と交差する点を求め、
+  その点が多角形の内部にある場合にのみ、
+  その光線が多角形によって遮られると判断します。
+- **エラーハンドリング**: `math.Abs(AA1) > 0.0` などの条件は、
+  計算の安定性を確保するためのものです。
+  もし、計算が不安定になるような特殊なケース（例えば、点が平面上にある場合）が発生した場合、
+  エラーメッセージを出力し、プログラムを終了します。
+
+この関数は、建物の日射環境を正確にモデル化し、
+日射熱取得の抑制、冷房負荷の軽減、
+昼光利用の最適化、および日影計算を行うための重要な幾何学的計算機能を提供します。
+*/
 func INOROUT(Px, Py, Pz float64, P0, P1, P2 XYZ, S, T *float64) {
 	var Sx01, Sy01, Sz01, Tx03, Ty03, Tz03 float64
 	var AA1, BB1, CC1, aa1, bb1, cc1 float64

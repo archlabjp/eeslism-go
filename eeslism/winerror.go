@@ -1,3 +1,10 @@
+/*
+winerror.go (Error Codes for Building Energy Simulation)
+
+このファイルは、建物のエネルギーシミュレーションプログラムにおける
+様々なエラーコードを定義します。
+
+*/
 package eeslism
 
 const (

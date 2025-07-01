@@ -1,3 +1,38 @@
+/*
+eepath.go (Data Structures for System Paths and Components)
+
+このファイルは、建物のエネルギーシミュレーションにおける熱媒（空気、水など）の
+流れる経路（パス）や、その経路を構成する機器（コンポーネント）に関するデータ構造を定義します。
+これらの構造体は、熱搬送システムや空調システムのモデル化、
+エネルギー消費量予測、および制御ロジックの適用に不可欠です。
+
+建築環境工学的な観点:
+- **システム構成のモデル化**: 建物のエネルギーシステムは、
+  熱源設備、熱搬送設備、空調設備など、様々な機器が配管やダクトで接続されて構成されます。
+  このファイルで定義される`COMPNT`（コンポーネント）、`ELOUT`（機器出口）、`ELIN`（機器入口）、
+  `PELM`（経路要素）、`PLIST`（末端経路）、`MPATH`（システム経路）などの構造体は、
+  これらの複雑なシステム構成を階層的にモデル化することを可能にします。
+- **熱媒の種類と状態**: `FliudType`は、
+  経路を流れる熱媒の種類（空気の温度、空気の湿度、水など）を定義します。
+  `ELIOType`は、機器の入出力ポートにおける熱媒の状態（温度、湿度、熱量など）を識別します。
+  これにより、熱媒の種類に応じた適切な熱計算や、
+  顕熱と潜熱の分離処理を正確に行うことができます。
+- **流量制御と運転モード**: `ControlSWType`は、
+  経路や機器の運転状態（ON/OFF、負荷追従、バッチ運転など）を定義します。
+  `VAVType`は、VAV（Variable Air Volume）ユニットのタイプを定義し、
+  流量制御のモデル化を可能にします。
+- **システム統合とエネルギーフロー**: これらのデータ構造は、
+  個々の機器の性能だけでなく、
+  システム全体での熱媒の流れやエネルギーフローを追跡するために用いられます。
+  これにより、システム全体のエネルギー効率を評価し、
+  エネルギーの無駄を特定し、
+  省エネルギー対策の効果を定量的に把握できます。
+
+このファイルは、建物のエネルギーシミュレーションにおいて、
+熱搬送システムや空調システムの複雑な構成と運転を正確にモデル化し、
+エネルギー消費量予測、省エネルギー対策の検討、
+および最適な設備システム設計を行うための重要な役割を果たします。
+*/
 package eeslism
 
 type EqpType string
@@ -135,42 +170,42 @@ const (
 )
 
 type COMPNT struct {
-	Name       string     // 機器名称
-	Roomname   string     // 機器の設置室名称（-room）
-	Eqptype    EqpType    // 機器タイプ（"PIPE"など）
-	Envname    string     // 配管等の周囲条件名称（-env）
-	Exsname    string     // 方位名称
-	Hccname    string     // VWV制御するときの制御対象熱交換器名称
-	Rdpnlname  string     // VWV制御するときの制御対象床暖房（未完成）
-	Idi        []ELIOType // 入口の識別記号 (len(Idi) == Nin)
-	Ido        []ELIOType // 出口の識別記号（熱交換器の'C'、'H'や全熱交換器の'E'、'O'など）(len(Ido) == Nout)
-	Tparm      string     // SYSCMPで定義された"-S"や"-V"以降の文字列を収録する
-	Wetparm    string     // 湿りコイルの除湿時出口相対湿度の文字列を収録
-	Omparm     string     // 集熱器が直列接続の場合に流れ方向に記載する
-	Airpathcpy bool       // 空気経路の場合はtrue（湿度経路用にpathをコピーする）
+	Name       string        // 機器名称
+	Roomname   string        // 機器の設置室名称（-room）
+	Eqptype    EqpType       // 機器タイプ（"PIPE"など）
+	Envname    string        // 配管等の周囲条件名称（-env）
+	Exsname    string        // 方位名称
+	Hccname    string        // VWV制御するときの制御対象熱交換器名称
+	Rdpnlname  string        // VWV制御するときの制御対象床暖房（未完成）
+	Idi        []ELIOType    // 入口の識別記号 (len(Idi) == Nin)
+	Ido        []ELIOType    // 出口の識別記号（熱交換器の'C'、'H'や全熱交換器の'E'、'O'など）(len(Ido) == Nout)
+	Tparm      string        // SYSCMPで定義された"-S"や"-V"以降の文字列を収録する
+	Wetparm    string        // 湿りコイルの除湿時出口相対湿度の文字列を収録
+	Omparm     string        // 集熱器が直列接続の場合に流れ方向に記載する
+	Airpathcpy bool          // 空気経路の場合はtrue（湿度経路用にpathをコピーする）
 	Control    ControlSWType
-	Eqp        interface{} // 機器特有の構造体へのポインタ
+	Eqp        interface{}   // 機器特有の構造体へのポインタ
 	Neqp       int
 	Ncat       int
-	Nout       int // 出口の数
-	Nin        int // 入口の数
+	Nout       int           // 出口の数
+	Nin        int           // 入口の数
 	Nivar      int
-	Ac         float64 // 集熱器面積[m2]
-	PVcap      float64 // 太陽電池容量[W]
-	Area       float64 // 太陽電池アレイ面積[m2]
+	Ac         float64       // 集熱器面積[m2]
+	PVcap      float64       // 太陽電池容量[W]
+	Area       float64       // 太陽電池アレイ面積[m2]
 	Ivparm     *float64
-	Eqpeff     float64  // ボイラ室内置き時の室内供給熱量率 [-]
-	Elouts     []*ELOUT // 機器出口の構造体へのポインタ（Nout個）
-	Elins      []*ELIN  // 機器入口の構造体へのポインタ（Nin個）
+	Eqpeff     float64       // ボイラ室内置き時の室内供給熱量率 [-]
+	Elouts     []*ELOUT      // 機器出口の構造体へのポインタ（Nout個）
+	Elins      []*ELIN       // 機器入口の構造体へのポインタ（Nin個）
 	//	valv	*Valv
 
-	Valvcmp *COMPNT // 三方弁の対となるValvのComptへのポインタ
+	Valvcmp *COMPNT       // 三方弁の対となるValvのComptへのポインタ
 	//	x,			/* バルブ開度 */
 	//	xinit ;
 	//	char	org ;		/* CONTRLで指定されているとき'y' それ以外は'n' */
 	//	char	*OMfanName ;	// Valvが参照するファン風量
-	MonPlistName string  // VALVで分岐などを流量比率で行う場合の観測対象のPlist名称
-	MPCM         float64 // 電気蓄熱暖房器内臓PCMの容量[m3]
+	MonPlistName string        // VALVで分岐などを流量比率で行う場合の観測対象のPlist名称
+	MPCM         float64       // 電気蓄熱暖房器内臓PCMの容量[m3]
 }
 
 type ELOUT struct {
@@ -183,15 +218,15 @@ type ELOUT struct {
 	Q       float64       // 熱量
 	Sysv    float64       // 連立方程式の答え
 	Load    float64
-	Co      float64   // 連立方程式の定数
-	Coeffo  float64   // 出口の係数
-	Coeffin []float64 // 入口の係数（入口複数の場合はそれぞれの係数）
-	Ni      int       // 入口の数
+	Co      float64       // 連立方程式の定数
+	Coeffo  float64       // 出口の係数
+	Coeffin []float64     // 入口の係数（入口複数の場合はそれぞれの係数）
+	Ni      int           // 入口の数
 	Sv      int
 	Sld     int
-	Cmp     *COMPNT // 機器出口の構造体が属する機器(逆参照)
-	Elins   []*ELIN // 機器出口の構造体が関連する機器入口
-	Lpath   *PLIST  // 機器出口が属する末端経路
+	Cmp     *COMPNT       // 機器出口の構造体が属する機器(逆参照)
+	Elins   []*ELIN       // 機器出口の構造体が関連する機器入口
+	Lpath   *PLIST        // 機器出口が属する末端経路
 	Eldobj  *ELOUT
 	Emonitr *ELOUT
 }
@@ -252,24 +287,24 @@ type PLIST struct {
 	Org         bool          // 入力された経路のときtrue、複写された経路（空気系統の湿度経路）のとき false
 	Plistname   string        // 末端経路の名前
 	Lvc         int
-	Nvalv       int      // 経路中のバルブ数
-	Nvav        int      // 経路中のVAVユニットの数
-	NOMVAV      int      // OM用変風量制御ユニット数
-	N           int      // 流量計算の時の番号
-	Go          *float64 // 流量の計算に使用される係数
-	Gcalc       float64  // 温調弁によって計算された流量を記憶する変数
-	G           float64  // 流量
-	Rate        *float64 // 流量分配比
-	Pelm        []*PELM  // 末端経路内の機器（バルブ、カロリーメータを除く)　OMVAVも除くべき？
-	Plmvb       *PELM    // ??
+	Nvalv       int           // 経路中のバルブ数
+	Nvav        int           // 経路中のVAVユニットの数
+	NOMVAV      int           // OM用変風量制御ユニット数
+	N           int           // 流量計算の時の番号
+	Go          *float64      // 流量の計算に使用される係数
+	Gcalc       float64       // 温調弁によって計算された流量を記憶する変数
+	G           float64       // 流量
+	Rate        *float64      // 流量分配比
+	Pelm        []*PELM       // 末端経路内の機器（バルブ、カロリーメータを除く)　OMVAVも除くべき？
+	Plmvb       *PELM         // ??
 	Lpair       *PLIST
-	Plistt      *PLIST // 空気系当時の温度系統
-	Plistx      *PLIST // 空気系当時の湿度系統
-	Valv        *VALV  // 弁・ダンパーへの参照 (V,VT用)
-	Mpath       *MPATH // システム経路 MPATH への逆参照
+	Plistt      *PLIST        // 空気系当時の温度系統
+	Plistx      *PLIST        // 空気系当時の湿度系統
+	Valv        *VALV         // 弁・ダンパーへの参照 (V,VT用)
+	Mpath       *MPATH        // システム経路 MPATH への逆参照
 	Upplist     *PLIST
 	Dnplist     *PLIST
-	OMvav       *OMVAV // OMVAVへの参照 (OMVAV用)
+	OMvav       *OMVAV        // OMVAVへの参照 (OMVAV用)
 }
 
 // SYSPTHにおける';'で区切られる経路
@@ -299,9 +334,9 @@ type SYSEQ struct {
 type VALV struct {
 	Name     string
 	Count    int
-	X        float64  // バルブ開度
-	Xinit    *float64 // バルブ開度の初期値
-	Org      byte     // CONTRLで指定されているとき'y' それ以外は'n'
+	X        float64       // バルブ開度
+	Xinit    *float64      // バルブ開度の初期値
+	Org      byte          // CONTRLで指定されているとき'y' それ以外は'n'
 	Cmp      *COMPNT
 	Cmb      *COMPNT
 	Mon      *COMPNT
@@ -309,6 +344,6 @@ type VALV struct {
 	Tset     *float64
 	Tout     *float64
 	MGo      *float64
-	Plist    *PLIST // 接続している末端経路への参照
+	Plist    *PLIST        // 接続している末端経路への参照
 	MonPlist *PLIST
 }

@@ -17,7 +17,13 @@ package eeslism
 
 import "strings"
 
-// DATAの中にあるaを後ろから探して、先頭からaまでの文字列を返す
+/*
+STRCUT (String Cut from Last Index)
+
+この関数は、与えられた文字列`DATA`の中から、
+指定された部分文字列`a`が最後に出現する位置を検索し、
+その位置までの部分文字列を返します。
+*/
 func STRCUT(DATA string, a string) string {
 	idx := strings.LastIndex(DATA, a)
 	if idx == -1 {

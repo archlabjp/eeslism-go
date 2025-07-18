@@ -40,7 +40,7 @@
 | OBS | OK |
 | POLYGON | OK |
 | TREE | OK |
-| SHDSCHTB | No |
+| SHDSCHTB | OK |
 | DIVID | No |
 
 ## Status Legend

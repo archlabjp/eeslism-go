@@ -139,7 +139,7 @@ func Htrcf(alc, alo *float64, alotype AloType, Exs []*EXSF, Tr float64, N int, a
 
 		//if dayprn && Ferr != nil {
 		fmt.Fprintf(Ferr, "----- Htrcf n=%2d ble=%c Ts=%f Tr=%f alic=%f alir=%f rmname=%s\n",
-			n, Sd.ble, Sd.Ts, Tr, Sd.alic, Sd.alir, Sd.room.Name)
+            n, Sd.ble, Sd.Ts, Tr, Sd.alic, Sd.alir, Sd.room.Name)
 		//}
 	}
 }
@@ -226,6 +226,9 @@ func radex(N int, Sd []*RMSRF, F, W []float64) {
 
 	for l, n := 0, 0; n < N; n++ {
 		for j := 0; j < N; j++ {
+			if Sd[j].Ei == 0.0 {
+				panic(fmt.Sprintf("radex error: division by zero, Sd[%d].Ei is zero", j))
+			}
 			wk[l] = -F[l] * (1.0 - Sd[j].Ei) / Sd[j].Ei
 
 			if DEBUG {

@@ -36,10 +36,10 @@
 | SYSCMP | Work |
 | SYSPTH | Work |
 | CONTL | Work |
-| COORDNT | No |
-| OBS | No |
-| POLYGON | No |
-| TREE | No |
+| COORDNT | OK |
+| OBS | OK |
+| POLYGON | OK |
+| TREE | OK |
 | SHDSCHTB | No |
 | DIVID | No |
 

@@ -1,51 +1,38 @@
-# How to DEBUG
-
-## Get Coverage 
-
-```
-$ cd eeslism
-$ go test -cover -coverprofile=cover.out
-$ go tool cover -html=cover.out -o cover.html
-$ open cover.html
-```
-
-## Run Equipment Tests
-
-```
-# Run all equipment tests
-$ cd eeslism
-$ go test -run "Test.*" -v
-
-# Run specific equipment tests
-$ go test -run TestPV -v
-$ go test -run TestVAV -v
-$ go test -run TestCOL -v
-$ go test -run TestSTANK -v
-
-# Run equipment tests with benchmarks
-$ go test -run TestPV -bench BenchmarkPVCalculation -v
-```
-
-## Test Status
+# TestStatus
 
 | Data Type | Status |
 | --------- | ------ |
 | WEEK  | OK |
 | TITLE | OK |
-| GDAT  | Work |
-| SCHTB | Work |
-| VCFILE | No |
-| SCHNM | No |
-| EXSRF | Work |
-| WALL | Work |
-| WINDOW | Work |
-| SUNBRK | Work |
-| ROOM | Work |
-| VENT | Work |
-| RESI | Work |
-| APPL | Work |
-| PCM | No |
+| GDAT  | OK |
+| SCHTB | OK |
+| VCFILE | OK |
+| SCHNM | OK |
+| EXSRF | OK |
+| WALL | OK |
+| WINDOW | OK |
+| SUNBRK | OK |
+| ROOM | OK |
+| VENT | OK |
+| RESI | OK |
+| APPL | OK |
+| PCM | OK |
 | EQPCAT | Not |
+| - BOI (Boiler) | Not |
+| - REFA (Heat Pump) | Not |
+| - COL (Solar Collector) | Not |
+| - STANK (Storage Tank) | Not |
+| - HEX (Heat Exchanger) | Not |
+| - HCC (Heating/Cooling Coil) | Not |
+| - PIPE (Pipe/Duct) | Not |
+| - PUMP (Pump) | Not |
+| - VAV (VAV Unit) | Not |
+| - STHEAT (Electric Storage Heater) | Not |
+| - THEX (Total Heat Exchanger) | Not |
+| - PV (Photovoltaic) | Not |
+| - OMVAV | Not |
+| - DESI (Desiccant) | Not |
+| - EVAC (Evaporative Cooler) | Not |
 | SYSCMP | Work |
 | SYSPTH | Work |
 | CONTL | Work |
@@ -56,24 +43,19 @@ $ go test -run TestPV -bench BenchmarkPVCalculation -v
 | SHDSCHTB | No |
 | DIVID | No |
 
-### Equipment Test Status
+## Status Legend
+- **OK**: テスト実装済み、正常動作確認済み
+- **Work**: テスト作成中、改善が必要
+- **Not**: テスト未実装、高難易度
+- **No**: テスト未実装、中〜低難易度
 
-| Equipment Type | Status |
-| -------------- | ------ |
-| BOI | OK |
-| REFA | OK |
-| COL | OK |
-| STANK | OK |
-| HEX | OK |
-| HCC | OK |
-| PIPE | OK |
-| DUCT | OK |
-| PUMP | OK |
-| FAN | OK |
-| VAV | OK |
-| STHEAT | OK |
-| THEX | OK |
-| PV | OK |
-| OMVAV | OK |
-| DESI | OK |
-| EVAC | OK |
+## Progress Summary
+- **完了項目**: 13個 (WEEK, TITLE, GDAT, SCHTB, VCFILE, SCHNM, EXSRF, WALL, WINDOW, SUNBRK, ROOM, VENT, RESI, APPL, PCM)
+- **作業中項目**: 3個 (SYSCMP, SYSPTH, CONTL)
+- **高難易度未実装**: 16個 (EQPCAT配下の機器カタログ)
+- **中〜低難易度未実装**: 6個 (COORDNT, OBS, POLYGON, TREE, SHDSCHTB, DIVID)
+
+## Notes
+- EQPCATは16種類の機器カタログを含む複合的な構造
+- 各機器カタログは独立したテストが可能
+- 高難易度項目は基本的な構造体テストに留める方針

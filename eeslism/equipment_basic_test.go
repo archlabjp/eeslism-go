@@ -1861,3 +1861,84 @@ func testEvaporativeCoolerEfficiency(t *testing.T) {
 func testHVACSystemIntegration(t *testing.T) {
 	t.Log("HVAC system integration test - placeholder")
 }
+
+// testRadiantPanelBasicOperation - 放射パネルの基本動作テスト
+func testRadiantPanelBasicOperation(t *testing.T) {
+	// テスト用の壁体データを作成 (床暖房パネルを想定)
+	wall := &WALL{
+		name:     "TestPanelWall",
+		WallType: WallType_P,
+		welm:     []WELM{{Code: "CONC-150"}},
+		N:        1,
+		Ip:       0, // パネル位置
+		effpnl:   0.8,
+	}
+	// Walliを呼び出して熱抵抗などを計算させる必要があるが、ここでは簡略化
+	wall.Rwall = 0.1
+	wall.CAPwall = 100000
+
+	mw := &MWALL{
+		wall: wall,
+		M:    1,
+		mp:   0,
+		UX:   []float64{1.0},
+		uo:   1.0,
+		um:   1.0,
+		Pc:   1.0,
+	}
+
+	// テスト用の室データを作成
+	room := &ROOM{
+		Name: "TestRoomWithPanel",
+		N:    1,
+		mrk:  '*', // 強制的に係数再計算
+	}
+
+	// テスト用の放射パネルデータを作成
+	rdpnl := &RDPNL{
+		Name:  "TestRadiantPanel",
+		Wpold: 0.0,
+		MC:    1,
+		sd:    [2]*RMSRF{{mw: mw, room: room, A: 10.0, ali: 8.0, alic: 5.0, alir: 3.0, mrk: '*'}, nil},
+		rm:    [2]*ROOM{room, nil},
+		cmp: &COMPNT{
+			Control: ON_SW,
+			Elins:   []*ELIN{{Upv: &ELOUT{G: 0.1, Fluid: WATER_FLD}}},
+			Elouts:  []*ELOUT{{G: 0.1, Fluid: WATER_FLD}},
+		},
+		effpnl: 0.8,
+	}
+	room.rmpnl = []*RPANEL{{pnl: rdpnl}}
+	room.rsrf = rdpnl.sd[:]
+
+	// panelwp のテスト
+	t.Run("PanelWpCalculation", func(t *testing.T) {
+		// 運転ONの場合
+		rdpnl.cmp.Control = ON_SW
+		rdpnl.cmp.Elouts[0].G = 0.1
+		panelwp(rdpnl)
+		if rdpnl.Wp <= 0 {
+			t.Errorf("Wp should be positive when panel is ON. Got: %f", rdpnl.Wp)
+		}
+		if rdpnl.sd[0].mrk != '*' {
+			t.Error("Surface mark should be reset when Wp changes.")
+		}
+
+		// 運転OFFの場合
+		rdpnl.Wpold = rdpnl.Wp // Wpoldを更新
+		rdpnl.sd[0].mrk = ' '  // マークをリセット
+		rdpnl.cmp.Control = OFF_SW
+		panelwp(rdpnl)
+		if rdpnl.Wp != 0 {
+			t.Errorf("Wp should be zero when panel is OFF. Got: %f", rdpnl.Wp)
+		}
+		if rdpnl.sd[0].mrk != '*' {
+			t.Error("Surface mark should be reset when Wp changes to zero.")
+		}
+	})
+
+	// Panelcf と Panelce のテストも同様に追加する
+	// これらの関数は依存関係が複雑なため、より詳細なモック設定が必要になります。
+	// 例えば、室の放射熱伝達率 alr や表面の係数 WSR, WSC などを適切に設定する必要があります。
+	t.Log("Panelcf and Panelce tests are not implemented due to complexity.")
+}

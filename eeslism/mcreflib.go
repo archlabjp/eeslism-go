@@ -31,7 +31,12 @@ func Refcmpdat() []*RFCMP {
 	if err != nil {
 		Eprint(" file ", "reflist.efl")
 	}
+	defer frf.Close()
 
+	return _Refcmpdat(frf)
+}
+
+func _Refcmpdat(frf *os.File) []*RFCMP {
 	Rfcmp := make([]*RFCMP, 0)
 	scanner := bufio.NewScanner(frf)
 	for scanner.Scan() {
@@ -62,8 +67,6 @@ func Refcmpdat() []*RFCMP {
 
 		Rfcmp = append(Rfcmp, rfcmp)
 	}
-
-	frf.Close()
 
 	return Rfcmp
 }

@@ -69,9 +69,9 @@ func Pumpdata(cattype EqpType, s string, Pumpca *PUMPCA, pfcmp []*PFCMP) int {
 	if st == -1 {
 		Pumpca.name = s
 		Pumpca.Type = ""
-		Pumpca.Wo = -999.0
-		Pumpca.Go = -999.0
-		Pumpca.qef = -999.0
+		Pumpca.Wo = FNAN
+		Pumpca.Go = FNAN
+		Pumpca.qef = FNAN
 		Pumpca.val = nil
 
 		if cattype == PUMP_TYPE {
@@ -224,7 +224,7 @@ func (eqsys *EQSYS) Pumpflow() {
 			if S > p.Cat.val[3] {
 				p.G = p.Cat.val[0] + (p.Cat.val[1]+p.Cat.val[2]*S)*S
 			} else {
-				p.G = -999.0
+				p.G = FNAN
 			}
 
 			p.E = 0
@@ -233,7 +233,7 @@ func (eqsys *EQSYS) Pumpflow() {
 				p.G = p.Cat.Go
 				p.E = p.Cat.Wo
 			} else {
-				p.G = -999.0
+				p.G = FNAN
 				p.E = 0.0
 			}
 

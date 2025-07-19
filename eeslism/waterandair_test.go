@@ -17,7 +17,7 @@ func Test_FNac(t *testing.T) {
 
 func Test_FNalam(t *testing.T) {
 	assert.Equal(t, 0.0241, FNalam(0))
-	assert.Equal(t, -999.0, FNalam(100))
+	assert.Equal(t, FNAN, FNalam(100))
 }
 
 // func Test_FNamew(t *testing.T) {
@@ -36,9 +36,9 @@ func Test_FNanew(t *testing.T) {
 // }
 
 // func Test_FNwrow(t *testing.T) {
-// 	assert.Equal(t, -999.0, FNwrow(0))
+// 	assert.Equal(t, NAN, FNwrow(0))
 // 	assert.Equal(t, 1000.5-0.068737*50.0-0.0035781*50.0*50.0, FNwrow(50), 0.001)
 // 	assert.Equal(t, 1008.7-0.28735*100.0-0.0021643*100.0*100.0, FNwrow(100), 0.001)
 // 	assert.Equal(t, 1008.7-0.28735*150.0-0.0021643*150.0*150.0, FNwrow(150), 0.001)
-// 	assert.Equal(t, -999.0, FNwrow(200))
+// 	assert.Equal(t, NAN, FNwrow(200))
 // }

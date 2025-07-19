@@ -56,7 +56,7 @@ func TestOPIhor(t *testing.T) {
 
 	// ダミーのgp (XYZの2次元スライス)
 	gp := make([][]XYZ, 1)
-	gp[0] = []XYZ{{X: 0.5, Y: 0.5, Z: 0}, {X: -999, Y: -999, Z: -999}} // 終端マーカー
+	gp[0] = []XYZ{{X: 0.5, Y: 0.5, Z: 0}, {X: INAN, Y: INAN, Z: INAN}} // 終端マーカー
 
 	// テストケース
 	tests := []struct {

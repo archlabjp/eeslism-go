@@ -41,8 +41,8 @@ func OMVAVdata(s string, OMvavca *OMVAVCA) int {
 	st := strings.Split(s, "=")
 	if len(st) == 1 {
 		OMvavca.Name = s
-		OMvavca.Gmax = -999.0
-		OMvavca.Gmin = -999.0
+		OMvavca.Gmax = FNAN
+		OMvavca.Gmin = FNAN
 	} else {
 		switch st[0] {
 		case "Gmax":

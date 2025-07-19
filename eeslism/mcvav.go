@@ -47,9 +47,9 @@ func VAVdata(cattype EqpType, s string, vavca *VAVCA) int {
 
 	if st = strings.Split(s, "=")[1]; st == "" {
 		vavca.Name = s
-		vavca.Gmax = -999.0
-		vavca.Gmin = -999.0
-		vavca.dTset = -999.0
+		vavca.Gmax = FNAN
+		vavca.Gmin = FNAN
+		vavca.dTset = FNAN
 	} else {
 		dt, _ = strconv.ParseFloat(st, 64)
 
@@ -100,11 +100,11 @@ func VWVint(VAVs []*VAV, Compn []*COMPNT) {
 /*---- Satoh Debug VAV  2000/11/8 ----*/
 /*********************/
 
+//	+-----+ ---> [OUT 1] 空気 or 温水温度
 //
-//   +-----+ ---> [OUT 1] 空気 or 温水温度
-///  | VAV |
-//   +-----+ ---> [OUT 2] 湿度 (VAV_PDTのみ)
+// /  | VAV |
 //
+//	+-----+ ---> [OUT 2] 湿度 (VAV_PDTのみ)
 func VAVcfv(vav []*VAV) {
 	for _, v := range vav {
 		Eo1 := v.Cmp.Elouts[0]

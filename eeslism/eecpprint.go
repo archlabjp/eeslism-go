@@ -98,7 +98,7 @@ func elinprint(id int, C []*COMPNT, eo []*ELOUT, ei []*ELIN) {
 					}
 					o = Upo_idx
 				} else {
-					o = -999
+					o = INAN
 				}
 
 				if E.Upv != nil && eo != nil {
@@ -110,7 +110,7 @@ func elinprint(id int, C []*COMPNT, eo []*ELOUT, ei []*ELIN) {
 					}
 					v = Upv_idx
 				} else {
-					v = -999
+					v = INAN
 				}
 
 				var l int
@@ -158,7 +158,7 @@ func elinfprint(id int, C []*COMPNT, eo []*ELOUT, ei []*ELIN) {
 						}
 					}
 				} else {
-					o = -999
+					o = INAN
 				}
 
 				if E.Upv != nil && eo != nil {
@@ -168,7 +168,7 @@ func elinfprint(id int, C []*COMPNT, eo []*ELOUT, ei []*ELIN) {
 						}
 					}
 				} else {
-					v = -999
+					v = INAN
 				}
 
 				var l int = 0

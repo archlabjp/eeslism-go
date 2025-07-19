@@ -86,7 +86,7 @@ func FNalam(dblT float64) float64 {
 	if dblT > -50.0 && dblT < 100.0 {
 		dblTemp = 0.0241 + 0.000077*dblT
 	} else {
-		dblTemp = -999.0
+		dblTemp = FNAN
 	}
 
 	return dblTemp
@@ -180,13 +180,13 @@ func FNwrow(dblT float64) float64 {
 	var dblTemp float64
 
 	if dblT <= 0.0 {
-		dblTemp = -999.0
+		dblTemp = FNAN
 	} else if dblT < 100.0 {
 		dblTemp = 1000.5 - 0.068737*dblT - 0.0035781*dblT*dblT
 	} else if dblT < 200.0 {
 		dblTemp = 1008.7 - 0.28735*dblT - 0.0021643*dblT*dblT
 	} else {
-		dblTemp = -999.0
+		dblTemp = FNAN
 	}
 
 	return dblTemp
@@ -213,13 +213,13 @@ func FNwc(dblT float64) float64 {
 	var dblTemp float64
 
 	if dblT <= 0.0 {
-		dblTemp = -999.0
+		dblTemp = FNAN
 	} else if dblT < 100.0 {
 		dblTemp = 4210.4 - 1.356*dblT + 0.014588*dblT*dblT
 	} else if dblT < 200.0 {
 		dblTemp = 4306.8 - 2.7913*dblT + 0.018773*dblT*dblT
 	} else {
-		dblTemp = -999.0
+		dblTemp = FNAN
 	}
 
 	return dblTemp
@@ -245,13 +245,13 @@ func FNwlam(dblT float64) float64 {
 	var dblTemp float64
 
 	if dblT <= 0.0 {
-		dblTemp = -999.0
+		dblTemp = FNAN
 	} else if dblT < 100.0 {
 		dblTemp = 0.56871 + 0.0018421*dblT - 7.0427e-6*dblT*dblT
 	} else if dblT < 200.0 {
 		dblTemp = 0.60791 + 0.0012032*dblT - 4.7025e-6*dblT*dblT
 	} else {
-		dblTemp = -999.0
+		dblTemp = FNAN
 	}
 
 	return dblTemp
@@ -277,7 +277,7 @@ func FNwnew(dblT float64) float64 {
 	var dblTemp float64
 
 	if dblT <= 0.0 {
-		dblTemp = -999.0
+		dblTemp = FNAN
 	} else if dblT < 50.0 {
 		dblTemp = math.Exp(-13.233 - 0.032516*dblT + 0.000068997*dblT*dblT +
 			0.0000069513*dblT*dblT*dblT - 0.00000009386*dblT*dblT*dblT*dblT)
@@ -287,7 +287,7 @@ func FNwnew(dblT float64) float64 {
 	} else if dblT < 200.0 {
 		dblTemp = math.Exp(-13.698 - 0.016782*dblT + 0.000034425*dblT*dblT)
 	} else {
-		dblTemp = -999.0
+		dblTemp = FNAN
 	}
 
 	return dblTemp
@@ -315,7 +315,7 @@ func FNwbeta(dblT float64) float64 {
 	var dblTemp float64
 
 	if dblT <= 0.0 {
-		dblTemp = -999.0
+		dblTemp = FNAN
 	} else if dblT < 50.0 {
 		dblTemp = -0.060159 + 0.018725*dblT - 0.00045278*dblT*dblT +
 			0.0000098148*dblT*dblT*dblT - 0.000000083333*dblT*dblT*dblT*dblT
@@ -325,7 +325,7 @@ func FNwbeta(dblT float64) float64 {
 	} else if dblT < 200.0 {
 		dblTemp = 0.33381 + 0.002847*dblT + 0.000016154*dblT*dblT
 	} else {
-		dblTemp = -999.0
+		dblTemp = FNAN
 	}
 
 	return dblTemp
@@ -419,7 +419,7 @@ func FNPr(strF byte, dblT float64) float64 {
 	} else if strF == 'W' || strF == 'w' {
 		dblTemp = FNwnew(dblT) / FNwa(dblT)
 	} else {
-		dblTemp = -999.0
+		dblTemp = FNAN
 	}
 
 	return dblTemp
@@ -463,8 +463,8 @@ func FNGr(strF byte, dblTs, dblTa, dblx float64) float64 {
 		dblBeta = FNwbeta(dblT)
 		n = FNwnew(dblT)
 	} else {
-		// 無効な流体タイプの場合、-999.0を返す
-		return -999.0
+		// 無効な流体タイプの場合、NAN0を返す
+		return FNAN
 	}
 
 	return dblg * dblBeta * dbldT * math.Pow(dblx, 3.0) / (n * n)

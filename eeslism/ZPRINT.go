@@ -35,6 +35,7 @@ func ZPRINT(lp []P_MENN, op []P_MENN, lpn, opn int, name string) {
 		fmt.Println("File not open")
 		os.Exit(1)
 	}
+	defer fp.Close()
 
 	for i := 0; i < opn; i++ {
 		fmt.Fprintf(fp, "op[%d] %s\n", i, op[i].opname)
@@ -58,6 +59,4 @@ func ZPRINT(lp []P_MENN, op []P_MENN, lpn, opn int, name string) {
 		}
 		fmt.Fprintln(fp)
 	}
-
-	fp.Close()
 }

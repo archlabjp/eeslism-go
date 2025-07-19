@@ -251,10 +251,10 @@ type WELM struct {
 func NewWelm() *WELM {
 	return &WELM{
 		Code: "",
-		L:    -999.0,
+		L:    FNAN,
 		ND:   0,
-		Cond: -999.0,
-		Cro:  -999.0,
+		Cond: FNAN,
+		Cro:  FNAN,
 	}
 }
 
@@ -407,26 +407,26 @@ func NewWall() *WALL {
 	Wa.Ei = 0.9
 	Wa.Eo = 0.9
 	Wa.as = 0.7
-	Wa.Rwall = -999.0
-	Wa.effpnl = -999.0
-	Wa.CAPwall = -999.
+	Wa.Rwall = FNAN
+	Wa.effpnl = FNAN
+	Wa.CAPwall = FNAN
 	Wa.res = nil
 	Wa.cap = nil
 	// Wa.welm = nil ;
-	Wa.tra = -999.0
-	Wa.Ksu = -999.
-	Wa.Ksd = -999.
-	Wa.Kc = -999.
-	Wa.fcu = -999.
-	Wa.fcd = -999.
-	Wa.ku = -999.
-	Wa.kd = -999.
-	Wa.Ko = -999.
-	Wa.Rd = -999.
-	Wa.Ru = -999.
-	Wa.Kcu = -999.
-	Wa.Kcd = -999.
-	Wa.air_layer_t = -999.0
+	Wa.tra = FNAN
+	Wa.Ksu = FNAN
+	Wa.Ksd = FNAN
+	Wa.Kc = FNAN
+	Wa.fcu = FNAN
+	Wa.fcd = FNAN
+	Wa.ku = FNAN
+	Wa.kd = FNAN
+	Wa.Ko = FNAN
+	Wa.Rd = FNAN
+	Wa.Ru = FNAN
+	Wa.Kcu = FNAN
+	Wa.Kcd = FNAN
+	Wa.air_layer_t = FNAN
 	Wa.dblEsd = 0.9
 	Wa.dblEsu = 0.9
 	Wa.chrRinput = false
@@ -437,8 +437,8 @@ func NewWall() *WALL {
 	// 太陽電池一体型空気集熱器のパラメータ初期化
 	PVwallcatinit(&Wa.PVwallcat)
 
-	Wa.ta = -999.
-	Wa.ag = -999.0
+	Wa.ta = FNAN
+	Wa.ag = FNAN
 	Wa.Eg = 0.9
 	Wa.Eb = 0.9
 
@@ -448,7 +448,7 @@ func NewWall() *WALL {
 
 	Wa.PCMflg = false
 
-	Wa.tnxt = -999.0
+	Wa.tnxt = FNAN
 
 	return Wa
 }

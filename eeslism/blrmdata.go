@@ -955,7 +955,7 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 			Rd.eprmnx = 0
 			Rd.epwtw = 0
 			Rd.Loadt = nil
-			Rd.Toset = -999.0
+			Rd.Toset = FNAN
 			Rd.cG = 0.0
 			Rd.Ec = 0.0
 			Rd.OMvav = nil
@@ -1216,7 +1216,7 @@ func Balloc(Sd []*RMSRF, Wall []*WALL, Mwall *[]*MWALL) {
 				if ssd.PVwall.PVcap > 0.0 {
 					fmt.Printf("<%s> name=%s PVcap=%g ですが、WALLで太陽電池付が指定されていません\n",
 						ssd.room.Name, ssd.Name, ssd.PVwall.PVcap)
-					ssd.PVwall.PVcap = -999.0
+					ssd.PVwall.PVcap = FNAN
 					os.Exit(1)
 				}
 			}
@@ -1287,7 +1287,7 @@ func Balloc(Sd []*RMSRF, Wall []*WALL, Mwall *[]*MWALL) {
 				}
 			}
 
-			// prevLayer, startLayer := -999, -999
+			// prevLayer, startLayer := INAN, INAN
 			// k := 0
 			mw++
 		} else {
@@ -1331,7 +1331,7 @@ func (Rmvls *RMVLS) Tinit() {
 		rm.xrold = FNXtr(rm.Tr, 50.0)
 		rm.xr = rm.xrold
 		rm.hr = FNH(rm.Tr, rm.xr)
-		rm.alrbold = -999.0
+		rm.alrbold = FNAN
 		rm.mrk = '*'
 		rm.oldTM = Tini
 		rm.TM = rm.oldTM
@@ -1409,9 +1409,9 @@ func Roominit(N int, Room []*ROOM) {
 		B.Name = ""
 		B.PCM = nil
 		B.PCMfurnname = ""
-		B.mPCM = -999.
-		B.FunHcap = -999.0
-		B.PCMQl = -999.0
+		B.mPCM = FNAN
+		B.FunHcap = FNAN
+		B.PCMQl = FNAN
 		B.N = 0
 		B.Brs = 0
 		B.Nachr = 0
@@ -1515,7 +1515,7 @@ func Roominit(N int, Room []*ROOM) {
 		B.Srgm2 = 0.0
 		B.TM = 15.0
 		B.oldTM = 15.0
-		B.SET = -999.
+		B.SET = FNAN
 		B.setpri = false
 
 		Room[i] = B
@@ -1560,8 +1560,8 @@ func Rmsrfinit() *RMSRF {
 	S.Npcm = 0
 	S.Nfn = 0
 	S.pcmpri = false
-	S.Rwall = -999.0
-	S.CAPwall = -999.
+	S.Rwall = FNAN
+	S.CAPwall = FNAN
 	S.A = 0.0
 	S.Eo = 0.0
 	S.as = 0.0
@@ -1608,7 +1608,7 @@ func Rmsrfinit() *RMSRF {
 	S.wd = -1
 	S.fn = -1
 	S.c = -1.0
-	S.A = -999.0
+	S.A = FNAN
 	//		S.Rwall = 0.0 ;
 	S.mwside = RMSRFMwSideType_i
 	S.mwtype = RMSRFMwType_I
@@ -1617,24 +1617,24 @@ func Rmsrfinit() *RMSRF {
 	S.ffix_flg = '!'
 	S.fsol = nil
 
-	S.ColCoeff = -999.
+	S.ColCoeff = FNAN
 	S.oldTx = 20.0
 	S.Iw = 0.0
 	//S.Scol = 0.0 ;
 	S.PVwall.Eff = 0.0
 	S.PVwallFlg = false
-	S.PVwall.PVcap = -999.
+	S.PVwall.PVcap = FNAN
 	S.Ndiv = 0
 	S.Tc = nil
-	S.dblWsd = -999.0
-	S.dblWsu = -999.0
+	S.dblWsd = FNAN
+	S.dblWsu = FNAN
 	S.dblTf = 20.0
 	S.dblTsd = 20.0
 	S.dblTsu = 20.0
-	S.ras = -999.
+	S.ras = FNAN
 	S.Tg = 20.
 
-	S.tnxt = -999.
+	S.tnxt = FNAN
 	S.RStrans = false
 
 	S.wlpri = false

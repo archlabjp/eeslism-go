@@ -38,14 +38,14 @@ func PCMdata(fi *EeTokens, dsn string, pcm *[]*PCM, pcmiterate *rune) {
 			var PCMa = new(PCM)
 
 			PCMa.Name = ""
-			PCMa.Condl = -999.0
-			PCMa.Conds = -999.0
-			PCMa.Crol = -999.0
-			PCMa.Cros = -999.0
-			PCMa.Ql = -999.0
-			PCMa.Tl = -999.0
-			PCMa.Ts = -999.0
-			PCMa.Tp = -999.0
+			PCMa.Condl = FNAN
+			PCMa.Conds = FNAN
+			PCMa.Crol = FNAN
+			PCMa.Cros = FNAN
+			PCMa.Ql = FNAN
+			PCMa.Tl = FNAN
+			PCMa.Ts = FNAN
+			PCMa.Tp = FNAN
 
 			PCMa.Iterate = false // 収束なしがデフォルト
 			//PCMa.iterateTemp = false	// デフォルトは見かけの比熱だけで収束
@@ -55,18 +55,18 @@ func PCMdata(fi *EeTokens, dsn string, pcm *[]*PCM, pcmiterate *rune) {
 			PCMa.DivTemp = 1
 			PCMa.Ctype = 2 // 二等辺三角形がデフォルト
 			// パラメータの初期化
-			PCMa.PCMp.a = -999.0
-			PCMa.PCMp.B = -999.0
-			PCMa.PCMp.b = -999.0
-			PCMa.PCMp.bl = -999.0
-			PCMa.PCMp.bs = -999.0
-			PCMa.PCMp.c = -999.0
-			PCMa.PCMp.d = -999.0
-			PCMa.PCMp.e = -999.0
-			PCMa.PCMp.f = -999.0
-			PCMa.PCMp.omega = -999.0
-			PCMa.PCMp.skew = -999.0
-			PCMa.PCMp.T = -999.0
+			PCMa.PCMp.a = FNAN
+			PCMa.PCMp.B = FNAN
+			PCMa.PCMp.b = FNAN
+			PCMa.PCMp.bl = FNAN
+			PCMa.PCMp.bs = FNAN
+			PCMa.PCMp.c = FNAN
+			PCMa.PCMp.d = FNAN
+			PCMa.PCMp.e = FNAN
+			PCMa.PCMp.f = FNAN
+			PCMa.PCMp.omega = FNAN
+			PCMa.PCMp.skew = FNAN
+			PCMa.PCMp.T = FNAN
 			PCMa.IterateJudge = 0.05 //	収束判定条件は前ステップ見かけの比熱の5%
 			PCMa.Spctype = 'm'       // モデル形式をデフォルトとする
 			PCMa.Condtype = 'm'
@@ -327,7 +327,7 @@ func TableRead(ct *CHARTABLE) {
 	var st, tt int
 	var spheat, prevheat, prevTemp float64
 	prevheat = 0.0
-	prevTemp = -999.0
+	prevTemp = FNAN
 	spheat = 0.0
 
 	for i := 0; i < row; i++ {
@@ -388,7 +388,7 @@ func TableRead(ct *CHARTABLE) {
 
 // 初期化されているかをチェックする
 func dparaminit(A float64) int {
-	if math.Abs(A-(-999.0)) < 1e-5 {
+	if math.Abs(A-(FNAN)) < 1e-5 {
 		return 1
 	} else {
 		return 0

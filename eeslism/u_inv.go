@@ -97,9 +97,9 @@ func Matinv(a []float64, n, m int, s string) {
 //	 m :未知数の数
 //	 n :配列の定義数
 
-//	  参考文献：C言語による科学技術計算サブルーチンライブラリ
-//	  pp.104-106
-//	  ----------------------------------------------------- */
+// 参考文献：C言語による科学技術計算サブルーチンライブラリ
+// pp.104-106
+// ----------------------------------------------------- */
 func Gausei(A, C []float64, m, n int, B []float64) {
 	eps := 1.0e-6
 	l := m + 1
@@ -123,7 +123,7 @@ func Gausei(A, C []float64, m, n int, B []float64) {
 		B[i] = 0.2
 	}
 
-	def := -999.0
+	def := FNAN
 	k := 0
 
 	for def > eps {
@@ -241,10 +241,10 @@ func Gauss(A, C, B []float64, m, n int) {
 	}
 }
 
-///* -----------------------------------------------------
+// /* -----------------------------------------------------
 //
 // 正方行列の出力
-//*/
+// */
 func Matprint(format string, N int, a []float64) {
 	fmt.Println()
 	for i := 0; i < N; i++ {
@@ -255,10 +255,10 @@ func Matprint(format string, N int, a []float64) {
 	}
 }
 
-///* -----------------------------------------------------
+// /* -----------------------------------------------------
 //
 // 正方行列のファイル出力
-//*/
+// */
 func Matfiprint(f io.Writer, fmtStr string, N int, a []float64) {
 	for i := 0; i < N; i++ {
 		for j := 0; j < N; j++ {
@@ -268,10 +268,10 @@ func Matfiprint(f io.Writer, fmtStr string, N int, a []float64) {
 	}
 }
 
-///* -----------------------------------------------------
+// /* -----------------------------------------------------
 //
 // 正方行列の出力 （単精度）
-//*/
+// */
 func Matfprint(fmtStr string, N int, a []float64) {
 	fmt.Printf("\n")
 	for i := 0; i < N; i++ {
@@ -282,11 +282,11 @@ func Matfprint(fmtStr string, N int, a []float64) {
 	}
 }
 
-///* -----------------------------------------------------
+// /* -----------------------------------------------------
 //
 // 連立一次方程式の係数行列及び右辺の出力
 //
-//*/
+// */
 func Seqprint(fmt1 string, N int, a []float64, fmt2 string, c []float64) {
 	fmt.Println("--- seqprint")
 	for i := 0; i < N; i++ {
@@ -299,14 +299,14 @@ func Seqprint(fmt1 string, N int, a []float64, fmt2 string, c []float64) {
 	}
 }
 
-///* ---------------------------------------------- */
+// /* ---------------------------------------------- */
 //
-///*
-//行列の掛け算
+// /*
+// 行列の掛け算
 //
 // (T)=[A](V)
 // N:宣言寸法　　n:使用寸法
-//*/
+// */
 func Matmalv(A []float64, V []float64, N int, n int, T []float64) {
 	for i := 0; i < n; i++ {
 		var sum float64 = 0.0

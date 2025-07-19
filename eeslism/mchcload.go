@@ -82,10 +82,10 @@ func rmacdat(Hcld *HCLOAD) {
 	)
 	ss := Hcld.Cmp.Tparm
 
-	Hcld.Qhmax = -999.0
-	Hcld.Qh = -999.0
-	Hcld.COPc = -999.0
-	Hcld.COPh = -999.0
+	Hcld.Qhmax = FNAN
+	Hcld.Qh = FNAN
+	Hcld.COPc = FNAN
+	Hcld.COPh = FNAN
 	Hcld.Qcmax = 999.0
 	Hcld.Qc = 999.0
 
@@ -157,8 +157,8 @@ func rmacddat(Hcld *HCLOAD) {
 
 	ss := Hcld.Cmp.Tparm
 	Hcld.Qcmax, Hcld.Qc, Hcld.Qcmin = 999.0, 999.0, 999.0
-	Hcld.Ecmax, Hcld.Ec, Hcld.Ecmin, Hcld.Qh, Hcld.Qhmax, Hcld.Qhmin, Hcld.Ehmax, Hcld.Eh, Hcld.Ehmin = -999.0, -999.0, -999.0, -999.0, -999.0, -999.0, -999.0, -999.0, -999.0
-	Hcld.Gi, Hcld.Go = -999.0, -999.0
+	Hcld.Ecmax, Hcld.Ec, Hcld.Ecmin, Hcld.Qh, Hcld.Qhmax, Hcld.Qhmin, Hcld.Ehmax, Hcld.Eh, Hcld.Ehmin = FNAN, FNAN, FNAN, FNAN, FNAN, FNAN, FNAN, FNAN, FNAN
+	Hcld.Gi, Hcld.Go = FNAN, FNAN
 
 	for {
 		var s string
@@ -408,11 +408,9 @@ func FNTevph(Tco, Qc, Eh, cao, Go, xco float64) float64 {
 
 /*  特性式の係数  */
 
-//
 // +--------+ ---> [OUT 1]
 // | HCLOAD | ---> [OUT 2]
 // +--------+ ---> [OUT 3] 冷温水コイル想定時のみ
-//
 func Hcldcfv(_Hcload []*HCLOAD) {
 	var f0, f1 float64
 
@@ -505,8 +503,8 @@ func Hcldene(_Hcload []*HCLOAD, LDrest *int, Wd *WDAT) {
 				Hcload.Twin = elo.Elins[0].Upv.Sysv
 				Hcload.Twout = elo.Sysv
 			} else {
-				Hcload.Twin = -999.0
-				Hcload.Twout = -999.0
+				Hcload.Twin = FNAN
+				Hcload.Twout = FNAN
 			}
 		}
 

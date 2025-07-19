@@ -23,7 +23,7 @@ func Vcfdata(fi *EeTokens, simcon *SIMCONTL) {
 			simcon.Vcfile[i] = VCFILE{
 				Name:  "",
 				Fname: "",
-				Ad:    -999,
+				Ad:    INAN,
 				Ic:    0,
 				Tlist: nil,
 				Fi:    nil,

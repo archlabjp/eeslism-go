@@ -67,7 +67,7 @@ func Pipeint(Pipe []*PIPE, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT) {
 		if pipe.Cmp.Ivparm != nil {
 			pipe.L = *pipe.Cmp.Ivparm
 		} else {
-			pipe.L = -999.0
+			pipe.L = FNAN
 		}
 
 		if pipe.Cmp.Envname != "" {
@@ -92,11 +92,11 @@ func Pipeint(Pipe []*PIPE, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT) {
 
 /*  特性式の係数  */
 
-//
 // [IN 1] ---> +------+ ---> [OUT 1] 空気 or 温水温度
-//             | PIPE |
-// [IN 2] ---> +------+ ---> [OUT 2] 湿度 (DUCT_PDTのみ)
 //
+//	| PIPE |
+//
+// [IN 2] ---> +------+ ---> [OUT 2] 湿度 (DUCT_PDTのみ)
 func Pipecfv(Pipe []*PIPE) {
 	for _, pipe := range Pipe {
 		Te := 0.0
@@ -153,7 +153,7 @@ func Pipeene(Pipe []*PIPE) {
 				pipe.RHout = FNRhtx(pipe.Tout, pipe.Xout)
 				pipe.Hout = FNH(pipe.Tout, Eo.Sysv)
 			} else {
-				pipe.Hout = -999.0
+				pipe.Hout = FNAN
 			}
 		} else {
 			pipe.Q = 0.0

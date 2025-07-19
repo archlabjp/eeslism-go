@@ -34,12 +34,12 @@ func Evacdata(s string, Evacca *EVACCA) int {
 
 	if st == -1 {
 		Evacca.Name = s
-		Evacca.N = -999
-		Evacca.Nlayer = -999
-		Evacca.Awet = -999.0
-		Evacca.Adry = -999.0
-		Evacca.hdry = -999.0
-		Evacca.hwet = -999.0
+		Evacca.N = INAN
+		Evacca.Nlayer = INAN
+		Evacca.Awet = FNAN
+		Evacca.Adry = FNAN
+		Evacca.hdry = FNAN
+		Evacca.hwet = FNAN
 	} else {
 		key := s[:st]
 		value := s[st+1:]

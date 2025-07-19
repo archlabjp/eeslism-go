@@ -167,7 +167,7 @@ func Rmcomfrt(_Room []*ROOM) {
 			Room.PMV = Pmv0(met, Icl, Room.Tr, Room.xr, Room.Tsav, v)
 			Room.SET = SET_star(Room.Tr, Room.Tsav, v, Room.RH, met, Icl, 0.0, 101.3)
 		} else {
-			Room.PMV = -999.0
+			Room.PMV = FNAN
 		}
 		/*******************
 		fmt.Printf("**** Rmcomfrt  met=%.1f Icl=%.1f v=%.2f  Tr=%.1f  xr=%.4f Tmrt=%.1f  PMV=%.2f\n",
@@ -206,7 +206,7 @@ func Pmv0(met, Icl, Tr, xr, Tmrt, v float64) float64 {
 	return (0.352*math.Exp(-0.042*m) + 0.032) * L
 }
 
-//	SET*の計算
+// SET*の計算
 func SET_star(TA, TR, VEL, RH, MET, CLO, WME, PATM float64) float64 {
 	//Input doubleiables ? TA (air temperature): °C, TR (mean radiant temperature): °C, VEL (air velocity): m/s,
 	//RH (relative humidity): %, MET: met unit, CLO: clo unit, WME (external work): W/m2, PATM (atmospheric pressure): kPa

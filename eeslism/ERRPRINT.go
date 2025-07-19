@@ -43,6 +43,7 @@ func errbekt_print(n, m int, a []bekt, name string) {
 		fmt.Println("File not open errbektPrintf")
 		os.Exit(1)
 	}
+	defer fp.Close()
 
 	fmt.Fprintf(fp, "%s ", name)
 
@@ -52,7 +53,6 @@ func errbekt_print(n, m int, a []bekt, name string) {
 		}
 	}
 	fmt.Fprintf(fp, "\n")
-	fp.Close()
 }
 
 /*--形態係数の出力--*/
@@ -86,12 +86,11 @@ func e_printf(n int, p []P_MENN, name string) {
 		fmt.Println("File not open ePrintf")
 		os.Exit(1)
 	}
+	defer fp.Close()
 
 	for i = 0; i < n; i++ {
 		fmt.Fprintf(fp, "%d x=%f y=%f z=%f\n", i, p[i].e.X, p[i].e.Y, p[i].e.Z)
 	}
-
-	fp.Close()
 }
 
 /*---------------影面積の出力--------------------*/
@@ -120,6 +119,7 @@ func mp_printf(n int, mp []*P_MENN, name string) {
 		fmt.Println("File not open mpPrintf")
 		os.Exit(1)
 	}
+	defer fp.Close()
 
 	for i = 0; i < n; i++ {
 		fmt.Fprintf(fp, "name=%s wlflg=%d\n", mp[i].opname, mp[i].wlflg)
@@ -129,8 +129,6 @@ func mp_printf(n int, mp []*P_MENN, name string) {
 		fmt.Fprintf(fp, "         G.X=%f   G.Y=%f   G.Z=%f\n", mp[i].G.X, mp[i].G.Y, mp[i].G.Z)
 		fmt.Fprintf(fp, "\n")
 	}
-
-	fp.Close()
 }
 
 /*------MP面の前面地面のポイント座標出力---------------------*/
@@ -145,17 +143,16 @@ func gp_printf(gp [][]XYZ, mp []P_MENN, mpn, lpn int, name string) {
 		fmt.Println("File not open gpPrintf")
 		os.Exit(1)
 	}
+	defer fp.Close()
 
 	for i = 0; i < mpn; i++ {
 		fmt.Fprintf(fp, "mp[%d] %s\n", i, mp[i].opname)
 		k = 0
-		for gp[i][k].X != -999 {
+		for gp[i][k].X != INAN {
 			fmt.Fprintf(fp, "%d %f %f %f\n", k, gp[i][k].X, gp[i][k].Y, gp[i][k].Z)
 			k++
 		}
 	}
-
-	fp.Close()
 }
 
 /*------LP面の情報出力---------------------------*/
@@ -170,6 +167,7 @@ func lp_printf(n int, lp []P_MENN, name string) {
 		fmt.Println("File not open lpPrintf")
 		os.Exit(1)
 	}
+	defer fp.Close()
 
 	for i = 0; i < n; i++ {
 		fmt.Fprintf(fp, "mp[%d]    wb=%f    wa=%f   ref=%f\n", i, lp[i].wb, lp[i].wa, lp[i].ref)
@@ -177,8 +175,6 @@ func lp_printf(n int, lp []P_MENN, name string) {
 		fmt.Fprintf(fp, "         G.X=%f   G.Y=%f   G.Z=%f\n", lp[i].G.X, lp[i].G.Y, lp[i].G.Z)
 		fmt.Fprintf(fp, "\n")
 	}
-
-	fp.Close()
 }
 
 /*--------------LP面毎の日射遮蔽率出力--------------*/
@@ -193,6 +189,7 @@ func lp_shad_printf(lpn int, lp []P_MENN, name string) {
 		fmt.Println("File not open lpShadPrintf")
 		os.Exit(1)
 	}
+	defer fp.Close()
 
 	for i = 0; i < lpn; i++ {
 		fmt.Fprintf(fp, "%s ", lp[i].opname)
@@ -205,6 +202,4 @@ func lp_shad_printf(lpn int, lp []P_MENN, name string) {
 		}
 		fmt.Fprintf(fp, "\n")
 	}
-
-	fp.Close()
 }

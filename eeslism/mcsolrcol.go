@@ -42,10 +42,10 @@ func Colldata(typeStr EqpType, s string, Collca *COLLCA) int {
 
 	if idx := strings.Index(s, "="); idx == -1 {
 		Collca.name = s
-		Collca.b0 = -999.0
-		Collca.b1 = -999.0
-		Collca.Ac = -999.0
-		Collca.Ag = -999.0
+		Collca.b0 = FNAN
+		Collca.b1 = FNAN
+		Collca.Ac = FNAN
+		Collca.Ag = FNAN
 	} else {
 		st = s[idx+1:]
 		s = s[:idx]
@@ -125,11 +125,9 @@ func CalcCollTe(Coll []*COLL) {
 
 /*  特性式の係数   */
 
-//
-//   +------+ ---> [OUT 1]
-//   | COLL |
-//   +------+ ---> [OUT 2] ACOLLECTOR_PDTのみ
-//
+// +------+ ---> [OUT 1]
+// | COLL |
+// +------+ ---> [OUT 2] ACOLLECTOR_PDTのみ
 func Collcfv(Coll []*COLL) {
 	for _, coll := range Coll {
 		// 制御用の相当外気温度（現在時刻）は計算済みなのでここでは計算しない

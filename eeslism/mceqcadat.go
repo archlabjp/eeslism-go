@@ -182,15 +182,15 @@ func Eqcadata(f *EeTokens, Eqcat *EQCAT) {
 			Eqcat.Pumpca = append(Eqcat.Pumpca, Pumpca)
 		} else if eqpType == VAV_TYPE || eqpType == VWV_TYPE {
 			vavca := new(VAVCA)
-			vavca.dTset = -999.0
+			vavca.dTset = FNAN
 			vavca.Name = ""
 			ReadCatalogData(f, func(ss string) int { return VAVdata(eqpType, ss, vavca) }, s, E)
 			Eqcat.Vavca = append(Eqcat.Vavca, vavca)
 		} else if eqpType == OMVAV_TYPE || eqpType == OAVAV_TYPE {
 			OMvavca := new(OMVAVCA)
 			OMvavca.Name = ""
-			OMvavca.Gmax = -999.0
-			OMvavca.Gmin = -999.0
+			OMvavca.Gmax = FNAN
+			OMvavca.Gmin = FNAN
 			ReadCatalogData(f, func(ss string) int { return OMVAVdata(ss, OMvavca) }, s, E)
 			Eqcat.OMvavca = append(Eqcat.OMvavca, OMvavca)
 		} else if eqpType == STHEAT_TYPE {
@@ -202,7 +202,7 @@ func Eqcadata(f *EeTokens, Eqcat *EQCAT) {
 		} else if eqpType == THEX_TYPE {
 			Thexca := new(THEXCA)
 			Thexca.Name = ""
-			Thexca.et = -999.0
+			Thexca.et = FNAN
 			ReadCatalogData(f, func(ss string) int { return Thexdata(ss, Thexca) }, s, E)
 			Eqcat.Thexca = append(Eqcat.Thexca, Thexca)
 		} else if eqpType == DESI_TYPE {

@@ -26,9 +26,11 @@ import (
 	"strings"
 )
 
-/*  圧縮式冷凍機
+/*
+	圧縮式冷凍機
 
-機器仕様入力          */
+機器仕様入力
+*/
 var __Refadata_hpch *HPCH
 
 func Refadata(s string, Refaca *REFACA, Rfcmp []*RFCMP) int {
@@ -46,7 +48,7 @@ func Refadata(s string, Refaca *REFACA, Rfcmp []*RFCMP) int {
 		Refaca.awtyp = ' '
 		Refaca.plf = ' '
 		Refaca.rfc = nil
-		Refaca.Ph = -999.0
+		Refaca.Ph = FNAN
 	} else {
 		if s[0] == 'a' {
 			Refaca.awtyp = rune(s[1])
@@ -183,11 +185,11 @@ func Refaint(Refa []*REFA, Wd *WDAT, Compnt []*COMPNT) {
 
 /*  冷凍機／ヒ－トポンプのシステム方程式の係数  */
 
+//	+------+
 //
-//             +------+
 // [IN 1] ---> | REFA | --> [OUT 1]
-//             +------+
 //
+//	+------+
 func Refacfv(Refa []*REFA) {
 	for _, refa := range Refa {
 		if refa.Cmp.Control != OFF_SW {

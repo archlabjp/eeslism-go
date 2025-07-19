@@ -58,8 +58,8 @@ func NewQMEAS() QMEAS {
 		Xc:      nil,
 		Xh:      nil,
 		Id:      0,
-		Nelmc:   -999,
-		Nelmh:   -999,
+		Nelmc:   INAN,
+		Nelmh:   INAN,
 	}
 }
 
@@ -698,7 +698,7 @@ type PUMP struct {
 	MQdy, MGdy, MEdy EDAY
 }
 
-//  境界条件設定用仮想機器
+// 境界条件設定用仮想機器
 type FLIN struct {
 	Name   string
 	Namet  string   /* 変数名（温度、顕熱） */

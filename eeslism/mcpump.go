@@ -98,11 +98,11 @@ func Pumpdata(cattype EqpType, s string, Pumpca *PUMPCA, pfcmp []*PFCMP) int {
 			}
 		} else {
 			dt, _ = strconv.ParseFloat(s[st+1:], 64)
-			if s == "qef" {
+			if s1 == "qef" {
 				Pumpca.qef = dt
 			} else {
 				if Pumpca.Type != "P" {
-					switch s {
+					switch s1 {
 					case "Go":
 						Pumpca.Go = dt
 					case "Wo":
@@ -111,7 +111,7 @@ func Pumpdata(cattype EqpType, s string, Pumpca *PUMPCA, pfcmp []*PFCMP) int {
 						id = 1
 					}
 				} else {
-					switch s {
+					switch s1 {
 					case "a0":
 						Pumpca.val[0] = dt
 					case "a1":

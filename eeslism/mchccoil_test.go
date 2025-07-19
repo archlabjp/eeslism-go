@@ -72,15 +72,15 @@ func TestHccdwint(t *testing.T) {
 
 	hccca2 := &HCCCA{
 		name: "WetCoil",
-		et:   FNAN, // No fixed temperature efficiency
-		eh:   0.75, // Enthalpy efficiency (wet coil)
+		et:   FNAN,   // No fixed temperature efficiency
+		eh:   0.75,   // Enthalpy efficiency (wet coil)
 		KA:   1500.0, // KA specified
 	}
 
 	hccca3 := &HCCCA{
 		name: "VariableCoil",
-		et:   FNAN, // No fixed temperature efficiency
-		eh:   0.0,  // No enthalpy efficiency
+		et:   FNAN,   // No fixed temperature efficiency
+		eh:   0.0,    // No enthalpy efficiency
 		KA:   2000.0, // KA specified (variable efficiency)
 	}
 
@@ -183,8 +183,8 @@ func TestHcccfv(t *testing.T) {
 	// Create test coil with proper initialization
 	hccca := &HCCCA{
 		name: "TestCoil",
-		et:   FNAN, // Variable efficiency
-		eh:   0.0,  // Dry coil
+		et:   FNAN,   // Variable efficiency
+		eh:   0.0,    // Dry coil
 		KA:   1500.0, // Heat transfer coefficient
 	}
 
@@ -192,32 +192,42 @@ func TestHcccfv(t *testing.T) {
 	cmp := &COMPNT{
 		Name:    "TestCoil",
 		Control: ON_SW,
-		Elins: []*ELIN{
-			{
-				Sysvin: 25.0, // Inlet air temperature
-	
-			},
-		},
+		Elins:   []*ELIN{},
 		Elouts: []*ELOUT{
 			{
 				Fluid:   WATER_FLD,
-				G:       0.1,     // Water flow rate
+				G:       0.1, // Water flow rate
 				Control: ON_SW,
-				Coeffin: make([]float64, 1),
+				Coeffin: make([]float64, 3),
+				Sysv:    15.0, // Outlet air temperature
+			},
+			{
+				Fluid:   WATER_FLD,
+				G:       0.1, // Water flow rate
+				Control: ON_SW,
+				Coeffin: make([]float64, 3),
+				Sysv:    15.0, // Outlet air temperature
+			},
+			{
+				Fluid:   WATER_FLD,
+				G:       0.1, // Water flow rate
+				Control: ON_SW,
+				Coeffin: make([]float64, 3),
 				Sysv:    15.0, // Outlet air temperature
 			},
 		},
 	}
 
 	hcc := &HCC{
-		Name: "TestCoil",
-		Cat:  hccca,
-		Cmp:  cmp,
+		Name:  "TestCoil",
+		Cat:   hccca,
+		Cmp:   cmp,
 		Wet:   'd',  // Dry coil
 		Tain:  25.0, // Inlet air temperature
 		Twin:  7.0,  // Inlet water temperature
 		cGa:   1.0,  // Air flow rate
 		cGw:   0.1,  // Water flow rate
+		Etype: 'e',
 	}
 
 	hccs := []*HCC{hcc}
@@ -240,8 +250,8 @@ func TestHccene(t *testing.T) {
 	// Create test coil
 	hccca := &HCCCA{
 		name: "TestCoil",
-		et:   0.8,  // Fixed temperature efficiency
-		eh:   0.0,  // Dry coil
+		et:   0.8, // Fixed temperature efficiency
+		eh:   0.0, // Dry coil
 		KA:   FNAN,
 	}
 
@@ -250,13 +260,31 @@ func TestHccene(t *testing.T) {
 		Name:    "TestCoil",
 		Control: ON_SW,
 		Elins: []*ELIN{
-			{
-				Sysvin: 25.0, // Inlet air temperature
-			},
+			{},
+			{},
+			{},
 		},
 		Elouts: []*ELOUT{
 			{
+				Fluid:   WATER_FLD,
+				G:       0.1, // Water flow rate
 				Control: ON_SW,
+				Coeffin: make([]float64, 3),
+				Sysv:    15.0, // Outlet air temperature
+			},
+			{
+				Fluid:   WATER_FLD,
+				G:       0.1, // Water flow rate
+				Control: ON_SW,
+				Coeffin: make([]float64, 3),
+				Sysv:    15.0, // Outlet air temperature
+			},
+			{
+				Fluid:   WATER_FLD,
+				G:       0.1, // Water flow rate
+				Control: ON_SW,
+				Coeffin: make([]float64, 3),
+				Sysv:    15.0, // Outlet air temperature
 			},
 		},
 	}
@@ -265,11 +293,11 @@ func TestHccene(t *testing.T) {
 		Name: "TestCoil",
 		Cat:  hccca,
 		Cmp:  cmp,
-		Wet:   'd',    // Dry coil
-		Tain:  25.0,   // Inlet air temperature
-		Twin:  7.0,    // Inlet water temperature
-		cGa:   1.0,    // Air flow rate [kg/s]
-		cGw:   0.1,    // Water flow rate [kg/s]
+		Wet:  'd',  // Dry coil
+		Tain: 25.0, // Inlet air temperature
+		Twin: 7.0,  // Inlet water temperature
+		cGa:  1.0,  // Air flow rate [kg/s]
+		cGw:  0.1,  // Water flow rate [kg/s]
 	}
 
 	hccs := []*HCC{hcc}
@@ -295,7 +323,7 @@ func TestHccene(t *testing.T) {
 
 	t.Run("coil off", func(t *testing.T) {
 		hcc.Cmp.Control = OFF_SW
-		
+
 		Hccene(hccs)
 
 		// Heat transfer should be zero when off

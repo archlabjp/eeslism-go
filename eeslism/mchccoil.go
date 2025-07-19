@@ -69,16 +69,16 @@ func Hccdata(s string, Hccca *HCCCA) int {
 		Hccca.et = FNAN
 		Hccca.KA = FNAN
 	} else {
-		st = s[stIdx+1:]
-		dt, _ = readFloat(st)
+		st = s[:stIdx]
+		dt, _ = readFloat(s[stIdx+1:])
 
-		if s == "et" {
+		if st == "et" {
 			// コイル温度効率
 			Hccca.et = dt
-		} else if s == "eh" {
+		} else if st == "eh" {
 			// コイルエンタルピー効率
 			Hccca.eh = dt
-		} else if s == "KA" {
+		} else if st == "KA" {
 			// コイルの熱通過率と伝熱面積の積 [W/K]
 			Hccca.KA = dt
 		} else {

@@ -155,7 +155,7 @@ func Weatherdt(Simc *SIMCONTL, Daytm *DAYTM, Loc *LOCAT, Wd *WDAT, Exs []*EXSF, 
 	Exsfter(Daytm.DayOfYear, Loc.Daymxert, Loc.Tgrav, Loc.DTgr, Exs, Wd, tt)
 	__Weatherdt_timedg = float64(Daytm.Tt) + math.Mod(float64(Daytm.Ttmm), 100.0)/60.0
 
-	__Weatherdt_tas = FNTtas(__Weatherdt_timedg, __Weatherdt_E)
+	__Weatherdt_tas = FNTtas(__Weatherdt_timedg, __Weatherdt_E, Lon, Ls)
 	Wd.Sh, Wd.Sw, Wd.Ss, Wd.Solh, Wd.SolA = Solpos(__Weatherdt_tas, __Weatherdt_decl)
 
 	if Simc.Wdtype == 'H' {
@@ -628,7 +628,7 @@ func EarthSrfTempInit(Simc *SIMCONTL, Loc *LOCAT, Wd *WDAT) {
 			for tt = 1; tt <= 24; tt++ {
 				matinit(T, 20)
 
-				tas = FNTtas(float64(tt), E)
+				tas = FNTtas(float64(tt), E, Lon, Ls)
 				var Sh float64
 				Sh, _, _, Wd.Solh, Wd.Solh = Solpos(tas, decl)
 				dt2wdata(Wd, tt, dt)

@@ -72,7 +72,7 @@ func Pumpdata(cattype EqpType, s string, Pumpca *PUMPCA, pfcmp []*PFCMP) int {
 		Pumpca.Wo = FNAN
 		Pumpca.Go = FNAN
 		Pumpca.qef = FNAN
-		Pumpca.val = nil
+		Pumpca.val = [4]float64{FNAN, FNAN, FNAN, FNAN}
 
 		if cattype == PUMP_TYPE {
 			Pumpca.pftype = PUMP_PF
@@ -85,9 +85,13 @@ func Pumpdata(cattype EqpType, s string, Pumpca *PUMPCA, pfcmp []*PFCMP) int {
 		s1, s2 := s[:st], s[st+1:]
 
 		if s1 == "type" {
+			// ポンプ種別
+			// C:定流量ポンプ, Vv：変流量ポンプ(吐出弁制御), Vr：変流量ポンプ(可変速制御)
+			// P 太陽電池駆動ポンプ
 			Pumpca.Type = s2
 			if Pumpca.Type == "P" {
-				Pumpca.val = make([]float64, 4)
+				// 太陽電池駆動ポンプの場合に指定する特性式係数用の初期化
+				Pumpca.val = [4]float64{0.0, 0.0, 0.0, 0.0}
 			}
 
 			for _, pfc := range pfcmp {
@@ -99,13 +103,16 @@ func Pumpdata(cattype EqpType, s string, Pumpca *PUMPCA, pfcmp []*PFCMP) int {
 		} else {
 			dt, _ = strconv.ParseFloat(s[st+1:], 64)
 			if s1 == "qef" {
+				// ポンプ発熱比率 [-]
 				Pumpca.qef = dt
 			} else {
 				if Pumpca.Type != "P" {
 					switch s1 {
 					case "Go":
+						// 流量 [kg/s] (定格値)
 						Pumpca.Go = dt
 					case "Wo":
+						// モーター入力電力 [W]
 						Pumpca.Wo = dt
 					default:
 						id = 1
@@ -113,12 +120,16 @@ func Pumpdata(cattype EqpType, s string, Pumpca *PUMPCA, pfcmp []*PFCMP) int {
 				} else {
 					switch s1 {
 					case "a0":
+						// 太陽電池ポンプの特性を表す係数 a0
 						Pumpca.val[0] = dt
 					case "a1":
+						// 太陽電池ポンプの特性を表す係数 a1
 						Pumpca.val[1] = dt
 					case "a2":
+						// 太陽電池ポンプの特性を表す係数 a2
 						Pumpca.val[2] = dt
 					case "Ic":
+						// ポンプ運転が可能となる限界日射量 Ic [W/m2]
 						Pumpca.val[3] = dt
 					default:
 						id = 1

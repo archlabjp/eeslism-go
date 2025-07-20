@@ -673,10 +673,10 @@ type PUMPCA struct /* ポンプ・ファン機器仕様 */
 	pftype rune   /* 'P' ポンプ  'F' ファン */
 	Type   string /* 'C' 定流量　　'P' 太陽電池駆動　*/
 
-	Wo    float64   /* モーター入力 */
-	Go    float64   /* 定格流量 */
-	qef   float64   /* 発熱比率（流体加熱量= gef * Wo）*/
-	val   []float64 /* 特性式係数など */
+	Wo    float64    /* モーター入力電力 [W] */
+	Go    float64    /* 定格流量 [kg/s] */
+	qef   float64    /* 発熱比率（流体加熱量= gef * Wo）*/
+	val   [4]float64 /* 太陽電池ポンプの特性を表す係数a1,a2,a3及びポンプ運転が可能となる限界日射量 Ic [W/m2] */
 	pfcmp *PFCMP
 }
 

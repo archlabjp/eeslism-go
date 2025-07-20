@@ -176,7 +176,7 @@ func Eqcadata(f *EeTokens, Eqcat *EQCAT) {
 			Pumpca := new(PUMPCA)
 			Pumpca.name = ""
 			Pumpca.Type = ""
-			Pumpca.val = nil
+			Pumpca.val = [4]float64{FNAN, FNAN, FNAN, FNAN}
 			Pumpca.pfcmp = nil
 			ReadCatalogData(f, func(ss string) int { return Pumpdata(eqpType, ss, Pumpca, Eqcat.Pfcmp) }, s, E)
 			Eqcat.Pumpca = append(Eqcat.Pumpca, Pumpca)

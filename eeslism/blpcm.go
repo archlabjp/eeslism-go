@@ -97,6 +97,9 @@ func PCMdata(fi *EeTokens, dsn string, pcm *[]*PCM, pcmiterate *rune) {
 		PCMa := (*pcm)[i]
 
 		s = fi.GetToken()
+		if s == "\n" {
+			s = fi.GetToken()
+		}
 
 		if s[0] == '*' {
 			break

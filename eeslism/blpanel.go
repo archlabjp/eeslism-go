@@ -27,6 +27,19 @@ const WPTOLE = 1.0e-10
 /*  輻射パネル有効熱容量流量  */
 
 func panelwp(rdpnl *RDPNL) {
+	if rdpnl == nil {
+		panic("rdpnl is nil")
+	}
+	if rdpnl.cmp == nil {
+		panic("rdpnl.cmp is nil")
+	}
+	if rdpnl.cmp.Elouts == nil {
+		panic("rdpnl.cmp.Elouts is nil")
+	}
+	if len(rdpnl.cmp.Elouts) != 1 {
+		panic("len(rdpnl.cmp.Elouts) != 1")
+	}
+
 	sd := rdpnl.sd[0]
 	eo := rdpnl.cmp.Elouts[0]
 	wall := sd.mw.wall

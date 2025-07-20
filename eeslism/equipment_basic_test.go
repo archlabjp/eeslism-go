@@ -1028,7 +1028,7 @@ func testFanBasicOperation(t *testing.T) {
 		Wo:     2000.0, // 定格消費電力 2kW
 		Go:     1.5,    // 定格風量 1.5 kg/s
 		qef:    0.05,   // 発熱比率 5%
-		val:    nil,
+		val:    [4]float64{0.0, 0.0, 0.0, 0.0},
 		pfcmp:  nil,
 	}
 

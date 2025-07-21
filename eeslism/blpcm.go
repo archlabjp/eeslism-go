@@ -115,80 +115,87 @@ func PCMdata(fi *EeTokens, dsn string, pcm *[]*PCM, pcmiterate *rune) {
 				s = s[:ce]
 			}
 			if st := strings.IndexByte(s, '='); st >= 0 {
-				dt, _ := strconv.ParseFloat(s[st+1:], 64)
-				if strings.HasPrefix(s, "Ql") { // 潜熱量[J/m3]
+				key := s[:st]
+				s = s[st+1:]
+				dt, _ := strconv.ParseFloat(s, 64)
+				switch key {
+				case "Ql": // 潜熱量[J/m3]
 					PCMa.Ql = dt
-				} else if strings.HasPrefix(s, "spcheattable") {
-					PCMa.Chartable[0].filename = s[st+1:]
+				case "spcheattable":
+					PCMa.Chartable[0].filename = s
 					PCMa.Spctype = 't'
-				} else if strings.HasPrefix(s, "table") {
-					if s[st+1] == 'e' {
+				case "table":
+					switch s {
+					case "e":
 						PCMa.Chartable[0].tabletype = 'e'
-					} else if s[st+1] == 'h' {
+					case "h":
 						PCMa.Chartable[0].tabletype = 'h'
+					default:
+						Eprint("<PCMdata>", s)
 					}
-				} else if strings.HasPrefix(s, "conducttable") {
-					PCMa.Chartable[1].filename = s[st+1:]
+				case "conducttable":
+					PCMa.Chartable[1].filename = s
 					PCMa.Condtype = 't'
-				} else if strings.HasPrefix(s, "minTempChange") {
+				case "minTempChange":
 					PCMa.Chartable[0].minTempChng = dt
 					PCMa.Chartable[1].minTemp = dt
-				} else if strings.HasPrefix(s, "Condl") { // 液相熱伝導率[W/mK]
+				case "Condl": // 液相熱伝導率[W/mK]
 					PCMa.Condl = dt
-				} else if strings.HasPrefix(s, "Conds") { // 固相熱伝導率[W/mK]
+				case "Conds": // 固相熱伝導率[W/mK]
 					PCMa.Conds = dt
-				} else if strings.HasPrefix(s, "Crol") { // 液相容積比熱[J/m3K]
+				case "Crol": // 液相容積比熱[J/m3K]
 					PCMa.Crol = dt
-				} else if strings.HasPrefix(s, "Cros") { // 固相容積比熱[J/m3K]
+				case "Cros": // 固相容積比熱[J/m3K]
 					PCMa.Cros = dt
-				} else if strings.HasPrefix(s, "Tl") { // 液体から凝固が始まる温度[℃]
+				case "Tl": // 液体から凝固が始まる温度[℃]
 					PCMa.Tl = dt
-				} else if strings.HasPrefix(s, "Ts") { // 固体から融解が始まる温度[℃]
+				case "Ts": // 固体から融解が始まる温度[℃]
 					PCMa.Ts = dt
-				} else if strings.HasPrefix(s, "Tp") { // 見かけの比熱のピーク温度[℃]
+				case "Tp": // 見かけの比熱のピーク温度[℃]
 					PCMa.Tp = dt
-				} else if strings.HasPrefix(s, "DivTemp") { // 比熱数値積分時の温度分割数
+				case "DivTemp": // 比熱数値積分時の温度分割数
 					PCMa.DivTemp = int(dt)
-				} else if strings.HasPrefix(s, "Ctype") { // 見かけの比熱の特性曲線番号
+				case "Ctype": // 見かけの比熱の特性曲線番号
 					PCMa.Ctype = int(dt)
-				} else if strings.HasPrefix(s, "a") { // これ以降は見かけの比熱計算のためのパラメータ
+				case "a": // これ以降は見かけの比熱計算のためのパラメータ
 					PCMa.PCMp.a = dt
-				} else if strings.HasPrefix(s, "b=") {
+				case "b":
 					PCMa.PCMp.b = dt
-				} else if strings.HasPrefix(s, "c") {
+				case "c":
 					PCMa.PCMp.c = dt
-				} else if strings.HasPrefix(s, "d") {
+				case "d":
 					PCMa.PCMp.d = dt
-				} else if strings.HasPrefix(s, "e") {
+				case "e":
 					PCMa.PCMp.e = dt
-				} else if strings.HasPrefix(s, "f") {
+				case "f":
 					PCMa.PCMp.f = dt
-				} else if strings.HasPrefix(s, "B") {
+				case "B":
 					PCMa.PCMp.B = dt
-				} else if strings.HasPrefix(s, "T") {
+				case "T":
 					PCMa.PCMp.T = dt
-				} else if strings.HasPrefix(s, "bs") {
+				case "bs":
 					PCMa.PCMp.bs = dt
-				} else if strings.HasPrefix(s, "bl") {
+				case "bl":
 					PCMa.PCMp.bl = dt
-				} else if strings.HasPrefix(s, "skew") {
+				case "skew":
 					PCMa.PCMp.skew = dt
-				} else if strings.HasPrefix(s, "omega") {
+				case "omega":
 					PCMa.PCMp.omega = dt
-				} else if strings.HasPrefix(s, "nWieght") {
+				case "nWieght":
 					PCMa.NWeight = dt
-				} else if strings.HasPrefix(s, "IterateJudge") {
+				case "IterateJudge":
 					PCMa.IterateJudge = dt
-				} else {
+				default:
 					Eprint("<PCMdata>", s)
 				}
 			} else {
-				if s == "-iterate" {
+				switch s {
+				case "-iterate":
 					PCMa.Iterate = true
 					*pcmiterate = 'y'
-				} else if s == "-pcmnode" {
+				case "-pcmnode":
 					PCMa.AveTemp = 'n'
-				} else {
+				default:
 					Eprint("<PCMdata>", s)
 				}
 			}
@@ -241,32 +248,33 @@ func PCMdata(fi *EeTokens, dsn string, pcm *[]*PCM, pcmiterate *rune) {
 			}
 
 			// モデルごとに入力値をチェックする
-			if PCMa.Ctype == 1 || PCMa.Ctype == 2 {
+			switch PCMa.Ctype {
+			case 1, 2:
 				if Qlin+Tsin+Tlin != 0 {
 					fmt.Printf("<PCMdata> name=%s Ql=%f Ts=%f Tl=%f\n",
 						PCMa.Name, PCMa.Ql, PCMa.Ts, PCMa.Tl)
 				}
-			} else if PCMa.Ctype == 3 {
+			case 3:
 				if Qlin+Tpin+Tin+Bin != 0 {
 					fmt.Printf("<PCMdata> name=%s Ql=%f Tp=%f T=%f B=%f\n",
 						PCMa.Name, PCMa.Ql, PCMa.Tp, PCMa.PCMp.T, PCMa.PCMp.B)
 				}
-			} else if PCMa.Ctype == 4 {
+			case 4:
 				if Tpin+ain+bin != 0 {
 					fmt.Printf("<PCMdata> name=%s Tp=%f a=%f b=%f\n",
 						PCMa.Name, PCMa.Tp, PCMa.PCMp.a, PCMa.PCMp.b)
 				}
-			} else if PCMa.Ctype == 5 {
+			case 5:
 				if Tpin+bsin+blin+ain != 0 {
 					fmt.Printf("<PCMdata> name=%s Tp=%f bs=%f bl=%f a=%f\n",
 						PCMa.Name, PCMa.Tp, PCMa.PCMp.bs, PCMa.PCMp.bl, PCMa.PCMp.a)
 				}
-			} else if PCMa.Ctype == 6 {
+			case 6:
 				if Qlin+Tpin+skewin+omegain != 0 {
 					fmt.Printf("<PCMdata> name=%s Ql=%f Tp=%f skew=%f omega=%f\n",
 						PCMa.Name, PCMa.Ql, PCMa.Tp, PCMa.PCMp.skew, PCMa.PCMp.omega)
 				}
-			} else if PCMa.Ctype == 7 {
+			case 7:
 				if ain+bin+cin+din+ein+fin != 0 {
 					fmt.Printf("<PCMdata> name=%s a=%f b=%f c=%f d=%f e=%f f=%f\n",
 						PCMa.Name, PCMa.PCMp.a, PCMa.PCMp.b, PCMa.PCMp.c, PCMa.PCMp.d, PCMa.PCMp.e, PCMa.PCMp.f)
@@ -290,19 +298,16 @@ func TableRead(ct *CHARTABLE) {
 	ct.fp = fp
 
 	// 設定されている行数を数える
-	var c byte
-	var row int
-	row = 0
+	row := 0
 
-	// Count the number of rows
+	// Count the number of rows by reading line by line
 	for {
-		_, err := fmt.Fscanf(ct.fp, "%c", &c)
+		var temp1, temp2 float64
+		_, err := fmt.Fscanf(ct.fp, "%f %f\n", &temp1, &temp2)
 		if err != nil {
 			break
 		}
-		if c == '\n' {
-			row++
-		}
+		row++
 	}
 
 	// Close the file temporarily
@@ -337,12 +342,13 @@ func TableRead(ct *CHARTABLE) {
 		T := &ct.T[i]
 		Char := &ct.Chara[i]
 
-		// 温度の読み込み
-		_, err := fmt.Fscanf(ct.fp, " %f ", T)
+		// 温度と特性値の読み込み
+		_, err := fmt.Fscanf(ct.fp, "%f %f\n", T, &spheat)
 		if err != nil {
-			fmt.Println("<PCMdata> 温度の読み込みに失敗")
+			fmt.Printf("<PCMdata> データの読み込みに失敗 行%d: %v\n", i+1, err)
 			break
 		}
+
 		// テーブルの下限温度
 		if st == 0 {
 			ct.minTemp = *T
@@ -353,21 +359,14 @@ func TableRead(ct *CHARTABLE) {
 		if *T <= prevTemp && tt == 1 {
 			fmt.Printf("i=%d 温度データが昇順に並んでいません T=%f preT=%f\n", i, *T, prevTemp)
 		}
-		var dblTemp float64
-		// 特性値の読み込み
-		_, err = fmt.Fscanf(ct.fp, " %f ", &dblTemp)
-		if err != nil {
-			fmt.Println("<PCMdata> 特性値の読み込みに失敗")
-			break
-		}
-		*Char = dblTemp
+
+		*Char = spheat
 		// 見かけの比熱の場合
 		if ct.tabletype == 'h' {
 			*Char = prevheat + spheat*(*T-prevTemp)
 		}
 		prevheat = *Char
 		prevTemp = *T
-		spheat = dblTemp
 		// テーブルの上限温度
 		ct.maxTemp = *T
 		ct.itablerow++
@@ -381,8 +380,12 @@ func TableRead(ct *CHARTABLE) {
 	}
 
 	// 上下限温度範囲以外の線形回帰式を作成
+	if ct.itablerow < 2 {
+		panic(fmt.Sprintf("TableRead: insufficient data points (%d) in file %s. At least 2 points required for interpolation.", ct.itablerow, ct.filename))
+	}
+
 	// 下限以下
-	ct.lowA = (ct.Chara[0] - ct.Chara[1]) / (ct.T[0] - ct.T[1])
+	ct.lowA = (ct.Chara[1] - ct.Chara[0]) / (ct.T[1] - ct.T[0])
 	ct.lowB = ct.Chara[0] - ct.lowA*ct.T[0]
 	// 上限以上
 	ct.upA = (ct.Chara[ct.itablerow-1] - ct.Chara[ct.itablerow-2]) / (ct.T[ct.itablerow-1] - ct.T[ct.itablerow-2])
@@ -547,7 +550,6 @@ func FNPCMstate_table(ct *CHARTABLE, Told, T float64, Ndiv int) float64 {
 }
 
 func FNPCMenthalpy_table_lib(ct *CHARTABLE, T float64) float64 {
-	var prevTpcm, Tpcm, enthalpy, preventhalpy *float64
 	var retVal float64
 
 	if T < ct.minTemp {
@@ -557,10 +559,12 @@ func FNPCMenthalpy_table_lib(ct *CHARTABLE, T float64) float64 {
 		//テーブルの最高温度よりPCM温度が高い場合は端部の特性値を線形で外挿
 		retVal = ct.upA*T + ct.upB
 	} else {
-		for i := 0; i < ct.itablerow; i++ {
+		// C言語版と同じロジック: 最後に見つかった点を使用
+		var prevTpcm, Tpcm, enthalpy, preventhalpy *float64
 
-			Tpcm := &ct.T[i]
-			enthalpy := &ct.Chara[i]
+		for i := 0; i < ct.itablerow; i++ {
+			Tpcm = &ct.T[i]
+			enthalpy = &ct.Chara[i]
 
 			if *Tpcm > T {
 				break
@@ -568,8 +572,14 @@ func FNPCMenthalpy_table_lib(ct *CHARTABLE, T float64) float64 {
 			prevTpcm = Tpcm
 			preventhalpy = enthalpy
 		}
+
 		// 線形補間
-		retVal = *preventhalpy + (*enthalpy-*preventhalpy)*(T-*prevTpcm)/(*Tpcm-*prevTpcm)
+		if prevTpcm != nil && preventhalpy != nil && Tpcm != nil && enthalpy != nil {
+			retVal = *preventhalpy + (*enthalpy-*preventhalpy)*(T-*prevTpcm)/(*Tpcm-*prevTpcm)
+		} else {
+			// エラーケース: 最初のデータポイントを返す
+			retVal = ct.Chara[0]
+		}
 	}
 
 	return retVal

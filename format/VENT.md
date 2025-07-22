@@ -28,56 +28,189 @@ VENT
 
 ## 使用例
 
-### 基本的な換気設定
+### 例1: 高性能オフィスビルの換気システム
+**建物概要**: 20階建てオフィスビル、従業員1,200名、全熱交換器付き換気システム
+**設計目標**: 室内空気質確保、省エネルギー換気、感染症対策
+
 ```
 VENT
-    LivingRoom
-        Vent=(0.05,VentilationSchedule)
-        Inf=(0.01,InfiltrationSchedule) ;
+    !  一般オフィスフロア：標準的な事務室換気
+    GeneralOffice_Floor5to18
+        Vent=(0.12,OfficeVent_Schedule)          !  機械換気0.12kg/s（約25m³/h・人）
+        Inf=(0.015,BuildingInf_Schedule) ;       !  隙間風0.015kg/s（高気密建物）
+        !  設計根拠：在室者30人×25m³/h・人＝750m³/h（0.25kg/s）の50%を機械換気
+        !  省エネ効果：全熱交換器で換気負荷70%削減
+        !  空気質：CO₂濃度1000ppm以下維持
     
-    Bedroom
-        Vent=(0.03,BedroomVentilation)
-        Inf=(0.008,BedroomInfiltration) ;
+    !  役員フロア：高品質換気環境
+    ExecutiveFloor_19to20
+        Vent=(0.08,ExecutiveVent_Schedule)       !  高品質換気0.08kg/s（約30m³/h・人）
+        Inf=(0.008,ExecutiveInf_Schedule) ;      !  超高気密0.008kg/s
+        !  設計根拠：在室者15人×30m³/h・人の高品質換気
+        !  快適性：個別制御で最適な換気量調整
+        !  静寂性：低騒音ファンで執務環境確保
+    
+    !  会議室：人数変動対応換気
+    ConferenceRoom_Large
+        Vent=(0.25,MeetingVent_Variable)         !  可変換気0.25kg/s（満室時50m³/h・人）
+        Inf=(0.01,MeetingInf_Schedule) ;         !  会議室隙間風0.01kg/s
+        !  設計根拠：最大20人×50m³/h・人の高換気量
+        !  制御：CO₂センサー連動で人数に応じた換気量調整
+        !  感染対策：会議時の飛沫拡散防止
+    
+    !  食堂・カフェテリア：臭気・湿気対策
+    Cafeteria_Restaurant
+        Vent=(0.35,CafeteriaVent_Schedule)       !  大容量換気0.35kg/s（臭気対策）
+        Inf=(0.02,CafeteriaInf_Schedule) ;       !  食堂隙間風0.02kg/s
+        !  設計根拠：食事エリア特有の臭気・湿気除去
+        !  快適性：食事時間帯の集中換気
+        !  衛生：厨房からの臭気拡散防止
 *
 ```
 
-### オフィスの換気設定
+**設計のポイント**:
+- **人数連動制御**: 在室者数に応じた最適換気量で省エネと空気質を両立
+- **全熱交換**: 換気負荷70%削減で年間エネルギー消費量大幅削減
+- **感染症対策**: 十分な換気量確保で飛沫感染リスク低減
+- **用途別最適化**: 事務室・会議室・食堂の特性に応じた換気計画
+
+### 例2: 高気密住宅の計画換気システム
+**建物概要**: 戸建住宅、延床面積150m²、4人家族、C値0.5cm²/m²
+**設計目標**: 健康的な室内環境、結露防止、省エネルギー
+
 ```
 VENT
-    Office
-        Vent=(0.15,OfficeVentilation)
-        Inf=(0.02,OfficeInfiltration) ;
+    !  リビングダイニング：家族団らん空間
+    LivingDining_MainSpace
+        Vent=(0.04,LivingVent_Schedule)          !  第1種換気0.04kg/s（約0.5回/h）
+        Inf=(0.003,HighAirtight_Inf) ;           !  超高気密0.003kg/s
+        !  設計根拠：居室0.5回/h×60m³＝30m³/h（0.01kg/s）×4室分
+        !  快適性：全熱交換器で温度・湿度を適切に管理
+        !  省エネ：熱回収効率85%で換気負荷最小化
     
-    MeetingRoom
-        Vent=(0.08,MeetingVentilation)
-        Inf=(0.015,MeetingInfiltration) ;
+    !  主寝室：睡眠環境重視
+    MasterBedroom_SleepEnvironment
+        Vent=(0.015,BedroomVent_Night)           !  夜間換気0.015kg/s（静寂性重視）
+        Inf=(0.002,BedroomInf_Minimal) ;         !  最小隙間風0.002kg/s
+        !  設計根拠：睡眠時CO₂濃度1500ppm以下維持
+        !  静寂性：低騒音ファンで睡眠を妨げない
+        !  温度管理：夜間の適切な温湿度維持
     
-    Corridor
-        Vent=(0.05,CorridorVentilation)
-        Inf=(0.01,CorridorInfiltration) ;
+    !  子供部屋：学習環境配慮
+    ChildRoom_StudyEnvironment
+        Vent=(0.012,ChildVent_Study)             !  学習時換気0.012kg/s
+        Inf=(0.002,ChildInf_Schedule) ;          !  子供部屋隙間風0.002kg/s
+        !  設計根拠：学習時の集中力維持に必要な換気量
+        !  空気質：勉強時間帯の十分な新鮮空気供給
+        !  安全性：適切な換気で化学物質濃度低減
+    
+    !  水回り：湿気・臭気対策
+    Bathroom_WetArea
+        Vent=(0.025,BathroomVent_Moisture)       !  湿気除去換気0.025kg/s
+        Inf=(0.001,BathroomInf_Minimal) ;        !  最小隙間風0.001kg/s
+        !  設計根拠：入浴時の大量湿気を迅速に除去
+        !  結露防止：壁体内結露防止のための確実な排湿
+        !  臭気対策：トイレ使用時の臭気除去
 *
 ```
 
-### 住宅の詳細換気設定
+**設計のポイント**:
+- **第1種換気**: 給気・排気の確実な制御で計画的な換気実現
+- **超高気密**: C値0.5cm²/m²で隙間風を最小化、計画換気を確実に実行
+- **熱回収**: 全熱交換器で換気による熱損失85%削減
+- **用途別制御**: 居室・寝室・水回りの特性に応じた最適換気
+
+### 例3: 病院の感染制御換気システム
+**建物概要**: 総合病院500床、手術室・ICU・一般病棟、24時間運用
+**設計目標**: 院内感染防止、患者快適性、医療環境維持
+
 ```
 VENT
-    LivingDiningKitchen
-        Vent=(0.06,FamilyVentilation)
-        Inf=(0.012,LivingInfiltration) ;
+    !  手術室：超清浄環境維持
+    OperatingRoom_SterileEnvironment
+        Vent=(0.8,OR_UltraClean_Vent)           !  超大容量換気0.8kg/s（25回/h以上）
+        Inf=(0.0,OR_PressureControl) ;          !  陽圧制御で隙間風ゼロ
+        !  設計根拠：手術部位の無菌環境確保
+        !  清浄度：クラス100（ISO5）の超清浄環境
+        !  陽圧制御：+15Pa以上で外部汚染物質侵入防止
     
-    MasterBedroom
-        Vent=(0.025,BedroomVentilation)
-        Inf=(0.008,BedroomInfiltration) ;
+    !  ICU：重篤患者対応
+    ICU_CriticalCare
+        Vent=(0.15,ICU_Isolation_Vent)          !  隔離対応換気0.15kg/s（12回/h）
+        Inf=(0.0,ICU_PressureControl) ;         !  圧力制御で感染防止
+        !  設計根拠：重篤患者の感染リスク最小化
+        !  感染制御：陽圧・陰圧の切替で感染症患者対応
+        !  24時間対応：連続安定運転で患者安全確保
     
-    Kitchen
-        Vent=(0.08,CookingVentilation)
-        Inf=(0.01,KitchenInfiltration) ;
+    !  一般病室：患者快適性重視
+    PatientRoom_Comfort
+        Vent=(0.06,PatientVent_Comfort)         !  快適換気0.06kg/s（6回/h）
+        Inf=(0.005,PatientInf_Minimal) ;        !  最小隙間風0.005kg/s
+        !  設計根拠：患者の療養環境最適化
+        !  快適性：適度な換気で圧迫感のない環境
+        !  感染予防：十分な換気で飛沫感染リスク低減
     
-    Bathroom
-        Vent=(0.04,BathroomVentilation)
-        Inf=(0.005,BathroomInfiltration) ;
+    !  外来待合：多数患者対応
+    Outpatient_WaitingArea
+        Vent=(0.25,Outpatient_CrowdVent)        !  混雑対応換気0.25kg/s（8回/h）
+        Inf=(0.02,Outpatient_Inf) ;             !  外来エリア隙間風0.02kg/s
+        !  設計根拠：多数の患者・家族の感染防止
+        !  感染対策：十分な換気で空気感染リスク低減
+        !  快適性：混雑時でも良好な空気環境維持
 *
 ```
+
+**設計のポイント**:
+- **感染制御**: 用途に応じた陽圧・陰圧制御で院内感染を完全防止
+- **清浄度管理**: 手術室は超清浄、一般病室は快適性重視の段階的制御
+- **24時間対応**: 連続運用に対応した高信頼性システム
+- **患者安全**: 医療行為に支障のない静寂で安定した換気環境
+
+### 例4: 学校の健康配慮換気システム
+**建物概要**: 小中一貫校、児童生徒800名、普通教室・特別教室・体育館
+**設計目標**: 学習環境最適化、感染症対策、省エネルギー
+
+```
+VENT
+    !  普通教室：学習環境重視
+    Classroom_LearningEnvironment
+        Vent=(0.18,ClassVent_Learning)          !  学習用換気0.18kg/s（約20m³/h・人）
+        Inf=(0.01,ClassInf_Standard) ;          !  標準隙間風0.01kg/s
+        !  設計根拠：児童生徒30人×20m³/h・人の学習環境基準
+        !  学習効果：適切なCO₂濃度で集中力向上
+        !  感染対策：十分な換気で感染症拡大防止
+    
+    !  理科室：実験安全対応
+    ScienceLab_SafetyVentilation
+        Vent=(0.25,LabVent_Experiment)          !  実験用換気0.25kg/s（安全重視）
+        Inf=(0.008,LabInf_Controlled) ;         !  制御された隙間風0.008kg/s
+        !  設計根拠：化学実験時の有害物質除去
+        !  安全性：ドラフトチャンバーと連動した確実な排気
+        !  教育効果：安全な実験環境で理科教育充実
+    
+    !  体育館：運動時換気
+    Gymnasium_SportsVentilation
+        Vent=(0.4,GymVent_Sports)               !  運動用大容量換気0.4kg/s
+        Inf=(0.03,GymInf_LargeSpace) ;          !  大空間隙間風0.03kg/s
+        !  設計根拠：運動時の大量発汗・呼気への対応
+        !  快適性：運動時でも良好な空気環境維持
+        !  安全性：熱中症予防のための適切な換気
+    
+    !  給食室：衛生管理重視
+    SchoolKitchen_HygieneControl
+        Vent=(0.3,KitchenVent_Hygiene)          !  衛生管理換気0.3kg/s
+        Inf=(0.005,KitchenInf_Sanitary) ;       !  衛生的隙間風0.005kg/s
+        !  設計根拠：大量調理時の衛生環境確保
+        !  食品安全：HACCP基準に適合した換気システム
+        !  作業環境：調理スタッフの快適な作業環境
+*
+```
+
+**設計のポイント**:
+- **教育環境**: 学習効率向上に最適なCO₂濃度（1000ppm以下）維持
+- **安全性**: 理科実験・体育活動時の安全確保
+- **感染症対策**: 集団生活での感染拡大防止
+- **省エネ教育**: 換気システムの見える化で環境教育に活用
 
 ## 換気量の計算
 

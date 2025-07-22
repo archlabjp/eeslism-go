@@ -39,57 +39,210 @@ AAPL
 
 ## 使用例
 
-### 基本的な照明・機器設定
+### 例1: 最新オフィスビルの省エネ照明・OA機器
+**建物概要**: 20階建てスマートオフィス、従業員1,200名、LED照明・高効率OA機器
+**設計目標**: 照明電力50%削減、OA機器効率化、昼光利用最大化
+
 ```
 AAPL
-    LivingRoom
-        L=(200,x,LightingSchedule)
-        As=(300,200,ApplianceSchedule) ;
+    !  一般オフィスフロア：昼光利用型LED照明システム
+    GeneralOffice_Floor5to18
+        L=(8.0,x,DaylightLinked_LED)              !  LED照明8W/m²（従来の50%削減）
+        As=(15.0,5.0,HighEfficiency_OA)           !  高効率PC・プリンター（対流15W/m²、放射5W/m²）
+        AE=(25.0,TotalElectricity_Office) ;       !  総電力消費量25W/m²（照明+OA+その他）
+        !  照明：昼光センサー連動で自動調光、在席センサーで個別制御
+        !  OA機器：省エネPC、LED液晶、スリープ機能活用
+        !  電力管理：リアルタイム電力監視でピークカット
     
-    Kitchen
-        L=(150,x,KitchenLighting)
-        As=(500,300,CookingEquipment)
-        Al=(200,CookingLatent) ;
+    !  役員フロア：高品質照明・プレミアムOA環境
+    ExecutiveFloor_19to20
+        L=(12.0,x,Premium_LED)                    !  プレミアムLED照明12W/m²
+        As=(20.0,8.0,Executive_Equipment)         !  高性能ワークステーション
+        AE=(35.0,Executive_Electricity) ;         !  総電力消費量35W/m²
+        !  照明：調色機能付きLED、個別調光制御
+        !  OA機器：高性能PC、大型ディスプレイ、高級AV機器
+    
+    !  会議室：プレゼンテーション対応照明・AV設備
+    ConferenceRoom_Large
+        L=(15.0,x,Presentation_Lighting)          !  プレゼン用調光照明15W/m²
+        As=(25.0,15.0,AV_Equipment)               !  プロジェクター・音響機器
+        AE=(45.0,Meeting_Electricity) ;           !  会議室総電力45W/m²
+        !  照明：調光・調色対応、プレゼン時自動減光
+        !  AV機器：4Kプロジェクター、音響システム、Web会議設備
+    
+    !  データセンター：サーバー室の高密度機器
+    DataCenter_Floor1
+        L=(5.0,x,DC_Emergency_Lighting)           !  非常用照明のみ5W/m²
+        As=(200.0,50.0,Server_Equipment)          !  サーバー・ネットワーク機器
+        AE=(300.0,DC_TotalPower) ;                !  データセンター総電力300W/m²
+        !  照明：通常は消灯、保守時のみ点灯
+        !  サーバー：高密度配置、排熱250W/m²
 *
 ```
 
-### オフィスの詳細設定
+**設計のポイント**:
+- **LED化**: 従来蛍光灯比50%の電力削減（8W/m² vs 16W/m²）
+- **昼光利用**: 窓際は昼光センサーで照明を自動調光
+- **OA機器効率**: 省エネ認定機器で消費電力30%削減
+- **電力監視**: リアルタイム監視でピーク電力制御
+
+### 例2: 高級ホテルの快適性重視照明・設備
+**建物概要**: 5つ星ホテル300室、レストラン・宴会場・スパ併設
+**設計目標**: 最高の快適性、雰囲気演出、おもてなしの空間
+
 ```
 AAPL
-    Office
-        L=(400,x,OfficeLighting)
-        As=(800,400,OfficeEquipment)
-        AE=(1200,ElectricitySchedule) ;
+    !  客室：快適性とエネルギー効率の両立
+    GuestRoom_Standard
+        L=(12.0,x,Hotel_Room_Lighting)            !  調光対応LED照明12W/m²
+        As=(8.0,4.0,Room_Appliances)              !  冷蔵庫・TV・ドライヤー等
+        Al=(2.0,Bathroom_Humidity)                !  バスルーム湿気発生2W/m²
+        AE=(25.0,Room_TotalPower)                 !  客室総電力25W/m²
+        AG=(5.0,Room_GasConsumption) ;            !  給湯用ガス消費5W/m²
+        !  照明：就寝時自動減光、起床時段階点灯
+        !  機器：省エネ冷蔵庫、LED TV、高効率ドライヤー
+        !  湿度：バスルーム使用時の湿気管理
     
-    MeetingRoom
-        L=(300,x,MeetingLighting)
-        As=(600,200,AVEquipment)
-        AE=(900,MeetingElectricity) ;
+    !  レストラン：雰囲気演出照明・厨房設備
+    Restaurant_Dining
+        L=(18.0,x,Restaurant_Ambience)            !  雰囲気重視照明18W/m²
+        As=(12.0,8.0,Kitchen_Equipment)           !  厨房機器の発熱
+        Al=(15.0,Cooking_Steam)                   !  調理による蒸気発生15W/m²
+        AE=(50.0,Restaurant_Power)                !  レストラン総電力50W/m²
+        AG=(80.0,Cooking_Gas) ;                   !  調理用ガス消費80W/m²
+        !  照明：時間帯別調光、テーブル個別照明
+        !  厨房：IHコンロ、スチームコンベクション等
+        !  調理：蒸気・油煙による潜熱・臭気発生
+    
+    !  宴会場：多目的対応照明・音響設備
+    Banquet_Hall
+        L=(20.0,x,Banquet_Lighting)               !  多目的調光照明20W/m²
+        As=(15.0,10.0,AV_Sound_Equipment)         !  音響・映像機器
+        AE=(40.0,Banquet_TotalPower) ;            !  宴会場総電力40W/m²
+        !  照明：シーン別プリセット、ステージ照明
+        !  AV機器：大型スクリーン、音響システム
+    
+    !  スパ・温浴施設：高湿度環境対応
+    Spa_Wellness
+        L=(8.0,x,Spa_Relaxation_Light)            !  リラクゼーション照明8W/m²
+        As=(10.0,5.0,Spa_Equipment)               !  マッサージ機器・音響
+        Al=(50.0,Spa_HighHumidity)                !  温浴による高湿度50W/m²
+        AE=(30.0,Spa_TotalPower) ;                !  スパ総電力30W/m²
+        !  照明：間接照明メイン、リラックス効果重視
+        !  設備：ジャグジー、サウナ、マッサージ機器
+        !  湿度：温浴施設特有の高湿度環境
 *
 ```
 
-### 住宅の包括的設定
+**設計のポイント**:
+- **快適性優先**: 照明は雰囲気重視、機器は利便性重視
+- **調光制御**: 時間帯・用途に応じた細かな照明制御
+- **湿度管理**: バスルーム・スパの高湿度環境対応
+- **おもてなし**: ゲストの快適性を最優先した設備選定
+
+### 例3: 製造工場の生産効率重視照明・設備
+**建物概要**: 精密機械工場、24時間3交代、クリーンルーム併設
+**設計目標**: 作業効率最大化、品質向上、安全性確保
+
 ```
 AAPL
-    LivingDiningKitchen
-        L=(250,x,FamilyLighting)
-        As=(400,300,HomeAppliances)
-        Al=(150,CookingMoisture)
-        AE=(800,HomeElectricity)
-        AG=(300,CookingGas) ;
+    !  一般製造エリア：高照度作業照明
+    Manufacturing_GeneralArea
+        L=(25.0,x,HighLux_WorkLighting)           !  高照度作業照明25W/m²（1000lx確保）
+        As=(30.0,20.0,Production_Machinery)       !  生産設備の発熱
+        AE=(80.0,Production_TotalPower) ;         !  製造エリア総電力80W/m²
+        !  照明：作業面1000lx確保、影なし照明
+        !  機械：工作機械、搬送設備、制御盤
+        !  安全：非常照明、避難誘導灯完備
     
-    Bedroom
-        L=(100,x,BedroomLighting)
-        As=(150,100,BedroomEquipment)
-        AE=(250,BedroomElectricity) ;
+    !  精密組立エリア：超高照度・低発熱照明
+    Precision_Assembly
+        L=(40.0,x,UltraHighLux_LED)               !  超高照度LED照明40W/m²（2000lx）
+        As=(15.0,5.0,Precision_Equipment)         !  精密機器（低発熱型）
+        AE=(60.0,Precision_TotalPower) ;          !  精密エリア総電力60W/m²
+        !  照明：2000lx超高照度、演色性Ra90以上
+        !  機器：精密組立機、検査装置（発熱抑制）
+        !  環境：温度変動±1℃以内で品質確保
     
-    Bathroom
-        L=(80,x,BathroomLighting)
-        As=(200,150,BathroomEquipment)
-        Al=(300,BathroomMoisture)
-        AE=(500,BathroomElectricity) ;
+    !  クリーンルーム：清浄度維持照明・設備
+    CleanRoom_Class1000
+        L=(30.0,x,CleanRoom_Lighting)             !  クリーンルーム専用照明30W/m²
+        As=(20.0,10.0,CleanRoom_Equipment)        !  クリーン対応機器
+        AE=(100.0,CleanRoom_TotalPower) ;         !  クリーンルーム総電力100W/m²
+        !  照明：密閉型LED、清拭可能、パーティクル発生なし
+        !  機器：クリーン仕様、静電気対策済み
+        !  清浄度：Class1000維持、FFU連動制御
+    
+    !  品質管理室：検査用高演色照明
+    QualityControl_Inspection
+        L=(35.0,x,Inspection_HighCRI)             !  検査用高演色照明35W/m²
+        As=(10.0,5.0,Inspection_Equipment)        !  検査機器（低発熱）
+        AE=(50.0,QC_TotalPower) ;                 !  品質管理室総電力50W/m²
+        !  照明：演色性Ra95以上、色温度6500K
+        !  機器：光学検査装置、測定器（精密環境）
+        !  環境：検査精度確保のため安定環境維持
 *
 ```
+
+**設計のポイント**:
+- **高照度確保**: 精密作業に必要な照度レベル（1000-2000lx）
+- **品質重視**: 高演色性照明で色判別精度向上
+- **清浄度維持**: クリーンルーム対応機器で汚染防止
+- **24時間対応**: 3交代勤務に対応した連続安定照明
+
+### 例4: 学校の教育環境最適化照明・設備
+**建物概要**: 小中一貫校、普通教室・特別教室・体育館・給食室
+**設計目標**: 学習効率向上、健康配慮、省エネルギー教育
+
+```
+AAPL
+    !  普通教室：学習効率重視照明
+    Classroom_Standard
+        L=(12.0,x,Learning_Optimized_LED)         !  学習最適化LED照明12W/m²
+        As=(5.0,3.0,Educational_Equipment)        !  電子黒板・PC等
+        AE=(20.0,Classroom_TotalPower) ;          !  普通教室総電力20W/m²
+        !  照明：机上面500lx確保、ブルーライト軽減
+        !  機器：電子黒板、タブレット、プロジェクター
+        !  制御：授業時間連動、昼光利用調光
+    
+    !  理科室：実験対応照明・設備
+    Science_Laboratory
+        L=(18.0,x,Lab_Safety_Lighting)            !  実験用安全照明18W/m²
+        As=(15.0,8.0,Lab_Equipment)               !  実験機器・ドラフト
+        Al=(5.0,Experiment_Vapor)                 !  実験による蒸気発生5W/m²
+        AE=(40.0,Lab_TotalPower)                  !  理科室総電力40W/m²
+        AG=(10.0,Lab_GasConsumption) ;            !  実験用ガス消費10W/m²
+        !  照明：実験台800lx、安全性重視
+        !  機器：ドラフトチャンバー、実験装置
+        !  安全：ガス検知器、緊急シャワー完備
+    
+    !  体育館：運動対応照明・設備
+    Gymnasium_Sports
+        L=(15.0,x,Sports_Lighting)                !  スポーツ用照明15W/m²（300lx）
+        As=(8.0,4.0,Sports_Equipment)             !  音響・スコアボード
+        AE=(25.0,Gym_TotalPower) ;                !  体育館総電力25W/m²
+        !  照明：グレア防止、ボール競技対応
+        !  機器：音響システム、電光掲示板
+        !  安全：非常照明、避難誘導完備
+    
+    !  給食室：衛生管理重視照明・厨房設備
+    School_Kitchen
+        L=(20.0,x,Hygienic_Lighting)              !  衛生管理照明20W/m²
+        As=(40.0,20.0,Kitchen_CookingEquipment)   !  大型厨房機器
+        Al=(25.0,Cooking_Steam)                   !  調理蒸気25W/m²
+        AE=(80.0,Kitchen_TotalPower)              !  給食室総電力80W/m²
+        AG=(60.0,Cooking_Gas) ;                   !  調理用ガス60W/m²
+        !  照明：作業面750lx、清拭可能器具
+        !  機器：スチコン、食洗機、冷蔵庫等
+        !  衛生：HACCP対応、温度管理徹底
+*
+```
+
+**設計のポイント**:
+- **学習環境**: 集中力向上に最適な照明環境（500lx、Ra80以上）
+- **健康配慮**: ブルーライト軽減、フリッカーレス照明
+- **安全第一**: 実験・運動時の安全性を最優先
+- **省エネ教育**: エネルギー使用量の見える化で環境教育
 
 ## 発熱量の計算
 

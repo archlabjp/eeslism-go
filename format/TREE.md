@@ -214,7 +214,7 @@ TREE
 TREE
     SouthSideShade
         treetype=treeA
-        x=0.0 y=-10.0 z=0.0  // 建物南側
+        x=0.0 y=-10.0 z=0.0  !  建物南側
         W1=0.8 W2=3.0 W3=6.0 W4=2.0
         H1=3.0 H2=4.0 H3=3.0 ;
 *

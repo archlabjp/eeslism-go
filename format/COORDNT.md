@@ -83,39 +83,39 @@ LP_COORDNT (Light-Receiving Plane Coordinate Transformation)
 
 ### 建物面データ（RMP）
 ```cpp
-// 建物の外壁・屋根面
+!  建物の外壁・屋根面
 struct RMP_Data {
-    string name;        // 面名称
-    string wallname;    // 壁体名称
-    vector<XYZ> points; // 頂点座標
-    double ref;         // 反射率
-    double area;        // 面積
+    string name;        !  面名称
+    string wallname;    !  壁体名称
+    vector<XYZ> points; !  頂点座標
+    double ref;         !  反射率
+    double area;        !  面積
 }
 ```
 
 ### 障害物データ（OBS）
 ```cpp
-// 外部障害物
+!  外部障害物
 struct OBS_Data {
-    string name;        // 障害物名
-    string shape;       // 形状タイプ
-    XYZ position;       // 位置座標
-    XYZ dimensions;     // 寸法
-    double orientation; // 方位角
-    vector<double> ref; // 各面反射率
+    string name;        !  障害物名
+    string shape;       !  形状タイプ
+    XYZ position;       !  位置座標
+    XYZ dimensions;     !  寸法
+    double orientation; !  方位角
+    vector<double> ref; !  各面反射率
 }
 ```
 
 ### 樹木データ（TREE）
 ```cpp
-// 樹木
+!  樹木
 struct TREE_Data {
-    string name;        // 樹木名
-    string type;        // 樹木タイプ
-    XYZ position;       // 位置座標
-    double trunk_dia;   // 幹直径
-    vector<double> canopy_width;  // 葉部幅
-    vector<double> canopy_height; // 葉部高さ
+    string name;        !  樹木名
+    string type;        !  樹木タイプ
+    XYZ position;       !  位置座標
+    double trunk_dia;   !  幹直径
+    vector<double> canopy_width;  !  葉部幅
+    vector<double> canopy_height; !  葉部高さ
 }
 ```
 

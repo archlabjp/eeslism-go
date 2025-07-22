@@ -34,80 +34,166 @@ SCHNM
 
 ## 使用例
 
-### 基本的な設定値スケジュール
+### 例1: 大規模オフィスビルの年間運用スケジュール
+**建物概要**: 20階建てオフィスビル、従業員1,500名、営業時間8:00-18:00
+**運用方針**: 快適性確保、省エネルギー、働き方改革対応
+
 ```
 SCHNM
-    -v RoomTempSchedule
-        Winter:Weekday:WinterWeekdayTemp
-        Winter:Weekend:WinterWeekendTemp
-        Summer:Weekday:SummerWeekdayTemp
-        Summer:Weekend:SummerWeekendTemp
-        Inter:*:InterSeasonTemp ;
+    !  室温設定スケジュール：季節・曜日別の最適温度管理
+    -v OfficeTemperature_Main
+        Winter:Weekday:WinterOffice_Weekday     !  冬季平日：20-24℃設定
+        Winter:Weekend:WinterOffice_Weekend     !  冬季休日：18-22℃省エネ設定
+        Summer:Weekday:SummerOffice_Weekday     !  夏季平日：24-28℃設定
+        Summer:Weekend:SummerOffice_Weekend     !  夏季休日：26-30℃省エネ設定
+        Inter:Weekday:InterOffice_Weekday       !  中間期平日：22-26℃自然換気併用
+        Inter:Weekend:InterOffice_Weekend ;     !  中間期休日：20-28℃大幅省エネ
     
-    -v LightingSchedule
-        *:Weekday:WeekdayLighting
-        *:Weekend:WeekendLighting ;
+    !  照明制御スケジュール：昼光利用と省エネの両立
+    -v OfficeLighting_Control
+        Winter:Weekday:WinterLight_Weekday      !  冬季平日：7:00-19:00点灯
+        Winter:Weekend:WinterLight_Weekend      !  冬季休日：必要時のみ点灯
+        Summer:Weekday:SummerLight_Weekday      !  夏季平日：8:00-18:00点灯（昼光利用）
+        Summer:Weekend:SummerLight_Weekend      !  夏季休日：セキュリティ照明のみ
+        Inter:*:InterLight_Standard ;           !  中間期：季節共通スケジュール
+    
+    !  空調運転モード：効率的な空調制御
+    -s HVAC_OperationMode
+        Winter:Weekday:WinterHVAC_Normal        !  冬季平日：暖房メイン運転
+        Winter:Weekend:WinterHVAC_Setback       !  冬季休日：セットバック運転
+        Summer:Weekday:SummerHVAC_Normal        !  夏季平日：冷房メイン運転
+        Summer:Weekend:SummerHVAC_Setback       !  夏季休日：セットバック運転
+        Inter:Weekday:InterHVAC_Economizer      !  中間期平日：外気冷房活用
+        Inter:Weekend:InterHVAC_Natural ;       !  中間期休日：自然換気メイン
 *
 ```
 
-### 切替スケジュール
+**スケジュール設計の詳細説明**:
+- **温度設定**: 冬季は暖房効率重視で20-24℃、夏季は冷房効率重視で24-28℃
+- **休日省エネ**: 週末は設定温度を2-4℃緩和し、大幅な省エネを実現
+- **中間期活用**: 外気冷房・自然換気で機械空調の負荷を最小化
+- **照明制御**: 昼光利用センサーと連動し、夏季は点灯時間を1時間短縮
+
+### 例2: 病院の24時間運用スケジュール
+**建物概要**: 総合病院500床、手術室・ICU・一般病棟・外来
+**運用方針**: 患者安全最優先、医療機器安定動作、感染対策
+
 ```
 SCHNM
-    -s HVACOperation
-        Winter:Weekday:WinterWeekdayHVAC
-        Winter:Weekend:WinterWeekendHVAC
-        Summer:Weekday:SummerWeekdayHVAC
-        Summer:Weekend:SummerWeekendHVAC
-        Inter:*:InterSeasonHVAC ;
+    !  病棟温度管理：患者快適性と医療安全の両立
+    -v Hospital_PatientArea_Temp
+        Winter:*:WinterHospital_Patient         !  冬季：24℃一定（患者快適性）
+        Summer:*:SummerHospital_Patient         !  夏季：26℃一定（感染リスク考慮）
+        Inter:*:InterHospital_Patient ;         !  中間期：25℃一定（安定性重視）
     
-    -s VentilationMode
-        *:Weekday:WeekdayVent
-        *:Weekend:WeekendVent ;
+    !  手術室精密制御：医療機器の安定動作確保
+    -v OR_PrecisionControl
+        Winter:*:WinterOR_Precision             !  冬季：22±0.5℃、50±2%RH
+        Summer:*:SummerOR_Precision             !  夏季：24±0.5℃、45±2%RH
+        Inter:*:InterOR_Precision ;             !  中間期：23±0.5℃、48±2%RH
+    
+    !  外来エリア：診療時間連動制御
+    -v Outpatient_AreaControl
+        Winter:Weekday:WinterOutpatient_Open    !  冬季平日：8:00-17:00診療時間
+        Winter:Weekend:WinterOutpatient_Closed  !  冬季休日：最小限運転
+        Summer:Weekday:SummerOutpatient_Open    !  夏季平日：診療時間中快適制御
+        Summer:Weekend:SummerOutpatient_Closed  !  夏季休日：省エネ運転
+        Inter:Weekday:InterOutpatient_Open      !  中間期平日：自然換気併用
+        Inter:Weekend:InterOutpatient_Closed ;  !  中間期休日：停止可能
+    
+    !  感染対策換気：病室種別別制御
+    -s InfectionControl_Ventilation
+        *:*:IC_Standard_Ventilation ;           !  全期間：感染対策基準換気
 *
 ```
 
-### オフィスビルの包括的スケジュール
+**スケジュール設計の詳細説明**:
+- **患者エリア**: 年間を通じて安定した温度環境で患者の回復を支援
+- **手術室**: ±0.5℃の高精度制御で医療機器の誤動作を防止
+- **外来エリア**: 診療時間のみ快適制御、休日は大幅省エネ
+- **感染対策**: 全期間で基準以上の換気量を確保
+
+### 例3: 製造工場の生産連動スケジュール
+**建物概要**: 自動車部品工場、3交代24時間稼働、品質管理重要
+**運用方針**: 生産効率最大化、品質安定、エネルギー最適化
+
 ```
 SCHNM
-    -v OfficeTemperature
-        Winter:Weekday:WinterOfficeTemp_WD
-        Winter:Weekend:WinterOfficeTemp_WE
-        Summer:Weekday:SummerOfficeTemp_WD
-        Summer:Weekend:SummerOfficeTemp_WE
-        Inter:Weekday:InterOfficeTemp_WD
-        Inter:Weekend:InterOfficeTemp_WE ;
+    !  生産エリア環境制御：製品品質に直結する環境管理
+    -v Production_EnvironmentControl
+        Winter:Weekday:WinterProd_3Shift        !  冬季平日：3交代対応制御
+        Winter:Weekend:WinterProd_2Shift        !  冬季休日：2交代運転
+        Summer:Weekday:SummerProd_3Shift        !  夏季平日：冷却強化運転
+        Summer:Weekend:SummerProd_2Shift        !  夏季休日：標準冷却運転
+        Inter:Weekday:InterProd_3Shift          !  中間期平日：外気利用運転
+        Inter:Weekend:InterProd_2Shift ;        !  中間期休日：省エネ運転
     
-    -v OfficeLighting
-        *:Weekday:OfficeLighting_WD
-        *:Weekend:OfficeLighting_WE ;
+    !  品質管理エリア：精密環境制御
+    -v QualityControl_Environment
+        Winter:*:WinterQC_Precision             !  冬季：20±1℃、45±3%RH
+        Summer:*:SummerQC_Precision             !  夏季：23±1℃、50±3%RH
+        Inter:*:InterQC_Precision ;             !  中間期：22±1℃、48±3%RH
     
-    -s OfficeHVAC
-        Winter:Weekday:WinterHVAC_WD
-        Winter:Weekend:WinterHVAC_WE
-        Summer:Weekday:SummerHVAC_WD
-        Summer:Weekend:SummerHVAC_WE
-        Inter:*:InterHVAC ;
+    !  塗装ブース：溶剤管理と品質確保
+    -v PaintBooth_Control
+        Winter:*:WinterPaint_Optimal            !  冬季：25℃、40%RH（乾燥促進）
+        Summer:*:SummerPaint_Optimal            !  夏季：22℃、45%RH（品質安定）
+        Inter:*:InterPaint_Optimal ;            !  中間期：24℃、42%RH（標準）
+    
+    !  電力デマンド制御：ピークカット対応
+    -s PowerDemand_Management
+        Winter:Weekday:WinterDemand_Control     !  冬季平日：暖房ピーク制御
+        Summer:Weekday:SummerDemand_Control     !  夏季平日：冷房ピーク制御
+        *:Weekend:WeekendDemand_Relaxed ;       !  休日：デマンド制御緩和
 *
 ```
 
-### 住宅の詳細スケジュール
+**スケジュール設計の詳細説明**:
+- **生産連動**: 3交代・2交代に応じた環境制御で生産効率を最大化
+- **品質管理**: 製品検査に必要な±1℃、±3%RHの精密制御
+- **塗装ブース**: 溶剤の乾燥特性を考慮した季節別最適環境
+- **デマンド制御**: 電力ピーク時間帯の負荷制限で電力コスト削減
+
+### 例4: 学校の教育環境最適化スケジュール
+**建物概要**: 小中一貫校、児童生徒800名、地域開放施設併設
+**運用方針**: 学習環境最適化、健康配慮、地域利用対応
+
 ```
 SCHNM
-    -v ResidentialHeating
-        Winter:Weekday:WinterHeating_WD
-        Winter:Weekend:WinterHeating_WE
-        Inter:*:InterHeating ;
+    !  教室環境制御：学習効率向上のための環境管理
+    -v Classroom_LearningEnvironment
+        Winter:Weekday:WinterClass_Learning     !  冬季授業日：20-22℃（集中力向上）
+        Winter:Weekend:WinterClass_Community    !  冬季休日：18-24℃（地域開放）
+        Summer:Weekday:SummerClass_Learning     !  夏季授業日：26-28℃（熱中症予防）
+        Summer:Weekend:SummerClass_Community    !  夏季休日：24-30℃（地域開放）
+        Inter:Weekday:InterClass_Natural        !  中間期授業日：自然換気活用
+        Inter:Weekend:InterClass_Community ;    !  中間期休日：地域開放対応
     
-    -v ResidentialLighting
-        Winter:*:WinterLighting
-        Summer:*:SummerLighting
-        Inter:*:InterLighting ;
+    !  体育館：運動強度に応じた環境制御
+    -v Gymnasium_ActivityControl
+        Winter:Weekday:WinterGym_PE             !  冬季授業：15-18℃（運動適温）
+        Winter:Weekend:WinterGym_Event          !  冬季イベント：18-20℃（観客考慮）
+        Summer:Weekday:SummerGym_PE             !  夏季授業：28-30℃（熱中症対策）
+        Summer:Weekend:SummerGym_Event          !  夏季イベント：26-28℃（快適性）
+        Inter:*:InterGym_Natural ;              !  中間期：自然換気メイン
     
-    -s VentilationControl
-        *:Weekday:WeekdayVent
-        *:Weekend:WeekendVent ;
+    !  給食室：食品衛生管理
+    -v Kitchen_HygieneControl
+        Winter:*:WinterKitchen_Sanitary         !  冬季：18℃以下（食品安全）
+        Summer:*:SummerKitchen_Sanitary         !  夏季：25℃以下（食中毒防止）
+        Inter:*:InterKitchen_Sanitary ;         !  中間期：22℃以下（衛生管理）
+    
+    !  夏季休暇対応：長期休暇中の省エネ運転
+    -s SummerVacation_Operation
+        Summer:*:SummerVacation_Minimal ;       !  夏季休暇：最小限運転
 *
 ```
+
+**スケジュール設計の詳細説明**:
+- **学習環境**: 冬季20-22℃、夏季26-28℃で児童生徒の集中力と健康を両立
+- **体育館**: 運動強度を考慮し、授業時は低め、イベント時は観客快適性重視
+- **給食室**: 食品衛生法に基づく温度管理で食中毒リスクを最小化
+- **長期休暇**: 夏季休暇中は最小限運転で大幅な省エネを実現
 
 ## スケジュール設計の考慮事項
 

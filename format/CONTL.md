@@ -50,117 +50,219 @@ CONTL
 
 ## 使用例
 
-### 基本的な温度制御
+### 例1: オフィスビルの統合制御システム
+**建物概要**: 10階建てオフィスビル、営業時間7:00-19:00
+**制御目標**: 快適性確保、省エネルギー運転、設備保護
+
 ```
 CONTL
-    HeatingControl
+    !  基本運転モード制御：営業時間に応じた運転切替
+    BusinessHours_Control
         -c
-        Tr < 20.0
-        Heater = ON ;
+        Time >= 7.0 AND Time <= 19.0 AND Weekday == 1
+        SystemMode = NORMAL          !  通常運転モード
+        SetTemp_Cooling = 26.0       !  冷房設定温度26℃
+        SetTemp_Heating = 22.0       !  暖房設定温度22℃
+        MinOutdoorAir = 30 ;         !  最小外気量30%
     
-    CoolingControl
+    !  夜間・休日セットバック制御：省エネ運転
+    Setback_Control
         -c
-        Tr > 26.0
-        Cooler = ON ;
+        (Time < 7.0 OR Time > 19.0) OR Weekday == 0
+        SystemMode = SETBACK         !  セットバック運転
+        SetTemp_Cooling = 28.0       !  冷房設定温度緩和
+        SetTemp_Heating = 20.0       !  暖房設定温度緩和
+        MinOutdoorAir = 10 ;         !  最小外気量削減
     
-    SystemOff
+    !  予冷・予熱制御：始業前の快適環境準備
+    PreCooling_Control
         -c
-        Tr >= 20.0 AND Tr <= 26.0
-        Heater = OFF
-        Cooler = OFF ;
+        Time >= 6.0 AND Time < 7.0 AND Weekday == 1 AND To > 25.0
+        SystemMode = PRECOOL         !  予冷運転
+        SetTemp_Cooling = 24.0       !  予冷設定温度
+        ChillerStart = ON ;          !  冷凍機早期起動
+    
+    PreHeating_Control
+        -c
+        Time >= 6.0 AND Time < 7.0 AND Weekday == 1 AND To < 15.0
+        SystemMode = PREHEAT         !  予熱運転
+        SetTemp_Heating = 24.0       !  予熱設定温度
+        BoilerStart = ON ;           !  ボイラー早期起動
 *
 ```
 
-### 複合条件制御
+**制御ロジックの詳細説明**:
+- **営業時間判定**: `Time >= 7.0 AND Time <= 19.0 AND Weekday == 1`で平日営業時間を判定
+- **温度設定**: 営業時間は快適性重視（22-26℃）、夜間は省エネ重視（20-28℃）
+- **外気量制御**: 営業時間は換気基準遵守、夜間は最小限に削減
+- **予冷予熱**: 外気温度条件と時刻で判定し、始業時の快適性を確保
+
+### 例2: 病院の精密空調制御
+**建物概要**: 総合病院、手術室・ICU・一般病棟
+**制御目標**: 高精度温湿度制御、24時間安定運転、感染対策
+
 ```
 CONTL
-    EconomicControl
+    !  手術室精密制御：±0.5℃、±2%RH制御
+    OR_PrecisionControl
         -c
-        To < 15.0 AND Tr < 22.0
-        HeatingMode = 1
-        CoolingMode = 0 ;
+        RoomType == OR AND Tr_OR < SetTemp_OR - 0.5
+        HeatingValve_OR = 100        !  加熱弁全開
+        CoolingValve_OR = 0          !  冷却弁閉
+        Humidifier_OR = AUTO ;       !  加湿器自動制御
     
-    ComfortControl
+    OR_CoolingControl
         -c
-        Occupancy == 1 AND (Tr < 21.0 OR Tr > 25.0)
-        ComfortMode = 1 ;
+        RoomType == OR AND Tr_OR > SetTemp_OR + 0.5
+        HeatingValve_OR = 0          !  加熱弁閉
+        CoolingValve_OR = 100        !  冷却弁全開
+        Dehumidifier_OR = AUTO ;     !  除湿器自動制御
+    
+    !  ICU陽圧制御：感染防止のための圧力管理
+    ICU_PressureControl
+        -c
+        RoomType == ICU AND Pressure_ICU < 5.0
+        SupplyFan_ICU = 110          !  給気ファン風量増加
+        ExhaustFan_ICU = 90 ;        !  排気ファン風量減少
+    
+    !  一般病棟省エネ制御：患者快適性と省エネの両立
+    Ward_ComfortControl
+        -c
+        RoomType == WARD AND Occupancy_WARD > 0
+        SetTemp_WARD = 24.0          !  在室時快適温度
+        AirChange_WARD = 6 ;         !  換気回数6回/h
+    
+    Ward_EnergyControl
+        -c
+        RoomType == WARD AND Occupancy_WARD == 0
+        SetTemp_WARD = 26.0          !  不在時省エネ温度
+        AirChange_WARD = 2 ;         !  換気回数削減
 *
 ```
 
-### 時刻・スケジュール制御
+**制御ロジックの詳細説明**:
+- **部屋タイプ判定**: `RoomType == OR`で手術室、ICU、一般病棟を区別
+- **精密制御**: 手術室は±0.5℃の高精度制御で医療機器の安定動作を確保
+- **陽圧制御**: ICUは5Pa以上の陽圧維持で感染リスクを低減
+- **在室連動**: 一般病棟は在室センサーと連動した省エネ制御
+
+### 例3: 工場の生産連動制御
+**建物概要**: 自動車部品工場、3交代24時間稼働
+**制御目標**: 生産効率最大化、品質管理、エネルギー最適化
+
 ```
 CONTL
-    DayTimeOperation
+    !  生産ライン連動制御：製造工程に応じた環境制御
+    Production_LineA_Control
         -c
-        Time >= 8.0 AND Time <= 18.0
-        SystemMode = AUTO ;
+        ProductionLine_A == RUNNING AND ProcessTemp_A > 80.0
+        ExhaustFan_A = 100           !  排気ファン全開
+        CoolingCoil_A = 100          !  冷却コイル全開
+        MakeupAir_A = 80 ;           !  補給空気80%
     
-    NightTimeOperation
+    Production_LineA_Standby
         -c
-        Time < 8.0 OR Time > 18.0
-        SystemMode = SETBACK ;
+        ProductionLine_A == STANDBY
+        ExhaustFan_A = 20            !  排気ファン最小
+        CoolingCoil_A = 0            !  冷却停止
+        MakeupAir_A = 20 ;           !  補給空気最小
+    
+    !  品質管理制御：製品品質に影響する環境要因の制御
+    QualityControl_PaintBooth
+        -c
+        ProcessType == PAINT AND RH > 60.0
+        Dehumidifier_Paint = ON      !  除湿機運転
+        ExhaustRate_Paint = 120 ;    !  排気量増加
+    
+    QualityControl_Assembly
+        -c
+        ProcessType == ASSEMBLY AND Dust > 0.1
+        AirFilter_Assembly = HIGH    !  高性能フィルター
+        CleanRoom_Assembly = ON ;    !  クリーンルーム運転
+    
+    !  エネルギー最適化制御：電力デマンド制御
+    DemandControl_Peak
+        -c
+        PowerDemand > 1800.0 AND Time >= 13.0 AND Time <= 16.0
+        NonEssential_Equipment = OFF !  非必須設備停止
+        Lighting_Dimming = 80        !  照明調光80%
+        Compressor_Staging = 2 ;     !  コンプレッサー台数制限
+    
+    !  夜間メンテナンス制御：保守作業時の安全確保
+    Maintenance_Control
+        -c
+        MaintenanceMode == ON AND Time >= 1.0 AND Time <= 5.0
+        EmergencyLighting = ON       !  非常照明点灯
+        VentilationRate = 150        !  換気量増加
+        SafetySystem = ACTIVE ;      !  安全システム作動
 *
 ```
 
-### 外気冷房制御
+**制御ロジックの詳細説明**:
+- **生産連動**: `ProductionLine_A == RUNNING`で生産状態を判定し、環境制御を最適化
+- **品質管理**: 塗装工程では湿度60%以下、組立工程では清浄度管理
+- **デマンド制御**: 電力需要1800kW超過時に非必須設備を制限
+- **安全制御**: 夜間メンテナンス時は安全性を最優先した制御
+
+### 例4: データセンターの高効率制御
+**建物概要**: クラウドサービス用データセンター、年間稼働率99.9%
+**制御目標**: IT機器冷却、高効率運転、障害時継続運転
+
 ```
 CONTL
-    EconomizerControl
+    !  外気冷房制御：外気条件に応じた高効率運転
+    Economizer_FullMode
         -c
-        To < Tr AND To > 10.0 AND Tr > 24.0
-        OutdoorAirDamper = 100
-        ReturnAirDamper = 0 ;
+        To < 18.0 AND RH_outside < 70.0 AND IT_Load > 50.0
+        OutdoorAir_Damper = 100      !  外気ダンパー全開
+        MechanicalCooling = OFF      !  機械冷房停止
+        FreeCoiling_Mode = FULL ;    !  完全外気冷房
     
-    NormalOperation
+    Economizer_PartialMode
         -c
-        To >= Tr OR To <= 10.0 OR Tr <= 24.0
-        OutdoorAirDamper = 20
-        ReturnAirDamper = 80 ;
+        To >= 18.0 AND To <= 25.0 AND RH_outside < 80.0
+        OutdoorAir_Damper = 60       !  外気ダンパー60%
+        MechanicalCooling = PARTIAL  !  機械冷房部分運転
+        FreeCoiling_Mode = PARTIAL ; !  部分外気冷房
+    
+    !  IT負荷連動制御：サーバー負荷に応じた冷却制御
+    IT_HighLoad_Control
+        -c
+        CPU_Utilization > 80.0 AND IT_Power > 500.0
+        CoolingCapacity = 120        !  冷却能力120%
+        AirFlow_Rate = 110           !  風量110%
+        Chiller_Staging = 3 ;        !  冷凍機3台運転
+    
+    IT_LowLoad_Control
+        -c
+        CPU_Utilization < 30.0 AND IT_Power < 200.0
+        CoolingCapacity = 80         !  冷却能力80%
+        AirFlow_Rate = 90            !  風量90%
+        Chiller_Staging = 1 ;        !  冷凍機1台運転
+    
+    !  障害時制御：単一故障時の継続運転
+    Chiller_Failure_Control
+        -c
+        Chiller1_Status == FAULT AND IT_Load > 70.0
+        Chiller2_Capacity = 120      !  予備機過負荷運転
+        Emergency_Cooling = ON       !  非常用冷却起動
+        IT_Load_Shedding = 10 ;      !  IT負荷10%削減
+    
+    !  電源障害時制御：UPS・発電機連動
+    Power_Failure_Control
+        -c
+        MainPower_Status == FAULT
+        UPS_Mode = ACTIVE            !  UPS運転開始
+        Generator_Start = ON         !  発電機起動
+        NonCritical_Load = OFF ;     !  非重要負荷遮断
 *
 ```
 
-### VAV制御
-```
-CONTL
-    VAVControl_Zone1
-        -c
-        Tr_Zone1 > Tset_Zone1 + 1.0
-        VAV_Zone1_Damper = 100 ;
-    
-    VAVControl_Zone1_Normal
-        -c
-        Tr_Zone1 <= Tset_Zone1 + 1.0 AND Tr_Zone1 >= Tset_Zone1 - 1.0
-        VAV_Zone1_Damper = 50 ;
-    
-    VAVControl_Zone1_Min
-        -c
-        Tr_Zone1 < Tset_Zone1 - 1.0
-        VAV_Zone1_Damper = 20 ;
-*
-```
-
-### 熱源機器制御
-```
-CONTL
-    BoilerStaging
-        -c
-        HeatLoad > 80.0
-        Boiler1 = ON
-        Boiler2 = ON ;
-    
-    BoilerStaging_Single
-        -c
-        HeatLoad > 40.0 AND HeatLoad <= 80.0
-        Boiler1 = ON
-        Boiler2 = OFF ;
-    
-    BoilerOff
-        -c
-        HeatLoad <= 40.0
-        Boiler1 = OFF
-        Boiler2 = OFF ;
-*
-```
+**制御ロジックの詳細説明**:
+- **外気冷房**: 外気温18℃以下で完全外気冷房、25℃以下で部分外気冷房
+- **負荷連動**: CPU使用率80%超過時は冷却能力120%で確実な冷却を実現
+- **障害対応**: 冷凍機故障時は予備機過負荷運転とIT負荷削減で継続運転
+- **電源障害**: UPS・発電機の自動起動で無停電運転を維持
 
 ## 制御ロジックの設計指針
 

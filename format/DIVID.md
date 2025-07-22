@@ -179,7 +179,7 @@ DIVID
     ParallelProcessing
         type=SPATIAL
         method=LOAD_BALANCED
-        nx=4 ny=2 nz=1  // 8プロセス並列
+        nx=4 ny=2 nz=1  !  8プロセス並列
         balance=DYNAMIC ;
 *
 ```
@@ -238,7 +238,7 @@ DIVID
     SkyscraperDivision
         type=SPATIAL
         method=ADAPTIVE
-        nx=6 ny=6 nz=20  // 階層別分割
+        nx=6 ny=6 nz=20  !  階層別分割
         overlap=1.0
         balance=LOAD_BALANCED ;
 *

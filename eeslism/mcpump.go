@@ -686,7 +686,7 @@ func PFcmpdata() []*PFCMP {
 
 func _PFcmpdata(fl *os.File) []*PFCMP {
 	var s string
-	var c byte
+	var c rune
 	var i int
 
 	Pfcmp := make([]*PFCMP, 0)
@@ -697,7 +697,8 @@ func _PFcmpdata(fl *os.File) []*PFCMP {
 			break
 		}
 
-		if s == "!" {
+		if s == "!" || (len(s) > 0 && s[0] == '!') {
+			// コメント行をスキップ（行末まで読み飛ばす）
 			for {
 				_, err = fmt.Fscanf(fl, "%c", &c)
 				if err != nil || c == '\n' {

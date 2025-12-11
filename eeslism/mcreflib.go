@@ -46,6 +46,10 @@ func _Refcmpdat(frf *os.File) []*RFCMP {
 		}
 
 		fields := strings.Fields(line)
+		// 空行やフィールド不足の行をスキップ
+		if len(fields) < 19 {
+			continue
+		}
 
 		rfcmp := NewRFCMP()
 		rfcmp.name = fields[0]

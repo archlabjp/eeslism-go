@@ -55,7 +55,7 @@ svdaysum (Daily Summary Accumulation for Scalar Values)
 運用改善や省エネルギー対策の効果評価を行うための重要な役割を果たします。
 */
 func svdaysum(time int64, control ControlSWType, v float64, vd *SVDAY) {
-	if control != '0' {
+	if control != OFF_SW {
 		vd.M += v
 		vd.Hrs++
 		minmark(&vd.Mn, &vd.Mntime, v, time)
@@ -93,7 +93,7 @@ svmonsum (Monthly Summary Accumulation for Scalar Values)
 func svmonsum(Mon int, Day int, time int, control ControlSWType, v float64, vd *SVDAY, Dayend int, SimDayend int) {
 	MoNdTt := int64(1000000*Mon + 10000*Day + time)
 
-	if control != '0' {
+	if control != OFF_SW {
 		vd.M += v
 		vd.Hrs++
 		minmark(&vd.Mn, &vd.Mntime, v, MoNdTt)
@@ -162,7 +162,7 @@ qdaysum (Daily Summary Accumulation for Heat/Cooling Quantities)
 運用改善や省エネルギー対策の効果評価を行うための重要な役割を果たします。
 */
 func qdaysum(time int64, control ControlSWType, Q float64, Qd *QDAY) {
-	if control != '0' {
+	if control != OFF_SW {
 		if Q > 0.0 {
 			Qd.H += Q
 			maxmark(&Qd.Hmx, &Qd.Hmxtime, Q, time)
@@ -207,7 +207,7 @@ qmonsum (Monthly Summary Accumulation for Heat/Cooling Quantities)
 func qmonsum(Mon int, Day int, time int, control ControlSWType, Q float64, Qd *QDAY, Dayend int, SimDayend int) {
 	MoNdTt := int64(1000000*Mon + 10000*Day + time)
 
-	if control != '0' {
+	if control != OFF_SW {
 		if Q > 0.0 {
 			Qd.H += Q
 			maxmark(&Qd.Hmx, &Qd.Hmxtime, Q, MoNdTt)
@@ -365,7 +365,7 @@ edaysum (Daily Summary Accumulation for Energy Quantities)
 運用改善や省エネルギー対策の効果評価を行うための重要な役割を果たします。
 */
 func edaysum(time int, control ControlSWType, E float64, Ed *EDAY) {
-	if control != '0' {
+	if control != OFF_SW {
 		Ed.D += E
 		maxmark(&Ed.Mx, &Ed.Mxtime, E, int64(time))
 		Ed.Hrs++

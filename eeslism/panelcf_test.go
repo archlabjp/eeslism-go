@@ -71,8 +71,9 @@ func TestPanelcf(t *testing.T) {
 		sd.WSRN[1] = 0.4
 		sd.WSPL[0] = 0.5
 
-		// room.rsrfの初期化
-		for i := 0; i < 3; i++ {
+		// room.rsrfの初期化（sdを含める）
+		room.rsrf[0] = sd // sdをroom.rsrf[0]に設定（nrp=0になる）
+		for i := 1; i < 3; i++ {
 			room.rsrf[i] = &RMSRF{
 				WSR:  0.2 + float64(i)*0.1,
 				WSRN: make([]float64, 2),
@@ -219,7 +220,14 @@ func TestPanelcf(t *testing.T) {
 		for i := 0; i < 9; i++ {
 			rdpnl.rm[1].alr[i] = 0.08 + float64(i)*0.04
 		}
-		for i := 0; i < 3; i++ {
+		// sd[1]に必要なフィールドを追加
+		rdpnl.sd[1].WSRN = make([]float64, 2)
+		rdpnl.sd[1].WSPL = make([]float64, 1)
+		rdpnl.sd[1].WSRN[0] = 0.08
+		rdpnl.sd[1].WSRN[1] = 0.12
+		rdpnl.sd[1].WSPL[0] = 0.16
+		rdpnl.rm[1].rsrf[0] = rdpnl.sd[1] // sd[1]をroom.rsrf[0]に設定（nrp=0になる）
+		for i := 1; i < 3; i++ {
 			rdpnl.rm[1].rsrf[i] = &RMSRF{
 				WSR:  0.15 + float64(i)*0.08,
 				WSRN: make([]float64, 2),

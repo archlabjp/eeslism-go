@@ -60,8 +60,9 @@ func TestPanelce(t *testing.T) {
 			ku:      0.2,
 		}
 
-		// room.rsrfの初期化
-		for i := 0; i < 3; i++ {
+		// room.rsrfの初期化（sdを含める）
+		room.rsrf[0] = sd // sdをroom.rsrf[0]に設定（nrp=0になる）
+		for i := 1; i < 3; i++ {
 			room.rsrf[i] = &RMSRF{
 				WSC: 20.0 + float64(i)*10.0,
 			}
@@ -178,7 +179,7 @@ func TestPanelce(t *testing.T) {
 		rdpnl.MC = 2 // 共用壁
 
 		// 2番目の表面と室を設定
-		rdpnl.sd[1] = &RMSRF{
+		sd2 := &RMSRF{
 			Name:   "TestSurface2",
 			A:      8.0,
 			mw:     rdpnl.sd[0].mw, // 同じMWALLを共有
@@ -188,6 +189,7 @@ func TestPanelce(t *testing.T) {
 			Te:     22.0,
 			Tcoleu: 28.0,
 		}
+		rdpnl.sd[1] = sd2
 
 		rdpnl.rm[1] = &ROOM{
 			Name: "TestRoom2",
@@ -196,11 +198,12 @@ func TestPanelce(t *testing.T) {
 			rsrf: make([]*RMSRF, 3),
 		}
 
-		// 2番目の室のalrとrsrfを初期化
+		// 2番目の室のalrとrsrfを初期化（sd2を含める）
 		for i := 0; i < 9; i++ {
 			rdpnl.rm[1].alr[i] = 0.08 + float64(i)*0.04
 		}
-		for i := 0; i < 3; i++ {
+		rdpnl.rm[1].rsrf[0] = sd2 // sd2をroom.rsrf[0]に設定
+		for i := 1; i < 3; i++ {
 			rdpnl.rm[1].rsrf[i] = &RMSRF{
 				WSC: 15.0 + float64(i)*8.0,
 			}

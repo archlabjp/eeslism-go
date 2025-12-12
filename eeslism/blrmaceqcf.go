@@ -230,6 +230,7 @@ func Rmexct(Room []*ROOM, Sd []*RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []*SNBK, Qrm 
 
 					Sdn.TeEsol = Sab
 					Sdn.TeErn = -Rab
+					Sdn.Qrn = -Rab // 壁体の夜間放射熱取得 [W/m2]
 
 					// 建材一体型空気集熱器のための相当外気温度修正
 					if Sdn.rpnl != nil && Sdn.rpnl.Type == 'C' {

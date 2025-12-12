@@ -101,6 +101,7 @@ func Roomelm(Room []*ROOM, _Rdpnl []*RDPNL) {
 			room := Rdpnl.rm[m]
 			elin := Rdpnl.cmp.Elins[elin_idx]
 			elin.Upo, elin.Upv = room.cmp.Elouts[0], room.cmp.Elouts[0]
+			elin_idx++
 
 			for i := 0; i < Rdpnl.Ntrm[m]; i++ {
 				trnx := room.trnx[i]
@@ -111,7 +112,6 @@ func Roomelm(Room []*ROOM, _Rdpnl []*RDPNL) {
 
 				elin_idx++
 			}
-
 		}
 	}
 }

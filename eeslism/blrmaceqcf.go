@@ -146,7 +146,28 @@ func Rmexct(Room []*ROOM, Sd []*RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []*SNBK, Qrm 
 
 		for n, Sdn := range RmSd {
 
-			if Sdn.ble == BLE_InnerWall || Sdn.ble == BLE_InnerFloor || Sdn.ble == BLE_Ceil {
+			// 内壁/内床/天井の場合は、exsが無効なのでTeの計算のみ行う
+			if Sdn.ble == BLE_InnerWall || Sdn.ble == BLE_InnerFloor || Sdn.ble == BLE_Ceil || Sdn.ble == BLE_d {
+				if Sdn.nxrm < 0 {
+					// 隣室が無い場合
+					Tr := Sdn.room.Trold
+					Eo := Sdn.room.cmp.Elouts[0]
+					if Eo.Control == LOAD_SW {
+						Tr = Sdn.room.rmld.Tset
+					}
+					Sdn.Te = Sdn.c*Tr + (1.0-Sdn.c)*Wd.T
+				} else {
+					// 隣室がある場合
+					Tr := Sdn.nextroom.Trold
+					Eo := Sdn.nextroom.cmp.Elouts[0]
+					if Eo.Control == LOAD_SW {
+						Tr = Sdn.nextroom.rmld.Tset
+					}
+					Sdn.Te = Sdn.c*Tr + (1.0-Sdn.c)*Wd.T
+				}
+				Sdn.TeEsol = 0.0
+				Sdn.TeErn = 0.0
+				Sdn.Qrn = 0.0 // 内部表面は夜間放射なし
 				continue
 			}
 
@@ -254,32 +275,7 @@ func Rmexct(Room []*ROOM, Sd []*RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []*SNBK, Qrm 
 				}
 				break
 
-			case BLE_InnerWall, BLE_InnerFloor, BLE_Ceil, BLE_d:
-				if Sdn.nxrm < 0 {
-					// 隣室が無い場合
-					Tr := Sdn.room.Trold
-					Eo := Sdn.room.cmp.Elouts[0]
-					if Eo.Control == LOAD_SW {
-						Tr = Sdn.room.rmld.Tset
-					}
-
-					// 相当外気温を設定
-					Sdn.Te = Sdn.c*Tr + (1.0-Sdn.c)*Wd.T
-				} else {
-					// 隣室がある場合
-					Tr := Sdn.nextroom.Trold
-					Eo := Sdn.nextroom.cmp.Elouts[0]
-					if Eo.Control == LOAD_SW {
-						Tr = Sdn.nextroom.rmld.Tset
-					}
-
-					// 相当外気温を設定
-					Sdn.Te = Sdn.c*Tr + (1.0-Sdn.c)*Wd.T
-				}
-				Sdn.TeEsol = 0.0
-				Sdn.TeErn = 0.0
-				Sdn.Qrn = 0.0 // 内部表面は夜間放射なし
-				break
+			// NOTE: BLE_InnerWall, BLE_InnerFloor, BLE_Ceil, BLE_d はループの最初で処理済み
 			}
 		} // 表面ループ
 
@@ -396,6 +392,7 @@ func Roomcf(mw []*MWALL, rooms []*ROOM, rdpnl []*RDPNL, wd *WDAT, exsf *EXSFS) {
 		room.RMC += Ca * room.Gvent * wd.T
 		room.RMx += room.Gvent
 		room.RMXC += room.Gvent * wd.X
+
 	}
 
 	for _, rdpnl := range rdpnl {

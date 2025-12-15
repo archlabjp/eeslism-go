@@ -43,8 +43,8 @@ type QMEAS struct {
 	// Plist  *PLIST
 }
 
-func NewQMEAS() QMEAS {
-	return QMEAS{
+func NewQMEAS() *QMEAS {
+	return &QMEAS{
 		Name:    "",
 		Cmp:     nil,
 		Th:      nil,

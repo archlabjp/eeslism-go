@@ -130,7 +130,11 @@ func Qmeasene(Qmeas []*QMEAS) {
 
 func Qmeasprint(fo io.Writer, id int, Qmeas []*QMEAS) {
 	for _, qmeas := range Qmeas {
-		el := qmeas.Cmp.Elouts[0]
+		// QMEASはEloutsを持たないので、PlistGからControlを取得
+		var control ControlSWType = OFF_SW
+		if qmeas.PlistG != nil {
+			control = qmeas.PlistG.Control
+		}
 
 		switch id {
 		case 0:
@@ -156,12 +160,12 @@ func Qmeasprint(fo io.Writer, id int, Qmeas []*QMEAS) {
 		default:
 			if qmeas.Plistxc != nil && qmeas.Plistxh != nil {
 				fmt.Fprintf(fo, "%c %6.4g %4.1f %4.1f %.3f %.3f ",
-					el.Control, *qmeas.G, *qmeas.Th, *qmeas.Tc, *qmeas.Xh, *qmeas.Xc)
+					control, *qmeas.G, *qmeas.Th, *qmeas.Tc, *qmeas.Xh, *qmeas.Xc)
 				fmt.Fprintf(fo, "%.0f %.0f %.0f\n",
 					qmeas.Qs, qmeas.Ql, qmeas.Qt)
 			} else {
 				fmt.Fprintf(fo, "%c %6.4g %4.1f %4.1f ",
-					el.Control, *qmeas.G, *qmeas.Th, *qmeas.Tc)
+					control, *qmeas.G, *qmeas.Th, *qmeas.Tc)
 				fmt.Fprintf(fo, "%.0f\n", qmeas.Qt)
 			}
 		}

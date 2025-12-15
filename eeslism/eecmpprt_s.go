@@ -63,6 +63,10 @@ func Hcmpprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, time floa
 			Desiprint(fo, __Hcmpprint_id, Eqsys.Desi)
 			Evacprint(fo, __Hcmpprint_id, Eqsys.Evac)
 
+			if SIMUL_BUILDG {
+				panelprint(fo, __Hcmpprint_id, Rdpnl)
+			}
+
 			if j == 0 {
 				fmt.Fprintln(fo, "*")
 				fmt.Fprintln(fo, "#")

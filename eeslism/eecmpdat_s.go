@@ -138,7 +138,7 @@ func Compodata(f *EeTokens, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *E
 			c.Neqp = i
 			c.Eqp = Rdpnl[i]
 			c.Nout = 2
-			c.Nin = 3 + Rdpnl[i].Ntrm[0] + Rdpnl[i].Ntrm[1] + Rdpnl[i].Nrp[0] + Rdpnl[i].Nrp[1] + 1
+			c.Nin = 2 + Rdpnl[i].MC + Rdpnl[i].Ntrm[0] + Rdpnl[i].Ntrm[1] + Rdpnl[i].Nrp[0] + Rdpnl[i].Nrp[1]
 			c.Nivar = 0
 			c.Airpathcpy = true
 			*Cmp = append(*Cmp, c)
@@ -175,6 +175,7 @@ func Compodata(f *EeTokens, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *E
 
 		var comp *COMPNT = NewCOMPNT()
 		var Crm *COMPNT = comp
+		pairValveProcessed := false // ペアバルブ（三方弁）処理済みフラグ
 
 		// 三方弁（二方弁で連動する弁）を指定するとき
 		// `(<elmname1> <elmname2>)` のように入力する
@@ -197,8 +198,9 @@ func Compodata(f *EeTokens, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *E
 
 			s = f.GetToken()
 			if strings.IndexRune(s, ')') != -1 {
+				// "ColdValv)" から "ColdValv" を取得（')'の前を取得）
 				idx := strings.IndexRune(s, ')')
-				s = s[idx+1:]
+				s = s[:idx]
 			}
 
 			// 2つ目の2方弁
@@ -206,15 +208,18 @@ func Compodata(f *EeTokens, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *E
 			vc2.Name = s // <compname2>
 
 			// 1つ目の2方弁から2つ目の2方弁を参照させる
+			// vc2からvc1への逆参照も設定（-type解析時にvc1.Eqptypeを設定するため）
 			vc1.Valvcmp = vc2
+			vc2.Valvcmp = vc1
 
 			*Cmp = append(*Cmp, vc1, vc2)
 
-			// 2つ目の要素に対して各種設定を反映させる
+			// 2つ目の要素に対して各種設定を反映させる（1つ目のEqptypeは-type解析時に設定）
 			comp = vc2
 
-			// NOTE: ここでVALVを追加する理由が不明
+			// 2つのバルブ用にVALVを追加（1つはここ、もう1つは-type解析時に追加される）
 			Eqsys.Valv = append(Eqsys.Valv, NewVALV())
+			pairValveProcessed = true // ペアバルブ処理済み（ループ終了時の追加をスキップするため）
 		}
 
 		if Crm != nil {
@@ -324,8 +329,14 @@ func Compodata(f *EeTokens, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *E
 				default:
 					Eprint(errkey, s)
 				}
-			} else if cio != 'V' && cio != 'S' && strings.IndexRune(s, '-') != -1 {
-				idx := strings.IndexRune(s, '-')
+			} else if cio != 'V' && cio != 'S' && (strings.IndexRune(s, '-') != -1 || strings.IndexRune(s, '=') != -1) {
+				// PVcap-4000 または PVcap=4000 形式をサポート
+				var idx int
+				if strings.IndexRune(s, '=') != -1 {
+					idx = strings.IndexRune(s, '=')
+				} else {
+					idx = strings.IndexRune(s, '-')
+				}
 				st := s[idx+1:]
 				var err error
 				switch {
@@ -389,7 +400,7 @@ func Compodata(f *EeTokens, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *E
 						Eqsys.Valv = append(Eqsys.Valv, NewVALV())
 					case QMEAS_TYPE:
 						// カロリーメータ
-						//Eqsys.Nqmeas++
+						Eqsys.Qmeas = append(Eqsys.Qmeas, NewQMEAS())
 					default:
 						if s != DIVERG_TYPE && s != DIVGAIR_TYPE {
 							Eprint(errkey, s)
@@ -516,10 +527,15 @@ func Compodata(f *EeTokens, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *E
 				case 'T':
 					// `-Tinit <蓄熱槽の初期水温>`
 					if strings.HasPrefix(s, "(") {
-						s += " "
-						s += strings.Repeat(" ", len(s))
-						_s := f.GetToken()
-						s += _s
+						// 括弧形式の層別温度: (T1 T2 T3 ... Tn)
+						// ")"を含むトークンが来るまで読み続ける
+						for {
+							_s := f.GetToken()
+							s += " " + _s
+							if strings.Contains(_s, ")") {
+								break
+							}
+						}
 						comp.Tparm = s
 					} else {
 						comp.Tparm = s
@@ -550,7 +566,8 @@ func Compodata(f *EeTokens, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *E
 			}
 		}
 
-		if Crm == nil {
+		if Crm == nil && !pairValveProcessed {
+			// ペアバルブの場合は既に行214で両方追加済みなのでスキップ
 			*Cmp = append(*Cmp, comp)
 			D++
 		}

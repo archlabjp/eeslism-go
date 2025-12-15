@@ -22,13 +22,12 @@
 
 package eeslism
 
-import "math"
 
 // CAT truncates the decimal point.
 func CAT(a, b, c *float64) {
-	*a = math.Floor((*a)*10000.0 + 0.5)
-	*b = math.Floor((*b)*10000.0 + 0.5)
-	*c = math.Floor((*c)*10000.0 + 0.5)
+	*a = mathFloor((*a)*10000.0 + 0.5)
+	*b = mathFloor((*b)*10000.0 + 0.5)
+	*c = mathFloor((*c)*10000.0 + 0.5)
 
 	*a = (*a) / 10000.0
 	*b = (*b) / 10000.0

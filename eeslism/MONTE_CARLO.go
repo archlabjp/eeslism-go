@@ -169,8 +169,8 @@ func MONTE_CARLO(
 
 		// EはMP面の太陽傾斜ベクトル??
 		E.X = 0.0
-		E.Y = -math.Sin((-MP[j].wb) * M_rad)
-		E.Z = math.Cos((-MP[j].wb) * M_rad)
+		E.Y = -mathSin((-MP[j].wb) * M_rad)
+		E.Z = mathCos((-MP[j].wb) * M_rad)
 
 		/*-------op面の法線ベクトルを求める----------*/
 		HOUSEN(mlp)
@@ -185,9 +185,9 @@ func MONTE_CARLO(
 			// ls: 3D空間におけるX軸方向の成分（東西方向）
 			// ms: 3D空間におけるY軸方向の成分（南北方向）
 			// ns: 3D空間におけるZ軸方向の成分（垂直方向）
-			ls = math.Sin(va) * math.Cos(a)
-			ms = math.Sin(va) * math.Sin(a)
-			ns = math.Cos(va)
+			ls = mathSin(va) * mathCos(a)
+			ms = mathSin(va) * mathSin(a)
+			ns = mathCos(va)
 
 			s = URA_M(ls, ms, ns, MP[j].wb)
 			KAUNT(mlpn, ls, ms, ns, &suma, &sumg, sumwall, s,
@@ -299,9 +299,9 @@ func GR_MONTE_CARLO(mp []*P_MENN, mpn int, lp []*P_MENN, lpn int, monten int, da
 			// ls: 3D空間におけるX軸方向の成分（東西方向）
 			// ms: 3D空間におけるY軸方向の成分（南北方向）
 			// ns: 3D空間におけるZ軸方向の成分（垂直方向）
-			ls = math.Sin(va) * math.Cos(a)
-			ms = math.Sin(va) * math.Sin(a)
-			ns = math.Cos(va)
+			ls = mathSin(va) * mathCos(a)
+			ms = mathSin(va) * mathSin(a)
+			ns = mathCos(va)
 
 			for l = 0; l < mlpn; l++ {
 				// 前面地面代表点から太陽方向のベクトルとXXの交点 (Px,Py,Pz)を求める
@@ -446,9 +446,9 @@ func FFACTOR_LP(NUM int, LP []*P_MENN, MP []*P_MENN) {
 			// ls: 3D空間におけるX軸方向の成分（東西方向）
 			// ms: 3D空間におけるY軸方向の成分（南北方向）
 			// ns: 3D空間におけるZ軸方向の成分（垂直方向）
-			ls := math.Sin(va) * math.Cos(a)
-			ms := math.Sin(va) * math.Sin(a)
-			ns := math.Cos(va)
+			ls := mathSin(va) * mathCos(a)
+			ms := mathSin(va) * mathSin(a)
+			ns := mathCos(va)
 
 			s := URA_M(ls, ms, ns, LP[j].wb)
 			if s < 0.0 {

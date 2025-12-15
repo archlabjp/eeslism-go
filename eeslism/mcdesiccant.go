@@ -119,19 +119,21 @@ func Desiccantdata(s string, desica *DESICA) int {
 		desica.cps = 710.0
 		desica.ms = FNAN
 	} else {
-		st++
-		dt, _ = strconv.ParseFloat(s[st:], 64)
+		// キーと値を分離
+		skey := s[:st]
+		sval := s[st+1:]
+		dt, _ = strconv.ParseFloat(sval, 64)
 
-		switch {
-		case s == "Uad": // シリカゲル槽壁面の熱貫流率[W/m2K]
+		switch skey {
+		case "Uad": // シリカゲル槽壁面の熱貫流率[W/m2K]
 			desica.Uad = dt
-		case s == "A": // シリカゲル槽表面積[m2]
+		case "A": // シリカゲル槽表面積[m2]
 			desica.A = dt
-		case s == "ms": // シリカゲル質量[g]
+		case "ms": // シリカゲル質量[g]
 			desica.ms = dt
-		case s == "r": // シリカゲル平均直径[cm]
+		case "r": // シリカゲル平均直径[cm]
 			desica.r = dt
-		case s == "rows": // シリカゲル充填密度[g/cm3]
+		case "rows": // シリカゲル充填密度[g/cm3]
 			desica.rows = dt
 		default:
 			id = 1

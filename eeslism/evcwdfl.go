@@ -2,7 +2,6 @@ package eeslism
 
 import (
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
 	"unicode"
@@ -242,10 +241,10 @@ func Wdflinput(wp *WDPT, Wd *WDAT) {
 	}
 
 	if Wd.X > 0.0 && Wd.CC > 0.0 || Wd.RN < 0.0 {
-		Br = 0.51 + 0.209*math.Sqrt(FNPwx(Wd.X))
-		Wd.RN = (1.0 - 0.62*Wd.CC/10.0) * (1.0 - Br) * Sgm * math.Pow(Wd.T+273.15, 4.0)
-		Wd.Rsky = ((1.0-0.62*Wd.CC/10.0)*Br + 0.62*Wd.CC/10.0) * Sgm * math.Pow(Wd.T+273.15, 4.0)
+		Br = 0.51 + 0.209*mathSqrt(FNPwx(Wd.X))
+		Wd.RN = (1.0 - 0.62*Wd.CC/10.0) * (1.0 - Br) * Sgm * mathPow(Wd.T+273.15, 4.0)
+		Wd.Rsky = ((1.0-0.62*Wd.CC/10.0)*Br + 0.62*Wd.CC/10.0) * Sgm * mathPow(Wd.T+273.15, 4.0)
 	} else {
-		Wd.Rsky = Sgm*math.Pow(Wd.T+273.15, 4.0) - Wd.RN
+		Wd.Rsky = Sgm*mathPow(Wd.T+273.15, 4.0) - Wd.RN
 	}
 }

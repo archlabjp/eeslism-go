@@ -354,7 +354,6 @@ func RMrc(Room *ROOM) {
 	if Room.FunHcap > 0.0 {
 		Room.RMC += *Room.CM * Room.FMC
 	}
-
 }
 
 /* ----------------------------------------------------- */
@@ -408,6 +407,7 @@ func RMsrt(Room *ROOM) {
 			rmpnl := Room.rmpnl[j]
 			Sdn.Ts += Sdn.WSPL[j] * rmpnl.pnl.Tpi
 		}
+
 	}
 
 	alr := Room.alr
@@ -560,7 +560,7 @@ func RMwlt(Mw []*MWALL) {
 			Mw.Told[m] = Mw.Tw[m]
 			// 収束過程初期値の壁体内部温度を更新
 			Mw.Twd[m] = Mw.Tw[m]
-			Mw.Told[m] = Mw.Tw[m]
+			Mw.Toldd[m] = Mw.Tw[m]
 		}
 	}
 }

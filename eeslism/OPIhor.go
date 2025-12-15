@@ -18,7 +18,6 @@ package eeslism
 import (
 	"fmt"
 	"io"
-	"math"
 )
 
 /*
@@ -105,7 +104,7 @@ func OPIhor(
 	ls = -Wd.Sw
 	ms = -Wd.Ss
 	ns = Wd.Sh
-	Esky = Sgm * math.Pow((Wd.T+273.15), 4.0)
+	Esky = Sgm * mathPow((Wd.T+273.15), 4.0)
 
 	//昼
 	if ns > 0.0 {
@@ -136,7 +135,7 @@ func OPIhor(
 						mp[j].Te = Wd.T
 
 						sum = sum + mp[j].ref*mp[j].Ihor*mp[i].faiwall[k]
-						reff = reff + mp[j].Eo*Sgm*mp[i].faiwall[k]*math.Pow((mp[j].Te+273.15), 4.0)
+						reff = reff + mp[j].Eo*Sgm*mp[i].faiwall[k]*mathPow((mp[j].Te+273.15), 4.0)
 					}
 					k++
 				}
@@ -166,7 +165,7 @@ func OPIhor(
 
 						sum = sum + lp[j].ref*lp[j].Ihor*mp[i].faiwall[k]
 
-						reff = reff + 0.9*Sgm*mp[i].faiwall[k]*math.Pow((lp[j].Te+273.15), 4.0)
+						reff = reff + 0.9*Sgm*mp[i].faiwall[k]*mathPow((lp[j].Te+273.15), 4.0)
 					}
 					k++
 				}
@@ -227,7 +226,7 @@ func OPIhor(
 
 					mp[i].Teg = Wd.T + 0.7*Ig/23.0
 
-					reffg = 0.9 * Sgm * mp[i].faig * math.Pow((mp[i].Teg+273.15), 4.0)
+					reffg = 0.9 * Sgm * mp[i].faig * mathPow((mp[i].Teg+273.15), 4.0)
 				} else {
 					Ig = 0.0
 					reffg = 0.0
@@ -263,7 +262,7 @@ func OPIhor(
 				Rsky = 0.5 * Wd.Rsky
 
 				// higuchi add 20170915 地面が漏れていた
-				reffg = 0.9 * Sgm * 0.5 * math.Pow((Wd.T+273.15), 4.0)
+				reffg = 0.9 * Sgm * 0.5 * mathPow((Wd.T+273.15), 4.0)
 				mp[i].Reff = Esky - Rsky - reffg
 			}
 
@@ -293,7 +292,7 @@ func OPIhor(
 				for j = 0; j < mpn; j++ {
 
 					if mp[i].faiwall[k] > 0.0 {
-						reff = reff + mp[j].Eo*Sgm*mp[i].faiwall[k]*math.Pow((Wd.T+273.15), 4.0)
+						reff = reff + mp[j].Eo*Sgm*mp[i].faiwall[k]*mathPow((Wd.T+273.15), 4.0)
 					}
 
 					k++
@@ -302,7 +301,7 @@ func OPIhor(
 				/*------lp面からの長波長放射を求める-----------*/
 				for j = 0; j < lpn; j++ {
 					if mp[i].faiwall[k] > 0.0 {
-						reff = reff + 0.9*Sgm*mp[i].faiwall[k]*math.Pow((Wd.T+273.15), 4.0)
+						reff = reff + 0.9*Sgm*mp[i].faiwall[k]*mathPow((Wd.T+273.15), 4.0)
 					}
 
 					k++
@@ -310,7 +309,7 @@ func OPIhor(
 				/*--------地面からの長波長放射を求める---------------*/
 
 				if mp[i].faig > 0.0 {
-					reffg = 0.9 * Sgm * mp[i].faig * math.Pow((Wd.T+273.15), 4.0)
+					reffg = 0.9 * Sgm * mp[i].faig * mathPow((Wd.T+273.15), 4.0)
 				} else {
 					reffg = 0.0
 				}
@@ -321,7 +320,7 @@ func OPIhor(
 				mp[i].rn = Wd.RN * 0.5
 				Rsky = 0.5 * Wd.Rsky
 				// higuchi add 20170915 地面が漏れていた
-				reffg = 0.9 * Sgm * 0.5 * math.Pow((Wd.T+273.15), 4.0)
+				reffg = 0.9 * Sgm * 0.5 * mathPow((Wd.T+273.15), 4.0)
 				mp[i].Reff = Esky - Rsky - reffg
 			}
 			// 20170426 higuchi add 形態係数を考慮しないパターン追加 end

@@ -182,9 +182,10 @@ func ValvControl(fi *EeTokens, Compnt []*COMPNT, Schdl *SCHDL, Simc *SIMCONTL, W
 	}
 
 	Pelm = Valv.Plist.Pelm[len(Valv.Plist.Pelm)-1]
-	elins = Pelm.Cmp.Elins[0]
 
+	// C言語版ではelins++でインクリメント、Go版ではインデックスアクセス
 	for i = 0; i < Pelm.Cmp.Nin; i++ {
+		elins = Pelm.Cmp.Elins[i]
 		if elins.Lpath.Valv.Name == Valv.Name {
 			Valv.Tin = &elins.Sysvin
 		} else {

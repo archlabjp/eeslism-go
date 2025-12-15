@@ -394,7 +394,7 @@ func TableRead(ct *CHARTABLE) {
 
 // 初期化されているかをチェックする
 func dparaminit(A float64) int {
-	if math.Abs(A-(FNAN)) < 1e-5 {
+	if mathAbs(A-(FNAN)) < 1e-5 {
 		return 1
 	} else {
 		return 0
@@ -459,7 +459,7 @@ func FNPCMState(Ctype int, Ss, Sl, Ql, Ts, Tl, Tp, T float64, PCMp *PCMPARAM) fl
 		Qla = 0.5 * Ql * (2.0 * PCMp.B / PCMp.T) / (Temp * Temp)
 	} else if Ctype == 4 { // ガウス関数（対象）
 		Temp := (T - Tp) / PCMp.B
-		Qla = PCMp.a * math.Exp(-0.5*Temp*Temp)
+		Qla = PCMp.a * mathExp(-0.5*Temp*Temp)
 	} else if Ctype == 5 { // ガウス関数（非対称）
 		Temp := (T - Tp) / PCMp.B
 		if T <= Tp {
@@ -467,15 +467,15 @@ func FNPCMState(Ctype int, Ss, Sl, Ql, Ts, Tl, Tp, T float64, PCMp *PCMPARAM) fl
 		} else {
 			Temp = PCMp.bl
 		}
-		Qla = PCMp.a * math.Exp(-((T-Tp)/Temp)*((T-Tp)/Temp))
+		Qla = PCMp.a * mathExp(-((T-Tp)/Temp)*((T-Tp)/Temp))
 	} else if Ctype == 6 { // 誤差関数歪度
-		//Temp := math.Exp(-(T - Tp) * (T - Tp) / ((2.0 * PCMp.omega) * PCMp.omega))
-		Qla = Ql / math.Sqrt(2.0*math.Pi) * math.Exp(-(T-Tp)*(T-Tp)/((2.0*PCMp.omega)*PCMp.omega)) * (1.0 + math.Erf(PCMp.skew*(T-Tp)/(math.Sqrt(2.0)*PCMp.omega)))
+		//Temp := mathExp(-(T - Tp) * (T - Tp) / ((2.0 * PCMp.omega) * PCMp.omega))
+		Qla = Ql / mathSqrt(2.0*math.Pi) * mathExp(-(T-Tp)*(T-Tp)/((2.0*PCMp.omega)*PCMp.omega)) * (1.0 + math.Erf(PCMp.skew*(T-Tp)/(mathSqrt(2.0)*PCMp.omega)))
 	} else if Ctype == 7 { // 有理関数
 		if T < 0 {
 			Qla = 0.0
 		} else {
-			Qla = math.Pow(T, PCMp.f) * (PCMp.a*T*T + PCMp.B*T + PCMp.c) / (PCMp.d*T*T + PCMp.e*T + 1.0)
+			Qla = mathPow(T, PCMp.f) * (PCMp.a*T*T + PCMp.B*T + PCMp.c) / (PCMp.d*T*T + PCMp.e*T + 1.0)
 		}
 	}
 
@@ -492,7 +492,7 @@ func FNPCMStatefun(Ctype int, Ss, Sl, Ql, Ts, Tl, Tp, oldT, T float64, DivTemp i
 
 	Qllst = 0.0
 	// 前時刻からの温度変化が小さい場合は時間積分はしない
-	if math.Abs(T-oldT) < 1e-4 {
+	if mathAbs(T-oldT) < 1e-4 {
 		Qllst = FNPCMState(Ctype, Ss, Sl, Ql, Ts, Tl, Tp, (T+oldT)*0.5, PCMp)
 	} else {
 		// 見かけの比熱の時間積分
@@ -514,7 +514,7 @@ func FNPCMstate_table(ct *CHARTABLE, Told, T float64, Ndiv int) float64 {
 	var oldEn, En, Chara float64
 
 	// 前時刻と暫定現在時刻のPCM温度が同温の場合
-	if math.Abs(T-Told) < ct.minTempChng {
+	if mathAbs(T-Told) < ct.minTempChng {
 		Tave := 0.5 * (T + Told)
 		// 見かけの比熱の計算
 		if ct.PCMchar == 'E' {

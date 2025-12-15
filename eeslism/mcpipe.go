@@ -29,8 +29,6 @@ import (
 /*  配管・ダクト 仕様入力 */
 
 func Pipedata(cattype EqpType, s string, Pipeca *PIPECA) int {
-	var st string
-	var dt float64
 	var id int
 
 	if cattype == DUCT_TYPE {
@@ -41,15 +39,25 @@ func Pipedata(cattype EqpType, s string, Pipeca *PIPECA) int {
 		panic(cattype)
 	}
 
-	st = strings.Split(s, "=")[1]
+	// "="の位置を確認
+	eqpos := strings.IndexByte(s, '=')
+	if eqpos == -1 {
+		// パラメータなし：カタログ名
+		Pipeca.name = s
+		Pipeca.Ko = FNAN
+		return 0
+	}
 
-	var err error
-	dt, err = strconv.ParseFloat(st, 64)
+	// パラメータあり：キー=値 形式
+	key := s[:eqpos]
+	value := s[eqpos+1:]
+
+	dt, err := strconv.ParseFloat(value, 64)
 	if err != nil {
 		panic("Failed to parse float: " + err.Error())
 	}
 
-	if strings.HasPrefix(s, "Ko") {
+	if key == "Ko" {
 		Pipeca.Ko = dt
 	} else {
 		id = 1

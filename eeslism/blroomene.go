@@ -23,6 +23,9 @@ import (
 	"math"
 )
 
+// DEBUG_RDPNL: パネルエネルギー計算のデバッグ出力フラグ
+const DEBUG_RDPNL = false
+
 /*
 Roomene (Room Energy Calculation)
 
@@ -112,6 +115,12 @@ func Roomene(Rmvls *RMVLS, Room []*ROOM, Rdpnl []*RDPNL, Exsfs *EXSFS, Wd *WDAT)
 			cG := Rdpnl[i].cG
 			Rdpnl[i].Q = cG * (E.Sysv - Rdpnl[i].Tpi)
 
+			// DEBUG: Panel Tpi and Tpo
+			if DEBUG_RDPNL {
+				fmt.Printf("DEBUG Go Rdpnlene: Tpi=%f Tpo=%f G=%f\n",
+					Rdpnl[i].Tpi, Rdpnl[i].Tpo, E.G)
+			}
+
 			if Wall.WallType == WallType_C {
 				var Kc float64
 				if Wall.chrRinput {
@@ -125,7 +134,7 @@ func Roomene(Rmvls *RMVLS, Room []*ROOM, Rdpnl []*RDPNL, Exsfs *EXSFS, Wd *WDAT)
 
 				if Sd.Ndiv > 0 {
 					for k := 0; k < Sd.Ndiv; k++ {
-						Ec := 1.0 - math.Exp(-Kc*Sd.A*float64(k+1)/float64(Sd.Ndiv)/cG)
+						Ec := 1.0 - mathExp(-Kc*Sd.A*float64(k+1)/float64(Sd.Ndiv)/cG)
 						Sd.Tc[k] = (1.0-Ec)*Rdpnl[i].Tpi + Ec*Sd.Tcole
 					}
 				}
@@ -157,10 +166,10 @@ PCMの相変化は非線形な熱的挙動を示すため、
     この潜熱蓄熱効果は、壁体内部の温度分布に非線形な影響を与え、
     シミュレーションの収束を困難にする場合があります。
   - **収束判定と再計算**: この関数は、
-  - `math.Abs(pcmstate.CapmR-pcmstate.OldCapmR) > pcmstate.OldCapmR*PCM.IterateJudge`:
+  - `mathAbs(pcmstate.CapmR-pcmstate.OldCapmR) > pcmstate.OldCapmR*PCM.IterateJudge`:
     PCMの熱容量が前回の計算ステップから大きく変化した場合に、
     収束していないと判断します。
-  - `(PCM.IterateTemp && math.Abs(Twd[m]-Toldd[m]) > 1e-2)`:
+  - `(PCM.IterateTemp && mathAbs(Twd[m]-Toldd[m]) > 1e-2)`:
     PCM層の温度が前回の計算ステップから大きく変化した場合に、
     収束していないと判断します。
     これらの条件のいずれかが満たされた場合、
@@ -240,8 +249,8 @@ func PCMwlchk(counter int, Rmvls *RMVLS, Exsfs *EXSFS, Wd *WDAT, LDreset *int) {
 							} else {
 								pcmstate.CapmR = FNPCMstate_table(&PCM.Chartable[0], Toldn, T, PCM.DivTemp)
 							}
-							if math.Abs(pcmstate.CapmR-pcmstate.OldCapmR) > pcmstate.OldCapmR*PCM.IterateJudge ||
-								(PCM.IterateTemp && math.Abs(Twd[m]-Toldd[m]) > 1e-2) {
+							if mathAbs(pcmstate.CapmR-pcmstate.OldCapmR) > pcmstate.OldCapmR*PCM.IterateJudge ||
+								(PCM.IterateTemp && mathAbs(Twd[m]-Toldd[m]) > 1e-2) {
 								nWeightR = PCM.NWeight
 								PCMresetR = 1
 							}
@@ -269,8 +278,8 @@ func PCMwlchk(counter int, Rmvls *RMVLS, Exsfs *EXSFS, Wd *WDAT, LDreset *int) {
 							} else {
 								pcmstate_p1.CapmL = FNPCMstate_table(&PCM1.Chartable[0], Toldn, T, PCM1.DivTemp)
 							}
-							if math.Abs(pcmstate_p1.CapmL-pcmstate_p1.OldCapmL) > pcmstate_p1.OldCapmL*PCM1.IterateJudge ||
-								(PCM1.IterateTemp && math.Abs(Twd[m]-Toldd[m]) > 1e-2) {
+							if mathAbs(pcmstate_p1.CapmL-pcmstate_p1.OldCapmL) > pcmstate_p1.OldCapmL*PCM1.IterateJudge ||
+								(PCM1.IterateTemp && mathAbs(Twd[m]-Toldd[m]) > 1e-2) {
 								nWeightL = PCM1.NWeight
 								PCMresetL = 1
 							}
@@ -313,7 +322,7 @@ PCMの相変化は非線形な熱的挙動を示すため、
     この潜熱蓄熱効果は、家具の温度分布に非線形な影響を与え、
     シミュレーションの収束を困難にする場合があります。
   - **収束判定と再計算**: この関数は、
-    `math.Abs(tempTM-Room[intI].TM) > 1e-2 && Room[intI].PCM.Iterate` の条件で、
+    `mathAbs(tempTM-Room[intI].TM) > 1e-2 && Room[intI].PCM.Iterate` の条件で、
     家具の温度が前回の計算ステップから大きく変化した場合に、
     収束していないと判断します。
     この場合、`(*LDreset)++`によって再計算が必要であることを示し、
@@ -337,7 +346,7 @@ func PCMfunchk(Room []*ROOM, Wd *WDAT, LDreset *int) {
 		if Room[intI].PCM != nil {
 			tempTM = Room[intI].TM
 			Room[intI].TM = Room[intI].FMT*Room[intI].Tr + Room[intI].FMC
-			if math.Abs(tempTM-Room[intI].TM) > 1e-2 && Room[intI].PCM.Iterate {
+			if mathAbs(tempTM-Room[intI].TM) > 1e-2 && Room[intI].PCM.Iterate {
 				(*LDreset)++
 				if Room[intI].PCM.NWeight > 0.0 {
 					Room[intI].TM = tempTM*(1.0-Room[intI].PCM.NWeight) + Room[intI].TM*Room[intI].PCM.NWeight

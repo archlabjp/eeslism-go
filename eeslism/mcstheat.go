@@ -66,16 +66,18 @@ Stheatdata (Sensible Heat Storage Data Input)
 func Stheatdata(s string, stheatca *STHEATCA) int {
 	var id int
 
-	if st := strings.IndexRune(s, '='); st == -1 {
+	st := strings.IndexRune(s, '=')
+	if st == -1 {
 		stheatca.Name = s
 		stheatca.Eff = FNAN
 		stheatca.Q = FNAN
 		stheatca.Hcap = FNAN
 		stheatca.KA = FNAN
 	} else {
+		skey := s[:st]
 		sval := s[st+1:]
 
-		if s == "PCM" {
+		if skey == "PCM" {
 			stheatca.PCMName = sval
 		} else {
 			dt, err := strconv.ParseFloat(sval, 64)
@@ -83,15 +85,16 @@ func Stheatdata(s string, stheatca *STHEATCA) int {
 				panic(err)
 			}
 
-			if s == "Q" {
+			switch skey {
+			case "Q":
 				stheatca.Q = dt
-			} else if s == "KA" {
+			case "KA":
 				stheatca.KA = dt
-			} else if s == "eff" {
+			case "eff":
 				stheatca.Eff = dt
-			} else if s == "Hcap" {
+			case "Hcap":
 				stheatca.Hcap = dt
-			} else {
+			default:
 				id = 1
 			}
 		}

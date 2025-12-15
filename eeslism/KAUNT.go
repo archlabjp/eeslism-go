@@ -23,8 +23,6 @@
 
 package eeslism
 
-import "math"
-
 /*
 minval (Minimum Value and Index Finding)
 
@@ -161,7 +159,7 @@ func KAUNT(
 			for h = 0; h < rp; h++ {
 				INOROUT(Px, Py, Pz, mlp[l].P[0], mlp[l].P[h+1], mlp[l].P[h+2], &S, &T)
 				if ((S >= 0.0 && T >= 0.0) && ((S + T) <= 1.0)) && (U > 0.0) {
-					span[l] = math.Sqrt(Px*Px + Py*Py + Pz*Pz)
+					span[l] = mathSqrt(Px*Px + Py*Py + Pz*Pz)
 					break // 090131 higuchi debug
 				} else {
 					span[l] = -1.0

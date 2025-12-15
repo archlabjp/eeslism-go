@@ -109,7 +109,7 @@ FNamew (Function for Air Viscosity)
 およびエネルギー消費量予測を行うための基礎的な役割を果たします。
 */
 func FNamew(dblT float64) float64 {
-	return (0.0074237 / (dblT + 390.15) * math.Pow((dblT+273.15)/293.15, 1.5))
+	return (0.0074237 / (dblT + 390.15) * mathPow((dblT+273.15)/293.15, 1.5))
 }
 
 /*
@@ -279,13 +279,13 @@ func FNwnew(dblT float64) float64 {
 	if dblT <= 0.0 {
 		dblTemp = FNAN
 	} else if dblT < 50.0 {
-		dblTemp = math.Exp(-13.233 - 0.032516*dblT + 0.000068997*dblT*dblT +
+		dblTemp = mathExp(-13.233 - 0.032516*dblT + 0.000068997*dblT*dblT +
 			0.0000069513*dblT*dblT*dblT - 0.00000009386*dblT*dblT*dblT*dblT)
 	} else if dblT < 100.0 {
-		dblTemp = math.Exp(-13.618 - 0.015499*dblT - 0.000022461*dblT*dblT +
+		dblTemp = mathExp(-13.618 - 0.015499*dblT - 0.000022461*dblT*dblT +
 			0.00000036334*dblT*dblT*dblT)
 	} else if dblT < 200.0 {
-		dblTemp = math.Exp(-13.698 - 0.016782*dblT + 0.000034425*dblT*dblT)
+		dblTemp = mathExp(-13.698 - 0.016782*dblT + 0.000034425*dblT*dblT)
 	} else {
 		dblTemp = FNAN
 	}
@@ -453,7 +453,7 @@ func FNGr(strF byte, dblTs, dblTa, dblx float64) float64 {
 	dblT := (dblTs + dblTa) / 2.
 
 	// 温度差の計算
-	dbldT := math.Max(math.Abs(dblTs-dblTa), 0.1)
+	dbldT := math.Max(mathAbs(dblTs-dblTa), 0.1)
 
 	var dblBeta, n float64
 	if strF == 'A' || strF == 'a' {
@@ -467,7 +467,7 @@ func FNGr(strF byte, dblTs, dblTa, dblx float64) float64 {
 		return FNAN
 	}
 
-	return dblg * dblBeta * dbldT * math.Pow(dblx, 3.0) / (n * n)
+	return dblg * dblBeta * dbldT * mathPow(dblx, 3.0) / (n * n)
 }
 
 /*
@@ -493,7 +493,7 @@ FNCNu (Function for Nusselt Number Calculation)
 およびエネルギー消費量予測を行うための基礎的な役割を果たします。
 */
 func FNCNu(dblC, dblm, dblPrGr float64) float64 {
-	return dblC * math.Pow(dblPrGr, dblm)
+	return dblC * mathPow(dblPrGr, dblm)
 }
 
 /*
@@ -531,9 +531,9 @@ func FNhinpipe(dbld, dblL, dblv, dblT float64) float64 {
 
 	var dblTemp float64
 	if dblRe < 2200. {
-		dblTemp = (3.66 + 0.0668*dbldL*dblRe*dblPr/(1.+0.04*math.Pow(dbldL*dblRe*dblPr, 2./3.))) * dblld
+		dblTemp = (3.66 + 0.0668*dbldL*dblRe*dblPr/(1.+0.04*mathPow(dbldL*dblRe*dblPr, 2./3.))) * dblld
 	} else {
-		dblTemp = 0.023 * math.Pow(dblRe, 0.8) * math.Pow(dblPr, 0.4) * dblld
+		dblTemp = 0.023 * mathPow(dblRe, 0.8) * mathPow(dblPr, 0.4) * dblld
 	}
 
 	return dblTemp
@@ -568,7 +568,7 @@ func FNhoutpipe(dbld, dblTs, dblTa float64) float64 {
 	dblPr := FNPr('W', (dblTs+dblTa)/2.)
 	dblGr := FNGr('W', dblTs, dblTa, dbld)
 
-	dblNu := dblC * math.Pow(dblPr*dblGr, dbln)
+	dblNu := dblC * mathPow(dblPr*dblGr, dbln)
 
 	return dblNu / dbld
 }

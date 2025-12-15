@@ -432,14 +432,14 @@ func dt2wdata(Wd *WDAT, tt int, dt [7][25]float64) {
 	Wd.Ihor = Wd.Idn*Wd.Sh + Wd.Isky
 
 	if Wd.RNtype == 'C' {
-		Br := 0.51 + 0.209*math.Sqrt(FNPwx(Wd.X))
+		Br := 0.51 + 0.209*mathSqrt(FNPwx(Wd.X))
 		Wd.CC = dt[4][tt]
-		Wd.RN = (1.0 - 0.62*Wd.CC/10.0) * (1.0 - Br) * Sgm * math.Pow(Wd.T+273.15, 4.0)
-		Wd.Rsky = ((1.0-0.62*Wd.CC/10.0)*Br + 0.62*Wd.CC/10.0) * Sgm * math.Pow(Wd.T+273.15, 4.0)
+		Wd.RN = (1.0 - 0.62*Wd.CC/10.0) * (1.0 - Br) * Sgm * mathPow(Wd.T+273.15, 4.0)
+		Wd.Rsky = ((1.0-0.62*Wd.CC/10.0)*Br + 0.62*Wd.CC/10.0) * Sgm * mathPow(Wd.T+273.15, 4.0)
 	} else {
 		Wd.CC = FNAN
 		Wd.RN = dt[4][tt] / 0.86
-		Wd.Rsky = Sgm*math.Pow(Wd.T+273.15, 4.0) - Wd.RN
+		Wd.Rsky = Sgm*mathPow(Wd.T+273.15, 4.0) - Wd.RN
 	}
 
 	Wd.Wdre = dt[5][tt]

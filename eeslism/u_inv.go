@@ -26,8 +26,8 @@ func Matinv(a []float64, n, m int, s string) {
 		big := 0.0
 		pivot_row := ipv
 		for i := ipv; i < m; i++ {
-			if math.Abs(a[i*n+ipv]) > big {
-				big = math.Abs(a[i*n+ipv])
+			if mathAbs(a[i*n+ipv]) > big {
+				big = mathAbs(a[i*n+ipv])
 				pivot_row = i
 			}
 		}
@@ -141,7 +141,7 @@ func Gausei(A, C []float64, m, n int, B []float64) {
 			}
 
 			y := (a[s+m] - sum) / w
-			ay := math.Abs(y - B[i])
+			ay := mathAbs(y - B[i])
 
 			def = math.Max(def, ay)
 			B[i] = y
@@ -201,7 +201,7 @@ func Gauss(A, C, B []float64, m, n int) {
 
 		for i := 0; i < m; i++ {
 			if num[i] != 0 {
-				if math.Abs(wfs[i*m+k]) > math.Abs(pv) {
+				if mathAbs(wfs[i*m+k]) > mathAbs(pv) {
 					pv = wfs[i*m+k]
 					pivot[k] = i
 				}

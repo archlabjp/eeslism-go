@@ -25,9 +25,9 @@ import "math"
 //						   */
 
 func CINC(op *P_MENN, ls, ms, ns float64, co *float64) {
-	Wz := math.Cos(op.wb * math.Pi / 180)
-	Ww := -math.Sin(op.wb*math.Pi/180) * math.Sin(op.wa*math.Pi/180)
-	Ws := -math.Sin(op.wb*math.Pi/180) * math.Cos(op.wa*math.Pi/180)
+	Wz := mathCos(op.wb * math.Pi / 180)
+	Ww := -mathSin(op.wb*math.Pi/180) * mathSin(op.wa*math.Pi/180)
+	Ws := -mathSin(op.wb*math.Pi/180) * mathCos(op.wa*math.Pi/180)
 
 	*co = ns*Wz + ls*Ww + ms*Ws
 

@@ -145,7 +145,7 @@ func FNPws(T float64) float64 {
 
 	// 絶対温度 Tabs
 	Tabs := T + 273.15
-	if math.Abs(Tabs) < 1e-5 {
+	if mathAbs(Tabs) < 1e-5 {
 		fmt.Printf("xxxx ゼロ割が発生しています Tabs=%f\n", Tabs)
 	}
 
@@ -153,12 +153,12 @@ func FNPws(T float64) float64 {
 	var Pws float64
 	if T > 0.0 {
 		// 0から200℃の水と接する場合
-		Pws = math.Exp(6.5459673*math.Log(Tabs)-5800.2206/Tabs+1.3914993+Tabs*(-0.048640239+
+		Pws = mathExp(6.5459673*mathLog(Tabs)-5800.2206/Tabs+1.3914993+Tabs*(-0.048640239+
 			Tabs*(4.1764768e-5-1.4452093e-8*Tabs))) / 1000.0
 	} else {
 		// -100から0℃の氷と接する場合
-		Pws = math.Exp(-5674.5359/Tabs+6.3925247+Tabs*(-9.677843e-3+
-			Tabs*(6.2215701e-7+Tabs*(2.0747825e-9-9.484024e-13*Tabs)))+4.1635019*math.Log(Tabs)) / 1000.0
+		Pws = mathExp(-5674.5359/Tabs+6.3925247+Tabs*(-9.677843e-3+
+			Tabs*(6.2215701e-7+Tabs*(2.0747825e-9-9.484024e-13*Tabs)))+4.1635019*mathLog(Tabs)) / 1000.0
 	}
 
 	// 単位変換
@@ -201,7 +201,7 @@ func FNDp(Pw float64) float64 {
 	// 水蒸気分圧の単位をPaに変換
 	Pwx := Pw * 1000.0 / _Pcnv
 
-	Y := math.Log(Pwx)
+	Y := mathLog(Pwx)
 
 	// 近似式を用いて水蒸気分圧から露点温度を求める
 	if Pwx >= 611.2 {
@@ -314,7 +314,7 @@ func FNDbrh(Rh, H float64) float64 {
 		F = H - FNH(T0, FNXtr(T0, Rh))
 		Fd = (H - FNH(T0+.1, FNXtr(T0+.1, Rh)) - F) / .1
 		Dbrh = T0 - F/Fd
-		if math.Abs(Dbrh-T0) <= .02 {
+		if mathAbs(Dbrh-T0) <= .02 {
 			return Dbrh
 		}
 		T0 = Dbrh
@@ -354,7 +354,7 @@ func FNDbrw(Rh, Twb float64) float64 {
 		F = T0 - FNDbxw(FNXtr(T0, Rh), Twb)
 		Fd = (T0 + .1 - FNDbxw(FNXtr(T0+.1, Rh), Twb) - F) / .1
 		Dbrw = T0 - F/Fd
-		if math.Abs(Dbrw-T0) <= .02 {
+		if mathAbs(Dbrw-T0) <= .02 {
 			return Dbrw
 		}
 		T0 = Dbrw
@@ -393,7 +393,7 @@ func FNXp(Pw float64) float64 {
 	// 標準大気圧 P [kPa]
 	P := 101.325
 
-	if math.Abs(P-Pw) < 1.0e-4 {
+	if mathAbs(P-Pw) < 1.0e-4 {
 		fmt.Printf("xxxxx ゼロ割が発生しています P=%f Pw=%f\n", P, Pw)
 	}
 
@@ -508,13 +508,9 @@ FNRhtp (Function for Relative Humidity from Temperature and Water Vapor Pressure
 および室内快適性評価を行うための基礎的な役割を果たします。
 */
 func FNRhtp(T, Pw float64) float64 {
-	pws := FNPws(T)
-	if pws == 0 {
-		return 0 // Avoid division by zero, or handle as an error case
-	}
-	rh := 100.0 * Pw / pws
-	// Clamp the relative humidity to be within 0 and 100
-	return math.Min(100.0, math.Max(0.0, rh))
+	// C版と同じ: クランプなし
+	// FNTevph/FNTevpc 等で RHo > 100 の判定を正しく動作させるため
+	return 100.0 * Pw / FNPws(T)
 }
 
 // 温度 T [C] および 相対湿度 Rh [%] から 湿り空気の水蒸気分圧 Pw [kPa] を求める。
@@ -584,15 +580,9 @@ FNRhtx (Function for Relative Humidity from Temperature and Absolute Humidity)
 および室内快適性評価を行うための基礎的な役割を果たします。
 */
 func FNRhtx(T, X float64) float64 {
-	rh := FNRhtp(T, FNPwx(X))
-	// Clamp the relative humidity to be within 0 and 100
-	if rh < 0 {
-		return 0
-	}
-	if rh > 100 {
-		return 100
-	}
-	return rh
+	// C版と同様にクランプなしで返す
+	// FNTevph/FNTevpc等で RHo > 100 の判定が正しく動作するため
+	return FNRhtp(T, FNPwx(X))
 }
 
 // 乾燥空気の温度 t [C] と絶対湿度 x [kg/kg] から、湿り空気のエンタルピ h [J/kg] を求める。
@@ -699,7 +689,7 @@ func FNWbtx(T float64, X float64) float64 {
 		Xss = FNXp(FNPws(Tw0 + .1))
 		Fd = (FNH(Tw0+.1, Xss) - H - (Xss-X)*FNHc(Tw0+.1) - F) / .1
 		Wbtx = Tw0 - F/Fd
-		if math.Abs(Wbtx-Tw0) <= .02 {
+		if mathAbs(Wbtx-Tw0) <= .02 {
 			return Wbtx
 		}
 		Tw0 = Wbtx

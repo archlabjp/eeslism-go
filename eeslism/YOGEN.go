@@ -14,7 +14,6 @@
 //along with Foobar.If not, see < https://www.gnu.org/licenses/>.
 package eeslism
 
-import "math"
 
 /*
 YOGEN (Vector Direction and Dot Product Calculation)
@@ -50,8 +49,8 @@ func YOGEN(Qx, Qy, Qz, Px, Py, Pz float64, S *float64, e XYZ) {
 
 	CAT(&PQx, &PQy, &PQz) // //20170422 higuchi add
 
-	PQ := math.Sqrt(PQx*PQx + PQy*PQy + PQz*PQz)
-	E := math.Sqrt(e.X*e.X + e.Y*e.Y + e.Z*e.Z)
+	PQ := mathSqrt(PQx*PQx + PQy*PQy + PQz*PQz)
+	E := mathSqrt(e.X*e.X + e.Y*e.Y + e.Z*e.Z)
 
 	// ↓条件文にした。　20170422 higuchi add
 	if PQ == 0.0 {

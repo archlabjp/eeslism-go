@@ -50,10 +50,14 @@ URA (Under-Surface Relationship Analysis)
 func URA(u, w int, LP []*P_MENN, t []*bekt, OP []*P_MENN) {
 	for j := 0; j < u; j++ {
 		for i := 0; i < w; i++ {
-			// NOTE: 一旦、polydを4固定にする
-			//for k := 0; k < LP[i].polyd; k++ {
-			for k := 0; k < 4; k++ {
-
+			// LP[i].polyd と OP[j].polyd の最小値を使用
+			// C版は LP[i].polyd のみを使用しているが、OP[j].P[k] もアクセスするため
+			// OP[j].polyd が小さい場合は範囲外アクセスになる（C版の潜在的バグ）
+			polyd := LP[i].polyd
+			if OP[j].polyd < polyd {
+				polyd = OP[j].polyd
+			}
+			for k := 0; k < polyd; k++ {
 				t[j].ps[i][k] = -(OP[j].e.X*OP[j].P[k].X + OP[j].e.Y*OP[j].P[k].Y +
 					OP[j].e.Z*OP[j].P[k].Z - OP[j].e.X*LP[i].P[k].X -
 					OP[j].e.Y*LP[i].P[k].Y - OP[j].e.Z*LP[i].P[k].Z) /
@@ -93,8 +97,8 @@ URA_M (Under-Surface Relationship Analysis for Main Plane)
 */
 func URA_M(ls, ms, ns float64, wb float64) float64 {
 	ex := 0.0
-	ey := -math.Sin((-wb) * math.Pi / 180)
-	ez := math.Cos((-wb) * math.Pi / 180)
+	ey := -mathSin((-wb) * math.Pi / 180)
+	ez := mathCos((-wb) * math.Pi / 180)
 
 	s := (ex*ls + ey*ms + ez*ns) / (ex*ex + ey*ey + ez*ez)
 	return s

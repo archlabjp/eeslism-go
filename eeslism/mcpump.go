@@ -359,7 +359,7 @@ func PumpFanPLC(XQ float64, Pump *PUMP) float64 {
 		Buff = 0.0
 
 		for i = 0; i < 5; i++ {
-			Buff += cat.pfcmp.dblcoeff[i] * math.Pow(dQ, float64(i))
+			Buff += cat.pfcmp.dblcoeff[i] * mathPow(dQ, float64(i))
 		}
 	}
 	return Buff
@@ -677,7 +677,8 @@ PFcmpdata (Pump/Fan Characteristic Data)
 func PFcmpdata() []*PFCMP {
 	fl, err := os.Open("pumpfanlst.efl")
 	if err != nil {
-		Eprint(" file ", "pumpfanlst.efl")
+		// ファイルが見つからない場合は空のリストを返す
+		return make([]*PFCMP, 0)
 	}
 	defer fl.Close()
 
@@ -693,7 +694,14 @@ func _PFcmpdata(fl *os.File) []*PFCMP {
 
 	for {
 		_, err := fmt.Fscanf(fl, "%s", &s)
-		if err != nil || s[0] == '*' {
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			// 空行などによる "unexpected newline" エラーは無視して継続
+			continue
+		}
+		if s[0] == '*' {
 			break
 		}
 

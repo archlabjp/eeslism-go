@@ -33,13 +33,19 @@ func Evacdata(s string, Evacca *EVACCA) int {
 	st := strings.IndexByte(s, '=')
 
 	if st == -1 {
-		Evacca.Name = s
-		Evacca.N = INAN
-		Evacca.Nlayer = INAN
-		Evacca.Awet = FNAN
-		Evacca.Adry = FNAN
-		Evacca.hdry = FNAN
-		Evacca.hwet = FNAN
+		// 名前のみの場合（最初の呼び出し時のみ）
+		if Evacca.Name == "" {
+			Evacca.Name = s
+			Evacca.N = INAN
+			Evacca.Nlayer = INAN
+			Evacca.Awet = FNAN
+			Evacca.Adry = FNAN
+			Evacca.hdry = FNAN
+			Evacca.hwet = FNAN
+		} else {
+			// 既に名前が設定されている場合は不明なトークン
+			return 1
+		}
 	} else {
 		key := s[:st]
 		value := s[st+1:]
@@ -179,7 +185,7 @@ func LinearSatx(Ts float64) (a, b float64) {
 
 // 湿り空気の飽和絶対湿度の計算
 func FNXs(T float64) float64 {
-	return 4.2849e-3 * math.Exp(6.0260e-2*T)
+	return 4.2849e-3 * mathExp(6.0260e-2*T)
 }
 
 /*  気化冷却器出口空気温湿度に関する変数割当  */
@@ -228,12 +234,12 @@ func Evacu(G, T, H, W float64, N int) float64 {
 }
 
 // 通気部の対流熱伝達率の計算（プログラムを解読したため詳細は不明）
-func Evachcc(de, L, T, H, W float64, N, G, Flg int) float64 {
+func Evachcc(de, L, T, H, W float64, N int, G float64, Flg int) float64 {
 	// 流路縦横比の計算
 	AR := H / (W / 5.0)
 
 	// 通気部の風速の計算
-	u := Evacu(float64(G), T, H, W, N)
+	u := Evacu(G, T, H, W, N)
 
 	// レイノルズ数の計算
 	Re := u * L / FNanew(T)
@@ -267,7 +273,7 @@ func EvacNu(AR, Re float64) float64 {
 		Nu = (-0.023131*AR*AR+0.018229*AR+0.00043299)*Re +
 			(46.261*AR*AR - 36.459*AR + 7.0971)
 	} else {
-		Nu = 0.021 * math.Pow(Re, 0.8) * math.Pow(0.7, 0.4)
+		Nu = 0.021 * mathPow(Re, 0.8) * mathPow(0.7, 0.4)
 	}
 
 	return Nu
@@ -293,8 +299,8 @@ func Evaccfv(Evac []*EVAC) {
 				for ii := 0; ii < cat.N; ii++ {
 					Tsave += Ts[ii] / float64(cat.N)
 				}
-				cat.hdry = Evachcc(4.3/1000.0, 4.3/1000.0, Tsave, 2.3/1000.0, 173.0/1000.0, cat.Nlayer, int(Gdry), 'd') // Dry側の対流熱伝達率の計算
-				cat.hwet = Evachcc(6.4/1000.0, 6.4/1000.0, Tsave, 3.5/1000.0, 173.0/1000.0, cat.Nlayer, int(Gwet), 'w') // Wet側の対流熱伝達率の計算
+				cat.hdry = Evachcc(4.3/1000.0, 4.3/1000.0, Tsave, 2.3/1000.0, 173.0/1000.0, cat.Nlayer, Gdry, 'd') // Dry側の対流熱伝達率の計算
+				cat.hwet = Evachcc(6.4/1000.0, 6.4/1000.0, Tsave, 3.5/1000.0, 173.0/1000.0, cat.Nlayer, Gwet, 'w') // Wet側の対流熱伝達率の計算
 			}
 
 			N := cat.N * 5
@@ -315,7 +321,7 @@ func Evaccfv(Evac []*EVAC) {
 
 				a[ii], b[ii] = LinearSatx(*Ts) // 境界層温度における飽和絶対湿度計算用係数の取得
 				*EF = 1.0
-				if a[ii]**Ts+b[ii]-*xwet < 0.0 || *RHwet > 99.0 || math.Abs(PreFlg) <= 1e-5 {
+				if a[ii]**Ts+b[ii]-*xwet < 0.0 || *RHwet > 99.0 || mathAbs(PreFlg) <= 1e-5 {
 					*EF = 0.0
 				}
 				PreFlg = *EF
@@ -345,8 +351,8 @@ func Evaccfv(Evac []*EVAC) {
 				U[N*(5*ii+0)+(5*ii+0)] = -(Ca*Gwet + cat.Awet*cat.hwet)   // Twetの項
 				U[N*(5*ii+1)+(5*ii+1)] = -(Gwet + cat.Awet**kx)           // xwetの項
 				U[N*(5*ii+2)+(5*ii+2)] = -(cat.hwet + A*a[ii] + cat.hdry) // Tsの項
-				U[N*(5*ii+2)+(5*ii+3)] = -(Ca*Gdry + cat.Adry*cat.hdry)   // Tdryの項
-				U[N*(5*ii+2)+(5*ii+4)] = 1.0                              // xdryの項
+				U[N*(5*ii+3)+(5*ii+3)] = -(Ca*Gdry + cat.Adry*cat.hdry)   // Tdryの項
+				U[N*(5*ii+4)+(5*ii+4)] = 1.0                              // xdryの項
 
 				U[N*(5*ii+0)+(5*ii+2)] = cat.Awet * cat.hwet   // TwetとTsの項
 				U[N*(5*ii+1)+(5*ii+2)] = cat.Awet * *kx * a[0] // xwetとTsの項

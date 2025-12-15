@@ -25,7 +25,6 @@ package eeslism
 
 import (
 	"fmt"
-	"math"
 	"os"
 )
 
@@ -46,7 +45,7 @@ INOROUT (Inside or Outside Plane Determination)
   太陽光線が多角形表面と交差する点を求め、
   その点が多角形の内部にある場合にのみ、
   その光線が多角形によって遮られると判断します。
-- **エラーハンドリング**: `math.Abs(AA1) > 0.0` などの条件は、
+- **エラーハンドリング**: `mathAbs(AA1) > 0.0` などの条件は、
   計算の安定性を確保するためのものです。
   もし、計算が不安定になるような特殊なケース（例えば、点が平面上にある場合）が発生した場合、
   エラーメッセージを出力し、プログラムを終了します。
@@ -76,11 +75,11 @@ func INOROUT(Px, Py, Pz float64, P0, P1, P2 XYZ, S, T *float64) {
 
 	CAT(&AA1, &BB1, &CC1)
 
-	if math.Abs(AA1) > 0.0 {
+	if mathAbs(AA1) > 0.0 {
 		*T = (Sy01*Px - Sx01*Py - P0.X*Sy01 + P0.Y*Sx01) / (Tx03*Sy01 - Ty03*Sx01)
-	} else if math.Abs(BB1) > 0.0 {
+	} else if mathAbs(BB1) > 0.0 {
 		*T = (Sz01*Py - Sy01*Pz - P0.Y*Sz01 + P0.Z*Sy01) / (Ty03*Sz01 - Tz03*Sy01)
-	} else if math.Abs(CC1) > 0.0 {
+	} else if mathAbs(CC1) > 0.0 {
 		*T = (Sz01*Px - Sx01*Pz - P0.X*Sz01 + P0.Z*Sx01) / (Tx03*Sz01 - Tz03*Sx01)
 	} else {
 		fmt.Printf("error inorout\n0X=%f 0Y=%f 0Z=%f\n1X=%f 1Y=%f 1Z=%f\n2X=%f 2Y=%f 2Z=%f\n",
@@ -94,11 +93,11 @@ func INOROUT(Px, Py, Pz float64, P0, P1, P2 XYZ, S, T *float64) {
 
 	CAT(&aa1, &bb1, &cc1)
 
-	if math.Abs(aa1) > 0.0 {
+	if mathAbs(aa1) > 0.0 {
 		*S = (Px - (*T)*Tx03 - P0.X) / Sx01
-	} else if math.Abs(bb1) > 0.0 {
+	} else if mathAbs(bb1) > 0.0 {
 		*S = (Py - (*T)*Ty03 - P0.Y) / Sy01
-	} else if math.Abs(cc1) > 0.0 {
+	} else if mathAbs(cc1) > 0.0 {
 		*S = (Pz - (*T)*Tz03 - P0.Z) / Sz01
 	} else {
 		fmt.Println("error inorout2")

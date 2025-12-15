@@ -56,19 +56,23 @@ Thexdata (Total Heat Exchanger Data Input)
 およびエネルギー消費量予測を行うための重要なデータ入力機能を提供します。
 */
 func Thexdata(s string, Thexca *THEXCA) int {
-	var st int
 	var dt float64
 	var id int
 
-	if st = strings.IndexRune(s, '='); st == -1 {
+	// '='の位置を見つける（C版の st = strchr(s, '=') に相当）
+	eqpos := strings.IndexRune(s, '=')
+
+	if eqpos == -1 {
+		// '='がない場合は機器名
 		Thexca.Name = s
 	} else {
-		stval := strings.Replace(s[st:], "=", "", 1)
-		dt, _ = strconv.ParseFloat(stval, 64)
+		// '='の前がキー、後が値
+		key := s[:eqpos]
+		dt, _ = strconv.ParseFloat(s[eqpos+1:], 64)
 
-		if s == "et" {
+		if key == "et" {
 			Thexca.et = dt
-		} else if s == "eh" {
+		} else if key == "eh" {
 			Thexca.eh = dt
 		} else {
 			id = 1
@@ -208,7 +212,7 @@ func Thexelm(Thex []*THEX) {
 			// Teoutの変数割り当て
 			elin = E1.Elins[2]
 			elin.Upo = E
-			elin.Upv = E2
+			elin.Upv = E
 
 			// Tooutの割り当て
 			elin = E3.Elins[2]

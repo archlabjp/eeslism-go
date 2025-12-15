@@ -15,7 +15,6 @@
 
 package eeslism
 
-import "math"
 
 ///*
 //
@@ -65,7 +64,7 @@ func HOUSEN(LP []*P_MENN) {
 		_lp.e.Z = x*y1 - y*x1
 
 		// 法線ベクトルの正規化
-		el := math.Sqrt(_lp.e.X*_lp.e.X + _lp.e.Y*_lp.e.Y + _lp.e.Z*_lp.e.Z)
+		el := mathSqrt(_lp.e.X*_lp.e.X + _lp.e.Y*_lp.e.Y + _lp.e.Z*_lp.e.Z)
 		_lp.e.X = _lp.e.X / el
 		_lp.e.Y = _lp.e.Y / el
 		_lp.e.Z = _lp.e.Z / el
@@ -107,7 +106,7 @@ func HOUSEN2(p0, p1, p2, e *XYZ) {
 	e.Y = z*x1 - x*z1
 	e.Z = x*y1 - y*x1
 
-	el := math.Sqrt(e.X*e.X + e.Y*e.Y + e.Z*e.Z)
+	el := mathSqrt(e.X*e.X + e.Y*e.Y + e.Z*e.Z)
 	e.X = e.X / el
 	e.Y = e.Y / el
 	e.Z = e.Z / el

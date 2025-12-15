@@ -24,7 +24,6 @@ package eeslism
 import (
 	"fmt"
 	"io"
-	"math"
 	"strconv"
 	"strings"
 )
@@ -49,6 +48,23 @@ func PVcadata(s string, PVca *PVCA) int {
 	} else {
 		s1 := s[:st]
 		s2 := s[st+1:]
+
+		// InstallTypeは文字列なので、数値パースの前に処理
+		if s1 == "InstallType" {
+			PVca.InstallType = rune(s2[0])
+			switch PVca.InstallType {
+			case 'A':
+				PVca.A = 46.0
+				PVca.B = 0.41
+			case 'B':
+				PVca.A = 50.0
+				PVca.B = 0.38
+			case 'C':
+				PVca.A = 57.0
+				PVca.B = 0.33
+			}
+			return id
+		}
 
 		var err error
 		dt, err = strconv.ParseFloat(s2, 64)
@@ -75,19 +91,6 @@ func PVcadata(s string, PVca *PVCA) int {
 		case strings.HasPrefix(s1, "apmax"):
 			// 最大出力温度係数
 			PVca.apmax = dt
-		case s1 == "InstallType":
-			PVca.InstallType = rune(s2[0])
-			switch PVca.InstallType {
-			case 'A':
-				PVca.A = 46.0
-				PVca.B = 0.41
-			case 'B':
-				PVca.A = 50.0
-				PVca.B = 0.38
-			case 'C':
-				PVca.A = 57.0
-				PVca.B = 0.33
-			}
 		case strings.HasPrefix(s1, "PVcap"):
 			// 太陽電池容量
 			PVca.PVcap = dt
@@ -177,7 +180,7 @@ func PVint(PV []*PV, Exs []*EXSF, Wd *WDAT) {
 func PVene(PV []*PV) {
 	for i := range PV {
 		// 太陽電池アレイの計算（JIS C 8907:2005　P21による）
-		PV[i].TPV = *PV[i].Ta + (PV[i].Cat.A/(PV[i].Cat.B*math.Pow(*PV[i].V, 0.8)+1.0)+2.0)**PV[i].I/1000.0 - 2.0
+		PV[i].TPV = *PV[i].Ta + (PV[i].Cat.A/(PV[i].Cat.B*mathPow(*PV[i].V, 0.8)+1.0)+2.0)**PV[i].I/1000.0 - 2.0
 		PV[i].KPT = FNKPT(PV[i].TPV, PV[i].Cat.apmax)
 		PV[i].KTotal = PV[i].KConst * PV[i].KPT
 
@@ -192,6 +195,7 @@ func PVene(PV []*PV) {
 		if PV[i].Iarea > 0.0 {
 			PV[i].Eff = PV[i].Power / PV[i].Iarea
 		}
+
 	}
 }
 

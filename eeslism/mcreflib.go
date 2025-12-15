@@ -19,7 +19,7 @@ package eeslism
 
 import (
 	"bufio"
-	"math"
+
 	"os"
 	"strings"
 )
@@ -38,36 +38,60 @@ func Refcmpdat() []*RFCMP {
 
 func _Refcmpdat(frf *os.File) []*RFCMP {
 	Rfcmp := make([]*RFCMP, 0)
+
+	// ファイル全体を読み込んでトークンに分割（C版のfscanfと同様の動作）
 	scanner := bufio.NewScanner(frf)
+	var allTokens []string
 	for scanner.Scan() {
 		line := scanner.Text()
-		if line == "*" {
+		// コメント行をスキップ
+		if strings.HasPrefix(strings.TrimSpace(line), "!") {
+			continue
+		}
+		fields := strings.Fields(line)
+		allTokens = append(allTokens, fields...)
+	}
+
+	// トークンを順番に処理
+	idx := 0
+	for idx < len(allTokens) {
+		// '*' で終了
+		if allTokens[idx] == "*" {
 			break
 		}
 
-		fields := strings.Fields(line)
-		// 空行やフィールド不足の行をスキップ
-		if len(fields) < 19 {
-			continue
+		// 19トークン必要: name, cname, e[0-3], d[0-3], w[0-3], Teo[0-1], Tco[0-1], Meff
+		if idx+19 > len(allTokens) {
+			break
 		}
 
 		rfcmp := NewRFCMP()
-		rfcmp.name = fields[0]
-		rfcmp.cname = fields[1]
+		rfcmp.name = allTokens[idx]
+		idx++
+		rfcmp.cname = allTokens[idx]
+		idx++
 		for i := 0; i < 4; i++ {
-			rfcmp.e[i], _ = readFloat(fields[i+2])
+			rfcmp.e[i], _ = readFloat(allTokens[idx])
+			idx++
 		}
 		for i := 0; i < 4; i++ {
-			rfcmp.d[i], _ = readFloat(fields[i+6])
+			rfcmp.d[i], _ = readFloat(allTokens[idx])
+			idx++
 		}
 		for i := 0; i < 4; i++ {
-			rfcmp.w[i], _ = readFloat(fields[i+10])
+			rfcmp.w[i], _ = readFloat(allTokens[idx])
+			idx++
 		}
-		rfcmp.Teo[0], _ = readFloat(fields[14])
-		rfcmp.Teo[1], _ = readFloat(fields[15])
-		rfcmp.Tco[0], _ = readFloat(fields[16])
-		rfcmp.Tco[1], _ = readFloat(fields[17])
-		rfcmp.Meff, _ = readFloat(fields[18])
+		rfcmp.Teo[0], _ = readFloat(allTokens[idx])
+		idx++
+		rfcmp.Teo[1], _ = readFloat(allTokens[idx])
+		idx++
+		rfcmp.Tco[0], _ = readFloat(allTokens[idx])
+		idx++
+		rfcmp.Tco[1], _ = readFloat(allTokens[idx])
+		idx++
+		rfcmp.Meff, _ = readFloat(allTokens[idx])
+		idx++
 
 		Rfcmp = append(Rfcmp, rfcmp)
 	}
@@ -132,7 +156,7 @@ func Compha(e, d *[4]float64, EGex float64, Tco [2]float64, Ta float64, Ho, He *
 
 func Refpow(Rf *REFA, QP float64) float64 {
 	var W, Te, Tc float64
-	if math.Abs(QP) > 1.0 {
+	if mathAbs(QP) > 1.0 {
 		if Rf.Chmode == COOLING_SW {
 			Te = QP/(Rf.Cat.cool.eo*Rf.cG) + Rf.Tin
 			Tc = (QP - Rf.c_e[0] - Rf.c_e[1]*Te) / (Rf.c_e[2] + Rf.c_e[3]*Te)

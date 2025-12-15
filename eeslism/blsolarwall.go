@@ -304,7 +304,7 @@ func FNSolarWallao(Wd *WDAT, Sd *RMSRF, Exsfs *EXSFS) float64 {
 
 	// 放射熱伝達率
 	// 屋根の表面温度は外気温度で代用
-	dblar = Sd.Eo * 4.0 * Sgm * math.Pow((Wd.T+Sd.Tg)/2.0+273.15, 3.0)
+	dblar = Sd.Eo * 4.0 * Sgm * mathPow((Wd.T+Sd.Tg)/2.0+273.15, 3.0)
 
 	// 対流熱伝達率
 	Exs = Exsfs.Exs[Sd.exs]
@@ -315,7 +315,7 @@ func FNSolarWallao(Wd *WDAT, Sd *RMSRF, Exsfs *EXSFS) float64 {
 	dblWa = float64(Exs.Wa) - dblWdre
 
 	// 風上の場合
-	if math.Cos(dblWa*math.Pi/180.0) > 0.0 {
+	if mathCos(dblWa*math.Pi/180.0) > 0.0 {
 		if Wd.Wv <= 2.0 {
 			dblu = 2.0
 		} else {
@@ -354,7 +354,7 @@ VentAirLayerar (Ventilated Air Layer Radiant Heat Transfer Coefficient)
   二つの表面間の放射熱伝達を簡潔にモデル化できます。
 - **温度依存性**: 放射熱伝達率は、表面温度の4乗に比例するため、
   通気層内の温度が高いほど放射による熱移動が大きくなります。
-  `4.0 * dblEs * Sgm * math.Pow((dblTsu+dblTsd)/2.0+273.15, 3.0)` の式は、
+  `4.0 * dblEs * Sgm * mathPow((dblTsu+dblTsd)/2.0+273.15, 3.0)` の式は、
   この温度依存性を考慮した放射熱伝達率の計算を示しています。
 
 この関数は、通気層を持つ建物の熱的性能を正確に評価し、
@@ -366,7 +366,7 @@ func VentAirLayerar(dblEsu, dblEsd, dblTsu, dblTsd float64) float64 {
 	// 放射率の計算
 	dblEs = 1.0 / (1.0/dblEsu + 1.0/dblEsd - 1.0)
 
-	return 4.0 * dblEs * Sgm * math.Pow((dblTsu+dblTsd)/2.0+273.15, 3.0)
+	return 4.0 * dblEs * Sgm * mathPow((dblTsu+dblTsd)/2.0+273.15, 3.0)
 }
 
 /*
@@ -413,7 +413,7 @@ func FNJurgesac(Sd *RMSRF, dblV, a, b float64) float64 {
 	// 空気の熱伝導率
 	lam = FNalam(Sd.dblTf)
 	// ヌセルト数の計算
-	Nu = 0.0158 * math.Pow(Re, 0.8)
+	Nu = 0.0158 * mathPow(Re, 0.8)
 	return Nu / Dh * lam
 }
 
@@ -476,14 +476,14 @@ func FNKc(Wd *WDAT, Exsfs *EXSFS, Sd *RMSRF) {
 		Sd.dblacc = FNVentAirLayerac(Sd.dblTsu, Sd.dblTsd, Wall.air_layer_t, Exs.Wb*rad)
 	}
 
-	if math.Abs(Sd.dblacc) > 100.0 || Sd.dblacc < 0.0 {
+	if mathAbs(Sd.dblacc) > 100.0 || Sd.dblacc < 0.0 {
 		fmt.Printf("xxxxxx <FNKc> name=%s acc=%f\n", Sd.Name, Sd.dblacc)
 	}
 
 	// 通気層の放射熱伝達率の計算
 	Sd.dblacr = VentAirLayerar(Wall.dblEsu, Wall.dblEsd, Sd.dblTsu, Sd.dblTsd)
 
-	if math.Abs(Sd.dblacr) > 100.0 || Sd.dblacr < 0.0 {
+	if mathAbs(Sd.dblacr) > 100.0 || Sd.dblacr < 0.0 {
 		fmt.Printf("xxxxxx <FNKc> name=%s acr=%f\n", Sd.Name, Sd.dblacr)
 	}
 
@@ -603,7 +603,7 @@ FNVentAirLayerac (Function for Ventilated Air Layer Convective Heat Transfer Coe
   レイリー数が大きいほど、自然対流が活発になり、熱伝達率も大きくなります。
 - **傾斜角の影響 (Wb)**:
   `Wb`は通気層の傾斜角を示唆しており、
-  `math.Cos(Wb)`や`math.Sin(1.8*Wb)`といった項が含まれていることから、
+  `mathCos(Wb)`や`mathSin(1.8*Wb)`といった項が含まれていることから、
   通気層の傾斜が自然対流熱伝達に与える影響を考慮していることが伺えます。
   垂直な通気層と水平な通気層では、自然対流の挙動が大きく異なります。
 - **空気の物性値**: 空気熱伝導率（`lama`）や動粘性係数（`anew`）、熱拡散率（`a`）など、
@@ -618,7 +618,7 @@ func FNVentAirLayerac(Tsu, Tsd, air_layer_t, Wb float64) float64 {
 	g := 9.81 // Assuming the value of gravity
 
 	var Tsud float64
-	if math.Abs(Tsu-Tsd) < 1.0e-4 {
+	if mathAbs(Tsu-Tsd) < 1.0e-4 {
 		Tsud = Tsu + 0.1
 	} else {
 		Tsud = Tsu
@@ -633,11 +633,11 @@ func FNVentAirLayerac(Tsu, Tsd, air_layer_t, Wb float64) float64 {
 	// 空気の熱伝導率
 	lama = FNalam(Tas)
 	// レーリー数
-	Ra = g * (1.0 / Tas) * math.Abs(Tsud-Tsd) * math.Pow(air_layer_t, 3.0) / (anew * a)
+	Ra = g * (1.0 / Tas) * mathAbs(Tsud-Tsd) * mathPow(air_layer_t, 3.0) / (anew * a)
 
-	RacosWb = Ra * math.Cos(Wb)
+	RacosWb = Ra * mathCos(Wb)
 
-	dblTemp := (1.0 + 1.44*math.Max(0.0, 1.0-1708.0/RacosWb)*(1.0-math.Pow(math.Sin(1.8*Wb), 1.6)*1708.0/RacosWb) + math.Max(math.Pow(RacosWb/5830.0, 1.0/3.0)-1.0, 0.0)) * air_layer_t / lama
+	dblTemp := (1.0 + 1.44*math.Max(0.0, 1.0-1708.0/RacosWb)*(1.0-mathPow(mathSin(1.8*Wb), 1.6)*1708.0/RacosWb) + math.Max(mathPow(RacosWb/5830.0, 1.0/3.0)-1.0, 0.0)) * air_layer_t / lama
 
 	return dblTemp
 }

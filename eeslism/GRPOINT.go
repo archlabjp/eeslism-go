@@ -68,7 +68,7 @@ func GRGPOINT(mp []*P_MENN, mpn int) {
 		ey := mp[i].P[1].Y - mp[i].P[0].Y
 		ez := mp[i].P[1].Z - mp[i].P[0].Z
 
-		if math.Abs(ez) < 1e-6 {
+		if mathAbs(ez) < 1e-6 {
 			// If the normal vector is parallel to the Z-axis, the representative point is the center of gravity.
 			mp[i].grp.X = 0.0
 			mp[i].grp.Y = 0.0
@@ -77,8 +77,8 @@ func GRGPOINT(mp []*P_MENN, mpn int) {
 		} else {
 			// Calculate the representative point of the front ground.
 			t := -mp[i].G.Z / ez
-			mp[i].grp.X = t*ex + mp[i].G.X - mp[i].grpx*math.Sin(mp[i].wa*M_rad)
-			mp[i].grp.Y = t*ey + mp[i].G.Y - mp[i].grpx*math.Cos(mp[i].wa*M_rad)
+			mp[i].grp.X = t*ex + mp[i].G.X - mp[i].grpx*mathSin(mp[i].wa*M_rad)
+			mp[i].grp.Y = t*ey + mp[i].G.Y - mp[i].grpx*mathCos(mp[i].wa*M_rad)
 			mp[i].grp.Z = 0.0
 		}
 	}

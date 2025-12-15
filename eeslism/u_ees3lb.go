@@ -2,7 +2,7 @@ package eeslism
 
 import (
 	"fmt"
-	"math"
+
 	"os"
 	"unicode"
 )
@@ -60,6 +60,6 @@ func Lineardiv(A, B, dt float64) float64 {
 // ttmmから1時間間隔の時刻へ変換する関数
 // 0:01～1:00を1時（ここでは配列番号として0～23にしている）とする
 func ConvertHour(ttmm int) int {
-	tt := int(math.Floor(float64(ttmm-1) / 100.))
+	tt := int(mathFloor(float64(ttmm-1) / 100.))
 	return tt
 }

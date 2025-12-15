@@ -8,8 +8,8 @@ import (
 
 func Tearth(Z float64, n int, nmx int, Tgro float64, DTg float64, a float64) float64 {
 	const t = 31.536e+6
-	Cz := Z * math.Sqrt(math.Pi/(a*t))
-	Tearth := Tgro + 0.5*DTg*math.Exp(-Cz)*math.Cos(float64(n-nmx)*0.017214-Cz)
+	Cz := Z * mathSqrt(math.Pi/(a*t))
+	Tearth := Tgro + 0.5*DTg*mathExp(-Cz)*mathCos(float64(n-nmx)*0.017214-Cz)
 	return Tearth
 }
 

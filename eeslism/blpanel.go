@@ -19,10 +19,13 @@ package eeslism
 
 import (
 	"errors"
-	"math"
+	"fmt"
 )
 
 const WPTOLE = 1.0e-10
+
+// DEBUG_PANEL: パネル係数計算のデバッグ出力フラグ
+const DEBUG_PANEL = true
 
 /*  輻射パネル有効熱容量流量  */
 
@@ -36,8 +39,8 @@ func panelwp(rdpnl *RDPNL) {
 	if rdpnl.cmp.Elouts == nil {
 		panic("rdpnl.cmp.Elouts is nil")
 	}
-	if len(rdpnl.cmp.Elouts) != 1 {
-		panic("len(rdpnl.cmp.Elouts) != 1")
+	if len(rdpnl.cmp.Elouts) < 1 {
+		panic("len(rdpnl.cmp.Elouts) < 1")
 	}
 
 	sd := rdpnl.sd[0]
@@ -59,8 +62,13 @@ func panelwp(rdpnl *RDPNL) {
 		if wall.WallType == WallType_P {
 			rdpnl.Wp = rdpnl.cG * rdpnl.effpnl / sd.A
 		} else {
-			rdpnl.Ec = 1.0 - math.Exp(-Kc*sd.A/rdpnl.cG)
+			rdpnl.Ec = 1.0 - mathExp(-Kc*sd.A/rdpnl.cG)
 			rdpnl.Wp = Kcd * rdpnl.cG * rdpnl.Ec / (Kc * sd.A)
+		}
+
+		if DEBUG_PANEL && rdpnl.Wp > 0 {
+			fmt.Printf("DEBUG Go panelwp: name=%s G=%.10f cG=%.10f effpnl=%.10f A=%.10f Wp=%.15f\n",
+				rdpnl.Name, eo.G, rdpnl.cG, rdpnl.effpnl, sd.A, rdpnl.Wp)
 		}
 	} else {
 		rdpnl.cG = 0.0
@@ -69,7 +77,7 @@ func panelwp(rdpnl *RDPNL) {
 	}
 
 	// 流量が前時刻から変化していれば係数行列を作りなおす
-	if math.Abs(rdpnl.Wp-rdpnl.Wpold) >= WPTOLE || sd.PCMflg {
+	if mathAbs(rdpnl.Wp-rdpnl.Wpold) >= WPTOLE || sd.PCMflg {
 		rdpnl.Wpold = rdpnl.Wp
 
 		for i := 0; i < rdpnl.MC; i++ {
@@ -98,7 +106,15 @@ func Panelcf(rdpnl *RDPNL) {
 			Sd = rdpnl.sd[m]
 			rm = rdpnl.rm[m]
 			N = rm.N
-			nrp = m
+			// 部屋の表面配列内でSdのインデックスを検索
+			// C版: nrp = (int)(Sd - rm->rsrf)
+			nrp = -1
+			for i := 0; i < N; i++ {
+				if rm.rsrf[i] == Sd {
+					nrp = i
+					break
+				}
+			}
 			nn = N * nrp
 
 			if Sd.mrk == '*' || Sd.PCMflg {
@@ -116,6 +132,15 @@ func Panelcf(rdpnl *RDPNL) {
 						rdpnl.FOp[m] = Mw.UX[iup+M-1] * Sd.ColCoeff
 					}
 					rdpnl.FPp = Mw.UX[iup+mp] * Mw.Pc * rdpnl.Wp
+
+					if DEBUG_PANEL {
+						fmt.Printf("DEBUG Go Panelcf m=0: M=%d mp=%d iup=%d\n", M, mp, iup)
+						fmt.Printf("DEBUG Go Panelcf m=0: uo=%.15f um=%.15f Pc=%.15f\n", Mw.uo, Mw.um, Mw.Pc)
+						fmt.Printf("DEBUG Go Panelcf m=0: UX[iup]=%.15f UX[iup+M-1]=%.15f UX[iup+mp]=%.15f\n",
+							Mw.UX[iup], Mw.UX[iup+M-1], Mw.UX[iup+mp])
+						fmt.Printf("DEBUG Go Panelcf m=0: FIp=%.15f FOp=%.15f FPp=%.15f\n",
+							rdpnl.FIp[m], rdpnl.FOp[m], rdpnl.FPp)
+					}
 				} else {
 					Mw = Sd.mw
 					rdpnl.FIp[1] = rdpnl.FOp[0]
@@ -183,6 +208,11 @@ func Panelcf(rdpnl *RDPNL) {
 					}
 
 					rdpnl.Epw = rdpnl.cG * (1.0 - rdpnl.Ec*(1.-kd*rdpnl.FPp))
+				}
+
+				if DEBUG_PANEL && m == 0 {
+					fmt.Printf("DEBUG Go Panelcf: EPt[0]=%.15f Epw=%.15f C1=%.15f\n",
+						rdpnl.EPt[0], rdpnl.Epw, C1)
 				}
 				//}
 				//else
@@ -295,7 +325,15 @@ func Panelce(rdpnl *RDPNL) float64 {
 
 			rm = rdpnl.rm[m]
 			N = rm.N
-			nrp = m
+			// 部屋の表面配列内でSdのインデックスを検索
+			// C版: nrp = (int)(Sd - rm->rsrf)
+			nrp = -1
+			for i := 0; i < N; i++ {
+				if rm.rsrf[i] == Sd {
+					nrp = i
+					break
+				}
+			}
 			nn = N * nrp
 
 			C = 0.0
@@ -322,9 +360,14 @@ func Panelce(rdpnl *RDPNL) float64 {
 		}
 
 		if Mw.wall.WallType == WallType_P {
-			return (CC * rdpnl.Wp * Sd.A)
+			result := CC * rdpnl.Wp * Sd.A
+			if DEBUG_PANEL {
+				fmt.Printf("DEBUG Go Panelce: CC=%.15f Wp=%.15f A=%.15f result=%.15f\n",
+					CC, rdpnl.Wp, Sd.A, result)
+			}
+			return result
 		} else {
-			return (CC * rdpnl.cG * rdpnl.Ec)
+			return CC * rdpnl.cG * rdpnl.Ec
 		}
 	} else {
 		return (0.0)

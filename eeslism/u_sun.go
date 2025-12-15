@@ -43,9 +43,9 @@ Sunint (Sun Initialization)
 */
 func Sunint() {
 	var Rd float64 = math.Pi / 180.0
-	Slat = math.Sin(Lat * Rd)
-	Clat = math.Cos(Lat * Rd)
-	Tlat = math.Tan(Lat * Rd)
+	Slat = mathSin(Lat * Rd)
+	Clat = mathCos(Lat * Rd)
+	Tlat = mathTan(Lat * Rd)
 	if UNIT == "SI" {
 		Isc = 1370.0
 	} else {
@@ -73,7 +73,7 @@ FNDecl (Function for Declination Angle)
     逆に、太陽高度角が低い冬期には、南面窓からの日射取得が暖房負荷軽減に寄与します。
   - **日影計算の基礎**: 建物の日影の形状や範囲は、太陽の赤緯によって大きく変化します。
     特に、隣棟間隔の検討や、日影規制の遵守において、正確な赤緯の計算は不可欠です。
-  - **数式モデル**: `0.397949 * math.Sin(2.0*math.Pi*(float64(N)-81.0)/365.0)` の式は、
+  - **数式モデル**: `0.397949 * mathSin(2.0*math.Pi*(float64(N)-81.0)/365.0)` の式は、
     赤緯の年間変化を近似する一般的な数式モデルです。
     `N`は通日（1月1日を1とする）を表し、地球の公転周期（365日）と地軸の傾きを考慮しています。
 
@@ -82,7 +82,7 @@ FNDecl (Function for Declination Angle)
 そして日影計算を行うための基礎的な役割を果たします。
 */
 func FNDecl(N int) float64 {
-	return math.Asin(0.397949 * math.Sin(2.0*math.Pi*(float64(N)-81.0)/365.0))
+	return mathAsin(0.397949 * mathSin(2.0*math.Pi*(float64(N)-81.0)/365.0))
 }
 
 /*
@@ -106,7 +106,7 @@ FNE (Function for Equation of Time)
     日射熱取得量の計算や日影の予測に誤差が生じる可能性があります。
     特に、日射遮蔽部材の設計や、太陽光発電システムの最適配置を検討する際には、
     このわずかな時間のずれが重要な意味を持つことがあります。
-  - **数式モデル**: `0.1645*math.Sin(2.0*B) - 0.1255*math.Cos(B) - 0.025*math.Sin(B)` の式は、
+  - **数式モデル**: `0.1645*mathSin(2.0*B) - 0.1255*mathCos(B) - 0.025*mathSin(B)` の式は、
     均時差の年間変化を近似する一般的な数式モデルです。
     `B`は通日`N`から導出される角度であり、地球の公転周期を考慮しています。
 
@@ -116,7 +116,7 @@ FNE (Function for Equation of Time)
 */
 func FNE(N int) float64 {
 	var B float64 = 2.0 * math.Pi * (float64(N) - 81.0) / 365.0
-	return 0.1645*math.Sin(2.0*B) - 0.1255*math.Cos(B) - 0.025*math.Sin(B)
+	return 0.1645*mathSin(2.0*B) - 0.1255*mathCos(B) - 0.025*mathSin(B)
 }
 
 /*
@@ -136,7 +136,7 @@ FNSro (Function for Extraterrestrial Solar Radiation)
     この大気圏外日射量から、大気による吸収・散乱・反射の影響を差し引くことで計算されます。
     したがって、大気圏外日射量を正確に把握することは、
     建物の日射熱取得量や太陽光発電システムの発電量予測の出発点となります。
-  - **数式モデル**: `Isc * (1.0 + 0.033*math.Cos(2.0*math.Pi*float64(N)/365.0))` の式は、
+  - **数式モデル**: `Isc * (1.0 + 0.033*mathCos(2.0*math.Pi*float64(N)/365.0))` の式は、
     地球と太陽の距離変化による大気圏外日射量の年間変化を近似する一般的な数式モデルです。
     `Isc`は太陽定数、`N`は通日を表し、地球の公転周期を考慮しています。
 
@@ -145,7 +145,7 @@ FNSro (Function for Extraterrestrial Solar Radiation)
 そして太陽光発電システムの発電量予測を行うための基礎的な役割を果たします。
 */
 func FNSro(N int) float64 {
-	return Isc * (1.0 + 0.033*math.Cos(2.0*math.Pi*float64(N)/365.0))
+	return Isc * (1.0 + 0.033*mathCos(2.0*math.Pi*float64(N)/365.0))
 }
 
 /*
@@ -220,8 +220,8 @@ FNTtd (Function for Day Length)
   - **計算要素**: この関数は、以下の要素を考慮して日長を計算します。
   - `Decl`: 太陽の赤緯（`FNDecl`関数で計算）。
   - `Tlat`: 緯度の正接（`Sunint`関数で設定）。
-  - `Cws = -Tlat * math.Tan(Decl)`: 日の出・日の入り時の時角の余弦を計算するための補助変数。
-    `math.Acos(Cws)`は、日の出・日の入り時の時角をラジアンで返します。
+  - `Cws = -Tlat * mathTan(Decl)`: 日の出・日の入り時の時角の余弦を計算するための補助変数。
+    `mathAcos(Cws)`は、日の出・日の入り時の時角をラジアンで返します。
     この時角を時間単位に変換することで日長が得られます。
   - **極端なケースの考慮**: `Cws >= 1.0`（極夜）の場合に`Ttd = 0.0`、
     `Cws <= -1.0`（白夜）の場合に`Ttd = 24.0`とすることで、
@@ -234,9 +234,9 @@ FNTtd (Function for Day Length)
 func FNTtd(Decl float64) float64 {
 	var Tlat float64
 	var Cws, Ttd float64
-	Cws = -Tlat * math.Tan(Decl)
+	Cws = -Tlat * mathTan(Decl)
 	if 1.0 > Cws && Cws > -1.0 {
-		Ttd = 7.6394 * math.Acos(Cws)
+		Ttd = 7.6394 * mathAcos(Cws)
 	} else {
 		if Cws >= 1.0 {
 			Ttd = 0.0
@@ -286,17 +286,17 @@ func Solpos(Ttas float64, Decl float64) (Sh float64, Sw float64, Ss float64, sol
 	var Ch, Ca, Sa, W float64
 
 	if Ttas < __Solpos_Ttprev {
-		__Solpos_Sdecl = math.Sin(Decl)
+		__Solpos_Sdecl = mathSin(Decl)
 		__Solpos_Sld = Slat * __Solpos_Sdecl
-		__Solpos_Cld = Clat * math.Cos(Decl)
+		__Solpos_Cld = Clat * mathCos(Decl)
 	}
 
 	W = (Ttas - 12.0) * 0.2618
-	Sh = __Solpos_Sld + __Solpos_Cld*math.Cos(W)
-	solh = math.Asin(Sh) / PI * 180.0
+	Sh = __Solpos_Sld + __Solpos_Cld*mathCos(W)
+	solh = mathAsin(Sh) / PI * 180.0
 
 	if Sh > 0.0 {
-		Ch = math.Sqrt(1.0 - Sh*Sh)
+		Ch = mathSqrt(1.0 - Sh*Sh)
 		Ca = (Sh*Slat - __Solpos_Sdecl) / (Ch * Clat)
 		var fW0 float64
 		if W > 0.0 {
@@ -304,8 +304,8 @@ func Solpos(Ttas float64, Decl float64) (Sh float64, Sw float64, Ss float64, sol
 		} else {
 			fW0 = -1.0
 		}
-		solA = fW0 * math.Acos(Ca) / PI * 180.0
-		Sa = (W / math.Abs(W)) * math.Sqrt(1.0-Ca*Ca)
+		solA = fW0 * mathAcos(Ca) / PI * 180.0
+		Sa = (W / mathAbs(W)) * mathSqrt(1.0-Ca*Ca)
 		Sw = Ch * Sa
 		Ss = Ch * Ca
 	} else {
@@ -339,7 +339,7 @@ Srdclr (Solar Radiation Calculation for Clear Sky)
   - **大気透過率 (P)**:
     大気透過率は、大気を通過する際に日射がどれだけ減衰するかを示す指標です。
     大気中の水蒸気量や塵の量、標高などによって変化します。
-    `math.Pow(P, 1.0/Sh)` のように、太陽高度角（`Sh`）に応じて透過率が変化するモデルは、
+    `mathPow(P, 1.0/Sh)` のように、太陽高度角（`Sh`）に応じて透過率が変化するモデルは、
     太陽光が斜めに入射するほど大気を通過する距離が長くなり、減衰が大きくなることを考慮しています。
   - **日射量計算の重要性**: 建物の熱負荷計算において、日射熱取得は非常に大きな割合を占めます。
     特に夏季の冷房負荷や冬季の暖房負荷を正確に予測するためには、
@@ -351,7 +351,7 @@ Srdclr (Solar Radiation Calculation for Clear Sky)
 */
 func Srdclr(Io float64, P float64, Sh float64, Idn *float64, Isky *float64) {
 	if Sh > 0.001 {
-		*Idn = Io * math.Pow(P, 1.0/Sh)
+		*Idn = Io * mathPow(P, 1.0/Sh)
 		*Isky = Sh * (Io - *Idn) * (0.66 - 0.32*Sh) * (0.5 + (0.4-0.3*P)*Sh)
 	} else {
 		*Idn = 0.0

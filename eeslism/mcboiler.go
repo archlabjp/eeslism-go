@@ -183,8 +183,8 @@ func Boicfv(Boi []*BOI) {
 		Eo1 := boi.Cmp.Elouts[0]
 
 		if boi.Cmp.Control != OFF_SW {
-			Temp = math.Abs(*boi.Cat.Qo - (FNAN))
-			if math.Abs(Temp) < 1e-3 {
+			Temp = mathAbs(*boi.Cat.Qo - (FNAN))
+			if mathAbs(Temp) < 1e-3 {
 				Qocat = 0.0
 			} else {
 				Qocat = *boi.Cat.Qo
@@ -274,7 +274,7 @@ func Boiene(Boi []*BOI, BOIreset *int) {
 	for i, boi := range Boi {
 		boi.Tin = boi.Cmp.Elins[0].Sysvin
 		Qmin := boi.Cat.Qmin
-		if math.Abs(Qmin-(FNAN)) < 1.0e-5 {
+		if mathAbs(Qmin-(FNAN)) < 1.0e-5 {
 			Qmin = 0.0
 		}
 

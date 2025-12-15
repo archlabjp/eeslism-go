@@ -75,10 +75,10 @@ func LP_COORDNT(
 
 	const M_rad = math.Pi / 180.0
 	for i := range BDP {
-		sWb = math.Sin(BDP[i].Wb * M_rad)
-		cWb = math.Cos(BDP[i].Wb * M_rad)
-		sWa = math.Sin(-BDP[i].Wa * M_rad)
-		cWa = math.Cos(-BDP[i].Wa * M_rad)
+		sWb = mathSin(BDP[i].Wb * M_rad)
+		cWb = mathCos(BDP[i].Wb * M_rad)
+		sWa = mathSin(-BDP[i].Wa * M_rad)
+		cWa = mathCos(-BDP[i].Wa * M_rad)
 
 		if len(BDP[i].SBLK) != 0 {
 			for _, sblk := range BDP[i].SBLK {
@@ -94,8 +94,8 @@ func LP_COORDNT(
 					b = BDP[i].y0 + sblk.x*sWa + sblk.y*cWb*cWa
 					c = BDP[i].z0 + sblk.y*sWb
 
-					chWA = math.Cos((sblk.WA - BDP[i].Wb) * M_rad)
-					shWA = math.Sin((sblk.WA - BDP[i].Wb) * M_rad)
+					chWA = mathCos((sblk.WA - BDP[i].Wb) * M_rad)
+					shWA = mathSin((sblk.WA - BDP[i].Wb) * M_rad)
 
 					lp_k := NewP_MENN()
 					lp_k.opname = sblk.snbname
@@ -136,9 +136,9 @@ func LP_COORDNT(
 					lp_k.P[3].Z = c
 
 					/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-					lp_k.e.Z = math.Cos(lp_k.wb * M_rad)
-					lp_k.e.Y = -math.Sin(lp_k.wb*M_rad) * math.Cos(lp_k.wa*M_rad)
-					lp_k.e.X = -math.Sin(lp_k.wb*M_rad) * math.Sin(lp_k.wa*M_rad)
+					lp_k.e.Z = mathCos(lp_k.wb * M_rad)
+					lp_k.e.Y = -mathSin(lp_k.wb*M_rad) * mathCos(lp_k.wa*M_rad)
+					lp_k.e.X = -mathSin(lp_k.wb*M_rad) * mathSin(lp_k.wa*M_rad)
 					CAT(&lp_k.e.X, &lp_k.e.Y, &lp_k.e.Z)
 
 					//HOUSEN2(&lp_k.P[0],&lp_k.P[1],&lp_k.P[2],&lp_k.e)
@@ -156,8 +156,8 @@ func LP_COORDNT(
 					b = BDP[i].y0 + sblk.x*sWa + sblk.y*cWb*cWa
 					c = BDP[i].z0 + sblk.y*sWb
 
-					chWA = math.Cos((90.0 - BDP[i].Wb) * M_rad)
-					shWA = math.Sin((90.0 - BDP[i].Wb) * M_rad)
+					chWA = mathCos((90.0 - BDP[i].Wb) * M_rad)
+					shWA = mathSin((90.0 - BDP[i].Wb) * M_rad)
 
 					lp_1 := NewP_MENN()
 					lp_2 := NewP_MENN()
@@ -205,9 +205,9 @@ func LP_COORDNT(
 					lp_1.P[3].Z = c
 
 					/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-					lp_1.e.Z = math.Cos(lp_1.wb * M_rad)
-					lp_1.e.Y = -math.Sin(lp_1.wb*M_rad) * math.Cos(lp_1.wa*M_rad)
-					lp_1.e.X = -math.Sin(lp_1.wb*M_rad) * math.Sin(lp_1.wa*M_rad)
+					lp_1.e.Z = mathCos(lp_1.wb * M_rad)
+					lp_1.e.Y = -mathSin(lp_1.wb*M_rad) * mathCos(lp_1.wa*M_rad)
+					lp_1.e.X = -mathSin(lp_1.wb*M_rad) * mathSin(lp_1.wa*M_rad)
 					CAT(&lp_1.e.X, &lp_1.e.Y, &lp_1.e.Z)
 
 					//HOUSEN2(&lp_1.P[0],&lp_1.P[1],&lp_1.P[2],&lp_1.e)
@@ -245,9 +245,9 @@ func LP_COORDNT(
 					lp_2.P[3].Z = c - sblk.H*sWb
 
 					/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-					lp_2.e.Z = math.Cos(lp_2.wb * M_rad)
-					lp_2.e.Y = -math.Sin(lp_2.wb*M_rad) * math.Cos(lp_2.wa*M_rad)
-					lp_2.e.X = -math.Sin(lp_2.wb*M_rad) * math.Sin(lp_2.wa*M_rad)
+					lp_2.e.Z = mathCos(lp_2.wb * M_rad)
+					lp_2.e.Y = -mathSin(lp_2.wb*M_rad) * mathCos(lp_2.wa*M_rad)
+					lp_2.e.X = -mathSin(lp_2.wb*M_rad) * mathSin(lp_2.wa*M_rad)
 					CAT(&lp_2.e.X, &lp_2.e.Y, &lp_2.e.Z)
 
 					//HOUSEN2(&lp_2.P[0],&lp_2.P[1],&lp_2.P[2],&lp_2.e)
@@ -282,9 +282,9 @@ func LP_COORDNT(
 					lp_3.P[3].Z = lp_3.P[0].Z
 
 					/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-					lp_3.e.Z = math.Cos(lp_3.wb * M_rad)
-					lp_3.e.Y = -math.Sin(lp_3.wb*M_rad) * math.Cos(lp_3.wa*M_rad)
-					lp_3.e.X = -math.Sin(lp_3.wb*M_rad) * math.Sin(lp_3.wa*M_rad)
+					lp_3.e.Z = mathCos(lp_3.wb * M_rad)
+					lp_3.e.Y = -mathSin(lp_3.wb*M_rad) * mathCos(lp_3.wa*M_rad)
+					lp_3.e.X = -mathSin(lp_3.wb*M_rad) * mathSin(lp_3.wa*M_rad)
 					CAT(&lp_3.e.X, &lp_3.e.Y, &lp_3.e.Z)
 
 					//HOUSEN2(&lp_3.P[0],&lp_3.P[1],&lp_3.P[2],&lp_3.e) ;
@@ -318,9 +318,9 @@ func LP_COORDNT(
 					lp_4.P[3] = lp_3.P[3]
 
 					/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-					lp_4.e.Z = math.Cos(lp_4.wb * M_rad)
-					lp_4.e.Y = -math.Sin(lp_4.wb*M_rad) * math.Cos(lp_4.wa*M_rad)
-					lp_4.e.X = -math.Sin(lp_4.wb*M_rad) * math.Sin(lp_4.wa*M_rad)
+					lp_4.e.Z = mathCos(lp_4.wb * M_rad)
+					lp_4.e.Y = -mathSin(lp_4.wb*M_rad) * mathCos(lp_4.wa*M_rad)
+					lp_4.e.X = -mathSin(lp_4.wb*M_rad) * mathSin(lp_4.wa*M_rad)
 					CAT(&lp_4.e.X, &lp_4.e.Y, &lp_4.e.Z)
 
 					//HOUSEN2(&lp_4.P[0],&lp_4.P[1],&lp_4.P[2],&lp_4.e)
@@ -361,9 +361,9 @@ func LP_COORDNT(
 					lp_5.P[3] = lp_4.P[2]
 
 					/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-					lp_5.e.Z = math.Cos(lp_5.wb * M_rad)
-					lp_5.e.Y = -math.Sin(lp_5.wb*M_rad) * math.Cos(lp_5.wa*M_rad)
-					lp_5.e.X = -math.Sin(lp_5.wb*M_rad) * math.Sin(lp_5.wa*M_rad)
+					lp_5.e.Z = mathCos(lp_5.wb * M_rad)
+					lp_5.e.Y = -mathSin(lp_5.wb*M_rad) * mathCos(lp_5.wa*M_rad)
+					lp_5.e.X = -mathSin(lp_5.wb*M_rad) * mathSin(lp_5.wa*M_rad)
 					CAT(&lp_5.e.X, &lp_5.e.Y, &lp_5.e.Z)
 
 					//HOUSEN2(&lp_5.P[0],&lp_5.P[1],&lp_5.P[2],&lp_5.e)
@@ -386,10 +386,10 @@ func LP_COORDNT(
 					a = BDP[i].x0 + sblk.x*cWa - sblk.y*cWb*sWa
 					b = BDP[i].y0 + sblk.x*sWa + sblk.y*cWb*cWa
 					c = BDP[i].z0 + sblk.y*sWb
-					csWA = math.Cos((-BDP[i].Wa - sblk.WA) * M_rad)
-					ssWA = math.Sin((-BDP[i].Wa - sblk.WA) * M_rad)
-					csWb = math.Cos((90.0 - BDP[i].Wb) * M_rad)
-					ssWb = math.Sin((90.0 - BDP[i].Wb) * M_rad)
+					csWA = mathCos((-BDP[i].Wa - sblk.WA) * M_rad)
+					ssWA = mathSin((-BDP[i].Wa - sblk.WA) * M_rad)
+					csWb = mathCos((90.0 - BDP[i].Wb) * M_rad)
+					ssWb = mathSin((90.0 - BDP[i].Wb) * M_rad)
 
 					lp_k := NewP_MENN()
 
@@ -429,9 +429,9 @@ func LP_COORDNT(
 					lp_k.P[3].Z = c - sblk.H*sWb
 
 					/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-					lp_k.e.Z = math.Cos(lp_k.wb * M_rad)
-					lp_k.e.Y = -math.Sin(lp_k.wb*M_rad) * math.Cos(lp_k.wa*M_rad)
-					lp_k.e.X = -math.Sin(lp_k.wb*M_rad) * math.Sin(lp_k.wa*M_rad)
+					lp_k.e.Z = mathCos(lp_k.wb * M_rad)
+					lp_k.e.Y = -mathSin(lp_k.wb*M_rad) * mathCos(lp_k.wa*M_rad)
+					lp_k.e.X = -mathSin(lp_k.wb*M_rad) * mathSin(lp_k.wa*M_rad)
 					CAT(&lp_k.e.X, &lp_k.e.Y, &lp_k.e.Z)
 
 					//HOUSEN2(&lp_k.P[0],&lp_k.P[1],&lp_k.P[2],&lp_k.e) ;
@@ -449,8 +449,8 @@ func LP_COORDNT(
 					a = BDP[i].x0 + sblk.x*cWa - sblk.y*cWb*sWa
 					b = BDP[i].y0 + sblk.x*sWa + sblk.y*cWb*cWa
 					c = BDP[i].z0 + sblk.y*sWb
-					chWA = math.Cos((90.0 - BDP[i].Wb) * M_rad)
-					shWA = math.Sin((90.0 - BDP[i].Wb) * M_rad)
+					chWA = mathCos((90.0 - BDP[i].Wb) * M_rad)
+					shWA = mathSin((90.0 - BDP[i].Wb) * M_rad)
 
 					lp_k := NewP_MENN()
 
@@ -493,9 +493,9 @@ func LP_COORDNT(
 					lp_k.P[2].Z = lp_k.P[1].Z
 
 					/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-					lp_k.e.Z = math.Cos(lp_k.wb * M_rad)
-					lp_k.e.Y = -math.Sin(lp_k.wb*M_rad) * math.Cos(lp_k.wa*M_rad)
-					lp_k.e.X = -math.Sin(lp_k.wb*M_rad) * math.Sin(lp_k.wa*M_rad)
+					lp_k.e.Z = mathCos(lp_k.wb * M_rad)
+					lp_k.e.Y = -mathSin(lp_k.wb*M_rad) * mathCos(lp_k.wa*M_rad)
+					lp_k.e.X = -mathSin(lp_k.wb*M_rad) * mathSin(lp_k.wa*M_rad)
 					CAT(&lp_k.e.X, &lp_k.e.Y, &lp_k.e.Z)
 
 					//HOUSEN2(&lp_k.P[0],&lp_k.P[1],&lp_k.P[2],&lp_k.e) ;
@@ -516,10 +516,10 @@ func LP_COORDNT(
 			caWa = 0.0
 			saWb = 0.0
 
-			caWb = math.Cos(obs[i].Wb * M_rad)
-			saWa = math.Sin(-obs[i].Wa * M_rad)
-			saWb = math.Sin(obs[i].Wb * M_rad)
-			caWa = math.Cos(-obs[i].Wa * M_rad)
+			caWb = mathCos(obs[i].Wb * M_rad)
+			saWa = mathSin(-obs[i].Wa * M_rad)
+			saWb = mathSin(obs[i].Wb * M_rad)
+			caWa = mathCos(-obs[i].Wa * M_rad)
 
 			lp_k := NewP_MENN()
 
@@ -555,9 +555,9 @@ func LP_COORDNT(
 			lp_k.P[3].Z = obs[i].z
 
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_k.e.Z = math.Cos(lp_k.wb * M_rad)
-			lp_k.e.Y = -math.Sin(lp_k.wb*M_rad) * math.Cos(lp_k.wa*M_rad)
-			lp_k.e.X = -math.Sin(lp_k.wb*M_rad) * math.Sin(lp_k.wa*M_rad)
+			lp_k.e.Z = mathCos(lp_k.wb * M_rad)
+			lp_k.e.Y = -mathSin(lp_k.wb*M_rad) * mathCos(lp_k.wa*M_rad)
+			lp_k.e.X = -mathSin(lp_k.wb*M_rad) * mathSin(lp_k.wa*M_rad)
 			CAT(&lp_k.e.X, &lp_k.e.Y, &lp_k.e.Z)
 			//HOUSEN2(&lp_k.P[0],&lp_k.P[1],&lp_k.P[2],&lp_k.e)
 
@@ -566,8 +566,8 @@ func LP_COORDNT(
 			cbWa = 0.0
 			sbWa = 0.0
 
-			cbWa = math.Cos(-obs[i].Wa * M_rad)
-			sbWa = math.Sin(-obs[i].Wa * M_rad)
+			cbWa = mathCos(-obs[i].Wa * M_rad)
+			sbWa = mathSin(-obs[i].Wa * M_rad)
 
 			lp_1 := NewP_MENN()
 			lp_2 := NewP_MENN()
@@ -606,9 +606,9 @@ func LP_COORDNT(
 			lp_1.P[3].Z = lp_1.P[0].Z
 
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_1.e.Z = math.Cos(lp_1.wb * M_rad)
-			lp_1.e.Y = -math.Sin(lp_1.wb*M_rad) * math.Cos(lp_1.wa*M_rad)
-			lp_1.e.X = -math.Sin(lp_1.wb*M_rad) * math.Sin(lp_1.wa*M_rad)
+			lp_1.e.Z = mathCos(lp_1.wb * M_rad)
+			lp_1.e.Y = -mathSin(lp_1.wb*M_rad) * mathCos(lp_1.wa*M_rad)
+			lp_1.e.X = -mathSin(lp_1.wb*M_rad) * mathSin(lp_1.wa*M_rad)
 			CAT(&lp_1.e.X, &lp_1.e.Y, &lp_1.e.Z)
 
 			//HOUSEN2(&lp_k.P[0],&lp_k.P[1],&lp_k.P[2],&lp_k.e)
@@ -645,9 +645,9 @@ func LP_COORDNT(
 			lp_2.P[3].Z = lp_2.P[0].Z
 
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_2.e.Z = math.Cos(lp_2.wb * M_rad)
-			lp_2.e.Y = -math.Sin(lp_2.wb*M_rad) * math.Cos(lp_2.wa*M_rad)
-			lp_2.e.X = -math.Sin(lp_2.wb*M_rad) * math.Sin(lp_2.wa*M_rad)
+			lp_2.e.Z = mathCos(lp_2.wb * M_rad)
+			lp_2.e.Y = -mathSin(lp_2.wb*M_rad) * mathCos(lp_2.wa*M_rad)
+			lp_2.e.X = -mathSin(lp_2.wb*M_rad) * mathSin(lp_2.wa*M_rad)
 			CAT(&lp_2.e.X, &lp_2.e.Y, &lp_2.e.Z)
 			//HOUSEN2(&lp_2.P[0],&lp_2.P[1],&lp_2.P[2],&lp_2.e)
 
@@ -682,9 +682,9 @@ func LP_COORDNT(
 			lp_3.P[3].Z = lp_3.P[0].Z
 
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_3.e.Z = math.Cos(lp_3.wb * M_rad)
-			lp_3.e.Y = -math.Sin(lp_3.wb*M_rad) * math.Cos(lp_3.wa*M_rad)
-			lp_3.e.X = -math.Sin(lp_3.wb*M_rad) * math.Sin(lp_3.wa*M_rad)
+			lp_3.e.Z = mathCos(lp_3.wb * M_rad)
+			lp_3.e.Y = -mathSin(lp_3.wb*M_rad) * mathCos(lp_3.wa*M_rad)
+			lp_3.e.X = -mathSin(lp_3.wb*M_rad) * mathSin(lp_3.wa*M_rad)
 			CAT(&lp_3.e.X, &lp_3.e.Y, &lp_3.e.Z)
 			//HOUSEN2(&lp_3.P[0],&lp_3.P[1],&lp_3.P[2],&lp_3.e)
 
@@ -715,9 +715,9 @@ func LP_COORDNT(
 			lp_4.P[3] = lp_1.P[0]
 
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_4.e.Z = math.Cos(lp_4.wb * M_rad)
-			lp_4.e.Y = -math.Sin(lp_4.wb*M_rad) * math.Cos(lp_4.wa*M_rad)
-			lp_4.e.X = -math.Sin(lp_4.wb*M_rad) * math.Sin(lp_4.wa*M_rad)
+			lp_4.e.Z = mathCos(lp_4.wb * M_rad)
+			lp_4.e.Y = -mathSin(lp_4.wb*M_rad) * mathCos(lp_4.wa*M_rad)
+			lp_4.e.X = -mathSin(lp_4.wb*M_rad) * mathSin(lp_4.wa*M_rad)
 			CAT(&lp_4.e.X, &lp_4.e.Y, &lp_4.e.Z)
 			//HOUSEN2(&lp_4.P[0],&lp_4.P[1],&lp_4.P[2],&lp_4.e)
 
@@ -732,10 +732,10 @@ func LP_COORDNT(
 			caWa = 0.0
 			saWb = 0.0
 
-			caWb = math.Cos(obs[i].Wb * M_rad)
-			saWa = math.Sin(obs[i].Wa * M_rad)
-			saWb = math.Sin(obs[i].Wb * M_rad)
-			caWa = math.Cos(obs[i].Wa * M_rad)
+			caWb = mathCos(obs[i].Wb * M_rad)
+			saWa = mathSin(obs[i].Wa * M_rad)
+			saWb = mathSin(obs[i].Wb * M_rad)
+			caWa = mathCos(obs[i].Wa * M_rad)
 
 			lp_k := NewP_MENN()
 
@@ -768,9 +768,9 @@ func LP_COORDNT(
 			lp_k.P[2].Z = obs[i].z
 
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_k.e.Z = math.Cos(lp_k.wb * M_rad)
-			lp_k.e.Y = -math.Sin(lp_k.wb*M_rad) * math.Cos(lp_k.wa*M_rad)
-			lp_k.e.X = -math.Sin(lp_k.wb*M_rad) * math.Sin(lp_k.wa*M_rad)
+			lp_k.e.Z = mathCos(lp_k.wb * M_rad)
+			lp_k.e.Y = -mathSin(lp_k.wb*M_rad) * mathCos(lp_k.wa*M_rad)
+			lp_k.e.X = -mathSin(lp_k.wb*M_rad) * mathSin(lp_k.wa*M_rad)
 			CAT(&lp_k.e.X, &lp_k.e.Y, &lp_k.e.Z)
 			//HOUSEN2(&lp_k.P[0],&lp_k.P[1],&lp_k.P[2],&lp_k.e)
 
@@ -782,10 +782,10 @@ func LP_COORDNT(
 			caWa = 0.0
 			saWb = 0.0
 
-			caWb = math.Cos(obs[i].Wb * M_rad)
-			saWa = math.Sin(-obs[i].Wa * M_rad)
-			saWb = math.Sin(obs[i].Wb * M_rad)
-			caWa = math.Cos(-obs[i].Wa * M_rad)
+			caWb = mathCos(obs[i].Wb * M_rad)
+			saWa = mathSin(-obs[i].Wa * M_rad)
+			saWb = mathSin(obs[i].Wb * M_rad)
+			caWa = mathCos(-obs[i].Wa * M_rad)
 
 			lp_k := NewP_MENN()
 
@@ -818,9 +818,9 @@ func LP_COORDNT(
 			lp_k.P[2].Z = obs[i].z
 
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_k.e.Z = math.Cos(lp_k.wb * M_rad)
-			lp_k.e.Y = -math.Sin(lp_k.wb*M_rad) * math.Cos(lp_k.wa*M_rad)
-			lp_k.e.X = -math.Sin(lp_k.wb*M_rad) * math.Sin(lp_k.wa*M_rad)
+			lp_k.e.Z = mathCos(lp_k.wb * M_rad)
+			lp_k.e.Y = -mathSin(lp_k.wb*M_rad) * mathCos(lp_k.wa*M_rad)
+			lp_k.e.X = -mathSin(lp_k.wb*M_rad) * mathSin(lp_k.wa*M_rad)
 			CAT(&lp_k.e.X, &lp_k.e.Y, &lp_k.e.Z)
 			//HOUSEN2(&lp_k.P[0],&lp_k.P[1],&lp_k.P[2],&lp_k.e)
 
@@ -871,9 +871,9 @@ func LP_COORDNT(
 			lp_1.P[3].Z = tree[i].z
 
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_1.e.Z = math.Cos(lp_1.wb * M_rad)
-			lp_1.e.Y = -math.Sin(lp_1.wb*M_rad) * math.Cos(lp_1.wa*M_rad)
-			lp_1.e.X = -math.Sin(lp_1.wb*M_rad) * math.Sin(lp_1.wa*M_rad)
+			lp_1.e.Z = mathCos(lp_1.wb * M_rad)
+			lp_1.e.Y = -mathSin(lp_1.wb*M_rad) * mathCos(lp_1.wa*M_rad)
+			lp_1.e.X = -mathSin(lp_1.wb*M_rad) * mathSin(lp_1.wa*M_rad)
 			CAT(&lp_1.e.X, &lp_1.e.Y, &lp_1.e.Z)
 			//HOUSEN2(&lp_1.P[0],&lp_1.P[1],&lp_1.P[2],&lp_1.e)
 
@@ -910,9 +910,9 @@ func LP_COORDNT(
 			lp_2.P[3].Z = tree[i].z
 
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_2.e.Z = math.Cos(lp_2.wb * M_rad)
-			lp_2.e.Y = -math.Sin(lp_2.wb*M_rad) * math.Cos(lp_2.wa*M_rad)
-			lp_2.e.X = -math.Sin(lp_2.wb*M_rad) * math.Sin(lp_2.wa*M_rad)
+			lp_2.e.Z = mathCos(lp_2.wb * M_rad)
+			lp_2.e.Y = -mathSin(lp_2.wb*M_rad) * mathCos(lp_2.wa*M_rad)
+			lp_2.e.X = -mathSin(lp_2.wb*M_rad) * mathSin(lp_2.wa*M_rad)
 			CAT(&lp_2.e.X, &lp_2.e.Y, &lp_2.e.Z)
 			//HOUSEN2(&lp_2.P[0],&lp_2.P[1],&lp_2.P[2],&lp_2.e)
 
@@ -950,9 +950,9 @@ func LP_COORDNT(
 			lp_3.P[3].Z = tree[i].z
 
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_3.e.Z = math.Cos(lp_3.wb * M_rad)
-			lp_3.e.Y = -math.Sin(lp_3.wb*M_rad) * math.Cos(lp_3.wa*M_rad)
-			lp_3.e.X = -math.Sin(lp_3.wb*M_rad) * math.Sin(lp_3.wa*M_rad)
+			lp_3.e.Z = mathCos(lp_3.wb * M_rad)
+			lp_3.e.Y = -mathSin(lp_3.wb*M_rad) * mathCos(lp_3.wa*M_rad)
+			lp_3.e.X = -mathSin(lp_3.wb*M_rad) * mathSin(lp_3.wa*M_rad)
 			CAT(&lp_3.e.X, &lp_3.e.Y, &lp_3.e.Z)
 			//HOUSEN2(&lp_3.P[0],&lp_3.P[1],&lp_3.P[2],&lp_3.e)
 
@@ -986,9 +986,9 @@ func LP_COORDNT(
 			lp_4.P[3] = lp_1.P[0]
 
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_4.e.Z = math.Cos(lp_4.wb * M_rad)
-			lp_4.e.Y = -math.Sin(lp_4.wb*M_rad) * math.Cos(lp_4.wa*M_rad)
-			lp_4.e.X = -math.Sin(lp_4.wb*M_rad) * math.Sin(lp_4.wa*M_rad)
+			lp_4.e.Z = mathCos(lp_4.wb * M_rad)
+			lp_4.e.Y = -mathSin(lp_4.wb*M_rad) * mathCos(lp_4.wa*M_rad)
+			lp_4.e.X = -mathSin(lp_4.wb*M_rad) * mathSin(lp_4.wa*M_rad)
 			CAT(&lp_4.e.X, &lp_4.e.Y, &lp_4.e.Z)
 			//HOUSEN2(&lp_4.P[0],&lp_4.P[1],&lp_4.P[2],&lp_4.e)
 
@@ -1021,19 +1021,19 @@ func LP_COORDNT(
 			lp_5.P[1].X = tree[i].x
 			lp_5.P[1].Y = tree[i].y - (tree[i].W3 * 0.5)
 			lp_5.P[1].Z = tree[i].z + tree[i].H1 + tree[i].H2
-			lp_5.P[2].X = tree[i].x + (tree[i].W3*0.5)*math.Cos(45*M_rad)
-			lp_5.P[2].Y = tree[i].y - (tree[i].W3*0.5)*math.Sin(45*M_rad)
+			lp_5.P[2].X = tree[i].x + (tree[i].W3*0.5)*mathCos(45*M_rad)
+			lp_5.P[2].Y = tree[i].y - (tree[i].W3*0.5)*mathSin(45*M_rad)
 			lp_5.P[2].Z = lp_5.P[1].Z
-			lp_5.P[3].X = tree[i].x + (tree[i].W2*0.5)*math.Cos(45*M_rad)
-			lp_5.P[3].Y = tree[i].y - (tree[i].W2*0.5)*math.Sin(45*M_rad)
+			lp_5.P[3].X = tree[i].x + (tree[i].W2*0.5)*mathCos(45*M_rad)
+			lp_5.P[3].Y = tree[i].y - (tree[i].W2*0.5)*mathSin(45*M_rad)
 			lp_5.P[3].Z = tree[i].z + tree[i].H1
 
 			HOUSEN2(&lp_5.P[0], &lp_5.P[1], &lp_5.P[2], &lp_5.e)
-			lp_5.wb = math.Acos(lp_5.e.Z) * (180 / math.Pi)
+			lp_5.wb = mathAcos(lp_5.e.Z) * (180 / math.Pi)
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_5.e.Z = math.Cos(lp_5.wb * M_rad)
-			lp_5.e.Y = -math.Sin(lp_5.wb*M_rad) * math.Cos(lp_5.wa*M_rad)
-			lp_5.e.X = -math.Sin(lp_5.wb*M_rad) * math.Sin(lp_5.wa*M_rad)
+			lp_5.e.Z = mathCos(lp_5.wb * M_rad)
+			lp_5.e.Y = -mathSin(lp_5.wb*M_rad) * mathCos(lp_5.wa*M_rad)
+			lp_5.e.X = -mathSin(lp_5.wb*M_rad) * mathSin(lp_5.wa*M_rad)
 			CAT(&lp_5.e.X, &lp_5.e.Y, &lp_5.e.Z)
 
 			lp = append(lp, lp_5)
@@ -1069,11 +1069,11 @@ func LP_COORDNT(
 			lp_6.P[3].Z = lp_6.P[0].Z
 
 			HOUSEN2(&lp_6.P[0], &lp_6.P[1], &lp_6.P[2], &lp_6.e)
-			lp_6.wb = math.Acos(lp_6.e.Z) * (180 / math.Pi)
+			lp_6.wb = mathAcos(lp_6.e.Z) * (180 / math.Pi)
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_6.e.Z = math.Cos(lp_6.wb * M_rad)
-			lp_6.e.Y = -math.Sin(lp_6.wb*M_rad) * math.Cos(lp_6.wa*M_rad)
-			lp_6.e.X = -math.Sin(lp_6.wb*M_rad) * math.Sin(lp_6.wa*M_rad)
+			lp_6.e.Z = mathCos(lp_6.wb * M_rad)
+			lp_6.e.Y = -mathSin(lp_6.wb*M_rad) * mathCos(lp_6.wa*M_rad)
+			lp_6.e.X = -mathSin(lp_6.wb*M_rad) * mathSin(lp_6.wa*M_rad)
 			CAT(&lp_6.e.X, &lp_6.e.Y, &lp_6.e.Z)
 
 			lp = append(lp, lp_6)
@@ -1101,19 +1101,19 @@ func LP_COORDNT(
 
 			lp_7.P[0] = lp_6.P[3]
 			lp_7.P[1] = lp_6.P[2]
-			lp_7.P[2].X = tree[i].x + (tree[i].W3*0.5)*math.Cos(45*M_rad)
-			lp_7.P[2].Y = tree[i].y + (tree[i].W3*0.5)*math.Sin(45*M_rad)
+			lp_7.P[2].X = tree[i].x + (tree[i].W3*0.5)*mathCos(45*M_rad)
+			lp_7.P[2].Y = tree[i].y + (tree[i].W3*0.5)*mathSin(45*M_rad)
 			lp_7.P[2].Z = lp_7.P[1].Z
-			lp_7.P[3].X = tree[i].x + (tree[i].W2*0.5)*math.Cos(45*M_rad)
-			lp_7.P[3].Y = tree[i].y + (tree[i].W2*0.5)*math.Sin(45*M_rad)
+			lp_7.P[3].X = tree[i].x + (tree[i].W2*0.5)*mathCos(45*M_rad)
+			lp_7.P[3].Y = tree[i].y + (tree[i].W2*0.5)*mathSin(45*M_rad)
 			lp_7.P[3].Z = lp_7.P[0].Z
 
 			HOUSEN2(&lp_7.P[0], &lp_7.P[1], &lp_7.P[2], &lp_7.e)
-			lp_7.wb = math.Acos(lp_7.e.Z) * (180 / math.Pi)
+			lp_7.wb = mathAcos(lp_7.e.Z) * (180 / math.Pi)
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_7.e.Z = math.Cos(lp_7.wb * M_rad)
-			lp_7.e.Y = -math.Sin(lp_7.wb*M_rad) * math.Cos(lp_7.wa*M_rad)
-			lp_7.e.X = -math.Sin(lp_7.wb*M_rad) * math.Sin(lp_7.wa*M_rad)
+			lp_7.e.Z = mathCos(lp_7.wb * M_rad)
+			lp_7.e.Y = -mathSin(lp_7.wb*M_rad) * mathCos(lp_7.wa*M_rad)
+			lp_7.e.X = -mathSin(lp_7.wb*M_rad) * mathSin(lp_7.wa*M_rad)
 			CAT(&lp_7.e.X, &lp_7.e.Y, &lp_7.e.Z)
 
 			lp = append(lp, lp_7)
@@ -1149,11 +1149,11 @@ func LP_COORDNT(
 			lp_8.P[3].Z = lp_8.P[0].Z
 
 			HOUSEN2(&lp_8.P[0], &lp_8.P[1], &lp_8.P[2], &lp_8.e)
-			lp_8.wb = math.Acos(lp_8.e.Z) * (180 / math.Pi)
+			lp_8.wb = mathAcos(lp_8.e.Z) * (180 / math.Pi)
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_8.e.Z = math.Cos(lp_8.wb * M_rad)
-			lp_8.e.Y = -math.Sin(lp_8.wb*M_rad) * math.Cos(lp_8.wa*M_rad)
-			lp_8.e.X = -math.Sin(lp_8.wb*M_rad) * math.Sin(lp_8.wa*M_rad)
+			lp_8.e.Z = mathCos(lp_8.wb * M_rad)
+			lp_8.e.Y = -mathSin(lp_8.wb*M_rad) * mathCos(lp_8.wa*M_rad)
+			lp_8.e.X = -mathSin(lp_8.wb*M_rad) * mathSin(lp_8.wa*M_rad)
 			CAT(&lp_8.e.X, &lp_8.e.Y, &lp_8.e.Z)
 
 			lp = append(lp, lp_8)
@@ -1181,19 +1181,19 @@ func LP_COORDNT(
 
 			lp_9.P[0] = lp_8.P[3]
 			lp_9.P[1] = lp_8.P[2]
-			lp_9.P[2].X = tree[i].x - (tree[i].W3*0.5)*math.Cos(45*M_rad)
-			lp_9.P[2].Y = tree[i].y + (tree[i].W3*0.5)*math.Sin(45*M_rad)
+			lp_9.P[2].X = tree[i].x - (tree[i].W3*0.5)*mathCos(45*M_rad)
+			lp_9.P[2].Y = tree[i].y + (tree[i].W3*0.5)*mathSin(45*M_rad)
 			lp_9.P[2].Z = lp_9.P[1].Z
-			lp_9.P[3].X = tree[i].x - (tree[i].W2*0.5)*math.Cos(45*M_rad)
-			lp_9.P[3].Y = tree[i].y + (tree[i].W2*0.5)*math.Sin(45*M_rad)
+			lp_9.P[3].X = tree[i].x - (tree[i].W2*0.5)*mathCos(45*M_rad)
+			lp_9.P[3].Y = tree[i].y + (tree[i].W2*0.5)*mathSin(45*M_rad)
 			lp_9.P[3].Z = lp_9.P[0].Z
 
 			HOUSEN2(&lp_9.P[0], &lp_9.P[1], &lp_9.P[2], &lp_9.e)
-			lp_9.wb = math.Acos(lp_9.e.Z) * (180 / math.Pi)
+			lp_9.wb = mathAcos(lp_9.e.Z) * (180 / math.Pi)
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_9.e.Z = math.Cos(lp_9.wb * M_rad)
-			lp_9.e.Y = -math.Sin(lp_9.wb*M_rad) * math.Cos(lp_9.wa*M_rad)
-			lp_9.e.X = -math.Sin(lp_9.wb*M_rad) * math.Sin(lp_9.wa*M_rad)
+			lp_9.e.Z = mathCos(lp_9.wb * M_rad)
+			lp_9.e.Y = -mathSin(lp_9.wb*M_rad) * mathCos(lp_9.wa*M_rad)
+			lp_9.e.X = -mathSin(lp_9.wb*M_rad) * mathSin(lp_9.wa*M_rad)
 			CAT(&lp_9.e.X, &lp_9.e.Y, &lp_9.e.Z)
 
 			lp = append(lp, lp_9)
@@ -1229,11 +1229,11 @@ func LP_COORDNT(
 			lp_10.P[3].Z = lp_10.P[0].Z
 
 			HOUSEN2(&lp_10.P[0], &lp_10.P[1], &lp_10.P[2], &lp_10.e)
-			lp_10.wb = math.Acos(lp_10.e.Z) * (180 / math.Pi)
+			lp_10.wb = mathAcos(lp_10.e.Z) * (180 / math.Pi)
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_10.e.Z = math.Cos(lp_10.wb * M_rad)
-			lp_10.e.Y = -math.Sin(lp_10.wb*M_rad) * math.Cos(lp_10.wa*M_rad)
-			lp_10.e.X = -math.Sin(lp_10.wb*M_rad) * math.Sin(lp_10.wa*M_rad)
+			lp_10.e.Z = mathCos(lp_10.wb * M_rad)
+			lp_10.e.Y = -mathSin(lp_10.wb*M_rad) * mathCos(lp_10.wa*M_rad)
+			lp_10.e.X = -mathSin(lp_10.wb*M_rad) * mathSin(lp_10.wa*M_rad)
 			CAT(&lp_10.e.X, &lp_10.e.Y, &lp_10.e.Z)
 
 			lp = append(lp, lp_10)
@@ -1261,19 +1261,19 @@ func LP_COORDNT(
 
 			lp_11.P[0] = lp_10.P[3]
 			lp_11.P[1] = lp_10.P[2]
-			lp_11.P[2].X = tree[i].x - (tree[i].W3*0.5)*math.Cos(45*M_rad)
-			lp_11.P[2].Y = tree[i].y - (tree[i].W3*0.5)*math.Sin(45*M_rad)
+			lp_11.P[2].X = tree[i].x - (tree[i].W3*0.5)*mathCos(45*M_rad)
+			lp_11.P[2].Y = tree[i].y - (tree[i].W3*0.5)*mathSin(45*M_rad)
 			lp_11.P[2].Z = lp_11.P[1].Z
-			lp_11.P[3].X = tree[i].x - (tree[i].W2*0.5)*math.Cos(45*M_rad)
-			lp_11.P[3].Y = tree[i].y - (tree[i].W2*0.5)*math.Sin(45*M_rad)
+			lp_11.P[3].X = tree[i].x - (tree[i].W2*0.5)*mathCos(45*M_rad)
+			lp_11.P[3].Y = tree[i].y - (tree[i].W2*0.5)*mathSin(45*M_rad)
 			lp_11.P[3].Z = lp_11.P[0].Z
 
 			HOUSEN2(&lp_11.P[0], &lp_11.P[1], &lp_11.P[2], &lp_11.e)
-			lp_11.wb = math.Acos(lp_11.e.Z) * (180 / math.Pi)
+			lp_11.wb = mathAcos(lp_11.e.Z) * (180 / math.Pi)
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_11.e.Z = math.Cos(lp_11.wb * M_rad)
-			lp_11.e.Y = -math.Sin(lp_11.wb*M_rad) * math.Cos(lp_11.wa*M_rad)
-			lp_11.e.X = -math.Sin(lp_11.wb*M_rad) * math.Sin(lp_11.wa*M_rad)
+			lp_11.e.Z = mathCos(lp_11.wb * M_rad)
+			lp_11.e.Y = -mathSin(lp_11.wb*M_rad) * mathCos(lp_11.wa*M_rad)
+			lp_11.e.X = -mathSin(lp_11.wb*M_rad) * mathSin(lp_11.wa*M_rad)
 			CAT(&lp_11.e.X, &lp_11.e.Y, &lp_11.e.Z)
 
 			lp = append(lp, lp_11)
@@ -1309,11 +1309,11 @@ func LP_COORDNT(
 			lp_12.P[3].Z = lp_12.P[0].Z
 
 			HOUSEN2(&lp_12.P[0], &lp_12.P[1], &lp_12.P[2], &lp_12.e)
-			lp_12.wb = math.Acos(lp_12.e.Z) * (180 / math.Pi)
+			lp_12.wb = mathAcos(lp_12.e.Z) * (180 / math.Pi)
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_12.e.Z = math.Cos(lp_12.wb * M_rad)
-			lp_12.e.Y = -math.Sin(lp_12.wb*M_rad) * math.Cos(lp_12.wa*M_rad)
-			lp_12.e.X = -math.Sin(lp_12.wb*M_rad) * math.Sin(lp_12.wa*M_rad)
+			lp_12.e.Z = mathCos(lp_12.wb * M_rad)
+			lp_12.e.Y = -mathSin(lp_12.wb*M_rad) * mathCos(lp_12.wa*M_rad)
+			lp_12.e.X = -mathSin(lp_12.wb*M_rad) * mathSin(lp_12.wa*M_rad)
 			CAT(&lp_12.e.X, &lp_12.e.Y, &lp_12.e.Z)
 
 			lp = append(lp, lp_12)
@@ -1345,19 +1345,19 @@ func LP_COORDNT(
 			lp_13.P[1].X = tree[i].x
 			lp_13.P[1].Y = tree[i].y - (tree[i].W4 * 0.5)
 			lp_13.P[1].Z = tree[i].z + tree[i].H1 + tree[i].H2 + tree[i].H3
-			lp_13.P[2].X = tree[i].x + (tree[i].W4*0.5)*math.Cos(45*M_rad)
-			lp_13.P[2].Y = tree[i].y - (tree[i].W4*0.5)*math.Sin(45*M_rad)
+			lp_13.P[2].X = tree[i].x + (tree[i].W4*0.5)*mathCos(45*M_rad)
+			lp_13.P[2].Y = tree[i].y - (tree[i].W4*0.5)*mathSin(45*M_rad)
 			lp_13.P[2].Z = lp_13.P[1].Z
-			lp_13.P[3].X = tree[i].x + (tree[i].W3*0.5)*math.Cos(45*M_rad)
-			lp_13.P[3].Y = tree[i].y - (tree[i].W3*0.5)*math.Sin(45*M_rad)
+			lp_13.P[3].X = tree[i].x + (tree[i].W3*0.5)*mathCos(45*M_rad)
+			lp_13.P[3].Y = tree[i].y - (tree[i].W3*0.5)*mathSin(45*M_rad)
 			lp_13.P[3].Z = lp_13.P[0].Z
 
 			HOUSEN2(&lp_13.P[0], &lp_13.P[1], &lp_13.P[2], &lp_13.e)
-			lp_13.wb = math.Acos(lp_13.e.Z) * (180 / math.Pi)
+			lp_13.wb = mathAcos(lp_13.e.Z) * (180 / math.Pi)
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_13.e.Z = math.Cos(lp_13.wb * M_rad)
-			lp_13.e.Y = -math.Sin(lp_13.wb*M_rad) * math.Cos(lp_13.wa*M_rad)
-			lp_13.e.X = -math.Sin(lp_13.wb*M_rad) * math.Sin(lp_13.wa*M_rad)
+			lp_13.e.Z = mathCos(lp_13.wb * M_rad)
+			lp_13.e.Y = -mathSin(lp_13.wb*M_rad) * mathCos(lp_13.wa*M_rad)
+			lp_13.e.X = -mathSin(lp_13.wb*M_rad) * mathSin(lp_13.wa*M_rad)
 			CAT(&lp_13.e.X, &lp_13.e.Y, &lp_13.e.Z)
 
 			lp = append(lp, lp_13)
@@ -1393,11 +1393,11 @@ func LP_COORDNT(
 			lp_14.P[3].Z = lp_14.P[0].Z
 
 			HOUSEN2(&lp_14.P[0], &lp_14.P[1], &lp_14.P[2], &lp_14.e)
-			lp_14.wb = math.Acos(lp_14.e.Z) * (180 / math.Pi)
+			lp_14.wb = mathAcos(lp_14.e.Z) * (180 / math.Pi)
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_14.e.Z = math.Cos(lp_14.wb * M_rad)
-			lp_14.e.Y = -math.Sin(lp_14.wb*M_rad) * math.Cos(lp_14.wa*M_rad)
-			lp_14.e.X = -math.Sin(lp_14.wb*M_rad) * math.Sin(lp_14.wa*M_rad)
+			lp_14.e.Z = mathCos(lp_14.wb * M_rad)
+			lp_14.e.Y = -mathSin(lp_14.wb*M_rad) * mathCos(lp_14.wa*M_rad)
+			lp_14.e.X = -mathSin(lp_14.wb*M_rad) * mathSin(lp_14.wa*M_rad)
 			CAT(&lp_14.e.X, &lp_14.e.Y, &lp_14.e.Z)
 
 			lp = append(lp, lp_14)
@@ -1425,19 +1425,19 @@ func LP_COORDNT(
 
 			lp_15.P[0] = lp_14.P[3]
 			lp_15.P[1] = lp_14.P[2]
-			lp_15.P[2].X = tree[i].x + (tree[i].W4*0.5)*math.Cos(45*M_rad)
-			lp_15.P[2].Y = tree[i].y + (tree[i].W4*0.5)*math.Sin(45*M_rad)
+			lp_15.P[2].X = tree[i].x + (tree[i].W4*0.5)*mathCos(45*M_rad)
+			lp_15.P[2].Y = tree[i].y + (tree[i].W4*0.5)*mathSin(45*M_rad)
 			lp_15.P[2].Z = lp_15.P[1].Z
-			lp_15.P[3].X = tree[i].x + (tree[i].W3*0.5)*math.Cos(45*M_rad)
-			lp_15.P[3].Y = tree[i].y + (tree[i].W3*0.5)*math.Sin(45*M_rad)
+			lp_15.P[3].X = tree[i].x + (tree[i].W3*0.5)*mathCos(45*M_rad)
+			lp_15.P[3].Y = tree[i].y + (tree[i].W3*0.5)*mathSin(45*M_rad)
 			lp_15.P[3].Z = lp_15.P[0].Z
 
 			HOUSEN2(&lp_15.P[0], &lp_15.P[1], &lp_15.P[2], &lp_15.e)
-			lp_15.wb = math.Acos(lp_15.e.Z) * (180 / math.Pi)
+			lp_15.wb = mathAcos(lp_15.e.Z) * (180 / math.Pi)
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_15.e.Z = math.Cos(lp_15.wb * M_rad)
-			lp_15.e.Y = -math.Sin(lp_15.wb*M_rad) * math.Cos(lp_15.wa*M_rad)
-			lp_15.e.X = -math.Sin(lp_15.wb*M_rad) * math.Sin(lp_15.wa*M_rad)
+			lp_15.e.Z = mathCos(lp_15.wb * M_rad)
+			lp_15.e.Y = -mathSin(lp_15.wb*M_rad) * mathCos(lp_15.wa*M_rad)
+			lp_15.e.X = -mathSin(lp_15.wb*M_rad) * mathSin(lp_15.wa*M_rad)
 			CAT(&lp_15.e.X, &lp_15.e.Y, &lp_15.e.Z)
 
 			lp = append(lp, lp_15)
@@ -1473,11 +1473,11 @@ func LP_COORDNT(
 			lp_16.P[3].Z = lp_16.P[0].Z
 
 			HOUSEN2(&lp_16.P[0], &lp_16.P[1], &lp_16.P[2], &lp_16.e)
-			lp_16.wb = math.Acos(lp_16.e.Z) * (180 / math.Pi)
+			lp_16.wb = mathAcos(lp_16.e.Z) * (180 / math.Pi)
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_16.e.Z = math.Cos(lp_16.wb * M_rad)
-			lp_16.e.Y = -math.Sin(lp_16.wb*M_rad) * math.Cos(lp_16.wa*M_rad)
-			lp_16.e.X = -math.Sin(lp_16.wb*M_rad) * math.Sin(lp_16.wa*M_rad)
+			lp_16.e.Z = mathCos(lp_16.wb * M_rad)
+			lp_16.e.Y = -mathSin(lp_16.wb*M_rad) * mathCos(lp_16.wa*M_rad)
+			lp_16.e.X = -mathSin(lp_16.wb*M_rad) * mathSin(lp_16.wa*M_rad)
 			CAT(&lp_16.e.X, &lp_16.e.Y, &lp_16.e.Z)
 
 			lp = append(lp, lp_16)
@@ -1505,19 +1505,19 @@ func LP_COORDNT(
 
 			lp_17.P[0] = lp_16.P[3]
 			lp_17.P[1] = lp_16.P[2]
-			lp_17.P[2].X = tree[i].x - (tree[i].W4*0.5)*math.Cos(45*M_rad)
-			lp_17.P[2].Y = tree[i].y + (tree[i].W4*0.5)*math.Sin(45*M_rad)
+			lp_17.P[2].X = tree[i].x - (tree[i].W4*0.5)*mathCos(45*M_rad)
+			lp_17.P[2].Y = tree[i].y + (tree[i].W4*0.5)*mathSin(45*M_rad)
 			lp_17.P[2].Z = lp_17.P[1].Z
-			lp_17.P[3].X = tree[i].x - (tree[i].W3*0.5)*math.Cos(45*M_rad)
-			lp_17.P[3].Y = tree[i].y + (tree[i].W3*0.5)*math.Sin(45*M_rad)
+			lp_17.P[3].X = tree[i].x - (tree[i].W3*0.5)*mathCos(45*M_rad)
+			lp_17.P[3].Y = tree[i].y + (tree[i].W3*0.5)*mathSin(45*M_rad)
 			lp_17.P[3].Z = lp_17.P[0].Z
 
 			HOUSEN2(&lp_17.P[0], &lp_17.P[1], &lp_17.P[2], &lp_17.e)
-			lp_17.wb = math.Acos(lp_17.e.Z) * (180 / math.Pi)
+			lp_17.wb = mathAcos(lp_17.e.Z) * (180 / math.Pi)
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_17.e.Z = math.Cos(lp_17.wb * M_rad)
-			lp_17.e.Y = -math.Sin(lp_17.wb*M_rad) * math.Cos(lp_17.wa*M_rad)
-			lp_17.e.X = -math.Sin(lp_17.wb*M_rad) * math.Sin(lp_17.wa*M_rad)
+			lp_17.e.Z = mathCos(lp_17.wb * M_rad)
+			lp_17.e.Y = -mathSin(lp_17.wb*M_rad) * mathCos(lp_17.wa*M_rad)
+			lp_17.e.X = -mathSin(lp_17.wb*M_rad) * mathSin(lp_17.wa*M_rad)
 			CAT(&lp_17.e.X, &lp_17.e.Y, &lp_17.e.Z)
 
 			lp = append(lp, lp_17)
@@ -1553,11 +1553,11 @@ func LP_COORDNT(
 			lp_18.P[3].Z = lp_18.P[0].Z
 
 			HOUSEN2(&lp_18.P[0], &lp_18.P[1], &lp_18.P[2], &lp_18.e)
-			lp_18.wb = math.Acos(lp_18.e.Z) * (180 / math.Pi)
+			lp_18.wb = mathAcos(lp_18.e.Z) * (180 / math.Pi)
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_18.e.Z = math.Cos(lp_18.wb * M_rad)
-			lp_18.e.Y = -math.Sin(lp_18.wb*M_rad) * math.Cos(lp_18.wa*M_rad)
-			lp_18.e.X = -math.Sin(lp_18.wb*M_rad) * math.Sin(lp_18.wa*M_rad)
+			lp_18.e.Z = mathCos(lp_18.wb * M_rad)
+			lp_18.e.Y = -mathSin(lp_18.wb*M_rad) * mathCos(lp_18.wa*M_rad)
+			lp_18.e.X = -mathSin(lp_18.wb*M_rad) * mathSin(lp_18.wa*M_rad)
 			CAT(&lp_18.e.X, &lp_18.e.Y, &lp_18.e.Z)
 
 			lp = append(lp, lp_18)
@@ -1585,19 +1585,19 @@ func LP_COORDNT(
 
 			lp_19.P[0] = lp_18.P[3]
 			lp_19.P[1] = lp_18.P[2]
-			lp_19.P[2].X = tree[i].x - (tree[i].W4*0.5)*math.Cos(45*M_rad)
-			lp_19.P[2].Y = tree[i].y - (tree[i].W4*0.5)*math.Sin(45*M_rad)
+			lp_19.P[2].X = tree[i].x - (tree[i].W4*0.5)*mathCos(45*M_rad)
+			lp_19.P[2].Y = tree[i].y - (tree[i].W4*0.5)*mathSin(45*M_rad)
 			lp_19.P[2].Z = lp_19.P[1].Z
-			lp_19.P[3].X = tree[i].x - (tree[i].W3*0.5)*math.Cos(45*M_rad)
-			lp_19.P[3].Y = tree[i].y - (tree[i].W3*0.5)*math.Sin(45*M_rad)
+			lp_19.P[3].X = tree[i].x - (tree[i].W3*0.5)*mathCos(45*M_rad)
+			lp_19.P[3].Y = tree[i].y - (tree[i].W3*0.5)*mathSin(45*M_rad)
 			lp_19.P[3].Z = lp_19.P[0].Z
 
 			HOUSEN2(&lp_19.P[0], &lp_19.P[1], &lp_19.P[2], &lp_19.e)
-			lp_19.wb = math.Acos(lp_19.e.Z) * (180 / math.Pi)
+			lp_19.wb = mathAcos(lp_19.e.Z) * (180 / math.Pi)
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_19.e.Z = math.Cos(lp_19.wb * M_rad)
-			lp_19.e.Y = -math.Sin(lp_19.wb*M_rad) * math.Cos(lp_19.wa*M_rad)
-			lp_19.e.X = -math.Sin(lp_19.wb*M_rad) * math.Sin(lp_19.wa*M_rad)
+			lp_19.e.Z = mathCos(lp_19.wb * M_rad)
+			lp_19.e.Y = -mathSin(lp_19.wb*M_rad) * mathCos(lp_19.wa*M_rad)
+			lp_19.e.X = -mathSin(lp_19.wb*M_rad) * mathSin(lp_19.wa*M_rad)
 			CAT(&lp_19.e.X, &lp_19.e.Y, &lp_19.e.Z)
 
 			lp = append(lp, lp_19)
@@ -1633,11 +1633,11 @@ func LP_COORDNT(
 			lp_20.P[3].Z = lp_20.P[0].Z
 
 			HOUSEN2(&lp_20.P[0], &lp_20.P[1], &lp_20.P[2], &lp_20.e)
-			lp_20.wb = math.Acos(lp_20.e.Z) * (180 / math.Pi)
+			lp_20.wb = mathAcos(lp_20.e.Z) * (180 / math.Pi)
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_20.e.Z = math.Cos(lp_20.wb * M_rad)
-			lp_20.e.Y = -math.Sin(lp_20.wb*M_rad) * math.Cos(lp_20.wa*M_rad)
-			lp_20.e.X = -math.Sin(lp_20.wb*M_rad) * math.Sin(lp_20.wa*M_rad)
+			lp_20.e.Z = mathCos(lp_20.wb * M_rad)
+			lp_20.e.Y = -mathSin(lp_20.wb*M_rad) * mathCos(lp_20.wa*M_rad)
+			lp_20.e.X = -mathSin(lp_20.wb*M_rad) * mathSin(lp_20.wa*M_rad)
 			CAT(&lp_20.e.X, &lp_20.e.Y, &lp_20.e.Z)
 
 			lp = append(lp, lp_20)
@@ -1662,12 +1662,12 @@ func LP_COORDNT(
 			}
 
 			HOUSEN2(&lp_k.P[0], &lp_k.P[1], &lp_k.P[2], &lp_k.e)
-			lp_k.wb = math.Acos(lp_k.e.Z) * (180 / math.Pi)
-			lp_k.wa = math.Asin(lp_k.e.X/math.Sin(lp_k.wb*M_rad)) * (180 / math.Pi)
+			lp_k.wb = mathAcos(lp_k.e.Z) * (180 / math.Pi)
+			lp_k.wa = mathAsin(lp_k.e.X/mathSin(lp_k.wb*M_rad)) * (180 / math.Pi)
 			/*--法線ベクトルの算出　HOUSEN2関数を使うと、向きが逆になるので、変更 091128 higuchi --*/
-			lp_k.e.Z = math.Cos(lp_k.wb * M_rad)
-			lp_k.e.Y = -math.Sin(lp_k.wb*M_rad) * math.Cos(lp_k.wa*M_rad)
-			lp_k.e.X = -math.Sin(lp_k.wb*M_rad) * math.Sin(lp_k.wa*M_rad)
+			lp_k.e.Z = mathCos(lp_k.wb * M_rad)
+			lp_k.e.Y = -mathSin(lp_k.wb*M_rad) * mathCos(lp_k.wa*M_rad)
+			lp_k.e.X = -mathSin(lp_k.wb*M_rad) * mathSin(lp_k.wa*M_rad)
 			CAT(&lp_k.e.X, &lp_k.e.Y, &lp_k.e.Z)
 
 			lp_k.ref = 0.0
@@ -1727,10 +1727,10 @@ func OP_COORDNT(BDP []*BBDP, poly []*POLYGN) []*P_MENN {
 
 	for _, bp := range BDP {
 		// 方位角と傾斜角の三角関数の計算
-		cWa := math.Cos(-bp.Wa * M_rad)
-		sWa := math.Sin(-bp.Wa * M_rad)
-		cWb := math.Cos(bp.Wb * M_rad)
-		sWb := math.Sin(bp.Wb * M_rad)
+		cWa := mathCos(-bp.Wa * M_rad)
+		sWa := mathSin(-bp.Wa * M_rad)
+		cWb := mathCos(bp.Wb * M_rad)
+		sWb := mathSin(bp.Wb * M_rad)
 
 		for _, rmp := range bp.RMP {
 			a := 0.0
@@ -1773,9 +1773,9 @@ func OP_COORDNT(BDP []*BBDP, poly []*POLYGN) []*P_MENN {
 			opj.wa = bp.Wa
 			opj.wb = bp.Wb
 			opj.ref = rmp.ref
-			opj.e.Z = math.Cos(opj.wb * M_rad)
-			opj.e.Y = -math.Sin(opj.wb*M_rad) * math.Cos(opj.wa*M_rad)
-			opj.e.X = -math.Sin(opj.wb*M_rad) * math.Sin(opj.wa*M_rad)
+			opj.e.Z = mathCos(opj.wb * M_rad)
+			opj.e.Y = -mathSin(opj.wb*M_rad) * mathCos(opj.wa*M_rad)
+			opj.e.X = -mathSin(opj.wb*M_rad) * mathSin(opj.wa*M_rad)
 			CAT(&opj.e.X, &opj.e.Y, &opj.e.Z)
 
 			opj.Nopw = len(rmp.WD)
@@ -1853,13 +1853,13 @@ func OP_COORDNT(BDP []*BBDP, poly []*POLYGN) []*P_MENN {
 			}
 
 			HOUSEN2(&op_sum.P[0], &op_sum.P[1], &op_sum.P[2], &op_sum.e)
-			op_sum.wb = math.Acos(op_sum.e.Z) * (180 / math.Pi)
-			op_sum.wa = math.Asin(op_sum.e.X/math.Sin(op_sum.wb*M_rad)) * (180 / math.Pi)
+			op_sum.wb = mathAcos(op_sum.e.Z) * (180 / math.Pi)
+			op_sum.wa = mathAsin(op_sum.e.X/mathSin(op_sum.wb*M_rad)) * (180 / math.Pi)
 
 			/*--ポリゴンの法線ベクトルが逆で出てしまうのを修正 091128 higuchi--*/
-			op_sum.e.Z = math.Cos(op_sum.wb * M_rad)
-			op_sum.e.Y = -math.Sin(op_sum.wb*M_rad) * math.Cos(op_sum.wa*M_rad)
-			op_sum.e.X = -math.Sin(op_sum.wb*M_rad) * math.Sin(op_sum.wa*M_rad)
+			op_sum.e.Z = mathCos(op_sum.wb * M_rad)
+			op_sum.e.Y = -mathSin(op_sum.wb*M_rad) * mathCos(op_sum.wa*M_rad)
+			op_sum.e.X = -mathSin(op_sum.wb*M_rad) * mathSin(op_sum.wa*M_rad)
 
 			op = append(op, op_sum)
 		}

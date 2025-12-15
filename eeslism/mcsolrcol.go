@@ -21,7 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math"
+
 	"strconv"
 	"strings"
 )
@@ -135,7 +135,7 @@ func Collcfv(Coll []*COLL) {
 			Eo1 := coll.Cmp.Elouts[0]
 			Kcw := coll.Cat.b1
 			cG := Spcheat(Eo1.Fluid) * Eo1.G
-			coll.ec = 1.0 - math.Exp(-Kcw*coll.Cmp.Ac/cG)
+			coll.ec = 1.0 - mathExp(-Kcw*coll.Cmp.Ac/cG)
 			coll.D1 = cG * coll.ec
 			coll.Do = coll.D1 * coll.Te
 

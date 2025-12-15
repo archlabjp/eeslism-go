@@ -90,7 +90,7 @@ func Htrcf(alc, alo *float64, alotype AloType, Exs []*EXSF, Tr float64, N int, a
 					alic = alcvdn(dT)
 				}
 			case 'R', 'c':
-				if math.Abs(dT) <= 1.0e-3 {
+				if mathAbs(dT) <= 1.0e-3 {
 					alic = 0.0
 				} else if dT < 0 {
 					alic = alcvup(dT)
@@ -107,7 +107,7 @@ func Htrcf(alc, alo *float64, alotype AloType, Exs []*EXSF, Tr float64, N int, a
 				n, Sd.mrk, alic, Sd.alic)
 		}
 
-		if math.Abs(alic-Sd.alic) >= ALITOLE || Sd.mrk == '*' || Sd.PCMflg {
+		if mathAbs(alic-Sd.alic) >= ALITOLE || Sd.mrk == '*' || Sd.PCMflg {
 			*RMmrk = '*'
 			Sd.mrk = '*'
 			Sd.alic = alic
@@ -130,6 +130,13 @@ func Htrcf(alc, alo *float64, alotype AloType, Exs []*EXSF, Tr float64, N int, a
 			}
 
 			Sd.ali = alic + Sd.alir
+
+			// パネル表面のデバッグ出力
+			if DEBUG_PANEL && Sd.mw != nil && Sd.mw.wall != nil && Sd.mw.wall.WallType == WallType_P {
+				dT := Sd.Ts - Tr
+				fmt.Printf("DEBUG Go Htrcf: name=%s Ts=%.17g Tr=%.17g dT=%.17g\n", Sd.Name, Sd.Ts, Tr, dT)
+				fmt.Printf("DEBUG Go Htrcf: alic=%.17g alir=%.17g ali=%.17g\n", alic, Sd.alir, Sd.ali)
+			}
 		}
 
 		if DEBUG {
@@ -137,10 +144,10 @@ func Htrcf(alc, alo *float64, alotype AloType, Exs []*EXSF, Tr float64, N int, a
 				n, Sd.ble, Sd.Ts, Tr, Sd.alic, Sd.alir, Sd.room.Name)
 		}
 
-		//if dayprn && Ferr != nil {
-		fmt.Fprintf(Ferr, "----- Htrcf n=%2d ble=%c Ts=%f Tr=%f alic=%f alir=%f rmname=%s\n",
-            n, Sd.ble, Sd.Ts, Tr, Sd.alic, Sd.alir, Sd.room.Name)
-		//}
+		if dayprn && Ferr != nil {
+			fmt.Fprintf(Ferr, "----- Htrcf n=%2d ble=%c Ts=%f Tr=%f alic=%f alir=%f rmname=%s\n",
+				n, Sd.ble, Sd.Ts, Tr, Sd.alic, Sd.alir, Sd.room.Name)
+		}
 	}
 }
 
@@ -152,8 +159,8 @@ func alov(Exs *EXSF, Wd *WDAT) float64 {
 	Wv := Wd.Wv
 	Wdre := -180.0 + 360.0/16.0*Wd.Wdre
 
-	Wadiff := math.Abs(Exs.Wa - Wdre)
-	Wadiff = math.Mod(Wadiff, 360.0)
+	Wadiff := mathAbs(Exs.Wa - Wdre)
+	Wadiff = mathMod(Wadiff, 360.0)
 	if Wadiff < 45.0 {
 		if Wv <= 2.0 {
 			u = 0.5
@@ -172,15 +179,15 @@ func alov(Exs *EXSF, Wd *WDAT) float64 {
 /*  室内表面対流熱伝達率の計算     */
 
 func alcvup(dT float64) float64 {
-	return 2.18 * math.Pow(math.Abs(dT), 0.31)
+	return 2.18 * mathPow(mathAbs(dT), 0.31)
 }
 
 func alcvdn(dT float64) float64 {
-	return 0.138 * math.Pow(math.Abs(dT), 0.25)
+	return 0.138 * mathPow(mathAbs(dT), 0.25)
 }
 
 func alcvh(dT float64) float64 {
-	return 1.78 * math.Pow(math.Abs(dT), 0.32)
+	return 1.78 * mathPow(mathAbs(dT), 0.32)
 }
 
 /* --------------------------------------- */
@@ -192,7 +199,7 @@ func Radcf0(Tsav float64, alrbold *float64, N int, Sd []*RMSRF, W, alr []float64
 	var alir, TA float64
 
 	TA = Tsav + 273.15
-	alir = 4.0 * Sgm * math.Pow(TA, 3.0)
+	alir = 4.0 * Sgm * mathPow(TA, 3.0)
 
 	/*****/
 	if DEBUG {
@@ -200,7 +207,7 @@ func Radcf0(Tsav float64, alrbold *float64, N int, Sd []*RMSRF, W, alr []float64
 	}
 	/*****/
 
-	if math.Abs(alir-*alrbold) >= ALITOLE {
+	if mathAbs(alir-*alrbold) >= ALITOLE {
 		*alrbold = alir
 
 		for n = 0; n < N; n++ {
@@ -208,7 +215,7 @@ func Radcf0(Tsav float64, alrbold *float64, N int, Sd []*RMSRF, W, alr []float64
 		}
 
 		for n = 0; n < N*N; n++ {
-			alr[n] = alir * math.Abs(W[n])
+			alr[n] = alir * mathAbs(W[n])
 
 			/*****fmt.Printf("----- Radcf0  n=%d alr=%f\n",n, alr[n])
 			 *****/
@@ -350,7 +357,7 @@ func Radshfc(N int, FArea, Aroom float64, Sd0 []*RMSRF, tfsol, eqcv float64, Rmn
 		Srgchk += Sd.srg
 	}
 
-	if math.Abs(Srgchk-1.0) > 1.0e-3 {
+	if mathAbs(Srgchk-1.0) > 1.0e-3 {
 		fmt.Printf("xxxxx (%s)  室内部位への日射吸収比率の合計が不適 %.3f (本来、1となるべき)\n", Rmname, Srgchk)
 	}
 

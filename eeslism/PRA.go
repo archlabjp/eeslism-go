@@ -25,7 +25,7 @@ package eeslism
 
 import (
 	"fmt"
-	"math"
+
 	"os"
 )
 
@@ -61,11 +61,11 @@ PRA (Vector Direction Determination)
 func PRA(U *float64, ls, ms, ns, x, y, z float64) {
 	epsilon := 1.0e-6
 
-	if math.Abs(ls) > epsilon {
+	if mathAbs(ls) > epsilon {
 		*U = x / ls
-	} else if math.Abs(ms) > epsilon {
+	} else if mathAbs(ms) > epsilon {
 		*U = y / ms
-	} else if math.Abs(ns) > epsilon {
+	} else if mathAbs(ns) > epsilon {
 		*U = z / ns
 	} else {
 		fmt.Printf("ls=%f ms=%f ns=%f\n", ls, ms, ns)

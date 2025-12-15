@@ -29,6 +29,11 @@ func Rmotset(_Room []*ROOM) {
 	for i := range _Room {
 		Room := _Room[i]
 
+		// SYSCMP/SYSPTHが定義されていない場合、Room.cmpがnilなのでスキップ
+		if Room.cmp == nil {
+			continue
+		}
+
 		Eo := Room.cmp.Elouts[0]
 		if Eo.Control == LOAD_SW {
 			rmld := Room.rmld
@@ -188,7 +193,7 @@ func Pmv0(met, Icl, Tr, xr, Tmrt, v float64) float64 {
 
 	m := met * 50.0
 	Pa := xr * Po / (xr + 0.62198)
-	hc := 10.4 * math.Sqrt(v)
+	hc := 10.4 * mathSqrt(v)
 	Tm := 0.5*(37.0+0.5*(Tr+Tmrt)) + 273.15
 	hr := 13.6e-8 * Tm * Tm * Tm
 	fcl := 1.0
@@ -203,7 +208,7 @@ func Pmv0(met, Icl, Tr, xr, Tmrt, v float64) float64 {
 
 	L := m*(0.60135-0.0023*(44.0-Pa)-0.0014*(34.0-Tr)) + 0.35*Pa + 5.95 - 0.6013*eta - fcl*(hr*(tcl-Tmrt)+hc*(tcl-Tr))
 
-	return (0.352*math.Exp(-0.042*m) + 0.032) * L
+	return (0.352*mathExp(-0.042*m) + 0.032) * L
 }
 
 // SET*の計算
@@ -242,14 +247,14 @@ func SET_star(TA, TR, VEL, RH, MET, CLO, WME, PATM float64) float64 {
 	var M = MET * METFACTOR
 	var ICL, WCRIT float64
 	if CLO <= 0 {
-		WCRIT = 0.38 * math.Pow(AirVelocity, -0.29)
+		WCRIT = 0.38 * mathPow(AirVelocity, -0.29)
 		ICL = 1.0
 	} else {
-		WCRIT = 0.59 * math.Pow(AirVelocity, -0.08)
+		WCRIT = 0.59 * mathPow(AirVelocity, -0.08)
 		ICL = 0.45
 	}
-	var CHC = 3.0 * math.Pow(PressureInAtmospheres, 0.53)
-	var CHCV = 8.600001 * math.Pow((AirVelocity*PressureInAtmospheres), 0.53)
+	var CHC = 3.0 * mathPow(PressureInAtmospheres, 0.53)
+	var CHCV = 8.600001 * mathPow((AirVelocity*PressureInAtmospheres), 0.53)
 	CHC = math.Max(CHC, CHCV)
 	var CHR = 4.7
 	var CTC = CHR + CHC
@@ -269,14 +274,14 @@ func SET_star(TA, TR, VEL, RH, MET, CLO, WME, PATM float64) float64 {
 		for i := 0; i < 100; i++ {
 			if flag {
 				TCL_OLD = TCL
-				CHR = 4.0 * SBC * math.Pow(((TCL+TR)/2.0+273.15), 3.0) * 0.72
+				CHR = 4.0 * SBC * mathPow(((TCL+TR)/2.0+273.15), 3.0) * 0.72
 				CTC = CHR + CHC
 				RA = 1.0 / (FACL * CTC) //Resistance of air layer to dry heat transfer
 				TOP = (CHR*TR + CHC*TA) / CTC
 			}
 			TCL = (RA*TempSkin + RCL*TOP) / (RA + RCL)
 			flag = true
-			if math.Abs(TCL-TCL_OLD) <= 0.01 {
+			if mathAbs(TCL-TCL_OLD) <= 0.01 {
 				break
 			}
 		}
@@ -324,7 +329,7 @@ func SET_star(TA, TR, VEL, RH, MET, CLO, WME, PATM float64) float64 {
 		}
 		SkinBloodFlow = (SkinBloodFlowNeutral + CDIL*WARMC) / (1. + CSTR*COLDS)
 		SkinBloodFlow = math.Max(0.5, math.Min(90.0, SkinBloodFlow))
-		REGSW = CSW * WARMB * math.Exp(WARMS/10.7)
+		REGSW = CSW * WARMB * mathExp(WARMS/10.7)
 		REGSW = math.Min(REGSW, 500.0)
 		var ERSW = 0.68 * REGSW
 		var REA = 1.0 / (LR * FACL * CHC) //Evaporative resistance of air layer
@@ -372,7 +377,7 @@ func SET_star(TA, TR, VEL, RH, MET, CLO, WME, PATM float64) float64 {
 	if MET < 0.85 {
 		CHCS = 3.0
 	} else {
-		CHCS = 5.66 * math.Pow((MET-0.85), 0.39)
+		CHCS = 5.66 * mathPow((MET-0.85), 0.39)
 		CHCS = math.Max(CHCS, 3.0)
 	}
 	var CTCS = CHCS + CHRS
@@ -392,7 +397,7 @@ func SET_star(TA, TR, VEL, RH, MET, CLO, WME, PATM float64) float64 {
 	var dx = 100.0
 	var SET, ERR1, ERR2 float64
 	var SET_OLD = TempSkin - HSK/HD_S //Lower bound for SET
-	for math.Abs(dx) > .01 {
+	for mathAbs(dx) > .01 {
 		ERR1 = (HSK - HD_S*(TempSkin-SET_OLD) - W*HE_S*(PSSK-0.5*
 			FindSaturatedVaporPressureTorr(SET_OLD)))
 		ERR2 = (HSK - HD_S*(TempSkin-(SET_OLD+DELTA)) - W*HE_S*(PSSK-0.5*
@@ -406,5 +411,5 @@ func SET_star(TA, TR, VEL, RH, MET, CLO, WME, PATM float64) float64 {
 
 func FindSaturatedVaporPressureTorr(T float64) float64 {
 	//Helper function for pierceSET calculates Saturated Vapor Pressure (Torr) at Temperature T (°C)
-	return math.Exp(18.6686 - 4030.183/(T+235.0))
+	return mathExp(18.6686 - 4030.183/(T+235.0))
 }

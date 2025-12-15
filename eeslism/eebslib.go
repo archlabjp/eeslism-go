@@ -202,10 +202,10 @@ func Exsfdata(section *EeTokens, dsn string, Exsf *EXSFS, Schdl *SCHDL, Simc *SI
 			const rad = PI / 180.
 			wa = ex.Wa * rad          // 方位角	[rad]
 			wb = ex.Wb * rad          // 傾斜角	[rad]
-			cwa = math.Cos(wa)        // 方位角の余弦
-			swa = math.Sin(wa)        // 方位角の正弦
-			cwb = math.Cos(wb)        // 傾斜角の余弦
-			swb = math.Sin(wb)        // 傾斜角の正弦
+			cwa = mathCos(wa)        // 方位角の余弦
+			swa = mathSin(wa)        // 方位角の正弦
+			cwb = mathCos(wb)        // 傾斜角の余弦
+			swb = mathSin(wb)        // 傾斜角の正弦
 			ex.Cwa = cwa              // = 方位角の余弦
 			ex.Swa = swa              // = 方位角の正弦
 			ex.Swb = swb              // = 傾斜角の正弦
@@ -232,11 +232,11 @@ func (exsf *EXSFS) Exsfsol(Wd *WDAT) {
 
 				// プロファイル角の計算
 				ex.Tprof = (Wd.Sh*ex.Swb - Wd.Sw*ex.CbSa - Wd.Ss*ex.CbCa) / cinc
-				ex.Prof = math.Atan(ex.Tprof)
+				ex.Prof = mathAtan(ex.Tprof)
 
 				// 見かけの方位角の計算
 				ex.Tazm = (Wd.Sw*ex.Cwa - Wd.Ss*ex.Swa) / cinc
-				ex.Gamma = math.Atan(ex.Tazm)
+				ex.Gamma = mathAtan(ex.Tazm)
 				ex.Cinc = cinc
 			} else {
 				// 太陽が出ていない場合

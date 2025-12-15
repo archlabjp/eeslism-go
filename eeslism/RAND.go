@@ -56,7 +56,7 @@ aは方位角、vは仰角です。
 func RAND(a, v *float64) {
 	// a is azimuth, v is elevation
 	*a = 2.0 * math.Pi * rand.Float64()
-	*v = math.Acos(math.Sqrt(1.0 - rand.Float64()))
+	*v = mathAcos(mathSqrt(1.0 - rand.Float64()))
 
 	//TEST
 	// *a = math.Pi

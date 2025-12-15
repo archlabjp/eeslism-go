@@ -70,7 +70,7 @@ func FNFsdw(Ksdw, Ksi int, Xazm, Xprf, D, Wr, Hr, Wi1, Hi1, Wi2, Hi2 float64) fl
 	Da := D * Xazm
 	Dp := D * Xprf
 	if Ksdw == 2 || Ksdw == 6 {
-		Da = math.Abs(Da)
+		Da = mathAbs(Da)
 	}
 	if Ksdw == 4 || Ksdw == 8 {
 		Da = -Da
@@ -138,7 +138,7 @@ func FNAsdw1(Da, Dp, Wr, Hr, Wi1, Hi, Wi2 float64) float64 {
 		Wi = Wi2
 	}
 
-	Daa := math.Abs(Da)
+	Daa := mathAbs(Da)
 
 	Dha := Wi*Dp/math.Max(Wi, Daa) - Hi
 	Dha = math.Min(math.Max(0.0, Dha), Hr)

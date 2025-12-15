@@ -251,7 +251,7 @@ func Wallfdc(M int, mp int, res []float64, cap []float64,
 	captempR := make([]float64, M+1)
 
 	// 層構成
-	for m := 0; m < M; m++ {
+	for m := 0; m <= M; m++ {
 		// PCM内蔵床暖房の計算に活用するためcapをコピーして保持
 		captempL[m] = cap[m]
 		captempR[m] = cap[m+1]
@@ -431,6 +431,35 @@ func Wallfdc(M int, mp int, res []float64, cap []float64,
 
 	*uo = Ul[0]
 	*um = Ur[M-1]
+
+	if DEBUG_PANEL && WallType == WallType_P && Wp > 0.0 {
+		fmt.Printf("DEBUG Go Wallfdc: M=%d mp=%d DTM=%.17g\n", M, mp, DTM)
+		fmt.Printf("DEBUG Go Wallfdc cap: ")
+		for m := 0; m <= M; m++ {
+			fmt.Printf("%.17g ", cap[m])
+		}
+		fmt.Printf("\n")
+		fmt.Printf("DEBUG Go Wallfdc res: ")
+		for m := 0; m <= M; m++ {
+			fmt.Printf("%.17g ", res[m])
+		}
+		fmt.Printf("\n")
+		// 計算過程の詳細
+		C0 := 0.5 * (cap[0] + cap[1])
+		fmt.Printf("DEBUG Go Wallfdc calc: cap[0]+cap[1]=%.17g C0=%.17g res[0]=%.17g\n", cap[0]+cap[1], C0, res[0])
+		fmt.Printf("DEBUG Go Wallfdc calc: C0*res[0]=%.17g DTM/(C0*res[0])=%.17g\n", C0*res[0], DTM/(C0*res[0]))
+		fmt.Printf("DEBUG Go Wallfdc Ul: ")
+		for m := 0; m < M; m++ {
+			fmt.Printf("%.17g ", Ul[m])
+		}
+		fmt.Printf("\n")
+		fmt.Printf("DEBUG Go Wallfdc Ur: ")
+		for m := 0; m < M; m++ {
+			fmt.Printf("%.17g ", Ur[m])
+		}
+		fmt.Printf("\n")
+		fmt.Printf("DEBUG Go Wallfdc: uo=%.17g um=%.17g\n", *uo, *um)
+	}
 
 	if PCMf == 5 {
 		/*************/

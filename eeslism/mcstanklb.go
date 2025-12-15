@@ -17,8 +17,6 @@
 
 package eeslism
 
-import "math"
-
 const TSTOLE = 0.04
 
 /*
@@ -144,11 +142,11 @@ func stofc(N, Nin int, Jcin, Jcout []int,
 	}
 
 	for j := 1; j < N-1; j++ {
-		B[j*N+j] += math.Abs(B[j*N+j-1]) + math.Abs(B[j*N+j+1])
+		B[j*N+j] += mathAbs(B[j*N+j-1]) + mathAbs(B[j*N+j+1])
 	}
 
-	B[0] += math.Abs(B[1])
-	B[N*N-1] += math.Abs(B[N*N-2])
+	B[0] += mathAbs(B[1])
+	B[N*N-1] += mathAbs(B[N*N-2])
 
 	Matinv(B, N, N, "<stofc>")
 	Matmalv(B, R, N, N, d)

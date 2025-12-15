@@ -23,7 +23,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math"
 	"strconv"
 	"strings"
 	"unicode"
@@ -264,7 +263,7 @@ func rmacddat(Hcld *HCLOAD) {
 		// 行列Uの作成
 		for i := 0; i < 3; i++ {
 			for j := 0; j < 3; j++ {
-				U[i*3+j] = math.Pow(Qc[i], 2.0-float64(j))
+				U[i*3+j] = mathPow(Qc[i], 2.0-float64(j))
 			}
 		}
 
@@ -331,7 +330,7 @@ func rmacddat(Hcld *HCLOAD) {
 		// 行列Uの作成
 		for i := 0; i < 3; i++ {
 			for j := 0; j < 3; j++ {
-				U[i*3+j] = math.Pow(Qc[i], 2.0-float64(j))
+				U[i*3+j] = mathPow(Qc[i], 2.0-float64(j))
 			}
 		}
 
@@ -484,9 +483,9 @@ func Hcldcfv(_Hcload []*HCLOAD) {
 func Hcldene(_Hcload []*HCLOAD, LDrest *int, Wd *WDAT) {
 	var rest int
 	var elo *ELOUT
-	ro := 0.0
-	ca := 0.0
-	cv := 0.0
+	ro := Ro // 水の蒸発潜熱 (グローバル定数)
+	ca := Ca // 空気の比熱 (グローバル定数)
+	cv := Cv // 水蒸気の比熱 (グローバル定数)
 
 	rest = 0
 
@@ -548,8 +547,8 @@ func Hcldene(_Hcload []*HCLOAD, LDrest *int, Wd *WDAT) {
 					Temp = (Hcload.rh - 1.0) / 1.8
 					Cafh = 0.8
 
-					qrhmax = -1.0e-6*(1.0+Temp)*math.Pow(To_7, 3.0) +
-						2.0e-4*(1.0+Temp)*math.Pow(To_7, 2.0) +
+					qrhmax = -1.0e-6*(1.0+Temp)*mathPow(To_7, 3.0) +
+						2.0e-4*(1.0+Temp)*mathPow(To_7, 2.0) +
 						(0.0134+(0.0457-0.0134)*Temp)*To_7 + Hcload.rh
 
 					Cdf = 1.0
@@ -587,8 +586,8 @@ func Hcldene(_Hcload []*HCLOAD, LDrest *int, Wd *WDAT) {
 					Cafc = 0.85
 					Chm = 1.0
 
-					qrcmax = -1.0e-5*Hcload.rc*math.Pow(To_35, 3.0) +
-						2.0e-4*0.5*(1.0+Hcload.rc)*math.Pow(To_35, 2.0) -
+					qrcmax = -1.0e-5*Hcload.rc*mathPow(To_35, 3.0) +
+						2.0e-4*0.5*(1.0+Hcload.rc)*mathPow(To_35, 2.0) -
 						(0.0147+0.014*(Hcload.rc-1.0))*To_35 + Hcload.rc
 
 					Qcmax = qrcmax * Hcload.Qc * (Cafc + Chm) / 2.0
@@ -641,7 +640,7 @@ func Hcldene(_Hcload []*HCLOAD, LDrest *int, Wd *WDAT) {
 
 						COP = 1.0 / (1.0/(R*effth) + Hcload.Pcc/-Hcload.Qt)
 
-						if math.Abs(COP-COPd) < 1.0e-4 {
+						if mathAbs(COP-COPd) < 1.0e-4 {
 							Hcload.Ele = E
 							Hcload.COP = COP
 							break
@@ -679,7 +678,7 @@ func Hcldene(_Hcload []*HCLOAD, LDrest *int, Wd *WDAT) {
 
 						COP = 1.0 / (1.0/(R*effth) + Hcload.Pch/Hcload.Qt)
 
-						if math.Abs(COP-COPd) < 1.0e-4 {
+						if mathAbs(COP-COPd) < 1.0e-4 {
 							Hcload.Ele = E
 							Hcload.COP = COP
 							break
@@ -717,7 +716,7 @@ func fctlb(T, x float64) float64 {
 
 	var Temp float64
 	for i := 0; i < 4; i++ {
-		Temp += a[i] * math.Pow(x, float64(i))
+		Temp += a[i] * mathPow(x, float64(i))
 	}
 
 	return Temp
@@ -734,7 +733,7 @@ func fhtlb(T, x float64) float64 {
 
 	var Temp float64
 	for i := 0; i < 5; i++ {
-		Temp += a[i] * math.Pow(x, float64(i))
+		Temp += a[i] * mathPow(x, float64(i))
 	}
 
 	return Temp

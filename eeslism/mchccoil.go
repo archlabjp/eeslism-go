@@ -194,9 +194,9 @@ func Hcccfv(_hcc []*HCC) {
 			continue
 		}
 
-		// 機器出力は3つ
-		if len(hcc.Cmp.Elouts) != 3 || len(hcc.Cmp.Elins) != 0 {
-			panic("HCCの機器出力数は3、機器入力は0です。")
+		// 機器出力は3つ、機器入力も3つ
+		if len(hcc.Cmp.Elouts) != 3 || len(hcc.Cmp.Elins) != 3 {
+			panic("HCCの機器出力数は3、機器入力は3です。")
 		}
 
 		eo_ta := hcc.Cmp.Elouts[0] // 排気温度
@@ -713,10 +713,10 @@ func FNhccet(Wa, Ww, KA float64) float64 {
 	C := Ws / Wl
 	B := (1.0 - C) * NTU
 
-	if math.Abs(Ws-Wl) < 1.0e-5 {
+	if mathAbs(Ws-Wl) < 1.0e-5 {
 		return NTU / (1.0 + NTU)
 	} else {
-		if exB := math.Exp(-B); math.IsInf(exB, 0) {
+		if exB := mathExp(-B); math.IsInf(exB, 0) {
 			return 1.0 / C
 		} else {
 			return (1.0 - exB) / (1.0 - C*exB)

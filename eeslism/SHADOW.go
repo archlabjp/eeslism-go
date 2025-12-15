@@ -14,8 +14,6 @@
 //along with Foobar.If not, see < https://www.gnu.org/licenses/>.
 package eeslism
 
-import "math"
-
 /*
 SHADOW (Shading Calculation for Opening Planes)
 
@@ -87,15 +85,15 @@ func SHADOW(
 		Amx = op.P[i+1].X - op.P[0].X
 		Amy = op.P[i+1].Y - op.P[0].Y
 		Amz = op.P[i+1].Z - op.P[0].Z
-		Am = math.Sqrt(Amx*Amx + Amy*Amy + Amz*Amz)
+		Am = mathSqrt(Amx*Amx + Amy*Amy + Amz*Amz)
 		Bmx = op.P[i+2].X - op.P[0].X
 		Bmy = op.P[i+2].Y - op.P[0].Y
 		Bmz = op.P[i+2].Z - op.P[0].Z
-		Bm = math.Sqrt(Bmx*Bmx + Bmy*Bmy + Bmz*Bmz)
+		Bm = mathSqrt(Bmx*Bmx + Bmy*Bmy + Bmz*Bmz)
 
 		/* 20170821 higuchi add*/
-		AMAX = int(math.Ceil(Am / DEM))
-		BMAX = int(math.Ceil(Bm / DEM))
+		AMAX = int(mathCeil(Am / DEM))
+		BMAX = int(mathCeil(Bm / DEM))
 
 		for loopA = 0; loopA < AMAX-1; loopA++ {
 			for loopB = 0; loopB < BMAX-1; loopB++ {
@@ -331,11 +329,11 @@ func SHADOWlp(
 		Amx = lp.P[i+1].X - lp.P[0].X
 		Amy = lp.P[i+1].Y - lp.P[0].Y
 		Amz = lp.P[i+1].Z - lp.P[0].Z
-		Am = math.Sqrt(Amx*Amx + Amy*Amy + Amz*Amz)
+		Am = mathSqrt(Amx*Amx + Amy*Amy + Amz*Amz)
 		Bmx = lp.P[i+2].X - lp.P[0].X
 		Bmy = lp.P[i+2].Y - lp.P[0].Y
 		Bmz = lp.P[i+2].Z - lp.P[0].Z
-		Bm = math.Sqrt(Bmx*Bmx + Bmy*Bmy + Bmz*Bmz)
+		Bm = mathSqrt(Bmx*Bmx + Bmy*Bmy + Bmz*Bmz)
 		//AM = Am * 100.0;
 		//BM = Bm * 100.0;
 
@@ -343,8 +341,8 @@ func SHADOWlp(
 		//deb = BM / DE;
 
 		/* 20180125 higuchi add*/
-		AMAX = int(math.Ceil(Am / DEM))
-		BMAX = int(math.Ceil(Bm / DEM))
+		AMAX = int(mathCeil(Am / DEM))
+		BMAX = int(mathCeil(Bm / DEM))
 
 		/* 20170821 higuchi add*/
 		//AMAX = (int)ceil(Am / dea);

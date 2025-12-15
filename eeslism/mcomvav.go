@@ -68,10 +68,6 @@ func OMVAVdata(s string, OMvavca *OMVAVCA) int {
 }
 
 func CollTout(Tcin, G float64, Sd *RMSRF) float64 {
-	if Sd == nil {
-		panic("Sd is nil")
-	}
-
 	var Kc, ca float64
 
 	Wall := Sd.mw.wall
@@ -81,7 +77,7 @@ func CollTout(Tcin, G float64, Sd *RMSRF) float64 {
 		Kc = Wall.Kc
 	}
 
-	return Sd.Tcole - (Sd.Tcole-Tcin)*math.Exp(-Kc*Sd.A/(ca*G))
+	return Sd.Tcole - (Sd.Tcole-Tcin)*mathExp(-Kc*Sd.A/(ca*G))
 }
 
 func OMflowcalc(OMvav *OMVAV, Wd *WDAT) float64 {
@@ -93,7 +89,7 @@ func OMflowcalc(OMvav *OMVAV, Wd *WDAT) float64 {
 	}
 
 	var Tcout float64
-	var CollTout func(Tcin, G float64, Sd *RMSRF) float64
+	// Note: CollTout is defined as a package-level function, not a local variable
 	var loop int
 
 	G := 0.0
@@ -171,10 +167,6 @@ func OMflowcalc(OMvav *OMVAV, Wd *WDAT) float64 {
 }
 
 func OMvavControl(OMvav *OMVAV, Compnt []*COMPNT) {
-	if OMvav == nil {
-		panic("OMvav is nil")
-	}
-
 	colname := strings.Split(OMvav.Cmp.Omparm, "-")
 	OMvav.Nrdpnl = len(colname)
 

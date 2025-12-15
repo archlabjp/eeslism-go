@@ -211,6 +211,39 @@ func TestVAVcfv(t *testing.T) {
 		VAVcfv(vavs)
 		t.Log("Off control coefficient calculation completed successfully")
 	})
+
+	t.Run("CountNonZero", func(t *testing.T) {
+		// Test when Count != 0 (iteration mode)
+		vav := createBasicVAV()
+		vav.Count = 1 // Non-zero count
+		vavs := []*VAV{vav}
+
+		VAVcfv(vavs)
+
+		// When Count != 0, Coeffo should be 1.0
+		if vav.Cmp.Elouts[0].Coeffo != 1.0 {
+			t.Errorf("Coeffo should be 1.0 when Count != 0, got %f", vav.Cmp.Elouts[0].Coeffo)
+		}
+		if vav.Cmp.Elouts[0].Coeffin[0] != -1.0 {
+			t.Errorf("Coeffin[0] should be -1.0 when Count != 0, got %f", vav.Cmp.Elouts[0].Coeffin[0])
+		}
+		t.Log("Count non-zero test passed")
+	})
+
+	t.Run("VAV_PDT_Type", func(t *testing.T) {
+		// Test VAV_PDT type with two outputs
+		vav := createBasicVAV()
+		vav.Cat.Type = VAV_PDT // Set PDT type
+		vavs := []*VAV{vav}
+
+		VAVcfv(vavs)
+
+		// Both outputs should be configured
+		if vav.Cmp.Elouts[1].Coeffo != 1.0 {
+			t.Errorf("Second output Coeffo should be 1.0 for PDT, got %f", vav.Cmp.Elouts[1].Coeffo)
+		}
+		t.Log("VAV_PDT type test passed")
+	})
 }
 
 // TestVAVene tests the VAV energy calculation function
@@ -500,9 +533,10 @@ func createBasicVAV() *VAV {
 			Sysv:    18.0, // 18°C supply air
 			G:       1.5,  // 1.5 kg/s
 			Fluid:   AIR_FLD,
+			Coeffin: make([]float64, 1), // Initialize Coeffin array
 		}
 	}
-	
+
 	elins := make([]*ELIN, 10) // Sufficient for all connections
 	for i := range elins {
 		elins[i] = &ELIN{
@@ -514,6 +548,8 @@ func createBasicVAV() *VAV {
 		Name: "TestVAV",
 		Cat: &VAVCA{
 			Name: "TestVAVCA",
+			Gmax: 2.0,  // Max flow rate
+			Gmin: 0.5,  // Min flow rate
 		},
 		Cmp: &COMPNT{
 			Name:    "TestVAVComponent",
@@ -669,4 +705,133 @@ func createControlSequenceVAV() *VAV {
 	vav := createBasicVAV()
 	// Set up for control sequence testing
 	return vav
+}
+
+// TestVavswptr tests the VAV switch pointer function
+func TestVavswptr(t *testing.T) {
+	t.Run("ChmodeBranch", func(t *testing.T) {
+		// Test "chmode" key
+		vav := createBasicVAV()
+		key := []string{"VAV", "chmode"}
+
+		vptr, err := vavswptr(key, vav)
+
+		if err != nil {
+			t.Errorf("Expected no error for chmode, got %v", err)
+		}
+		if vptr.Type != SW_CTYPE {
+			t.Errorf("Expected Type=SW_CTYPE, got %v", vptr.Type)
+		}
+		if vptr.Ptr != &vav.Chmode {
+			t.Error("Expected Ptr to point to Chmode")
+		}
+	})
+
+	t.Run("ControlBranch", func(t *testing.T) {
+		// Test "control" key
+		vav := createBasicVAV()
+		key := []string{"VAV", "control"}
+
+		vptr, err := vavswptr(key, vav)
+
+		if err != nil {
+			t.Errorf("Expected no error for control, got %v", err)
+		}
+		if vptr.Type != SW_CTYPE {
+			t.Errorf("Expected Type=SW_CTYPE, got %v", vptr.Type)
+		}
+		if vptr.Ptr != &vav.Cmp.Elouts[0].Control {
+			t.Error("Expected Ptr to point to Elouts[0].Control")
+		}
+	})
+
+	t.Run("InvalidKey", func(t *testing.T) {
+		// Test invalid key
+		vav := createBasicVAV()
+		key := []string{"VAV", "invalid"}
+
+		_, err := vavswptr(key, vav)
+
+		if err == nil {
+			t.Error("Expected error for invalid key")
+		}
+	})
+}
+
+// TestChvavswreset tests the VAV switch reset function
+func TestChvavswreset(t *testing.T) {
+	t.Run("HeatingModeWithCoolingLoad", func(t *testing.T) {
+		// Test heating mode with negative (cooling) load
+		vav := createBasicVAV()
+		vav.G = 1.0
+
+		result := chvavswreset(-1000.0, HEATING_SW, vav)
+
+		if result != 1 {
+			t.Errorf("Expected result=1 for heating with cooling load, got %d", result)
+		}
+		if vav.G != vav.Cat.Gmin {
+			t.Errorf("Expected G=Gmin (%.2f), got %.2f", vav.Cat.Gmin, vav.G)
+		}
+	})
+
+	t.Run("CoolingModeWithHeatingLoad", func(t *testing.T) {
+		// Test cooling mode with positive (heating) load
+		vav := createBasicVAV()
+		vav.G = 1.0
+
+		result := chvavswreset(1000.0, COOLING_SW, vav)
+
+		if result != 1 {
+			t.Errorf("Expected result=1 for cooling with heating load, got %d", result)
+		}
+		if vav.G != vav.Cat.Gmin {
+			t.Errorf("Expected G=Gmin (%.2f), got %.2f", vav.Cat.Gmin, vav.G)
+		}
+	})
+
+	t.Run("NormalOperationBelowGmin", func(t *testing.T) {
+		// Test G below Gmin
+		vav := createBasicVAV()
+		vav.G = 0.1 // Below Gmin (0.5)
+
+		result := chvavswreset(1000.0, HEATING_SW, vav)
+
+		if result != 1 {
+			t.Errorf("Expected result=1 for G below Gmin, got %d", result)
+		}
+		if vav.G != vav.Cat.Gmin {
+			t.Errorf("Expected G=Gmin (%.2f), got %.2f", vav.Cat.Gmin, vav.G)
+		}
+	})
+
+	t.Run("NormalOperationAboveGmax", func(t *testing.T) {
+		// Test G above Gmax
+		vav := createBasicVAV()
+		vav.G = 3.0 // Above Gmax (2.0)
+
+		result := chvavswreset(1000.0, HEATING_SW, vav)
+
+		if result != 1 {
+			t.Errorf("Expected result=1 for G above Gmax, got %d", result)
+		}
+		if vav.G != vav.Cat.Gmax {
+			t.Errorf("Expected G=Gmax (%.2f), got %.2f", vav.Cat.Gmax, vav.G)
+		}
+	})
+
+	t.Run("NormalOperationWithinLimits", func(t *testing.T) {
+		// Test G within limits
+		vav := createBasicVAV()
+		vav.G = 1.0 // Within [0.5, 2.0]
+
+		result := chvavswreset(1000.0, HEATING_SW, vav)
+
+		if result != 0 {
+			t.Errorf("Expected result=0 for G within limits, got %d", result)
+		}
+		if vav.G != 1.0 {
+			t.Errorf("Expected G=1.0 (unchanged), got %.2f", vav.G)
+		}
+	})
 }

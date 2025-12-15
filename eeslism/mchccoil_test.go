@@ -192,7 +192,7 @@ func TestHcccfv(t *testing.T) {
 	cmp := &COMPNT{
 		Name:    "TestCoil",
 		Control: ON_SW,
-		Elins:   []*ELIN{},
+		Elins:   []*ELIN{{}, {}, {}}, // HCC requires 3 Elins
 		Elouts: []*ELOUT{
 			{
 				Fluid:   WATER_FLD,

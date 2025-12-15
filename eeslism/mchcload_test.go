@@ -426,39 +426,122 @@ func createBasicHCLOAD() *HCLOAD {
 }
 
 func createWetCoilHCLOAD() *HCLOAD {
-	hcload := createBasicHCLOAD()
-	hcload.Wet = true
-	hcload.Wetmode = true
-	return hcload
+	// For wet coil, Hclelm expects:
+	// - Elouts[0]: air temperature output
+	// - Elouts[1]: air humidity output with Elins[1] to connect to temperature output
+
+	// Create base component first
+	elouts := make([]*ELOUT, 2)
+
+	// Elouts[0]: air temperature output
+	eo0 := &ELOUT{
+		Control: ON_SW,
+		Sysv:    20.0,
+		G:       1.0,
+	}
+	elouts[0] = eo0
+
+	// Elouts[1]: air humidity output with its own Elins
+	eo1 := &ELOUT{
+		Control: ON_SW,
+		Sysv:    0.01,
+		G:       1.0,
+		// Elins[1] will be used by Hclelm
+		Elins: make([]*ELIN, 2),
+	}
+	eo1.Elins[0] = &ELIN{Sysvin: 0.012}
+	eo1.Elins[1] = &ELIN{} // This will be connected to temperature output
+	elouts[1] = eo1
+
+	cmp := &COMPNT{
+		Name:    "TestWetCoilHCLOAD",
+		Control: ON_SW,
+		Elouts:  elouts,
+	}
+
+	return &HCLOAD{
+		Name:    "TestWetCoilHCLOAD",
+		Type:    HCLoadType_D,
+		Wet:     true,
+		Wetmode: true,
+		Cmp:     cmp,
+		CGa:     1000.0,
+		Ga:      1.0,
+		Tain:    25.0,
+		Xain:    0.010,
+		RHout:   50.0,
+		Toset:   22.0,
+		Xoset:   0.009,
+	}
 }
 
 func createWaterCoilHCLOAD() *HCLOAD {
-	// Create ELOUT and ELIN for water coil (needs 3 outputs)
+	// For water coil (Type 'W'), Hclelm expects:
+	// - Elouts[0]: air temperature output with Elins[0].Upo set
+	// - Elouts[1]: air humidity output with Elins[0].Upo set
+	// - Elouts[2]: water temperature output with Elins[1..4]
+
 	elouts := make([]*ELOUT, 3)
-	for i := range elouts {
-		elouts[i] = &ELOUT{
-			Control: ON_SW,
-			Sysv:    20.0,
-			G:       1.0,
-		}
-	}
-	
-	elins := make([]*ELIN, 3)
-	for i := range elins {
-		elins[i] = &ELIN{
-			Sysvin: 25.0,
-		}
+
+	// Create upstream outputs for reference
+	upstreamOut := &ELOUT{Control: ON_SW, Sysv: 15.0}
+
+	// Elouts[0]: air temperature output with Elins
+	eo0Elins := make([]*ELIN, 1)
+	eo0Elins[0] = &ELIN{Sysvin: 25.0, Upo: upstreamOut}
+	elouts[0] = &ELOUT{
+		Control: ON_SW,
+		Sysv:    20.0,
+		G:       1.0,
+		Elins:   eo0Elins,
 	}
 
-	hcload := createBasicHCLOAD()
-	hcload.Type = HCLoadType_W // Water coil
-	hcload.Cmp.Elouts = elouts
-	hcload.Cmp.Elins = elins
-	hcload.CGw = 4200.0
-	hcload.Gw = 0.5
-	hcload.Twin = 7.0
-	hcload.Twout = 12.0
-	return hcload
+	// Elouts[1]: air humidity output with Elins
+	eo1Elins := make([]*ELIN, 1)
+	eo1Elins[0] = &ELIN{Sysvin: 0.012, Upo: upstreamOut}
+	elouts[1] = &ELOUT{
+		Control: ON_SW,
+		Sysv:    0.01,
+		G:       1.0,
+		Elins:   eo1Elins,
+	}
+
+	// Elouts[2]: water temperature output with Elins[0..4]
+	eo2Elins := make([]*ELIN, 5)
+	for i := range eo2Elins {
+		eo2Elins[i] = &ELIN{}
+	}
+	elouts[2] = &ELOUT{
+		Control: ON_SW,
+		Sysv:    12.0,
+		G:       0.5,
+		Elins:   eo2Elins,
+	}
+
+	cmp := &COMPNT{
+		Name:    "TestWaterCoilHCLOAD",
+		Control: ON_SW,
+		Elouts:  elouts,
+	}
+
+	return &HCLOAD{
+		Name:    "TestWaterCoilHCLOAD",
+		Type:    HCLoadType_W, // Water coil
+		Wet:     false,
+		Wetmode: false,
+		Cmp:     cmp,
+		CGa:     1000.0,
+		Ga:      1.0,
+		CGw:     4200.0,
+		Gw:      0.5,
+		Tain:    25.0,
+		Xain:    0.010,
+		Twin:    7.0,
+		Twout:   12.0,
+		RHout:   50.0,
+		Toset:   22.0,
+		Xoset:   0.009,
+	}
 }
 
 func createCoefficientTestHCLOAD() *HCLOAD {
@@ -552,3 +635,165 @@ func createCOPValidationHCLOAD() *HCLOAD {
 }
 
 // Note: absValue function is defined in mcmecsys_test.go
+
+// TestHcldschd tests the HCLOAD schedule function for load control
+func TestHcldschd(t *testing.T) {
+	t.Run("LoadtBranch_TosetAboveLimit", func(t *testing.T) {
+		// Test Loadt != nil with Toset > TEMPLIMIT
+		hcload := createBasicHCLOAD()
+		loadt := ON_SW
+		hcload.Loadt = &loadt
+		hcload.Toset = 25.0 // Above TEMPLIMIT (-100)
+		hcload.Cmp.Elouts[0].Control = ON_SW
+
+		hcldschd(hcload)
+
+		if hcload.Cmp.Elouts[0].Control != LOAD_SW {
+			t.Errorf("Expected Control=LOAD_SW, got %v", hcload.Cmp.Elouts[0].Control)
+		}
+		if hcload.Cmp.Elouts[0].Sysv != hcload.Toset {
+			t.Errorf("Expected Sysv=%f, got %f", hcload.Toset, hcload.Cmp.Elouts[0].Sysv)
+		}
+	})
+
+	t.Run("LoadtBranch_TosetBelowLimit", func(t *testing.T) {
+		// Test Loadt != nil with Toset <= TEMPLIMIT (OFF case)
+		hcload := createBasicHCLOAD()
+		loadt := ON_SW
+		hcload.Loadt = &loadt
+		hcload.Toset = -999.0 // Below TEMPLIMIT (-100)
+		hcload.Cmp.Elouts[0].Control = ON_SW
+		hcload.Wetmode = true
+		hcload.Cmp.Elouts[1].Control = ON_SW
+
+		hcldschd(hcload)
+
+		if hcload.Cmp.Elouts[0].Control != OFF_SW {
+			t.Errorf("Expected Eo[0].Control=OFF_SW, got %v", hcload.Cmp.Elouts[0].Control)
+		}
+		if hcload.Cmp.Elouts[1].Control != OFF_SW {
+			t.Errorf("Expected Eo[1].Control=OFF_SW (wetmode), got %v", hcload.Cmp.Elouts[1].Control)
+		}
+	})
+
+	t.Run("LoadxBranch_XosetPositive", func(t *testing.T) {
+		// Test Loadx != nil with Xoset > 0
+		hcload := createBasicHCLOAD()
+		loadx := ON_SW
+		hcload.Loadx = &loadx
+		hcload.Xoset = 0.01 // Positive humidity ratio
+		hcload.Cmp.Elouts[1].Control = ON_SW
+
+		hcldschd(hcload)
+
+		if hcload.Cmp.Elouts[1].Control != LOAD_SW {
+			t.Errorf("Expected Eo[1].Control=LOAD_SW, got %v", hcload.Cmp.Elouts[1].Control)
+		}
+		if hcload.Cmp.Elouts[1].Sysv != hcload.Xoset {
+			t.Errorf("Expected Sysv=%f, got %f", hcload.Xoset, hcload.Cmp.Elouts[1].Sysv)
+		}
+	})
+
+	t.Run("LoadxBranch_XosetZero", func(t *testing.T) {
+		// Test Loadx != nil with Xoset <= 0 (OFF case)
+		hcload := createBasicHCLOAD()
+		loadx := ON_SW
+		hcload.Loadx = &loadx
+		hcload.Xoset = 0.0
+		hcload.Cmp.Elouts[1].Control = ON_SW
+
+		hcldschd(hcload)
+
+		if hcload.Cmp.Elouts[1].Control != OFF_SW {
+			t.Errorf("Expected Eo[1].Control=OFF_SW, got %v", hcload.Cmp.Elouts[1].Control)
+		}
+	})
+
+	t.Run("WaterCoilBranch_BothOff", func(t *testing.T) {
+		// Test Type='W' with both Eo[0] and Eo[1] OFF
+		hcload := createWaterCoilHCLOAD()
+		hcload.Type = 'W'
+		hcload.Cmp.Elouts[0].Control = OFF_SW
+		hcload.Cmp.Elouts[1].Control = OFF_SW
+		hcload.Cmp.Elouts[2].Control = ON_SW
+
+		hcldschd(hcload)
+
+		if hcload.Cmp.Elouts[2].Control != OFF_SW {
+			t.Errorf("Expected Eo[2].Control=OFF_SW when both air outputs off, got %v", hcload.Cmp.Elouts[2].Control)
+		}
+	})
+
+	t.Run("NoLoadPointers", func(t *testing.T) {
+		// Test with Loadt=nil and Loadx=nil (should not modify controls)
+		hcload := createBasicHCLOAD()
+		hcload.Cmp.Elouts[0].Control = ON_SW
+		origControl := hcload.Cmp.Elouts[0].Control
+
+		hcldschd(hcload)
+
+		if hcload.Cmp.Elouts[0].Control != origControl {
+			t.Errorf("Control should not change when no load pointers, got %v", hcload.Cmp.Elouts[0].Control)
+		}
+	})
+}
+
+// TestFctlb tests the fctlb function (cooling load factor calculation)
+func TestFctlb(t *testing.T) {
+	testCases := []struct {
+		name string
+		T    float64 // 外気温度
+		x    float64 // 部分負荷率
+	}{
+		{"Normal_T35_x1.0", 35.0, 1.0},
+		{"Normal_T30_x0.5", 30.0, 0.5},
+		{"Normal_T40_x0.8", 40.0, 0.8},
+		{"Low_T25_x0.3", 25.0, 0.3},
+		{"High_T45_x1.0", 45.0, 1.0},
+		{"Zero_x", 35.0, 0.0},
+		{"Min_x", 35.0, 0.1},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := fctlb(tc.T, tc.x)
+
+			// fctlb should return a valid number
+			if result != result { // NaN check
+				t.Errorf("fctlb(%f, %f) returned NaN", tc.T, tc.x)
+			}
+
+			t.Logf("fctlb(T=%f, x=%f) = %f", tc.T, tc.x, result)
+		})
+	}
+}
+
+// TestFhtlb tests the fhtlb function (heating load factor calculation)
+func TestFhtlb(t *testing.T) {
+	testCases := []struct {
+		name string
+		T    float64 // 外気温度
+		x    float64 // 部分負荷率
+	}{
+		{"Normal_T7_x1.0", 7.0, 1.0},
+		{"Normal_T5_x0.5", 5.0, 0.5},
+		{"Normal_T10_x0.8", 10.0, 0.8},
+		{"Cold_T0_x1.0", 0.0, 1.0},
+		{"Cold_Minus5_x0.5", -5.0, 0.5},
+		{"Low_x", 7.0, 0.3},
+		{"Zero_x", 7.0, 0.0},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := fhtlb(tc.T, tc.x)
+
+			// fhtlb should return a valid number
+			if result != result { // NaN check
+				t.Errorf("fhtlb(%f, %f) returned NaN", tc.T, tc.x)
+			}
+
+			t.Logf("fhtlb(T=%f, x=%f) = %f", tc.T, tc.x, result)
+		})
+	}
+}

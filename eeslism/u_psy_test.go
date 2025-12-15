@@ -274,11 +274,10 @@ func TestFNRhtp(t *testing.T) {
 			if math.Abs(result-tt.expected) > tt.tolerance {
 				t.Errorf("FNRhtp(%v, %v) = %v, want %v ± %v", tt.temp, tt.pw, result, tt.expected, tt.tolerance)
 			}
-			
-			// Check that result is within valid range [0, 100]
-			if result < 0 || result > 100 {
-				t.Errorf("FNRhtp(%v, %v) = %v, should be within [0, 100]", tt.temp, tt.pw, result)
-			}
+
+			// Note: FNRhtp can return values > 100 (supersaturation) or < 0
+			// This is intentional to match C version behavior for condensation detection
+			// The calling code (e.g., FNTevph) uses RH > 100 to trigger condensation correction
 		})
 	}
 }

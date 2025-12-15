@@ -483,6 +483,222 @@ func TestPumpSystemIntegration(t *testing.T) {
 	})
 }
 
+// Test Pumpcfv function - coefficient calculation for pump/fan
+func TestPumpcfv(t *testing.T) {
+	t.Run("Pump ON - water fluid", func(t *testing.T) {
+		// Create pump with proper setup
+		pfcmp := &PFCMP{
+			pftype:   PUMP_PF,
+			Type:     "C",
+			dblcoeff: [5]float64{0.1, 0.2, 0.3, 0.4, 0.0},
+		}
+
+		pumpca := &PUMPCA{
+			name:   "TestPump",
+			pftype: PUMP_PF,
+			Type:   "C",
+			pfcmp:  pfcmp,
+			Wo:     1000.0,
+			Go:     2.0,
+			qef:    0.8,
+		}
+
+		// Create ELOUT with water fluid
+		elout := &ELOUT{
+			Fluid:   WATER_FLD,
+			G:       1.0, // 1 kg/s flow rate
+			Coeffin: make([]float64, 1),
+		}
+
+		// Create COMPNT
+		cmp := &COMPNT{
+			Control: ON_SW,
+			Elouts:  []*ELOUT{elout},
+		}
+
+		pump := &PUMP{
+			Name: "TestPump",
+			Cat:  pumpca,
+			Cmp:  cmp,
+			G:    2.0, // Rated flow
+			E:    1000.0,
+		}
+
+		// Run Pumpcfv
+		Pumpcfv([]*PUMP{pump})
+
+		// Check results
+		// cG = Spcheat(WATER_FLD) * G = 4186 * 1.0 = 4186
+		expectedCG := Spcheat(WATER_FLD) * 1.0
+		if pump.CG != expectedCG {
+			t.Errorf("CG = %v, want %v", pump.CG, expectedCG)
+		}
+
+		if elout.Coeffo != expectedCG {
+			t.Errorf("Coeffo = %v, want %v", elout.Coeffo, expectedCG)
+		}
+
+		if elout.Coeffin[0] != -expectedCG {
+			t.Errorf("Coeffin[0] = %v, want %v", elout.Coeffin[0], -expectedCG)
+		}
+
+		// PLC should be calculated
+		if pump.PLC <= 0 {
+			t.Errorf("PLC should be positive, got %v", pump.PLC)
+		}
+
+		t.Logf("Pump ON test: CG=%.2f, PLC=%.4f, Co=%.2f", pump.CG, pump.PLC, elout.Co)
+	})
+
+	t.Run("Pump OFF", func(t *testing.T) {
+		pfcmp := &PFCMP{
+			pftype:   PUMP_PF,
+			Type:     "C",
+			dblcoeff: [5]float64{0.1, 0.9, 0.0, 0.0, 0.0},
+		}
+
+		pumpca := &PUMPCA{
+			name:   "TestPump",
+			pftype: PUMP_PF,
+			pfcmp:  pfcmp,
+			Wo:     1000.0,
+			Go:     2.0,
+			qef:    0.8,
+		}
+
+		cmp := &COMPNT{
+			Control: OFF_SW,
+			Elouts:  []*ELOUT{},
+		}
+
+		pump := &PUMP{
+			Name: "TestPump",
+			Cat:  pumpca,
+			Cmp:  cmp,
+			G:    2.0,
+			E:    1000.0,
+		}
+
+		// Run Pumpcfv
+		Pumpcfv([]*PUMP{pump})
+
+		// When OFF, G and E should be set to 0
+		if pump.G != 0.0 {
+			t.Errorf("G should be 0 when OFF, got %v", pump.G)
+		}
+		if pump.E != 0.0 {
+			t.Errorf("E should be 0 when OFF, got %v", pump.E)
+		}
+	})
+
+	t.Run("Fan ON - air fluid", func(t *testing.T) {
+		pfcmp := &PFCMP{
+			pftype:   FAN_PF,
+			Type:     "C",
+			dblcoeff: [5]float64{0.2, 0.8, 0.0, 0.0, 0.0},
+		}
+
+		fanca := &PUMPCA{
+			name:   "TestFan",
+			pftype: FAN_PF,
+			Type:   "C",
+			pfcmp:  pfcmp,
+			Wo:     500.0,
+			Go:     1.0,
+			qef:    0.9,
+		}
+
+		// Fan has two outputs: temperature and humidity
+		elout1 := &ELOUT{
+			Fluid:   AIR_FLD,
+			G:       0.5,
+			Coeffin: make([]float64, 1),
+		}
+		elout2 := &ELOUT{
+			Fluid:   AIRx_FLD,
+			G:       0.5,
+			Coeffin: make([]float64, 1),
+		}
+
+		cmp := &COMPNT{
+			Control: ON_SW,
+			Elouts:  []*ELOUT{elout1, elout2},
+		}
+
+		fan := &PUMP{
+			Name: "TestFan",
+			Cat:  fanca,
+			Cmp:  cmp,
+			G:    1.0,
+			E:    500.0,
+		}
+
+		// Run Pumpcfv
+		Pumpcfv([]*PUMP{fan})
+
+		// Check air-specific calculations
+		expectedCG := Spcheat(AIR_FLD) * 0.5
+		if fan.CG != expectedCG {
+			t.Errorf("Fan CG = %v, want %v", fan.CG, expectedCG)
+		}
+
+		// Check humidity output coefficients
+		if elout2.Coeffo != 0.5 {
+			t.Errorf("Fan humidity Coeffo = %v, want %v", elout2.Coeffo, 0.5)
+		}
+		if elout2.Co != 0.0 {
+			t.Errorf("Fan humidity Co = %v, want 0.0", elout2.Co)
+		}
+		if elout2.Coeffin[0] != -0.5 {
+			t.Errorf("Fan humidity Coeffin[0] = %v, want %v", elout2.Coeffin[0], -0.5)
+		}
+
+		t.Logf("Fan ON test: CG=%.2f, PLC=%.4f", fan.CG, fan.PLC)
+	})
+
+	t.Run("Multiple pumps", func(t *testing.T) {
+		pfcmp := &PFCMP{
+			pftype:   PUMP_PF,
+			Type:     "C",
+			dblcoeff: [5]float64{0.1, 0.9, 0.0, 0.0, 0.0},
+		}
+
+		pumps := make([]*PUMP, 3)
+		for i := 0; i < 3; i++ {
+			elout := &ELOUT{
+				Fluid:   WATER_FLD,
+				G:       float64(i+1) * 0.5,
+				Coeffin: make([]float64, 1),
+			}
+			cmp := &COMPNT{
+				Control: ON_SW,
+				Elouts:  []*ELOUT{elout},
+			}
+			pumps[i] = &PUMP{
+				Name: "Pump" + string(rune('A'+i)),
+				Cat: &PUMPCA{
+					pftype: PUMP_PF,
+					pfcmp:  pfcmp,
+					Wo:     1000.0,
+					Go:     2.0,
+					qef:    0.8,
+				},
+				Cmp: cmp,
+				G:   2.0,
+				E:   1000.0,
+			}
+		}
+
+		Pumpcfv(pumps)
+
+		for i, p := range pumps {
+			if p.CG <= 0 {
+				t.Errorf("Pump %d CG should be positive, got %v", i, p.CG)
+			}
+		}
+	})
+}
+
 // Helper functions for advanced pump tests
 
 func createVariableSpeedPump() *PUMP {
@@ -594,3 +810,4 @@ func createControlStrategyPump() *PUMP {
 		Cat:  pumpca,
 	}
 }
+

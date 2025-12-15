@@ -100,17 +100,11 @@ func Walldata(section *EeTokens, fbmlist string, Wall *[]*WALL, dfwl *DFWL, pcm 
 		}
 
 		W = append(W, *Wl)
-
-		for j := 0; j < k+1; j++ {
-			fmt.Printf("k=%d code=%s\n", k, W[j].Mcode)
-		}
-
-		fmt.Printf("Walldata>> name=%s Con=%f Cro=%f\n", W[k].Mcode, W[k].Cond, W[k].Cro)
-		W[k] = *Wl
 		k++
 	}
 
-	k++
+	// k is already the count of materials (k starts at 0, incremented after each append)
+	// No need to increment again unlike C version which starts k at -1
 	Nbm = k
 
 	//N = Wallcount(fi)
@@ -178,20 +172,26 @@ func Walldata(section *EeTokens, fbmlist string, Wall *[]*WALL, dfwl *DFWL, pcm 
 			var err error
 			st := strings.IndexRune(s, '=')
 			if st != -1 {
+				key := strings.TrimSpace(s[:st])
+
+				// "type"は文字列パラメータなので先に処理
+				if key == "type" {
+					Wa.ColType = s[st+1:] // 集熱器のタイプ
+					continue
+				}
+
 				dt, err = strconv.ParseFloat(s[st+1:], 64)
 				if err != nil {
 					panic(err)
 				}
 
-				switch strings.TrimSpace(s[:st]) {
+				switch key {
 				case "Ei":
 					Wa.Ei = dt // 室内表面放射率
 				case "Eo":
 					Wa.Eo = dt // 外表面放射率
 				case "as":
 					Wa.as = dt // 外表面日射吸収率
-				case "type":
-					Wa.ColType = s[st+1:] // 集熱器のタイプ
 				case "tra":
 					Wa.tra = dt // τα
 				case "Ksu":

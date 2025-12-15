@@ -1021,6 +1021,7 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 						rmpnl := room.rmpnl[rmpnlIdx]
 						rmpnl.pnl = rdpnl
 						rmpnl.sd = rsd
+						rsd.rpnl = rdpnl // 表面から放射パネルへの参照を設定
 
 						rdpnl.elinpnl[0] = 1 + 1 + rdpnl.Ntrm[0]
 						rmpnl.elinpnl = rdpnl.elinpnl[0]
@@ -1060,13 +1061,19 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 			if rsd.ble != BLE_Window {
 				w := Rmvls.Wall[rsd.wd]
 				if w.Ip > 0 && rsd.mwside == 'M' {
-					rsd.rpnl = rsd.nxsd.rpnl
+					// 隣接面の放射パネル参照をコピー
+					if rsd.nxsd != nil && rsd.nxsd.rpnl != nil {
+						rsd.rpnl = rsd.nxsd.rpnl
 
-					rmpnl := room.rmpnl[rmpnlIdx]
-					rmpnl.pnl = rsd.rpnl
-					rmpnl.sd = rsd
-					rmpnl.elinpnl = rsd.rpnl.elinpnl[1]
-					rmpnlIdx++
+						// 境界チェック: rmpnlスライスが存在し、インデックスが範囲内であることを確認
+						if room.rmpnl != nil && rmpnlIdx < len(room.rmpnl) {
+							rmpnl := room.rmpnl[rmpnlIdx]
+							rmpnl.pnl = rsd.rpnl
+							rmpnl.sd = rsd
+							rmpnl.elinpnl = rsd.rpnl.elinpnl[1]
+							rmpnlIdx++
+						}
+					}
 				}
 			}
 		}
@@ -1233,12 +1240,14 @@ func Balloc(Sd []*RMSRF, Wall []*WALL, Mwall *[]*MWALL) {
 
 			M := mwl.M
 
+			// ssd.typ == 'H' の場合、後でMがインクリメントされるため
+			// 配列サイズは M+3 で確保する（M+2 + 1）
 			if mwl.res == nil {
-				mwl.res = make([]float64, M+2)
+				mwl.res = make([]float64, M+3)
 			}
 
 			if mwl.cap == nil {
-				mwl.cap = make([]float64, M+2)
+				mwl.cap = make([]float64, M+3)
 			}
 
 			wres := W.res

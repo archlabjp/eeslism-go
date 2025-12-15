@@ -250,6 +250,7 @@ func Rmexct(Room []*ROOM, Sd []*RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []*SNBK, Qrm 
 					Sdn.Te = e.Tearth
 					Sdn.TeEsol = 0.0
 					Sdn.TeErn = 0.0
+					Sdn.Qrn = 0.0 // 地中は夜間放射なし
 				}
 				break
 
@@ -277,6 +278,7 @@ func Rmexct(Room []*ROOM, Sd []*RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []*SNBK, Qrm 
 				}
 				Sdn.TeEsol = 0.0
 				Sdn.TeErn = 0.0
+				Sdn.Qrn = 0.0 // 内部表面は夜間放射なし
 				break
 			}
 		} // 表面ループ

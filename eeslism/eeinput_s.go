@@ -679,6 +679,10 @@ func Eeinput(Ipath string, efl_path string, bdata, week, schtba, schnma string, 
 		switch s {
 		case "TITLE":
 			line := tokens.GetLogicalLine()
+			// セミコロンを除去（C版と同じ動作）
+			if len(line) > 0 && line[len(line)-1] == ";" {
+				line = line[:len(line)-1]
+			}
 			Simc.Title = strings.Join(line, " ")
 			fmt.Printf("%s\n", Simc.Title)
 		case "GDAT":

@@ -348,12 +348,13 @@ func Rmdyprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []*ROO
 						fmt.Fprintf(fo, "%s:%d_Qath Q f %s:%d_Qatc Q f\n",
 							Room.Name, j, Room.Name, j)
 					} else {
+						lpathName := get_string_or_null(Ei.Lpath.Name)
 						fmt.Fprintf(fo, "%s:%s_Qash Q f %s:%s_Qasc Q f ",
-							Room.Name, Ei.Lpath.Name, Room.Name, Ei.Lpath.Name)
+							Room.Name, lpathName, Room.Name, lpathName)
 						fmt.Fprintf(fo, "%s:%s_Qalh Q f %s:%s_Qalc Q f ",
-							Room.Name, Ei.Lpath.Name, Room.Name, Ei.Lpath.Name)
+							Room.Name, lpathName, Room.Name, lpathName)
 						fmt.Fprintf(fo, "%s:%s_Qath Q f %s:%s_Qatc Q f\n",
-							Room.Name, Ei.Lpath.Name, Room.Name, Ei.Lpath.Name)
+							Room.Name, lpathName, Room.Name, lpathName)
 					}
 				}
 			}
@@ -519,12 +520,13 @@ func Rmmonprint(fo io.Writer, mrk string, Simc *SIMCONTL, mon, day int, Rm []*RO
 						fmt.Fprintf(fo, "%s:%d_Qath Q f %s:%d_Qatc Q f\n",
 							Room.Name, j, Room.Name, j)
 					} else {
+						lpathName := get_string_or_null(Ei.Lpath.Name)
 						fmt.Fprintf(fo, "%s:%s_Qash Q f %s:%s_Qasc Q f ",
-							Room.Name, Ei.Lpath.Name, Room.Name, Ei.Lpath.Name)
+							Room.Name, lpathName, Room.Name, lpathName)
 						fmt.Fprintf(fo, "%s:%s_Qalh Q f %s:%s_Qalc Q f ",
-							Room.Name, Ei.Lpath.Name, Room.Name, Ei.Lpath.Name)
+							Room.Name, lpathName, Room.Name, lpathName)
 						fmt.Fprintf(fo, "%s:%s_Qath Q f %s:%s_Qatc Q f\n",
-							Room.Name, Ei.Lpath.Name, Room.Name, Ei.Lpath.Name)
+							Room.Name, lpathName, Room.Name, lpathName)
 					}
 				}
 			}

@@ -681,7 +681,7 @@ func Desidyprt(fo io.Writer, id int, Desi []*DESI) {
 			fmt.Fprintf(fo, "%1d %3.1f ", desi.Qlsdy.Hhr, desi.Qlsdy.H)
 			fmt.Fprintf(fo, "%1d %3.1f ", desi.Qlsdy.Chr, desi.Qlsdy.C)
 			fmt.Fprintf(fo, "%1d %2.0f ", desi.Qlsdy.Hmxtime, desi.Qlsdy.Hmx)
-			fmt.Fprintf(fo, "%1d %2.0f\n", desi.Qlsdy.Cmxtime, desi.Qlsdy.Cmx)
+			fmt.Fprintf(fo, "%1d %2.0f ", desi.Qlsdy.Cmxtime, desi.Qlsdy.Cmx)
 		}
 	}
 }

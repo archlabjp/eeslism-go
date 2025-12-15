@@ -96,3 +96,19 @@ func IsEndDay(Mon, Day, Dayend, SimDayend int) bool {
 
 	return false
 }
+
+// ResetGlobalState はグローバル変数を初期状態にリセットします。
+// テスト間での状態分離を確保するためにテストで使用されます。
+func ResetGlobalState() {
+	// シミュレーション制御パラメータ
+	DTM = 0.0
+	Cff_kWh = 0.0
+	VAVCountMAX = 0
+	Fbmlist = ""
+	DEBUG = false
+	dayprn = false
+	SETprint = false
+
+	// 印刷・日集計状態変数
+	resetPrintStates()
+}

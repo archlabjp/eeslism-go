@@ -171,10 +171,6 @@ func Syseqv(_Elout []*ELOUT, Syseq *SYSEQ) {
 	}
 
 	if Nsv > 0 {
-		/**********************
-		matprint("%6.2f ", Nsv, sysmcf) ;
-		/**********************/
-
 		Matinv(sysmcf, Nsv, Nsv, "<Syseqv>")
 		Matmalv(sysmcf, syscv, Nsv, Nsv, Y)
 	}

@@ -174,10 +174,16 @@ func Sysupv(Mpath []*MPATH, Rmvls *RMVLS) {
 
 			for j := 0; j < Rdpnl.MC; j++ {
 				rm := Rdpnl.rm[j]
-				rmpnl := rm.rmpnl[j]
-				elin := Rdpnl.cmp.Elins[Rdpnl.elinpnl[j]]
+				// C版: rmpnl = rm->rmpnl; (各室でインデックス0から開始)
+				rmpnlIdx := 0
+				elinIdx := Rdpnl.elinpnl[j]
+
 				for jj := 0; jj < Rdpnl.Nrp[j]; jj++ {
+					rmpnl := rm.rmpnl[rmpnlIdx]
+					elin := Rdpnl.cmp.Elins[elinIdx]
 					elin.Upv = rmpnl.pnl.cmp.Elins[0].Upv
+					rmpnlIdx++
+					elinIdx++
 				}
 			}
 		}

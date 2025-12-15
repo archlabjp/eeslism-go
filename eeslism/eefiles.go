@@ -118,6 +118,6 @@ func Eeflclose(Flout []*FLOUT) {
 		defer fo.Close()
 
 		fmt.Fprint(fo, fl.F)
-		fmt.Fprintln(fo, "INAN")
+		fmt.Fprintln(fo, "-999")
 	}
 }

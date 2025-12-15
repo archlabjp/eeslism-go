@@ -182,15 +182,30 @@ func Pflow(_Mpath []*MPATH, Wd *WDAT) {
 
 				cmp = Mpath.Cbcmp[i]
 
+				// cmpがnilの場合はスキップ
+				if cmp == nil {
+					continue
+				}
+
 				if DEBUG {
 					fmt.Printf("<Pflow> Name=%s\n", cmp.Name)
 				}
 
-				for j = 0; j < cmp.Nin; j++ {
+				// Elinsがnilまたは空の場合はスキップ
+				if cmp.Elins == nil || len(cmp.Elins) == 0 {
+					continue
+				}
+
+				for j = 0; j < cmp.Nin && j < len(cmp.Elins); j++ {
 					eli = cmp.Elins[j]
 
 					if DEBUG {
 						fmt.Printf("j=%d jMAX=%d\n", j, cmp.Nin)
+					}
+
+					// Lpathがnilの場合はスキップ
+					if eli.Lpath == nil {
+						continue
 					}
 
 					if eli.Lpath.Go != nil ||

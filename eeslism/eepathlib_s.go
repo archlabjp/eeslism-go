@@ -119,13 +119,14 @@ func pelmco(pflow FliudType, Pelm *PELM, errkey string) {
 func pelmci(pflow FliudType, Pelm *PELM, errkey string) {
 	err := 0
 	cmp := Pelm.Cmp
-	elmi := cmp.Elins[0]
 	Nin := cmp.Nin
 
 	// 入口の数が0の場合は処理を行わない
-	if Nin <= 0 {
+	if Nin <= 0 || len(cmp.Elins) == 0 {
 		return
 	}
+
+	elmi := cmp.Elins[0]
 
 	if cmp.Eqptype == CONVRG_TYPE || cmp.Eqptype == CVRGAIR_TYPE {
 		// 合流要素の場合

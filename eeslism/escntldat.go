@@ -30,6 +30,29 @@ import (
 // 	 Cload,  /* Cload = COOLING_LOAD */
 // 	 HCload;  /* HCload = HEATCOOL_LOAD */
 
+// getConditionString は括弧で囲まれた条件式の全トークンを収集して結合します。
+// 例: "(LivingRoom_LR_FloorPanel_Ts < 25)" のように複数トークンに分割された
+// 条件式を "LivingRoom_LR_FloorPanel_Ts < 25" として返します。
+func getConditionString(fi *EeTokens) string {
+	var parts []string
+	for fi.IsEnd() == false {
+		tok := fi.GetToken()
+		if tok == "" || tok == "\n" {
+			break
+		}
+		parts = append(parts, tok)
+		// 閉じ括弧を含むトークンで終了
+		if strings.HasSuffix(tok, ")") {
+			break
+		}
+	}
+	// 全パーツを結合して括弧を除去
+	result := strings.Join(parts, " ")
+	result = strings.TrimPrefix(result, "(")
+	result = strings.TrimSuffix(result, ")")
+	return result
+}
+
 func Contrldata(fi *EeTokens, Ct *[]*CONTL, Ci *[]*CTLIF,
 	Cs *[]*CTLST,
 	Simc *SIMCONTL, Compnt []*COMPNT,
@@ -75,8 +98,8 @@ func Contrldata(fi *EeTokens, Ct *[]*CONTL, Ci *[]*CTLIF,
 				Ctlif := NewCTLIF()
 				Contl.Type = 'c'
 				Contl.Cif = Ctlif
-				s = strings.Trim(fi.GetToken(), "()")
-				ctifdecode(s, Ctlif, Simc, Compnt, Mpath, Wd, Exsf, Schdl)
+				condStr := getConditionString(fi)
+				ctifdecode(condStr, Ctlif, Simc, Compnt, Mpath, Wd, Exsf, Schdl)
 				*Ci = append(*Ci, Ctlif)
 			} else if s == "AND" {
 				Ctlif := NewCTLIF()
@@ -86,23 +109,24 @@ func Contrldata(fi *EeTokens, Ct *[]*CONTL, Ci *[]*CTLIF,
 				} else {
 					Contl.AndAndCif = Ctlif
 				}
-				s = strings.Trim(fi.GetToken(), "()")
-				ctifdecode(s, Ctlif, Simc, Compnt, Mpath, Wd, Exsf, Schdl)
+				condStr := getConditionString(fi)
+				ctifdecode(condStr, Ctlif, Simc, Compnt, Mpath, Wd, Exsf, Schdl)
 				*Ci = append(*Ci, Ctlif)
 			} else if s == "OR" {
 				Ctlif := NewCTLIF()
 				Contl.Type = 'c'
 				Contl.OrCif = Ctlif
-				s = strings.Trim(fi.GetToken(), "()")
-				ctifdecode(s, Ctlif, Simc, Compnt, Mpath, Wd, Exsf, Schdl)
+				condStr := getConditionString(fi)
+				ctifdecode(condStr, Ctlif, Simc, Compnt, Mpath, Wd, Exsf, Schdl)
 				*Ci = append(*Ci, Ctlif)
 			} else if strings.HasPrefix(s, "LOAD") {
 				loadcmp = nil
 				if strings.ContainsRune(s, ':') {
-					if len(s) == 5 && ControlSWType(s[5]) == HEATING_LOAD {
+					// C言語版: strlen(s + 5) == 1 → s[5:]の長さが1、つまりlen(s) == 6
+					if len(s) == 6 && ControlSWType(s[5]) == HEATING_LOAD {
 						load = new(ControlSWType)
 						*load = Hload
-					} else if len(s) == 5 && ControlSWType(s[5]) == COOLING_LOAD {
+					} else if len(s) == 6 && ControlSWType(s[5]) == COOLING_LOAD {
 						load = new(ControlSWType)
 						*load = Cload
 					} else {
@@ -150,6 +174,9 @@ func Contrldata(fi *EeTokens, Ct *[]*CONTL, Ci *[]*CTLIF,
 				if err != nil {
 					Err := fmt.Sprintf("%s = %s", s[:st], s[st+1:])
 					Eprint("<Contrldata>", Err)
+					// エラーがあった場合、C版と同じくCstをnilにする
+					// これにより、Contlschdlrでif Contl.Cst != nilチェックを通過しない
+					Contl.Cst = nil
 				}
 			} else if s == "TVALV" {
 				flag_ignore = true
@@ -214,6 +241,10 @@ func ctifdecode(_s string, ctlif *CTLIF, Simc *SIMCONTL, Compnt []*COMPNT,
 	var vptr VPTR
 
 	s := strings.Split(_s, " ")
+	if len(s) < 3 {
+		fmt.Printf("CONTL if条件のパースエラー: '%s' (要素数=%d, 期待=3)\n", _s, len(s))
+		return
+	}
 	lft, op, rgt = s[0], s[1], s[2]
 
 	st := strings.IndexRune(lft, '-')

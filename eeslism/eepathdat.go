@@ -500,15 +500,19 @@ func Pathdata(
 				if idci {
 					// システム要素入力端割当
 					pelmci(Mpath.Fluid, Pelm, errkey)
-					Pelm.In.Lpath = Plist
+					if Pelm.In != nil {
+						Pelm.In.Lpath = Plist
+					}
 				}
 
 				if idco {
 					// システム要素出力端割当
 					pelmco(Mpath.Fluid, Pelm, errkey)
 
-					Pelm.Out.Lpath = Plist
-					Pelm.Out.Fluid = Mpath.Fluid
+					if Pelm.Out != nil {
+						Pelm.Out.Lpath = Plist
+						Pelm.Out.Fluid = Mpath.Fluid
+					}
 				}
 			}
 		}
@@ -541,7 +545,9 @@ func Pathdata(
 			} else {
 				Mpath.Type = CIR_PTYP
 				Plist.Type = CIR_PTYP
-				Plist.Pelm[0].In.Upo = Plist.Pelm[len(Plist.Pelm)-1].Out
+				if len(Plist.Pelm) > 0 && Plist.Pelm[0].In != nil && Plist.Pelm[len(Plist.Pelm)-1].Out != nil {
+					Plist.Pelm[0].In.Upo = Plist.Pelm[len(Plist.Pelm)-1].Out
+				}
 			}
 
 			if DEBUG {
@@ -554,7 +560,9 @@ func Pathdata(
 				PelmPrev := Plist.Pelm[m-1]
 
 				// 要素間の接続: 1つ前の要素の出力への参照を設定
-				Pelm.In.Upo = PelmPrev.Out
+				if Pelm.In != nil && PelmPrev.Out != nil {
+					Pelm.In.Upo = PelmPrev.Out
+				}
 			}
 		} else {
 			//

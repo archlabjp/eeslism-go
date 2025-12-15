@@ -144,7 +144,9 @@ func Elmalloc(
 			Elout_x.Id = ELIO_x
 			Elout_x.Ni = 1
 			Elout_x.Elins = make([]*ELIN, 0, Elout_x.Ni)
-			Elin.Id = ELIO_x
+			Elin_x := NewElin()
+			Elin_x.Id = ELIO_x
+			Elout_x.Elins = append(Elout_x.Elins, Elin_x)
 
 			*Elo = append(*Elo, Elout_x)
 			*Eli = append(*Eli, Elout_x.Elins...)
@@ -214,21 +216,26 @@ func Elmalloc(
 			Hcc.Cmp = Compnt
 			Hcc.Cat = Eqcat.Hccca[ncat]
 
-			// 入口の数=出口の数
+			// まず入力（Elin）を作成してCompnt.Elinsに追加
+			// C版では Elin++でポインタを進めてループ内で設定している
+			for i = 0; i < Compnt.Nin; i++ {
+				Elin := NewElin()
+				Elin.Id = Compnt.Idi[i]
+				Compnt.Elins = append(Compnt.Elins, Elin)
+				*Eli = append(*Eli, Elin)
+			}
+
+			// 次に出力（Elout）を作成し、共有Elinsを参照
+			// HCCでは全出力が同じ入力配列を共有する
 			for i = 0; i < Compnt.Nout; i++ {
 				Elout := NewElout()
 				Elout.Cmp = Compnt
 				Elout.Ni = Compnt.Nin
-				Elout.Elins = Compnt.Elins
+				Elout.Elins = Compnt.Elins // 共有入力を参照
 				Elout.Id = Compnt.Ido[i]
 
-				Elin := NewElin()
-				Elin.Id = Compnt.Idi[i]
-
 				*Elo = append(*Elo, Elout)
-				*Eli = append(*Eli, Elout.Elins...)
 				Compnt.Elouts = append(Compnt.Elouts, Elout)
-				Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 			}
 		} else if c == HEXCHANGR_TYPE {
 			Hex := Eqsys.Hex[neqp]
@@ -237,20 +244,24 @@ func Elmalloc(
 			Hex.Cmp = Compnt
 			Hex.Cat = Eqcat.Hexca[ncat]
 
+			// まず入力（Elin）を作成してCompnt.Elinsに追加
+			for i = 0; i < Compnt.Nin; i++ {
+				Elin := NewElin()
+				Elin.Id = Compnt.Idi[i]
+				Compnt.Elins = append(Compnt.Elins, Elin)
+				*Eli = append(*Eli, Elin)
+			}
+
+			// 次に出力（Elout）を作成し、共有Elinsを参照
 			for i = 0; i < Compnt.Nout; i++ {
 				Elout := NewElout()
 				Elout.Cmp = Compnt
 				Elout.Ni = Compnt.Nin
-				Elout.Elins = Compnt.Elins
+				Elout.Elins = Compnt.Elins // 共有入力を参照
 				Elout.Id = Compnt.Ido[i]
 
-				Elin := NewElin()
-				Elin.Id = Compnt.Idi[i]
-
 				*Elo = append(*Elo, Elout)
-				*Eli = append(*Eli, Elout.Elins...)
 				Compnt.Elouts = append(Compnt.Elouts, Elout)
-				Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 			}
 		} else if c == BOILER_TYPE {
 			Boi = Eqsys.Boi[neqp]
@@ -352,7 +363,7 @@ func Elmalloc(
 					Elout.Cmp = Compnt
 					Elout.Id = ELIOType(idmrkc[i])
 					Elin.Id = ELIOType(idmrkc[i])
-					Elout.Elins = NewElinSlice(1)
+					Elout.Elins = []*ELIN{Elin}
 					Elout.Ni = 1
 
 					*Elo = append(*Elo, Elout)
@@ -511,10 +522,11 @@ func Elmalloc(
 				Elout.Id = ELIOType(idmrkc[i])
 
 				Elout.Ni = 1
-				//Elout.Ni = 2;
-				// 湿りコイル（吹出相対湿度一定）で出口絶対湿度の経路の場合
-				// 要素方程式の未知数は2つ（入口絶対湿度と出口温度）
-				if i == 1 && Hcload[hcloadIdx].Wet {
+				// 湿度出力の経路（i == 1）の場合、常に2つの係数が必要
+				// （入口絶対湿度と出口温度）
+				// 注: C版では非wetモードでもcoeffin[1]にアクセスするため、
+				// Ni=2を常に設定する必要がある
+				if i == 1 {
 					Elout.Ni = 2
 				} else if i == 2 && Hcload[hcloadIdx].Type == 'W' {
 					// 冷温水コイルで水側系統の場合
@@ -551,10 +563,11 @@ func Elmalloc(
 			Eqsys.Vav[neqp].Name = name
 			Eqsys.Vav[neqp].Cmp = Compnt
 			Eqsys.Vav[neqp].Cat = Eqcat.Vavca[ncat]
-			Compnt.Nin = 2
-			Compnt.Nout = 2
 
 			if Eqsys.Vav[neqp].Cat.Type == VAV_PDT {
+				// VAV_PDT: Nin=Nout=2
+				Compnt.Nin = 2
+				Compnt.Nout = 2
 				Compnt.Airpathcpy = true
 				for i = 0; i < Compnt.Nout; i++ {
 					Elin := NewElin()
@@ -572,9 +585,14 @@ func Elmalloc(
 					Compnt.Elins = append(Compnt.Elins, Elout.Elins...)
 				}
 			} else {
+				// VWV_PDT: Nin=Nout=1
+				Compnt.Nin = 1
+				Compnt.Nout = 1
 				Elin := NewElin()
 				Elout := NewElout()
 				Elout.Cmp = Compnt
+				Elout.Id = ELIOType(idmrkc[0]) // 't' (temperature)
+				Elin.Id = ELIOType(idmrkc[0])
 				Elout.Elins = []*ELIN{Elin}
 				Elout.Ni = 1
 
@@ -679,6 +697,10 @@ func Elmalloc(
 			Valv.Name = name
 			Valv.Cmp = Compnt
 
+			// VALV/TVALVは出入口要素を持たないのでNout/Ninを0にリセット
+			Compnt.Nout = 0
+			Compnt.Nin = 0
+
 			if Valv.Cmp.Valvcmp != nil {
 				Valv.Cmb = Valv.Cmp.Valvcmp
 			}
@@ -699,6 +721,11 @@ func Elmalloc(
 
 			NOMvav++
 		} else if c == QMEAS_TYPE {
+			// QMEASは測定機器なので、入出力要素を持たない
+			// C言語版ではNout/Ninはデフォルト0だが、Go版のNewCOMPNT()は3に設定するため明示的に0にする
+			Compnt.Nout = 0
+			Compnt.Nin = 0
+
 			Qmeas := Eqsys.Qmeas[NQmeas]
 			Compnt.Eqp = Qmeas
 			Qmeas.Name = name

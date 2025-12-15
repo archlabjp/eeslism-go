@@ -23,7 +23,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math"
 	"strconv"
 	"strings"
 )
@@ -35,7 +34,6 @@ import (
 /*---- Satoh Debug VAV  2000/10/30 ----*/
 
 func VAVdata(cattype EqpType, s string, vavca *VAVCA) int {
-	var st string
 	var dt float64
 	var id int
 
@@ -45,15 +43,21 @@ func VAVdata(cattype EqpType, s string, vavca *VAVCA) int {
 		vavca.Type = VWV_PDT
 	}
 
-	if st = strings.Split(s, "=")[1]; st == "" {
+	// C言語版: (st=strchr(s,'=')) == 0 でNULLチェック
+	stIdx := strings.Index(s, "=")
+	if stIdx == -1 {
+		// "="がない場合はカタログ名
 		vavca.Name = s
 		vavca.Gmax = FNAN
 		vavca.Gmin = FNAN
 		vavca.dTset = FNAN
 	} else {
-		dt, _ = strconv.ParseFloat(st, 64)
+		// "key=value"形式をパース
+		key := s[:stIdx]
+		value := s[stIdx+1:]
+		dt, _ = strconv.ParseFloat(value, 64)
 
-		switch s {
+		switch key {
 		case "Gmax":
 			vavca.Gmax = dt
 		case "Gmin":
@@ -74,9 +78,14 @@ func VWVint(VAVs []*VAV, Compn []*COMPNT) {
 		vav.Hcld = nil
 		vav.Mon = '-'
 
+		if vav.Cat == nil {
+			continue
+		}
 		if vav.Cat.Type == VWV_PDT {
 			if vav.Cmp.Hccname != "" {
-				vav.Hcc = hccptr('c', vav.Cmp.Hccname, Compn, &vav.Mon).(*HCC)
+				if h := hccptr('c', vav.Cmp.Hccname, Compn, &vav.Mon); h != nil {
+					vav.Hcc = h.(*HCC)
+				}
 			} else if vav.Cmp.Rdpnlname != "" {
 				vav.Rdpnl = rdpnlptr(vav.Cmp.Rdpnlname, Compn)
 				if vav.Rdpnl != nil {
@@ -84,8 +93,10 @@ func VWVint(VAVs []*VAV, Compn []*COMPNT) {
 				}
 			}
 
-			if vav.Mon == '-' {
-				vav.Hcld = hccptr('h', vav.Cmp.Hccname, Compn, &vav.Mon).(*HCLOAD)
+			if vav.Mon == '-' && vav.Cmp.Hccname != "" {
+				if h := hccptr('h', vav.Cmp.Hccname, Compn, &vav.Mon); h != nil {
+					vav.Hcld = h.(*HCLOAD)
+				}
 			}
 
 			if vav.Mon == '-' {
@@ -168,17 +179,28 @@ func VAVene(vav []*VAV, VAVrest *int) {
 
 				v.Q = Spcheat(elo.Fluid) * Go * (v.Tout - Tr)
 
-				if math.Abs(v.Tin-Tr) > 1.0e-3 {
+				if mathAbs(v.Tin-Tr) > 1.0e-3 {
 					v.G = (v.Tout - Tr) / (v.Tin - Tr) * Go
 				} else {
 					v.G = v.Cat.Gmin
 				}
 			} else {
 				if v.Mon == 'c' && v.Count < VAVCountMAX-1 {
+					if v.Hcc == nil {
+						fmt.Printf("VAVene: v.Hcc is nil for VWV %s (Mon=%c, Hccname=%s)\n",
+							v.Name, v.Mon, v.Cmp.Hccname)
+						continue
+					}
 					v.Qrld = -v.Hcc.Qt
 				} else if v.Mon == 'f' && v.Count < VAVCountMAX-1 {
+					if v.Rdpnl == nil {
+						continue
+					}
 					v.Qrld = -v.Rdpnl.Q
 				} else if v.Mon == 'h' {
+					if v.Hcld == nil {
+						continue
+					}
 					v.Qrld = v.Hcld.Qt
 				}
 
@@ -204,13 +226,13 @@ func VAVene(vav []*VAV, VAVrest *int) {
 			elo.Control = ON_SW
 			elo.Sysld = 'n'
 
-			if v.Mon != 'h' {
+			if v.Mon != 'h' && elo.Emonitr != nil {
 				elo.Emonitr.Control = ON_SW
 			}
 
 			rest = chvavswreset(v.Q, v.Chmode, v)
 
-			if rest == 1 || math.Abs(v.G-Go) > 1.0e-5 {
+			if rest == 1 || mathAbs(v.G-Go) > 1.0e-5 {
 				(*VAVrest)++
 			}
 		} else {
@@ -299,6 +321,14 @@ func FNVWVG(VWV *VAV) float64 {
 	var i int
 
 	h = VWV.Hcc
+	if h == nil {
+		fmt.Printf("FNVWVG: VWV.Hcc is nil for %s\n", VWV.Name)
+		return VWV.Cat.Gmin
+	}
+	if h.Cat == nil {
+		fmt.Printf("FNVWVG: VWV.Hcc.Cat is nil for %s\n", VWV.Name)
+		return VWV.Cat.Gmin
+	}
 	Wa = h.cGa
 	Q = VWV.Q
 	KA = h.Cat.KA
@@ -322,7 +352,7 @@ func FNVWVG(VWV *VAV) float64 {
 	for i = 0; i < 30; i++ {
 		Wwd = Gwd * Cw
 		F = FNhccet(Wa, Wwd, KA) - et
-		if math.Abs(F) < 1.0e-5 {
+		if mathAbs(F) < 1.0e-5 {
 			return Gwd
 		} else if F > 0.0 {
 			B = Gwd
@@ -341,11 +371,11 @@ func FNVWVG(VWV *VAV) float64 {
 
 func FNFd(Wa, Ww, KA float64) float64 {
 	B := (1.0 - Wa/Ww) * KA / Wa
-	exB := math.Exp(-B)
-	ex2B := math.Exp(-2.0 * B)
-	Ww2 := math.Pow(Ww, 2.0)
+	exB := mathExp(-B)
+	ex2B := mathExp(-2.0 * B)
+	Ww2 := mathPow(Ww, 2.0)
 
-	d := Ww * math.Pow(Ww-Wa*exB, 2.0)
+	d := Ww * mathPow(Ww-Wa*exB, 2.0)
 	n := (Ww2+Ww+KA)*ex2B - (Ww*(Ww2+Wa)-Wa*KA)*exB
 
 	return n / d

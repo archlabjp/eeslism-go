@@ -38,7 +38,10 @@ func Refadata(s string, Refaca *REFACA, Rfcmp []*RFCMP) int {
 	var dt float64
 	var id int
 
-	if !strings.ContainsAny(s, "=-") {
+	// '=' の位置を見つける（C版の st = strchr(s, '=') に相当）
+	eqpos := strings.Index(s, "=")
+
+	if eqpos < 0 && !strings.Contains(s, "-") {
 		// イコールとハイフンが含まれていない場合の処理
 		Refaca.name = s
 		Refaca.Nmode = 0
@@ -50,16 +53,26 @@ func Refadata(s string, Refaca *REFACA, Rfcmp []*RFCMP) int {
 		Refaca.rfc = nil
 		Refaca.Ph = FNAN
 	} else {
-		if s[0] == 'a' {
-			Refaca.awtyp = rune(s[1])
+		// '=' の次の文字列を取得
+		var valstr string
+		if eqpos >= 0 && eqpos+1 < len(s) {
+			valstr = s[eqpos+1:]
+		}
+
+		if s[0] == 'a' && eqpos >= 0 {
+			// a=a 形式: '=' の次の文字を取得
+			if len(valstr) > 0 {
+				Refaca.awtyp = rune(valstr[0])
+			}
 		} else if strings.Compare(s, "-U") == 0 {
 			Refaca.unlimcap = 'y'
-		} else if s[0] == 'c' {
+		} else if s[0] == 'c' && eqpos >= 0 {
+			// c=R 形式: '=' の次の文字列でrfcを検索
 			var i int
 			Nrfcmp := len(Rfcmp)
 			for i = 0; i < Nrfcmp; i++ {
 				rfc := Rfcmp[i]
-				if strings.Compare(s[1:], rfc.cname) == 0 {
+				if strings.Compare(valstr, rfc.cname) == 0 {
 					Refaca.rfc = rfc
 					break
 				}
@@ -67,45 +80,72 @@ func Refadata(s string, Refaca *REFACA, Rfcmp []*RFCMP) int {
 			if i == Nrfcmp {
 				id = 1
 			}
-		} else if s[0] == 'p' {
-			Refaca.plf = rune(s[1])
-		} else if s[0] == 'm' {
-			c = ControlSWType(s[1])
-			Refaca.mode[Refaca.Nmode] = c
-			if c == COOLING_SW {
-				Refaca.cool = new(HPCH)
-				__Refadata_hpch = Refaca.cool
-			} else if c == HEATING_SW {
-				Refaca.heat = new(HPCH)
-				__Refadata_hpch = Refaca.heat
+		} else if s[0] == 'p' && eqpos >= 0 {
+			// p=L 形式
+			if len(valstr) > 0 {
+				Refaca.plf = rune(valstr[0])
 			}
-			Refaca.Nmode++
-		} else {
-			dt, _ = strconv.ParseFloat(s[1:], 64)
+		} else if s[0] == 'm' && eqpos >= 0 {
+			// m=H または m=C 形式
+			if len(valstr) > 0 {
+				c = ControlSWType(valstr[0])
+				Refaca.mode[Refaca.Nmode] = c
+				if c == COOLING_SW {
+					Refaca.cool = new(HPCH)
+					__Refadata_hpch = Refaca.cool
+				} else if c == HEATING_SW {
+					Refaca.heat = new(HPCH)
+					__Refadata_hpch = Refaca.heat
+				}
+				Refaca.Nmode++
+			}
+		} else if eqpos >= 0 {
+			// パラメータ=値 形式
+			dt, _ = strconv.ParseFloat(valstr, 64)
 			switch {
 			case strings.HasPrefix(s, "Qo"):
-				__Refadata_hpch.Qo = dt
+				if __Refadata_hpch != nil {
+					__Refadata_hpch.Qo = dt
+				}
 			case strings.HasPrefix(s, "Go"):
-				__Refadata_hpch.Go = dt
+				if __Refadata_hpch != nil {
+					__Refadata_hpch.Go = dt
+				}
 			case strings.HasPrefix(s, "Two"):
-				__Refadata_hpch.Two = dt
+				if __Refadata_hpch != nil {
+					__Refadata_hpch.Two = dt
+				}
 			case strings.HasPrefix(s, "eo"):
-				__Refadata_hpch.eo = dt
+				if __Refadata_hpch != nil {
+					__Refadata_hpch.eo = dt
+				}
 			case strings.HasPrefix(s, "Qex"):
-				__Refadata_hpch.Qex = dt
+				if __Refadata_hpch != nil {
+					__Refadata_hpch.Qex = dt
+				}
 			case strings.HasPrefix(s, "Gex"):
-				__Refadata_hpch.Gex = dt
+				if __Refadata_hpch != nil {
+					__Refadata_hpch.Gex = dt
+				}
 			case strings.HasPrefix(s, "Tex"):
-				__Refadata_hpch.Tex = dt
+				if __Refadata_hpch != nil {
+					__Refadata_hpch.Tex = dt
+				}
 			case strings.HasPrefix(s, "eex"):
-				__Refadata_hpch.eex = dt
+				if __Refadata_hpch != nil {
+					__Refadata_hpch.eex = dt
+				}
 			case s[0] == 'W':
-				__Refadata_hpch.Wo = dt
+				if __Refadata_hpch != nil {
+					__Refadata_hpch.Wo = dt
+				}
 			case strings.HasPrefix(s, "Ph"):
 				Refaca.Ph = dt
 			default:
 				id = 1
 			}
+		} else {
+			id = 1
 		}
 	}
 	return id

@@ -77,9 +77,17 @@ func Contlschdlr(_Contl []*CONTL, Mpath []*MPATH, _Compnt []*COMPNT) {
 		if Contl.Lgv != 0 {
 			if Contl.Cst != nil {
 				if Contl.Cst.Type == VAL_CTYPE {
-					*Contl.Cst.Lft.V = *Contl.Cst.Rgt.V
+					// nilチェックを追加（制御データパースエラー時の防御）
+					if Contl.Cst.Lft.V != nil && Contl.Cst.Rgt.V != nil {
+						*Contl.Cst.Lft.V = *Contl.Cst.Rgt.V
+					}
 				} else {
-					*Contl.Cst.Lft.S = *Contl.Cst.Rgt.S
+					// nilチェックを追加
+					if Contl.Cst.Lft.S != nil && Contl.Cst.Rgt.S != nil {
+						*Contl.Cst.Lft.S = *Contl.Cst.Rgt.S
+					} else {
+						continue
+					}
 
 					if Contl.Cst.PathType == MAIN_CPTYPE {
 						Mp := Contl.Cst.Path.(*MPATH)
@@ -487,13 +495,9 @@ func chqlreset(Hcload *HCLOAD) int {
 /* 過負荷運転ための再設定 */
 
 func maxcapreset(Qload, Qmax float64, chmode ControlSWType, Eo *ELOUT) int {
-	var Boi *BOI
-
 	var Eosysld rune
-	var Boimode rune
-	var Eocontrol, Eoemonitrcontrol, Boicmpcntrol ControlSWType
-
-	Boi = Eo.Cmp.Eqp.(*BOI)
+	var Eocontrol, Eoemonitrcontrol, Eqpcmpcntrol ControlSWType
+	var eqpModeChanged bool
 
 	Eocontrol = Eo.Control
 	Eosysld = Eo.Sysld
@@ -503,8 +507,23 @@ func maxcapreset(Qload, Qmax float64, chmode ControlSWType, Eo *ELOUT) int {
 		return 0
 	}
 
-	Boicmpcntrol = Boi.Cmp.Control
-	Boimode = Boi.Mode
+	// 機器の種類に応じて処理を分岐
+	var Boimode rune
+	var Boi *BOI
+	var Refa *REFA
+
+	switch eqp := Eo.Cmp.Eqp.(type) {
+	case *BOI:
+		Boi = eqp
+		Eqpcmpcntrol = Boi.Cmp.Control
+		Boimode = Boi.Mode
+	case *REFA:
+		Refa = eqp
+		Eqpcmpcntrol = Refa.Cmp.Control
+	default:
+		// 未対応の機器タイプ
+		Eqpcmpcntrol = Eo.Cmp.Control
+	}
 
 	if (chmode == HEATING_SW && Qload > Qmax) ||
 		(chmode == COOLING_SW && Qload < Qmax) {
@@ -512,17 +531,24 @@ func maxcapreset(Qload, Qmax float64, chmode ControlSWType, Eo *ELOUT) int {
 		Eo.Control = ON_SW
 		Eo.Sysld = 'n'
 		Eo.Emonitr.Control = ON_SW
-		Boi.Cmp.Control = ON_SW
+		Eo.Cmp.Control = ON_SW
 
-		//最大能力運転フラグ
-		Boi.Mode = 'M'
+		// 最大能力運転フラグ（機器タイプに応じて設定）
+		if Boi != nil {
+			Boi.Mode = 'M'
+			eqpModeChanged = (Boi.Mode != Boimode)
+		} else if Refa != nil {
+			// REFAには同等のModeフラグがないため、変更なし
+			eqpModeChanged = false
+		}
 	}
 
+	// 変更があったかどうかを確認
 	if Eo.Control == Eocontrol &&
 		Eo.Sysld == Eosysld &&
 		Eo.Emonitr.Control == Eoemonitrcontrol &&
-		Boi.Cmp.Control == Boicmpcntrol &&
-		Boi.Mode == Boimode {
+		Eo.Cmp.Control == Eqpcmpcntrol &&
+		!eqpModeChanged {
 		return 0
 	} else {
 		return 1

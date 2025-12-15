@@ -96,10 +96,16 @@ func Stankdata(f *EeTokens, s string, Stankca *STANKCA) int {
 		}
 
 	} else if s == "-S" {
-		st = ""
-		s = f.GetToken()
-		s += " *"
-		Stankca.tparm = s
+		// '*'が出現するまでトークンを読み取る
+		var tokens []string
+		for {
+			token := f.GetToken()
+			if token == "*" {
+				break
+			}
+			tokens = append(tokens, token)
+		}
+		Stankca.tparm = strings.Join(tokens, " ") + " *"
 	} else {
 		Stankca.name = s
 		Stankca.Type = 'C'
@@ -150,7 +156,7 @@ Stankmemloc (Storage Tank Memory Allocation)
 */
 func Stankmemloc(errkey string, Stank *STANK) {
 	var np, Ndiv, Nin int
-	var st, stt, ss string
+	var st, ss string
 	var parm []string = make([]string, 0)
 
 	st = Stank.Cat.tparm[:]
@@ -195,50 +201,72 @@ func Stankmemloc(errkey string, Stank *STANK) {
 			}
 		} else if stIdx := strings.IndexRune(ss, ':'); stIdx != -1 {
 			Stank.Pthcon[i] = ELIOType(ss[0])
-			tmp, err := strconv.Atoi(ss[stIdx+1:])
-			if err != nil {
-				panic(err)
-			} else {
-				Stank.Jin[i] = tmp - 1
-			}
+			afterColon := ss[stIdx+1:]
 
-			if sttIdx := strings.IndexRune(ss[stIdx+1:], '-'); sttIdx != -1 {
-				stt = ss[stIdx+1:]
-				Stank.Ihex[i] = 'n'
-				Stank.Ihxeff[i] = 1.0
-				tmp, err := strconv.Atoi(stt)
+			if sttIdx := strings.IndexRune(afterColon, '-'); sttIdx != -1 {
+				// C:1-5 形式（直接接続）
+				jinStr := afterColon[:sttIdx]
+				joutStr := afterColon[sttIdx+1:]
+
+				tmp, err := strconv.Atoi(jinStr)
 				if err != nil {
 					panic(err)
-				} else {
-					Stank.Jout[i] = tmp - 1
 				}
-			} else if sttIdx := strings.IndexRune(ss[stIdx+1:], '_'); sttIdx != -1 {
-				stt = ss[stIdx+1 : sttIdx]
+				Stank.Jin[i] = tmp - 1
+
+				Stank.Ihex[i] = 'n'
+				Stank.Ihxeff[i] = 1.0
+
+				tmp, err = strconv.Atoi(joutStr)
+				if err != nil {
+					panic(err)
+				}
+				Stank.Jout[i] = tmp - 1
+
+				i++
+			} else if sttIdx := strings.IndexRune(afterColon, '_'); sttIdx != -1 {
+				// C:5_eff=0.3 形式（熱交換器経由）
+				jinStr := afterColon[:sttIdx]
+				tmp, err := strconv.Atoi(jinStr)
+				if err != nil {
+					panic(err)
+				}
+				Stank.Jin[i] = tmp - 1
+
 				Stank.Ihex[i] = 'y'
 
-				if stt[1] == 'e' { // 温度効率が入力されている場合
-					Stank.Ihxeff[i], err = strconv.ParseFloat(stt[5:], 64)
-					if err != nil {
-						panic(err)
+				afterUnderscore := afterColon[sttIdx+1:]
+				if len(afterUnderscore) > 0 && afterUnderscore[0] == 'e' { // 温度効率が入力されている場合（eff=0.3）
+					if eqIdx := strings.IndexRune(afterUnderscore, '='); eqIdx != -1 {
+						Stank.Ihxeff[i], err = strconv.ParseFloat(afterUnderscore[eqIdx+1:], 64)
+						if err != nil {
+							panic(err)
+						}
 					}
-				} else if stt[1] == 'K' { // 内蔵熱交のKAが入力されている場合
+				} else if len(afterUnderscore) > 0 && afterUnderscore[0] == 'K' { // 内蔵熱交のKAが入力されている場合
 					Stank.KAinput[i] = 'Y'
-					Stank.KA[i], err = strconv.ParseFloat(stt[4:], 64)
-					if err != nil {
-						panic(err)
+					if eqIdx := strings.IndexRune(afterUnderscore, '='); eqIdx != -1 {
+						Stank.KA[i], err = strconv.ParseFloat(afterUnderscore[eqIdx+1:], 64)
+						if err != nil {
+							panic(err)
+						}
 					}
-				} else if stt[1] == 'd' {
+				} else if len(afterUnderscore) > 0 && afterUnderscore[0] == 'd' {
 					Stank.KAinput[i] = 'C' // 内蔵熱交換器の内径と長さが入力されている場合
-					stpIdx := strings.IndexRune(stt[4:], '_')
-					Stank.Dbld0, err = strconv.ParseFloat(stt[4:], 64)
-					if err != nil {
-						panic(err)
+					if eqIdx := strings.IndexRune(afterUnderscore, '='); eqIdx != -1 {
+						params := afterUnderscore[eqIdx+1:]
+						if sepIdx := strings.IndexRune(params, '_'); sepIdx != -1 {
+							Stank.Dbld0, err = strconv.ParseFloat(params[:sepIdx], 64)
+							if err != nil {
+								panic(err)
+							}
+							Stank.DblL, err = strconv.ParseFloat(params[sepIdx+1:], 64)
+							if err != nil {
+								panic(err)
+							}
+							Stank.Ncalcihex++
+						}
 					}
-					Stank.DblL, err = strconv.ParseFloat(stt[stpIdx+1:], 64)
-					if err != nil {
-						panic(err)
-					}
-					Stank.Ncalcihex++
 				}
 
 				Stank.Jout[i] = Stank.Jin[i]
@@ -323,11 +351,18 @@ func Stankint(Stank []*STANK, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT) {
 		if s != "" {
 			if s[0] == '(' {
 				s = s[1:]
+				// 先頭のスペースをスキップ
+				for len(s) > 0 && s[0] == ' ' {
+					s = s[1:]
+				}
 				for j := 0; j < stank.Ndiv; j++ {
-					_, err := fmt.Sscanf(s, " %s ", &ss)
+					_, err := fmt.Sscanf(s, "%s", &ss)
 					if err != nil {
 						panic(err)
 					}
+
+					// ")"を除去（最後の値に付いている場合）
+					ss = strings.TrimSuffix(ss, ")")
 
 					if ss[0] == TANK_EMPTY {
 						stank.DtankF[j] = TANK_EMPTY
@@ -340,7 +375,8 @@ func Stankint(Stank []*STANK, Simc *SIMCONTL, Compnt []*COMPNT, Wd *WDAT) {
 						}
 					}
 					s = s[len(ss):]
-					for s[0] == ' ' {
+					// 残りの文字列から先頭のスペースと")"をスキップ
+					for len(s) > 0 && (s[0] == ' ' || s[0] == ')') {
 						s = s[1:]
 					}
 				}
@@ -404,7 +440,7 @@ Stankcfv (Storage Tank Characteristic Function Value Calculation)
     `stank.KAinput[j] == 'C'` の場合、熱交換器の寸法（内径`Dbld0`、長さ`DblL`）から、
     熱伝達率（`ho`, `hi`）を計算し、それに基づいて`KA`値を算出し、
     最終的に効率（`ihxeff`）を計算します。
-    `1.0 - math.Exp(-NTU)` の式は、NTU（Number of Transfer Units）法に基づいた効率計算です。
+    `1.0 - mathExp(-NTU)` の式は、NTU（Number of Transfer Units）法に基づいた効率計算です。
   - **有効熱容量流量 (EGwin)**:
     `*EGwin = *cGwin * *ihxeff` のように、
     熱容量流量に熱交換器の効率を乗じることで、
@@ -441,13 +477,13 @@ func Stankcfv(Stank []*STANK) {
 					// 内蔵熱交換器の表面温度は内外流体の平均温度で代用
 					ho := FNhoutpipe(stank.Dbld0, dblT, stank.DblTw)
 					// 流速の計算
-					dblv := elin.Lpath.G / Row / (math.Pi * math.Pow(stank.Dbld0/2.0, 2.0))
+					dblv := elin.Lpath.G / Row / (math.Pi * mathPow(stank.Dbld0/2.0, 2.0))
 					hi := FNhinpipe(stank.Dbld0, stank.DblL, dblv, dblT)
 					stank.KA[j] = 1.0 / (1.0/ho + 1.0/hi) * math.Pi * stank.Dbld0 * stank.DblL
 				}
 				if stank.KAinput[j] == 'Y' || stank.KAinput[j] == 'C' {
 					NTU := stank.KA[j] / *cGwin
-					*ihxeff = 1.0 - math.Exp(-NTU)
+					*ihxeff = 1.0 - mathExp(-NTU)
 				}
 			}
 			*EGwin = *cGwin * *ihxeff
@@ -459,15 +495,13 @@ func Stankcfv(Stank []*STANK) {
 			stank.Tssold, stank.CGwin, stank.EGwin, stank.B, stank.R, stank.D, stank.Fg)
 
 		fgIdx := 0
-		cfinIdx := 0
 		for j := 0; j < stank.Nin; j++ {
 			Eo := stank.Cmp.Elouts[j]
 			Eo.Coeffo = 1.0
 			Eo.Co = stank.D[stank.Jout[j]]
 
 			for k := 0; k < stank.Nin; k++ {
-				Eo.Coeffin[cfinIdx] = -stank.Fg[fgIdx]
-				cfinIdx++
+				Eo.Coeffin[k] = -stank.Fg[fgIdx]
 				fgIdx++
 			}
 		}
@@ -721,7 +755,6 @@ func stankcmpprt(fo io.Writer, id int, Stank []*STANK) {
 		}
 	default:
 		for _, stank := range Stank {
-			Tss := &stank.Tss[0]
 			for i := 0; i < stank.Nin; i++ {
 				Ei := stank.Cmp.Elins[i]
 				Twin := &stank.Twin[i]
@@ -741,8 +774,7 @@ func stankcmpprt(fo io.Writer, id int, Stank []*STANK) {
 			fmt.Fprintf(fo, "%2.0f %3.0f\n", stank.Qloss, stank.Qsto)
 
 			for i := 0; i < stank.Ndiv; i++ {
-				fmt.Fprintf(fo, " %4.1f", *Tss)
-				Tss = &stank.Tss[i+1]
+				fmt.Fprintf(fo, " %4.1f", stank.Tss[i])
 			}
 			fmt.Fprintln(fo)
 		}

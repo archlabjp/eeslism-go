@@ -282,6 +282,9 @@ func Wallfdc(M int, mp int, res []float64, cap []float64,
 				pcmstate.TempPCMave = (Twd[m-1] + Twd[m]) * 0.5
 				pcmstate.TempPCMNodeL = Twd[m-1]
 				pcmstate.TempPCMNodeR = Twd[m]
+				ToldPCMave = (Told[m-1] + Told[m]) * 0.5
+				ToldPCMNodeL = Told[m-1]
+				ToldPCMNodeR = Told[m]
 
 				// PCM温度
 				var T, Toldn float64
@@ -326,9 +329,9 @@ func Wallfdc(M int, mp int, res []float64, cap []float64,
 				pcmstate1.TempPCMave = (Twd[m] + Twd[m+1]) * 0.5
 				pcmstate1.TempPCMNodeL = Twd[m]
 				pcmstate1.TempPCMNodeR = Twd[m+1]
-				ToldPCMave = (Told[m-1] + Told[m]) * 0.5
+				ToldPCMave = (Told[m] + Told[m+1]) * 0.5
 				ToldPCMNodeL = Told[m]
-				//ToldPCMNodeR := Told[m+1]
+				ToldPCMNodeR = Told[m+1]
 
 				// PCM温度
 				var T, Toldn float64

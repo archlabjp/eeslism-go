@@ -548,6 +548,307 @@ func runComparisonTest(t *testing.T, name, refDir, testDir string) {
 	t.Logf("  Metadata:  %d/%d (%.2f%%)", totalMetadataDiff, totalMetadata, metadataRate)
 }
 
+// runComparisonTestWithVariants はメインテストとバリアントを含めて比較テストを実行（静的比較）
+// baseDir: テストディレクトリのベースパス (e.g., "../tests/comparison/testdata/L2_equipment/pump_pipe")
+func runComparisonTestWithVariants(t *testing.T, name, baseDir string) {
+	t.Helper()
+
+	// メインテストを実行
+	mainRefDir := filepath.Join(baseDir, "c_output")
+	mainTestDir := filepath.Join(baseDir, "go_output")
+
+	if _, err := os.Stat(mainRefDir); err == nil {
+		t.Run("main", func(t *testing.T) {
+			runComparisonTest(t, name, mainRefDir, mainTestDir)
+		})
+	}
+
+	// variantsディレクトリを探索
+	variantsDir := filepath.Join(baseDir, "variants")
+	if _, err := os.Stat(variantsDir); os.IsNotExist(err) {
+		return // variantsがなければ終了
+	}
+
+	entries, err := os.ReadDir(variantsDir)
+	if err != nil {
+		t.Logf("Warning: cannot read variants directory: %v", err)
+		return
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+
+		variantName := entry.Name()
+		variantRefDir := filepath.Join(variantsDir, variantName, "c_output")
+		variantTestDir := filepath.Join(variantsDir, variantName, "go_output")
+
+		// c_outputとgo_outputの両方が存在する場合のみテスト実行
+		if _, err := os.Stat(variantRefDir); os.IsNotExist(err) {
+			continue
+		}
+		if _, err := os.Stat(variantTestDir); os.IsNotExist(err) {
+			continue
+		}
+
+		t.Run(variantName, func(t *testing.T) {
+			runComparisonTest(t, variantName, variantRefDir, variantTestDir)
+		})
+	}
+}
+
+// runSimulationAndCompare はGo版シミュレーションを実行してC版出力と比較する
+// baseDir: テストディレクトリのベースパス
+// eflPath: Baseファイルのパス (e.g., "../Base")
+func runSimulationAndCompare(t *testing.T, name, baseDir, eflPath string) {
+	t.Helper()
+
+	// テスト入力ファイルを探す
+	testFile := findTestInputFile(baseDir, name)
+	if testFile == "" {
+		t.Skipf("No test input file found in %s", baseDir)
+		return
+	}
+
+	// 作業ディレクトリを保存
+	origDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Failed to get current directory: %v", err)
+	}
+
+	// テストディレクトリの絶対パスを取得
+	absBaseDir, err := filepath.Abs(baseDir)
+	if err != nil {
+		t.Fatalf("Failed to get absolute path: %v", err)
+	}
+	absEflPath, err := filepath.Abs(eflPath)
+	if err != nil {
+		t.Fatalf("Failed to get absolute efl path: %v", err)
+	}
+
+	// テストディレクトリに移動
+	if err := os.Chdir(absBaseDir); err != nil {
+		t.Fatalf("Failed to change to test directory: %v", err)
+	}
+	defer os.Chdir(origDir)
+
+	// 既存の.esファイルを削除
+	cleanupGeneratedFiles(t, ".")
+
+	// シミュレーション実行
+	t.Logf("Running simulation: %s", testFile)
+	Entry(testFile, absEflPath)
+
+	// 生成された.esファイルをc_outputと比較
+	refDir := filepath.Join(absBaseDir, "c_output")
+	if _, err := os.Stat(refDir); os.IsNotExist(err) {
+		t.Skipf("Reference directory not found: %s", refDir)
+		return
+	}
+
+	config := DefaultCompareConfig()
+	results, err := compareDirectoriesWithGenerated(refDir, ".", config)
+	if err != nil {
+		t.Fatalf("Failed to compare: %v", err)
+	}
+
+	// 結果を表示
+	reportComparisonResults(t, name, results)
+
+	// 生成ファイルをクリーンアップ
+	cleanupGeneratedFiles(t, ".")
+}
+
+// findTestInputFile はテストディレクトリからメインのテスト入力ファイルを探す
+func findTestInputFile(baseDir, name string) string {
+	// 優先順位: {name}_test.txt > {name}.txt > 最初の.txt
+	candidates := []string{
+		filepath.Join(baseDir, name+"_test.txt"),
+		filepath.Join(baseDir, name+".txt"),
+	}
+
+	for _, path := range candidates {
+		if _, err := os.Stat(path); err == nil {
+			return filepath.Base(path)
+		}
+	}
+
+	// 最初の.txtファイルを探す
+	entries, err := os.ReadDir(baseDir)
+	if err != nil {
+		return ""
+	}
+	for _, entry := range entries {
+		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".txt") {
+			return entry.Name()
+		}
+	}
+	return ""
+}
+
+// cleanupGeneratedFiles は生成された.esファイルと一時ファイルを削除する
+func cleanupGeneratedFiles(t *testing.T, dir string) {
+	t.Helper()
+
+	patterns := []string{"*.es", "*.gchi", "*.log", "*bdata.ewk", "*bdata0.ewk", "*schnma.ewk", "*schtba.ewk", "*week.ewk"}
+	for _, pattern := range patterns {
+		matches, _ := filepath.Glob(filepath.Join(dir, pattern))
+		for _, match := range matches {
+			os.Remove(match)
+		}
+	}
+}
+
+// compareDirectoriesWithGenerated はリファレンスディレクトリと生成されたファイルを比較する
+func compareDirectoriesWithGenerated(refDir, genDir string, config CompareConfig) ([]CompareResult, error) {
+	var results []CompareResult
+
+	err := filepath.Walk(refDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
+
+		// .esファイルのみ対象
+		if filepath.Ext(path) != ".es" {
+			return nil
+		}
+
+		// 生成されたファイルのパスを構築
+		fileName := filepath.Base(path)
+		genPath := filepath.Join(genDir, fileName)
+
+		if _, err := os.Stat(genPath); os.IsNotExist(err) {
+			// 生成ファイルが存在しない場合はスキップ（または警告）
+			return nil
+		}
+
+		result := compareFiles(path, genPath, config)
+
+		result.FileName = fileName
+		results = append(results, result)
+		return nil
+	})
+
+	return results, err
+}
+
+// reportComparisonResults は比較結果をレポートする
+func reportComparisonResults(t *testing.T, name string, results []CompareResult) {
+	t.Helper()
+
+	if len(results) == 0 {
+		t.Log("No files to compare")
+		return
+	}
+
+	totalPass := 0
+	totalWarn := 0
+	totalFail := 0
+
+	config := DefaultCompareConfig()
+
+	for _, r := range results {
+		status := "PASS"
+		if r.Failures > 0 {
+			status = "FAIL"
+			totalFail++
+			t.Logf("[FAIL] %s: %d values, %d failures, max error %.4f%% at line %d col %d",
+				r.FileName, r.TotalValues, r.Failures, r.MaxRelErr*100, r.MaxErrLine, r.MaxErrCol)
+		} else if r.Warnings > 0 {
+			status = "WARN"
+			totalWarn++
+			t.Logf("[WARN] %s: %d values, %d warnings, max error %.4f%%",
+				r.FileName, r.TotalValues, r.Warnings, r.MaxRelErr*100)
+		} else {
+			totalPass++
+		}
+		_ = status
+		_ = config
+	}
+
+	t.Logf("Summary: %d files - %d PASS, %d WARN, %d FAIL", len(results), totalPass, totalWarn, totalFail)
+
+	if totalFail > 0 {
+		t.Fail()
+	}
+}
+
+// runSimulationTestWithVariants はメインテストとバリアントを含めてシミュレーション実行＋比較テストを行う
+func runSimulationTestWithVariants(t *testing.T, name, baseDir, eflPath string) {
+	t.Helper()
+
+	// 最初に全ての絶対パスを計算（chdir前に行う）
+	absBaseDir, err := filepath.Abs(baseDir)
+	if err != nil {
+		t.Fatalf("Failed to get absolute path for baseDir: %v", err)
+	}
+	absEflPath, err := filepath.Abs(eflPath)
+	if err != nil {
+		t.Fatalf("Failed to get absolute path for eflPath: %v", err)
+	}
+
+	// メインテストを実行
+	refDir := filepath.Join(absBaseDir, "c_output")
+	if _, err := os.Stat(refDir); err == nil {
+		t.Run("main", func(t *testing.T) {
+			runSimulationAndCompare(t, name, baseDir, eflPath)
+		})
+	}
+
+	// variantsディレクトリを探索
+	variantsDir := filepath.Join(absBaseDir, "variants")
+	if _, err := os.Stat(variantsDir); os.IsNotExist(err) {
+		return
+	}
+
+	entries, err := os.ReadDir(variantsDir)
+	if err != nil {
+		return
+	}
+
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+
+		variantName := entry.Name()
+		variantRefDir := filepath.Join(variantsDir, variantName, "c_output")
+
+		if _, err := os.Stat(variantRefDir); os.IsNotExist(err) {
+			continue
+		}
+
+		// テストファイルの存在確認（絶対パスで）
+		testFile := variantName + ".txt"
+		testFilePath := filepath.Join(absBaseDir, testFile)
+		if _, err := os.Stat(testFilePath); os.IsNotExist(err) {
+			continue // ファイルがなければスキップ
+		}
+
+		t.Run(variantName, func(t *testing.T) {
+			// 作業ディレクトリを保存
+			origDir, _ := os.Getwd()
+
+			os.Chdir(absBaseDir)
+			defer os.Chdir(origDir)
+
+			cleanupGeneratedFiles(t, ".")
+
+			t.Logf("Running variant simulation: %s", testFile)
+			Entry(testFile, absEflPath)
+
+			config := DefaultCompareConfig()
+			results, _ := compareDirectoriesWithGenerated(variantRefDir, ".", config)
+			reportComparisonResults(t, variantName, results)
+			cleanupGeneratedFiles(t, ".")
+		})
+	}
+}
+
 // runComparisonTestWithPhysicsThreshold は物理値の最大相対誤差閾値を指定して比較テストを実行
 // maxPhysicsRelErrThreshold: 許容する最大相対誤差（%）
 func runComparisonTestWithPhysicsThreshold(t *testing.T, name, refDir, testDir string, maxPhysicsRelErrThreshold float64) {
@@ -660,15 +961,13 @@ func TestComparison_L1_SimpleRoomVent(t *testing.T) {
 // ============================================================================
 
 func TestComparison_L2_CoolingCoil(t *testing.T) {
-	refDir := "../tests/comparison/testdata/L2_equipment/cooling_coil/c_output"
-	testDir := "../tests/comparison/testdata/L2_equipment/cooling_coil/go_output"
-	runComparisonTest(t, "cooling_coil", refDir, testDir)
+	baseDir := "../tests/comparison/testdata/L2_equipment/cooling_coil"
+	runComparisonTestWithVariants(t, "cooling_coil", baseDir)
 }
 
 func TestComparison_L2_HeatPump(t *testing.T) {
-	refDir := "../tests/comparison/testdata/L2_equipment/heat_pump/c_output"
-	testDir := "../tests/comparison/testdata/L2_equipment/heat_pump/go_output"
-	runComparisonTest(t, "heat_pump", refDir, testDir)
+	baseDir := "../tests/comparison/testdata/L2_equipment/heat_pump"
+	runComparisonTestWithVariants(t, "heat_pump", baseDir)
 }
 
 func TestComparison_L2_Hex(t *testing.T) {
@@ -684,9 +983,8 @@ func TestComparison_L2_Helm(t *testing.T) {
 }
 
 func TestComparison_L2_PumpPipe(t *testing.T) {
-	refDir := "../tests/comparison/testdata/L2_equipment/pump_pipe/c_output"
-	testDir := "../tests/comparison/testdata/L2_equipment/pump_pipe/go_output"
-	runComparisonTest(t, "pump_pipe", refDir, testDir)
+	baseDir := "../tests/comparison/testdata/L2_equipment/pump_pipe"
+	runComparisonTestWithVariants(t, "pump_pipe", baseDir)
 }
 
 func TestComparison_L2_PV(t *testing.T) {
@@ -696,51 +994,43 @@ func TestComparison_L2_PV(t *testing.T) {
 }
 
 func TestComparison_L2_Qmeas(t *testing.T) {
-	refDir := "../tests/comparison/testdata/L2_equipment/qmeas/c_output"
-	testDir := "../tests/comparison/testdata/L2_equipment/qmeas/go_output"
-	runComparisonTest(t, "qmeas", refDir, testDir)
+	baseDir := "../tests/comparison/testdata/L2_equipment/qmeas"
+	runComparisonTestWithVariants(t, "qmeas", baseDir)
 }
 
 func TestComparison_L2_Rmac(t *testing.T) {
-	refDir := "../tests/comparison/testdata/L2_equipment/rmac/c_output"
-	testDir := "../tests/comparison/testdata/L2_equipment/rmac/go_output"
-	runComparisonTest(t, "rmac", refDir, testDir)
+	baseDir := "../tests/comparison/testdata/L2_equipment/rmac"
+	runComparisonTestWithVariants(t, "rmac", baseDir)
 }
 
 func TestComparison_L2_SolarCollector(t *testing.T) {
-	refDir := "../tests/comparison/testdata/L2_equipment/solar_collector/c_output"
-	testDir := "../tests/comparison/testdata/L2_equipment/solar_collector/go_output"
-	runComparisonTest(t, "solar_collector", refDir, testDir)
+	baseDir := "../tests/comparison/testdata/L2_equipment/solar_collector"
+	runComparisonTestWithVariants(t, "solar_collector", baseDir)
 }
 
 func TestComparison_L2_StorageTank(t *testing.T) {
-	refDir := "../tests/comparison/testdata/L2_equipment/storage_tank/c_output"
-	testDir := "../tests/comparison/testdata/L2_equipment/storage_tank/go_output"
-	runComparisonTest(t, "storage_tank", refDir, testDir)
+	baseDir := "../tests/comparison/testdata/L2_equipment/storage_tank"
+	runComparisonTestWithVariants(t, "storage_tank", baseDir)
 }
 
 func TestComparison_L2_TotalHeatExchanger(t *testing.T) {
-	refDir := "../tests/comparison/testdata/L2_equipment/total_heat_exchanger/c_output"
-	testDir := "../tests/comparison/testdata/L2_equipment/total_heat_exchanger/go_output"
-	runComparisonTest(t, "total_heat_exchanger", refDir, testDir)
+	baseDir := "../tests/comparison/testdata/L2_equipment/thex"
+	runComparisonTestWithVariants(t, "thex", baseDir)
 }
 
 func TestComparison_L2_Valv(t *testing.T) {
-	refDir := "../tests/comparison/testdata/L2_equipment/valv/c_output"
-	testDir := "../tests/comparison/testdata/L2_equipment/valv/go_output"
-	runComparisonTest(t, "valv", refDir, testDir)
+	baseDir := "../tests/comparison/testdata/L2_equipment/valv"
+	runComparisonTestWithVariants(t, "valv", baseDir)
 }
 
 func TestComparison_L2_VAV(t *testing.T) {
-	refDir := "../tests/comparison/testdata/L2_equipment/vav/c_results"
-	testDir := "../tests/comparison/testdata/L2_equipment/vav/go_output"
-	runComparisonTest(t, "vav", refDir, testDir)
+	baseDir := "../tests/comparison/testdata/L2_equipment/vav"
+	runComparisonTestWithVariants(t, "vav", baseDir)
 }
 
 func TestComparison_L2_VAVCooling(t *testing.T) {
-	refDir := "../tests/comparison/testdata/L2_equipment/vav_cooling/c_results"
-	testDir := "../tests/comparison/testdata/L2_equipment/vav_cooling/go_output"
-	runComparisonTest(t, "vav_cooling", refDir, testDir)
+	baseDir := "../tests/comparison/testdata/L2_equipment/vav_cooling"
+	runComparisonTestWithVariants(t, "vav_cooling", baseDir)
 }
 
 func TestComparison_L2_BoilerHeating(t *testing.T) {
@@ -750,9 +1040,8 @@ func TestComparison_L2_BoilerHeating(t *testing.T) {
 }
 
 func TestComparison_L2_Desiccant(t *testing.T) {
-	refDir := "../tests/comparison/testdata/L2_equipment/desiccant/c_output"
-	testDir := "../tests/comparison/testdata/L2_equipment/desiccant/go_output"
-	runComparisonTest(t, "desiccant", refDir, testDir)
+	baseDir := "../tests/comparison/testdata/L2_equipment/desiccant"
+	runComparisonTestWithVariants(t, "desiccant", baseDir)
 }
 
 func TestComparison_L2_Duct(t *testing.T) {
@@ -774,9 +1063,8 @@ func TestComparison_L2_AirCollector(t *testing.T) {
 }
 
 func TestComparison_L2_Evpcooling(t *testing.T) {
-	refDir := "../tests/comparison/testdata/L2_equipment/evpcooling/c_output"
-	testDir := "../tests/comparison/testdata/L2_equipment/evpcooling/go_output"
-	runComparisonTest(t, "evpcooling", refDir, testDir)
+	baseDir := "../tests/comparison/testdata/L2_equipment/evpcooling"
+	runComparisonTestWithVariants(t, "evpcooling", baseDir)
 }
 
 func TestComparison_L2_HeatPumpCooling(t *testing.T) {
@@ -792,15 +1080,13 @@ func TestComparison_L2_Omvav(t *testing.T) {
 }
 
 func TestComparison_L2_Stheat(t *testing.T) {
-	refDir := "../tests/comparison/testdata/L2_equipment/stheat/c_output"
-	testDir := "../tests/comparison/testdata/L2_equipment/stheat/go_output"
-	runComparisonTest(t, "stheat", refDir, testDir)
+	baseDir := "../tests/comparison/testdata/L2_equipment/stheat"
+	runComparisonTestWithVariants(t, "stheat", baseDir)
 }
 
 func TestComparison_L2_VWV(t *testing.T) {
-	refDir := "../tests/comparison/testdata/L2_equipment/vwv/c_output"
-	testDir := "../tests/comparison/testdata/L2_equipment/vwv/go_output"
-	runComparisonTest(t, "vwv", refDir, testDir)
+	baseDir := "../tests/comparison/testdata/L2_equipment/vwv"
+	runComparisonTestWithVariants(t, "vwv", baseDir)
 }
 
 // Note: obs, polygon, sunbrk, coordnt, divid tests
@@ -838,9 +1124,8 @@ func TestComparison_L2_Coordnt(t *testing.T) {
 }
 
 func TestComparison_L2_Divid(t *testing.T) {
-	refDir := "../tests/comparison/testdata/L2_equipment/divid/c_output"
-	testDir := "../tests/comparison/testdata/L2_equipment/divid/go_output"
-	runComparisonTest(t, "divid", refDir, testDir)
+	baseDir := "../tests/comparison/testdata/L2_equipment/divid"
+	runComparisonTestWithVariants(t, "divid", baseDir)
 }
 
 func TestComparison_L2_TreeShadow(t *testing.T) {
@@ -854,21 +1139,19 @@ func TestComparison_L2_TreeShadow(t *testing.T) {
 // ============================================================================
 
 func TestComparison_L3_PCMWall(t *testing.T) {
-	refDir := "../tests/comparison/testdata/L3_system/pcm_wall/c_output"
-	testDir := "../tests/comparison/testdata/L3_system/pcm_wall/go_output"
-	runComparisonTest(t, "pcm_wall", refDir, testDir)
+	baseDir := "../tests/comparison/testdata/L3_system/pcm_wall"
+	runComparisonTestWithVariants(t, "pcm_wall", baseDir)
 }
 
 func TestComparison_L3_RadiantCeiling(t *testing.T) {
-	refDir := "../tests/comparison/testdata/L3_system/radiant_ceiling/c_results"
-	testDir := "../tests/comparison/testdata/L3_system/radiant_ceiling/go_results"
+	refDir := "../tests/comparison/testdata/L3_system/radiant_ceiling/c_output"
+	testDir := "../tests/comparison/testdata/L3_system/radiant_ceiling/go_output"
 	runComparisonTest(t, "radiant_ceiling", refDir, testDir)
 }
 
 func TestComparison_L3_RadiantFloor(t *testing.T) {
-	refDir := "../tests/comparison/testdata/L3_system/radiant_floor/c_output"
-	testDir := "../tests/comparison/testdata/L3_system/radiant_floor/go_output"
-	runComparisonTest(t, "radiant_floor", refDir, testDir)
+	baseDir := "../tests/comparison/testdata/L3_system/radiant_floor"
+	runComparisonTestWithVariants(t, "radiant_floor", baseDir)
 }
 
 // ============================================================================
@@ -876,9 +1159,8 @@ func TestComparison_L3_RadiantFloor(t *testing.T) {
 // ============================================================================
 
 func TestComparison_L4_StandardHouse(t *testing.T) {
-	refDir := "../tests/comparison/testdata/L4_annual/standard_house/c_output"
-	testDir := "../tests/comparison/testdata/L4_annual/standard_house/go_output"
-	runComparisonTest(t, "standard_house", refDir, testDir)
+	baseDir := "../tests/comparison/testdata/L4_annual/standard_house"
+	runComparisonTestWithVariants(t, "standard_house", baseDir)
 }
 
 // ============================================================================
@@ -1072,8 +1354,8 @@ func TestPhysicsComparison_L2_VAV(t *testing.T) {
 // --- L3_system ---
 
 func TestPhysicsComparison_L3_RadiantCeiling(t *testing.T) {
-	refDir := "../tests/comparison/testdata/L3_system/radiant_ceiling/c_results"
-	testDir := "../tests/comparison/testdata/L3_system/radiant_ceiling/go_results"
+	refDir := "../tests/comparison/testdata/L3_system/radiant_ceiling/c_output"
+	testDir := "../tests/comparison/testdata/L3_system/radiant_ceiling/go_output"
 	runComparisonTestWithPhysicsThreshold(t, "radiant_ceiling", refDir, testDir, 0.01)
 }
 
@@ -1084,4 +1366,40 @@ func TestPhysicsComparison_L4_StandardHouse(t *testing.T) {
 	refDir := "../tests/comparison/testdata/L4_annual/standard_house/c_output"
 	testDir := "../tests/comparison/testdata/L4_annual/standard_house/go_output"
 	runComparisonTestWithPhysicsThreshold(t, "standard_house", refDir, testDir, 0.01)
+}
+
+// ============================================================================
+// シミュレーション実行テスト
+// Go版を実際に実行してC版出力と比較するテスト
+// テスト名: TestSimulation_*
+// ============================================================================
+
+func TestSimulation_L1_SimpleRoomFull(t *testing.T) {
+	baseDir := "../tests/comparison/testdata/L1_basic/simple_room_full"
+	runSimulationAndCompare(t, "simple_room_full", baseDir, "../Base")
+}
+
+func TestSimulation_L2_PumpPipe(t *testing.T) {
+	baseDir := "../tests/comparison/testdata/L2_equipment/pump_pipe"
+	runSimulationTestWithVariants(t, "pump_pipe", baseDir, "../Base")
+}
+
+func TestSimulation_L2_Valv(t *testing.T) {
+	baseDir := "../tests/comparison/testdata/L2_equipment/valv"
+	runSimulationTestWithVariants(t, "valv", baseDir, "../Base")
+}
+
+func TestSimulation_L2_StorageTank(t *testing.T) {
+	baseDir := "../tests/comparison/testdata/L2_equipment/storage_tank"
+	runSimulationTestWithVariants(t, "storage_tank", baseDir, "../Base")
+}
+
+func TestSimulation_L2_SolarCollector(t *testing.T) {
+	baseDir := "../tests/comparison/testdata/L2_equipment/solar_collector"
+	runSimulationTestWithVariants(t, "solar_collector", baseDir, "../Base")
+}
+
+func TestSimulation_L3_RadiantFloor(t *testing.T) {
+	baseDir := "../tests/comparison/testdata/L3_system/radiant_floor"
+	runSimulationTestWithVariants(t, "radiant_floor", baseDir, "../Base")
 }

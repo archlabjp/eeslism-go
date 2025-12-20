@@ -1,0 +1,76 @@
+! ========================================================================
+! L2-08b: 太陽電池ポンプテスト
+! Solar PV Driven Pump Test
+! ========================================================================
+!
+! 目的：
+! - 太陽電池駆動ポンプ(Type="P")の初期化検証
+! - EXSFとのリンク処理の検証
+! - Pumpintのカバレッジ向上
+!
+! ========================================================================
+
+TITLE
+	L2-08b Solar PV Driven Pump Test ;
+
+GDAT
+	FILE w=tokyo_3column_SI.has ;
+	RUN (7/15) 7/20-7/22 ;
+	PRINT 7/20-7/22 *wd ;
+*
+
+EXSRF
+	r=0.2 ;
+	south a=0.0 ;
+	north a=180.0 ;
+	east a=90.0 ;
+	west a=270.0 ;
+	Hor ;
+	earth Z=1.5 ;
+	! 太陽電池パネル用外表面
+	PVSurf a=0.0 w=30.0 ;
+*
+
+WALL
+	-E:ExtWall RC-150 FPS-50 GPB-12 ;
+	-R:Roof FPS-100 GPB-12 ;
+	-F:Floor GPB-12 FPS-100 RC-150 ;
+*
+
+ROOM
+	TestRoom Vol=80.0
+		*s
+		alc=4.6
+		south: -E ExtWall 16.0 ;
+		north: -E ExtWall 16.0 ;
+		east: -E ExtWall 10.0 ;
+		west: -E ExtWall 10.0 ;
+		Hor: -R Roof 32.0 ;
+		earth: -F Floor 32.0 ;
+	*
+*
+
+EQPCAT
+	! ボイラー
+	BOI boiler Qo=5000 ;
+	! 太陽電池駆動ポンプ
+	PUMP solarpump type=P qef=0.1 ;
+	! 配管
+	PIPE pipecat Ko=0.5 ;
+*
+
+SYSCMP
+	Boiler -c boiler ;
+	! 太陽電池ポンプ - 外表面(PVSurf)とリンク
+	SolarPump -c solarpump -exs PVSurf ;
+	SupplyPipe -c pipecat -L 10 -env Ta ;
+*
+
+SYSPTH
+	HotWaterPath -sys A -f W
+		> (0.01) Boiler SupplyPipe SolarPump > ;
+*
+
+CONTL
+*
+*

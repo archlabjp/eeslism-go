@@ -1,0 +1,44 @@
+! Minimal air QMEAS test without HCC
+
+TITLE
+	QMEAS Air Simple Test ;
+
+GDAT
+	FILE w=tokyo_3column_SI.has ;
+	RUN (12/25) 1/1-1/1 ;
+	PRINT 1/1-1/1 *wd ;
+*
+
+EXSRF
+	r=0.2 ;
+	south a=0.0 ;
+	Hor ;
+*
+
+WALL
+	-E:ExtWall RC-150 GPB-12 ;
+*
+
+ROOM
+	TestRoom Vol=100.0 *s alc=4.6
+		south: -E ExtWall 20.0 ;
+	*
+*
+
+EQPCAT
+	FAN testfan Go=100.0 ;
+*
+
+SYSCMP
+	SupplyFan -c testfan ;
+	AirMeter -type QMEAS ;
+*
+
+SYSPTH
+	AirPath -sys A -f A
+		> (0.05) _OA AirMeter[C] SupplyFan AirMeter[H] AirMeter[G] TestRoom > ;
+*
+
+CONTL
+*
+*

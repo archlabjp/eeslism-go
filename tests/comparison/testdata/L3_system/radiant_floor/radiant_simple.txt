@@ -1,0 +1,71 @@
+! 床暖房テスト - 常時ON
+
+TITLE
+	L3-01 Radiant Floor Heating Test ;
+
+GDAT
+	FILE w=tokyo_3column_SI.has ;
+	RUN 1/1-1/2 ;
+	PRINT 1/1-1/2 *wd ;
+*
+
+EXSRF
+	r=0.2 ;
+	south a=0.0 ;
+	north a=180.0 ;
+	east  a=90.0 ;
+	west  a=270.0 ;
+	Hor ;
+	earth Z=1.5 ;
+*
+
+WALL
+	-E:ExtWall  RC-150 FPS-50 GPB-12 ;
+	-E:Fnd  RC-120 ;
+	-R:Roof     FPS-100 GPB-12 ;
+	-f:FloorPanel  WDB-12 <P> WDB-9 FPS-100 ;
+	-c:CeilingPanel  WDB-12 <P> WDB-9 FPS-100 ;
+	-F:Floor    GPB-12 FPS-100 RC-150 ;
+*
+
+ROOM
+	LivingRoom  Vol=100.0
+		*s
+		alc=4.6
+		south: -E ExtWall 20.0 ;
+		north: -E ExtWall 20.0 ;
+		east:  -E ExtWall 12.5 ;
+		west:  -E ExtWall 12.5 ;
+		Hor:   -R Roof 40.0 ;
+		(Foundation): -f FloorPanel alc=6.6 40.0 i=FloorPanel ;
+	*
+
+	Foundation  Vol=40.0
+		alc=4.6
+		(LivingRoom): -c CeilingPanel alc=6.6 i=FloorPanel ;
+		south: -E Fnd 8.0 ;
+		north: -E Fnd 8.0 ;
+		east:  -E Fnd 5.0 ;
+		west:  -E Fnd 5.0 ;
+		earth: -F Floor alc=2.2 40.0 ;
+	*
+*
+
+EQPCAT
+	BOI floorboiler Qo=3200 ;
+*
+
+SYSCMP
+	Boiler -c floorboiler ;
+*
+
+SYSPTH
+	FloorHeatingPath -sys A -f W
+		> (0.128) Boiler FloorPanel > ;
+*
+
+CONTL
+	FloorHeatingPath=on ;
+	LOAD -e Boiler Boiler_Tout=45 ;
+*
+*

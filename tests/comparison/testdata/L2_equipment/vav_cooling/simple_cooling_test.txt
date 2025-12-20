@@ -1,0 +1,65 @@
+! ========================================================================
+! L2-12b: 単純冷房テスト（VAVなし）
+! Simple Cooling Test without VAV
+! ========================================================================
+
+TITLE
+	L2-12b Simple Cooling Test ;
+
+GDAT
+	FILE w=tokyo_3column_SI.has ;
+	RUN (8/1) 8/1-8/3 Tinit=30 ;
+	PRINT 8/1-8/3 *wd ;
+*
+
+EXSRF
+	r=0.2 ;
+	south a=0.0 ;
+	north a=180.0 ;
+	east  a=90.0 ;
+	west  a=270.0 ;
+	Hor ;
+	earth Z=1.5 ;
+*
+
+WALL
+	-E:ExtWall  RC-150 FPS-50 GPB-12 ;
+	-R:Roof  GPB-12 FPS-100 RC-150 ;
+	-F:Floor  GPB-12 FPS-100 RC-150 ;
+*
+
+ROOM
+	TestRoom  Vol=80.0
+		*s
+		alc=4.6
+		south: -E ExtWall 16.0 ;
+		north: -E ExtWall 16.0 ;
+		east:  -E ExtWall 10.0 ;
+		west:  -E ExtWall 10.0 ;
+		Hor: -R Roof 32.0 ;
+		earth: -F Floor 32.0 ;
+	*
+*
+
+SYSCMP
+	! ルームエアコン（直膨コイル）
+	RoomAC -type RMACD -wet -V Qc=-2800 Qcmax=-5600 Qcmin=-800 Ec=700 Ecmax=1500 Ecmin=150 Qh=2500 Qhmax=5400 Qhmin=700 Eh=390 Ehmax=1360 Ehmin=95 Gi=0.262 Go=0.51 * ;
+
+	! 室への空気入力を許可
+	TestRoom -Nin 1 ;
+*
+
+SYSPTH
+	! 空調経路：RMACD -> 室
+	ACPath -sys A -f A
+		> RoomAC TestRoom > ;
+*
+
+CONTL
+	! 経路ON
+	ACPath=ON ;
+
+	! 運転モード設定（冷房）
+	RoomAC_chmode=COOL ;
+*
+*

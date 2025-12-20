@@ -1,0 +1,75 @@
+! ========================================================================
+! L2-21: HELM 要素別熱損失・熱取得計算テスト
+! Building Element Heat Loss/Gain Test
+! ========================================================================
+!
+! 目的：
+! - HELM（要素別熱損失・熱取得計算）機能の検証
+! - 壁体・窓・床などからの熱損失/熱取得の詳細計算
+! - Go版とCオリジナルの計算精度比較
+!
+! 構成：
+! - 単室（100m3）+ 各種外皮要素
+! - *helm オプションで要素別計算を有効化
+!
+! ========================================================================
+
+TITLE
+	L2-21 HELM Building Element Heat Loss Test ;
+
+GDAT
+	FILE w=tokyo_3column_SI.has ;
+	RUN (1/1) 1/1-1/1 ;
+	PRINT 1/1-1/1 *wd *helm ;
+*
+
+EXSRF
+	r=0.2 ;
+	south a=0.0 ;
+	north a=180.0 ;
+	east  a=90.0 ;
+	west  a=270.0 ;
+	Hor ;
+	earth Z=1.5 ;
+*
+
+WALL
+	-E:ExtWall  RC-150 FPS-50 GPB-12 ;
+	-R:Roof     FPS-100 GPB-12 ;
+	-F:Floor    GPB-12 FPS-100 RC-150 ;
+*
+
+WINDOW
+	SouthWindow  t=0.65 B=0.15 R=0.50 ;
+*
+
+ROOM
+	TestRoom  Vol=5.0*4.0*5.0
+		*s
+		alc=4.6
+
+		south: -E 15.5 ;
+			-W SouthWindow 4.5 ;
+		north: -E 20.0 ;
+		east:  -E 12.5 ;
+		west:  -E 12.5 ;
+
+		Hor:   -R 40.0 ;
+		earth: -F 40.0 ;
+	*
+*
+
+EQPCAT
+	BOI testboi Qo=5000 eff=0.85 ;
+*
+
+SYSCMP
+	Boiler1 -c testboi ;
+*
+
+SYSPTH
+	HeatPath -sys A -f W
+		> (0.01) Boiler1 > ;
+*
+
+END

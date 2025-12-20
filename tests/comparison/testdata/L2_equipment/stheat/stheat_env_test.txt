@@ -1,0 +1,77 @@
+! ========================================================================
+! L2-08b: STHEAT 環境指定テスト
+! Electric Storage Heater with Environment Pointer Test
+! ========================================================================
+!
+! 目的：
+! - Stheatintの-env分岐（envptr）のカバレッジ向上
+! - 環境温度指定での蓄熱暖房器動作検証
+!
+! ========================================================================
+
+TITLE
+	L2-08b STHEAT Env Pointer Test ;
+
+GDAT
+	FILE w=tokyo_3column_SI.has ;
+	RUN (1/1) 1/1-1/3 ;
+	PRINT 1/1-1/3 *wd ;
+*
+
+EXSRF
+	r=0.2 ;
+	south a=0.0 ;
+	north a=180.0 ;
+	east  a=90.0 ;
+	west  a=270.0 ;
+	Hor ;
+	earth Z=1.5 ;
+*
+
+WALL
+	-E:ExtWall  RC-150 FPS-50 GPB-12 ;
+	-R:Roof  GPB-12 FPS-100 RC-150 ;
+	-F:Floor  GPB-12 FPS-100 RC-150 ;
+*
+
+ROOM
+	TestRoom  Vol=80.0
+		*s
+		alc=4.6
+		south: -E ExtWall 16.0 ;
+		north: -E ExtWall 16.0 ;
+		east:  -E ExtWall 10.0 ;
+		west:  -E ExtWall 10.0 ;
+		Hor: -R Roof 32.0 ;
+		earth: -F Floor 32.0 ;
+	*
+*
+
+EQPCAT
+	! STHEAT: 電気蓄熱暖房器
+	STHEAT shtcat Q=2000 eff=0.95 Hcap=10000000 KA=5.0 ;
+	FAN testfan Go=100.0 ;
+*
+
+SYSCMP
+	! 電気蓄熱暖房器（環境温度指定: 外気温度）
+	StorageHeater -c shtcat -env Ta -Tinit 40 ;
+	Fan -c testfan ;
+
+	! 室への空気入力を許可
+	TestRoom -Nin 1 ;
+*
+
+SYSPTH
+	! 蓄熱暖房経路：蓄熱暖房器 -> ファン -> 室
+	HeaterPath -sys A -f A
+		> (0.05) StorageHeater Fan TestRoom > ;
+*
+
+CONTL
+	! 経路ON（常時運転）
+	HeaterPath=HeaterSchedule ;
+	! 蓄熱スケジュール
+	%s -s HeaterSchedule 0-(-)-700 2301-(-)-2400 ;
+*
+*

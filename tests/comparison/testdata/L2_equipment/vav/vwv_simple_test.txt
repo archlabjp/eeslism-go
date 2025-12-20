@@ -1,0 +1,63 @@
+! ========================================================================
+! L2-10b: VWV (可変水量弁) シンプルテスト
+! Simple Variable Water Volume Unit Test
+! ========================================================================
+
+TITLE
+	L2-10b VWV Simple Test ;
+
+GDAT
+	FILE w=tokyo_3column_SI.has ;
+	RUN (1/1) 1/1-1/3 ;
+	PRINT 1/1-1/3 *wd ;
+*
+
+EXSRF
+	r=0.2 ;
+	south a=0.0 ;
+	north a=180.0 ;
+	east a=90.0 ;
+	west a=270.0 ;
+	Hor ;
+	earth Z=1.5 ;
+*
+
+WALL
+	-E:ExtWall RC-150 FPS-50 GPB-12 ;
+	-R:Roof GPB-12 FPS-100 RC-150 ;
+	-F:Floor GPB-12 FPS-100 RC-150 ;
+*
+
+ROOM
+	TestRoom Vol=80.0
+		*s
+		alc=4.6
+		south: -E ExtWall 16.0 ;
+		north: -E ExtWall 16.0 ;
+		east: -E ExtWall 10.0 ;
+		west: -E ExtWall 10.0 ;
+		Hor: -R Roof 32.0 ;
+		earth: -F Floor 32.0 ;
+	*
+*
+
+EQPCAT
+	VWV vwvcat Gmin=0.001 Gmax=0.05 ;
+	BOI boicat Qo=5000 ;
+*
+
+SYSCMP
+	VWVUnit -c vwvcat ;
+	Boiler -c boicat ;
+*
+
+SYSPTH
+	WaterPath -sys W -f W
+		> (0.01) Boiler VWVUnit > ;
+*
+
+CONTL
+	WaterPath=ON ;
+	LOAD -e Boiler Boiler_Tout=50 ;
+*
+*

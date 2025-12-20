@@ -65,10 +65,13 @@ func Sysupv(Mpath []*MPATH, Rmvls *RMVLS) {
 						}
 					}
 					if pelm.Out == nil {
-						pelm.In.Upv = up
-						if plist.Plmvb == nil {
-							// 末端経路内で出口がない要素のうち経路内で最上流のもの
-							plist.Plmvb = pelm
+						// pelm.In が nil でないことを確認してからアクセス
+						if pelm.In != nil {
+							pelm.In.Upv = up
+							if plist.Plmvb == nil {
+								// 末端経路内で出口がない要素のうち経路内で最上流のもの
+								plist.Plmvb = pelm
+							}
 						}
 					} else if pelm.Out.Control != OFF_SW {
 						if DEBUG {
@@ -122,9 +125,11 @@ func Sysupv(Mpath []*MPATH, Rmvls *RMVLS) {
 					// ex) `> G4 G5 >` の場合、G5が停止していれば、
 
 					ptermel := plist.Pelm[len(plist.Pelm)-1] // 末端要素
-					if ptermel.Out.Control == OFF_SW {
+					if ptermel.Out != nil && ptermel.Out.Control == OFF_SW {
 						ptermel = plist.Plmvb
-						ptermel.In.Upv = up
+						if ptermel != nil && ptermel.In != nil {
+							ptermel.In.Upv = up
+						}
 					}
 				}
 			} else {
@@ -146,9 +151,14 @@ func Sysupv(Mpath []*MPATH, Rmvls *RMVLS) {
 			}
 			if Plist.Type == DIVERG_LPTP {
 				Pelm := Plist.Pelm[0]
-				Pelm.Out.Control = OFF_SW
-				up := Plist.Pelm[0].Cmp.Elins[0].Upv
-				if Pelm = Plist.Plmvb; Pelm != nil {
+				if Pelm.Out != nil {
+					Pelm.Out.Control = OFF_SW
+				}
+				var up *ELOUT
+				if len(Plist.Pelm[0].Cmp.Elins) > 0 {
+					up = Plist.Pelm[0].Cmp.Elins[0].Upv
+				}
+				if Pelm = Plist.Plmvb; Pelm != nil && Pelm.In != nil {
 					Pelm.In.Upv = up
 				}
 			}

@@ -1,0 +1,69 @@
+! ========================================================================
+! L2-RMAC-xout: ルームエアコン湿度負荷制御テスト
+! Room Air Conditioner Humidity Load Control Test
+! ========================================================================
+!
+! 目的：
+! - hcldptrのxout分岐カバレッジ向上
+! - HCLOAD機器の湿度負荷制御検証
+!
+! ========================================================================
+
+TITLE
+	L2-RMAC Humidity Load Control Test ;
+
+GDAT
+	FILE w=tokyo_3column_SI.has ;
+	RUN (7/15) 7/20-7/21 ;
+	PRINT 7/20-7/21 *wd ;
+*
+
+EXSRF
+	r=0.2 ;
+	south a=0.0 ;
+	north a=180.0 ;
+	east a=90.0 ;
+	west a=270.0 ;
+	Hor ;
+	earth Z=1.5 ;
+*
+
+WALL
+	-E:ExtWall RC-150 FPS-50 GPB-12 ;
+	-R:Roof FPS-100 GPB-12 ;
+	-F:Floor GPB-12 FPS-100 RC-150 ;
+*
+
+ROOM
+	TestRoom Vol=100.0
+		*s
+		alc=4.6
+		south: -E ExtWall 20.0 ;
+		north: -E ExtWall 20.0 ;
+		east: -E ExtWall 12.5 ;
+		west: -E ExtWall 12.5 ;
+		Hor: -R Roof 40.0 ;
+		earth: -F Floor 40.0 ;
+	*
+*
+
+SYSCMP
+	RoomAC -type RMAC -V Qh=2500 Qhmax=5400 Qc=2800 Qcmax=5000 COPc=3.5 COPh=4.0 -wet * ;
+	TestRoom -Nin 1 ;
+*
+
+SYSPTH
+	ACPath -sys A -f A
+		> (0.1) RoomAC TestRoom > ;
+*
+
+CONTL
+	ACPath=ON ;
+	! 温度負荷制御
+	LOAD -e RoomAC RoomAC_Tout=15 ;
+	! 湿度負荷制御（別のLOAD文で指定）
+	LOAD -e RoomAC RoomAC_xout=Xoutset ;
+	RoomAC_chmode=COOL ;
+	%s -v Xoutset 000-(0.010)-2400 ;
+*
+*

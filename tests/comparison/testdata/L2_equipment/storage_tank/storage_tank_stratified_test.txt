@@ -1,0 +1,75 @@
+! ========================================================================
+! L2-03b: Storage Tank Stratified Initialization Test
+! 蓄熱槽層別初期温度テスト
+! ========================================================================
+!
+! 目的：
+! - Stankintの層別初期温度設定のカバレッジ向上
+! - Tparm "(T1 T2 T3 T4 T5)" 形式のパース検証
+!
+! ========================================================================
+
+TITLE
+	L2-03b Storage Tank Stratified Init Test ;
+
+GDAT
+	FILE w=tokyo_3column_SI.has ;
+	RUN (12/25) 1/1-1/3 ;
+	PRINT 1/1-1/3 *wd ;
+*
+
+EXSRF
+	r=0.2 ;
+	south a=0.0 ;
+	north a=180.0 ;
+	east  a=90.0 ;
+	west  a=270.0 ;
+	Hor ;
+	earth Z=1.5 ;
+*
+
+WALL
+	-E:ExtWall  RC-150 FPS-50 GPB-12 ;
+	-R:Roof     FPS-100 GPB-12 ;
+	-F:Floor    GPB-12 FPS-100 RC-150 ;
+*
+
+ROOM
+	TestRoom  Vol=100.0
+		*s
+		alc=4.6
+		south: -E ExtWall 20.0 ;
+		north: -E ExtWall 20.0 ;
+		east:  -E ExtWall 12.5 ;
+		west:  -E ExtWall 12.5 ;
+		Hor:   -R Roof 40.0 ;
+		earth: -F Floor 40.0 ;
+	*
+*
+
+EQPCAT
+	BOI testboi Qo=5000 ;
+	! 5層の蓄熱槽
+	STANK testtank Vol=0.5 KAside=2.0 KAtop=1.0 KAbtm=1.0
+		-S N=5 C:1-5 D:5-1 * ;
+*
+
+SYSCMP
+	Boiler -c testboi ;
+	! 層別初期温度: (T1 T2 T3 T4 T5)
+	Tank -c testtank -env Ta -Tinit (25 30 35 40 45 ) ;
+*
+
+SYSPTH
+	ChargePath -sys A -f W
+		> (0.05) Boiler Tank[C] > ;
+	DischargePath -sys B -f W
+		> (0.05) Tank[D] > ;
+*
+
+CONTL
+	ChargePath=ChargeSchedule ;
+	LOAD -e Boiler Boiler_Tout=60 ;
+	%s -s ChargeSchedule 100-(-)-600 ;
+*
+*

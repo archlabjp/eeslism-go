@@ -1,0 +1,67 @@
+! ========================================================================
+! L4-01: VAV Annual Test
+! Variable Air Volume Unit - Year Simulation
+! ========================================================================
+
+TITLE
+	L4-01 VAV Annual Test ;
+
+GDAT
+	FILE w=tokyo_3column_SI.has ;
+	RUN (12/25) 1/1-12/31 ;
+	PRINT 1/1-12/31 *wd ;
+*
+
+EXSRF
+	r=0.2 ;
+	south a=0.0 ;
+	north a=180.0 ;
+	east  a=90.0 ;
+	west  a=270.0 ;
+	Hor ;
+	earth Z=1.5 ;
+*
+
+WALL
+	-E:ExtWall  RC-150 FPS-50 GPB-12 ;
+	-R:Roof  GPB-12 FPS-100 RC-150 ;
+	-F:Floor  GPB-12 FPS-100 RC-150 ;
+*
+
+ROOM
+	TestRoom  Vol=80.0
+		*s
+		alc=4.6
+		south: -E ExtWall 16.0 ;
+		north: -E ExtWall 16.0 ;
+		east:  -E ExtWall 10.0 ;
+		west:  -E ExtWall 10.0 ;
+		Hor: -R Roof 32.0 ;
+		earth: -F Floor 32.0 ;
+	*
+*
+
+EQPCAT
+	VAV vavcat Gmin=0.01 Gmax=0.3 ;
+*
+
+SYSCMP
+	RoomAC -type RMACD -wet -V Qh=2500 Qhmax=5400 Qhmin=700 Eh=390 Ehmax=1360 Ehmin=95 Gi=0.262 Go=0.51 * ;
+	VAVUnit -c vavcat ;
+	TestRoom -Nin 1 ;
+*
+
+SYSPTH
+	ACPath -sys A -f A > RoomAC VAVUnit TestRoom > ;
+*
+
+CONTL
+	ACPath=ON ;
+	LOAD -e RoomAC RoomAC_Tout=Toutset ;
+	LOAD -e VAVUnit TestRoom_Tr=Trset ;
+	VAVUnit_chmode=HEAT ;
+	RoomAC_chmode=HEAT ;
+	%s -v Toutset 000-(35.0)-2400 ;
+	%s -v Trset 000-(20.0)-2400 ;
+*
+*

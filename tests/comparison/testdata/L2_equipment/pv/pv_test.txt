@@ -1,0 +1,50 @@
+TITLE
+	L2-07 PV Test ;
+
+GDAT
+	FILE w=tokyo_3column_SI.has ;
+	RUN (6/25) 7/1-7/3 ;
+	PRINT 7/1-7/3 *wd ;
+*
+
+EXSRF
+	r=0.2 ;
+	south a=0.0 ;
+	north a=180.0 ;
+	east a=90.0 ;
+	west a=270.0 ;
+	Hor ;
+	earth Z=1.5 ;
+	PVSurf a=0 t=30 r=0.15 ;
+*
+
+WALL
+	-E:ExtWall RC-150 FPS-50 GPB-12 ;
+	-R:Roof FPS-100 GPB-12 ;
+	-F:Floor GPB-12 FPS-100 RC-150 ;
+*
+
+ROOM
+	TestRoom Vol=100.0
+		*s
+		alc=4.6
+		south: -E ExtWall 20.0 ;
+		north: -E ExtWall 20.0 ;
+		east: -E ExtWall 12.5 ;
+		west: -E ExtWall 12.5 ;
+		Hor: -R Roof 40.0 ;
+		earth: -F Floor 40.0 ;
+	*
+*
+
+EQPCAT
+	PV PV1 KHD=0.97 KPD=0.87 KPM=0.94 KPA=0.97 EffInv=0.95 apmax=-0.01 InstallType=A ;
+*
+
+SYSCMP
+	PVmodule1 -c PV1 -exs PVSurf PVcap=4000 Area=20 ;
+*
+
+SYSPTH
+*
+*

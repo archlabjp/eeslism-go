@@ -1,0 +1,76 @@
+! ========================================================================
+! L2-ACOL: 空気式太陽熱集熱器テスト
+! Air-type Solar Collector Test
+! ========================================================================
+!
+! 目的：
+! - ACOL（空気式太陽熱集熱器）の動作検証
+! - Go版とCオリジナルの計算精度比較
+!
+! 構成：
+! - 単室
+! - 空気式太陽熱集熱器
+!
+! ========================================================================
+
+TITLE
+	L2-ACOL Air Collector Test ;
+
+GDAT
+	FILE w=tokyo_3column_SI.has ;
+	RUN (7/15) 7/20-7/25 ;
+	PRINT 7/20-7/25 *wd ;
+*
+
+EXSRF
+	r=0.2 ;
+	south a=0.0 ;
+	north a=180.0 ;
+	east  a=90.0 ;
+	west  a=270.0 ;
+	Hor ;
+	earth Z=1.5 ;
+	CollSurf a=0.0 w=30.0 ;
+*
+
+WALL
+	-E:ExtWall  RC-150 FPS-50 GPB-12 ;
+	-R:Roof     FPS-100 GPB-12 ;
+	-F:Floor    GPB-12 FPS-100 RC-150 ;
+*
+
+ROOM
+	TestRoom  Vol=100.0
+		*s
+		alc=4.6
+		south: -E ExtWall 20.0 ;
+		north: -E ExtWall 20.0 ;
+		east:  -E ExtWall 12.5 ;
+		west:  -E ExtWall 12.5 ;
+		Hor:   -R Roof 40.0 ;
+		earth: -F Floor 40.0 ;
+	*
+*
+
+EQPCAT
+	! 空気式太陽熱集熱器
+	! b0=集熱効率切片, b1=集熱効率傾き, Fd=集熱器効率係数, Ac=集熱器面積, Ag=開口面積
+	ACOL AirCollector b0=0.75 b1=5.0 Fd=0.9 Ac=10.0 Ag=9.0 ;
+*
+
+SYSCMP
+	! 空気式集熱器
+	AirColl -c AirCollector -exs CollSurf ;
+*
+
+SYSPTH
+	! 空気式集熱経路（シンプル版）
+	AirCollPath -sys A -f a
+		> (0.1) AirColl > ;
+*
+
+CONTL
+	AirCollPath=CollectSchedule ;
+	%s -s CollectSchedule 601-(-)-1800 ;
+*
+*

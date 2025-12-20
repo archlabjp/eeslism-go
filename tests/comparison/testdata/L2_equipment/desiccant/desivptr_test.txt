@@ -1,0 +1,79 @@
+! ========================================================================
+! L2-09d: Desivptr テスト
+! Desiccant Variable Pointer Test
+! ========================================================================
+!
+! 目的：
+! - Desivptr関数のカバレッジ向上
+! - デシカント内部変数参照（Ts, xs, RH）の検証
+!
+! ========================================================================
+
+TITLE
+	L2-09d Desiccant Variable Pointer Test ;
+
+GDAT
+	FILE w=tokyo_3column_SI.has ;
+	RUN (7/15) 7/20-7/22 ;
+	PRINT 7/20-7/22 *wd ;
+*
+
+EXSRF
+	r=0.2 ;
+	south a=0.0 ;
+	north a=180.0 ;
+	east  a=90.0 ;
+	west  a=270.0 ;
+	Hor ;
+	earth Z=1.5 ;
+*
+
+WALL
+	-E:ExtWall  RC-150 FPS-50 GPB-12 ;
+	-R:Roof  GPB-12 FPS-100 RC-150 ;
+	-F:Floor  GPB-12 FPS-100 RC-150 ;
+*
+
+ROOM
+	TestRoom  Vol=100.0
+		*s
+		alc=4.6
+		south: -E ExtWall 20.0 ;
+		north: -E ExtWall 20.0 ;
+		east:  -E ExtWall 12.5 ;
+		west:  -E ExtWall 12.5 ;
+		Hor: -R Roof 40.0 ;
+		earth: -F Floor 40.0 ;
+	*
+*
+
+EQPCAT
+	DESICCANT desicat Uad=2.0 A=1.0 ms=5000 r=0.3 rows=0.7 ;
+	FAN testfan Qmax=200.0 ;
+*
+
+SYSCMP
+	Desiccant -c desicat -room TestRoom ;
+	SupplyFan -c testfan ;
+	TestRoom -Nin 1 ;
+*
+
+SYSPTH
+	DesiPath -sys A -f A
+		> (0.05) _OA Desiccant SupplyFan TestRoom > ;
+*
+
+CONTL
+	DesiPath=DesiSchedule ;
+	%s -s DesiSchedule 801-(-)-1800 ;
+
+	! Desivptr: Ts参照テスト（デシカント材温度）
+	if (Desiccant_Ts > 100) DesiPath=OFF ;
+
+	! Desivptr: xs参照テスト（デシカント材湿度比）
+	if (Desiccant_xs > 0.5) DesiPath=OFF ;
+
+	! Desivptr: RH参照テスト（デシカント材相対湿度）
+	if (Desiccant_RH > 200) DesiPath=OFF ;
+*
+*

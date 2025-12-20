@@ -1,0 +1,72 @@
+! ========================================================================
+! L2-05b: refaswptr テスト
+! Heat Pump Variable Pointer Test (chmode)
+! ========================================================================
+!
+! 目的：
+! - refaswptr関数のカバレッジ向上
+! - 冷凍機の冷暖運転モード(chmode)参照の検証
+!
+! ========================================================================
+
+TITLE
+	L2-05b Heat Pump Variable Pointer Test ;
+
+GDAT
+	FILE w=tokyo_3column_SI.has ;
+	RUN (12/25) 1/1-1/3 ;
+	PRINT 1/1-1/3 *wd ;
+*
+
+EXSRF
+	r=0.2 ;
+	south a=0.0 ;
+	north a=180.0 ;
+	east a=90.0 ;
+	west a=270.0 ;
+	Hor ;
+	earth Z=1.5 ;
+*
+
+WALL
+	-E:ExtWall RC-150 FPS-50 GPB-12 ;
+	-R:Roof FPS-100 GPB-12 ;
+	-F:Floor GPB-12 FPS-100 RC-150 ;
+*
+
+ROOM
+	TestRoom Vol=100.0
+		*s
+		alc=4.6
+		south: -E ExtWall 20.0 ;
+		north: -E ExtWall 20.0 ;
+		east: -E ExtWall 12.5 ;
+		west: -E ExtWall 12.5 ;
+		Hor: -R Roof 40.0 ;
+		earth: -F Floor 40.0 ;
+	*
+*
+
+EQPCAT
+	REFA testhp a=a c=R m=H Qo=5000 Go=0.05 Two=45 eo=0.7 Qex=4000 Gex=0.5 Tex=7 eex=0.8 W=1500 Ph=100 ;
+*
+
+SYSCMP
+	HeatPump -c testhp ;
+*
+
+SYSPTH
+	HeatingPath -sys A -f W
+		> (0.05) HeatPump > ;
+*
+
+CONTL
+	HeatingPath=HeatingSchedule ;
+	LOAD -e HeatPump HeatPump_Tout=45 ;
+	%s -s HeatingSchedule 100-(-)-600 ;
+
+	! refaswptr: chmode参照テスト（冷暖運転モード）
+	! 暖房モードの場合はパスをONに維持
+	if (HeatPump_chmode == HEAT) HeatingPath=ON ;
+*
+*

@@ -1,0 +1,135 @@
+! ========================================================================
+! L2-06: HCC（冷温水コイル）テスト
+! Heating/Cooling Coil Test
+! ========================================================================
+!
+! 目的：
+! - 乾きコイル(et指定)の検証
+! - 湿りコイル(eh指定)の検証
+! - KAタイプコイル(KA指定)の検証
+! - Hccdwint, Hccdwreset関数のカバレッジ向上
+!
+! ========================================================================
+
+TITLE
+	L2-06 Heating/Cooling Coil Test ;
+
+GDAT
+	FILE w=tokyo_3column_SI.has ;
+	RUN (7/20) 7/25-7/27 ;
+	PRINT 7/25-7/27 *wd ;
+*
+
+EXSRF
+	r=0.2 ;
+	south a=0.0 ;
+	north a=180.0 ;
+	east a=90.0 ;
+	west a=270.0 ;
+	Hor ;
+	earth Z=1.5 ;
+*
+
+WALL
+	-E:ExtWall RC-150 FPS-50 GPB-12 ;
+	-R:Roof FPS-100 GPB-12 ;
+	-F:Floor GPB-12 FPS-100 RC-150 ;
+*
+
+ROOM
+	TestRoom1 Vol=100.0
+		*s
+		alc=4.6
+		south: -E ExtWall 20.0 ;
+		north: -E ExtWall 20.0 ;
+		east: -E ExtWall 12.5 ;
+		west: -E ExtWall 12.5 ;
+		Hor: -R Roof 40.0 ;
+		earth: -F Floor 40.0 ;
+	*
+	TestRoom2 Vol=100.0
+		*s
+		alc=4.6
+		south: -E ExtWall 20.0 ;
+		north: -E ExtWall 20.0 ;
+		east: -E ExtWall 12.5 ;
+		west: -E ExtWall 12.5 ;
+		Hor: -R Roof 40.0 ;
+		earth: -F Floor 40.0 ;
+	*
+	TestRoom3 Vol=100.0
+		*s
+		alc=4.6
+		south: -E ExtWall 20.0 ;
+		north: -E ExtWall 20.0 ;
+		east: -E ExtWall 12.5 ;
+		west: -E ExtWall 12.5 ;
+		Hor: -R Roof 40.0 ;
+		earth: -F Floor 40.0 ;
+	*
+*
+
+EQPCAT
+	! 送風機
+	FAN testfan Qmax=100.0 ;
+
+	! 乾きコイル（温度効率固定）
+	HCC dryhcc et=0.7 ;
+
+	! 湿りコイル（エンタルピー効率指定）
+	HCC wethcc et=0.7 eh=0.6 ;
+
+	! KAタイプコイル（熱通過率×伝熱面積）
+	HCC kahcc KA=500 ;
+
+	! 冷凍機（冷水供給用）
+	REFA coolhp a=a c=R m=C Qo=10000 Go=0.1 Two=7 eo=0.7 Qex=12000 Gex=1.0 Tex=35 eex=0.8 Ph=100 ;
+*
+
+SYSCMP
+	! 3種類のコイルを使用
+	DryCoil -c dryhcc ;
+	WetCoil -c wethcc ;
+	KACoil -c kahcc ;
+
+	! 送風機
+	Fan1 -c testfan ;
+	Fan2 -c testfan ;
+	Fan3 -c testfan ;
+
+	! 冷凍機
+	Chiller -c coolhp ;
+*
+
+SYSPTH
+	! 空気経路1：乾きコイル
+	AirPath1 -sys A -f A
+		> (0.1) _OA DryCoil Fan1 TestRoom1 > ;
+
+	! 空気経路2：湿りコイル
+	AirPath2 -sys B -f A
+		> (0.1) _OA WetCoil Fan2 TestRoom2 > ;
+
+	! 空気経路3：KAタイプコイル
+	AirPath3 -sys C -f A
+		> (0.1) _OA KACoil Fan3 TestRoom3 > ;
+
+	! 冷水経路：冷凍機 -> 3つのコイル
+	ChilledWaterPath -sys W -f W
+		> (0.06) Chiller DryCoil WetCoil KACoil > ;
+*
+
+CONTL
+	AirPath1=CoolingSchedule ;
+	AirPath2=CoolingSchedule ;
+	AirPath3=CoolingSchedule ;
+	ChilledWaterPath=CoolingSchedule ;
+
+	! 冷凍機出口温度制御（7℃冷水）
+	LOAD -e Chiller Chiller_Tout=7 ;
+
+	! 冷房スケジュール（8:00-18:00）
+	%s -s CoolingSchedule 800-(-)-1800 ;
+*
+
+END

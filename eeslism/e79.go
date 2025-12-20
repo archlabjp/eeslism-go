@@ -99,7 +99,7 @@ func Entry(InFile string, efl_path string) {
 	//var uop, ulp, ullp, ulmp *bekt
 
 	var gp [][]XYZ
-	var gpn int
+	var gpn int = 50 // 地面の代表点の数（C版と同じデフォルト値）
 
 	var fp1 *os.File // _shadow.gchi : MPの影面積の出力
 	var fp2 *os.File // _I.gchi : MPの日射量の出力
@@ -600,7 +600,7 @@ func Entry(InFile string, efl_path string) {
 				// 20170426 higuchi add 形態係数を計算しない処理の追加
 				if len(BDP) != 0 && monten > 0 {
 					if nday == Simc.Daystartx {
-						fmt.Printf("form_factor calcuration start\n")
+						fmt.Printf("form_factor calcuration start (monten=%d, lpn=%d, mpn=%d)\n", monten, lpn, mpn)
 						GR_MONTE_CARLO(mp, mpn, lp, lpn, monten, day)
 						MONTE_CARLO(mpn, lpn, monten, mp, lp, gp, gpn, day, Simc.Daystartx)
 						ffactor_printf(fp4, mpn, lpn, mp, lp, Daytm.Mon, Daytm.Day)
@@ -703,6 +703,11 @@ func Entry(InFile string, efl_path string) {
 
 				// 20170426 higuchi add 引数追加 dayprn,monten
 				OPIhor(fp2, fp3, lpn, mpn, mp, lp, &Wd, ullp, ulmp, gp, day, monten)
+				// DEBUG: Check mp values after OPIhor
+				if mpn > 0 {
+					fmt.Printf("DEBUG after OPIhor (%d/%d tt=%d): Idre=%f, Idf=%f, Iw=%f, Reff=%f, sum=%f\n",
+						Daytm.Mon, Daytm.Day, tt, mp[0].Idre, mp[0].Idf, mp[0].Iw, mp[0].Reff, mp[0].sum)
+				}
 				for i := range Rmvls.Sd {
 					if Rmvls.Sd[i].Sname != "" {
 						for j := 0; j < mpn; j++ {
@@ -867,6 +872,16 @@ func Entry(InFile string, efl_path string) {
 						hcldwetmdreset(Eqsys)
 					}
 
+					// DEBUG: 4/25 20:00 付近の詳細
+					if Daytm.Mon == 4 && Daytm.Day == 25 && Daytm.Time >= 19.0 && Daytm.Time <= 21.0 {
+						for _, hl := range Eqsys.Hcload {
+							if hl.Cmp != nil && hl.Cmp.Name == "RoomAC" {
+								fmt.Printf("DEBUG Go e79: Day=%d Time=%.1f iter=%d Wetmode=%v Wet=%v Xain=%.6f\n",
+									Daytm.Day, Daytm.Time, i, hl.Wetmode, hl.Wet, hl.Xain)
+							}
+						}
+					}
+
 					if DEBUG {
 						fmt.Printf("再計算が必要な機器のループ %d\n", i)
 					}
@@ -892,6 +907,17 @@ func Entry(InFile string, efl_path string) {
 					Stankcfv(Eqsys.Stank)
 
 					// 特性式の係数
+					// DEBUG: Hcload スライスの長さを確認（1回だけ出力）
+					if j == 0 && Daytm.Mon == 4 && Daytm.Day == 15 {
+						fmt.Printf("DEBUG e79: Mon=%d Day=%d Time=%.1f len(Eqsys.Hcload)=%d\n", Daytm.Mon, Daytm.Day, Daytm.Time, len(Eqsys.Hcload))
+						for idx, hl := range Eqsys.Hcload {
+							if hl.Cmp != nil {
+								fmt.Printf("DEBUG e79: Hcload[%d] name=%s Wetmode=%v Wet=%v RHout=%.1f\n", idx, hl.Cmp.Name, hl.Wetmode, hl.Wet, hl.RHout)
+							} else {
+								fmt.Printf("DEBUG e79: Hcload[%d] Cmp=nil\n", idx)
+							}
+						}
+					}
 					Hcldcfv(Eqsys.Hcload)
 
 					// システム方程式の作成およびシステム変数の計算

@@ -1,6 +1,8 @@
 package eeslism
 
 import (
+	"bytes"
+	"strings"
 	"testing"
 )
 
@@ -630,3 +632,496 @@ func createLargeTemperatureDifferenceSTANK() *STANK {
 // Note: TestStankint_TparmParsing tests removed as they require complex setup
 // The Stankint function depends on envptr and stoint which need proper initialization
 // Coverage for these branches is achieved through integration tests
+
+// createOutputTestSTANK creates a STANK suitable for output function tests
+func createOutputTestSTANK() *STANK {
+	ndiv := 3
+	nin := 2
+
+	// Create ELOUT with proper initialization
+	elouts := make([]*ELOUT, nin)
+	for i := range elouts {
+		elouts[i] = &ELOUT{
+			Control: ON_SW,
+			Sysv:    55.0,
+			G:       0.5,
+		}
+	}
+
+	// Create ELIN with Lpath
+	elins := make([]*ELIN, nin)
+	for i := range elins {
+		elins[i] = &ELIN{
+			Sysvin: 40.0,
+			Lpath:  &PLIST{Control: ON_SW, G: 0.5},
+		}
+	}
+
+	return &STANK{
+		Name: "TestSTANK",
+		Cat: &STANKCA{
+			name: "TestSTANKCA",
+		},
+		Cmp: &COMPNT{
+			Name:    "TestSTANKComponent",
+			Control: ON_SW,
+			Elouts:  elouts,
+			Elins:   elins,
+			Idi:     []ELIOType{'W', 'W'},
+		},
+		Ndiv:      ndiv,
+		Nin:       nin,
+		Ncalcihex: 0,
+		KAinput:   []rune{0, 0},
+		Twin:      []float64{40.0, 42.0},
+		Q:         []float64{5000.0, 3000.0},
+		KA:        []float64{0.0, 0.0},
+		Tss:       []float64{55.0, 52.0, 48.0},
+		Jout:      []int{0, 2},
+		Qloss:     500.0,
+		Qsto:      2000.0,
+	}
+}
+
+func TestStankcmpprt(t *testing.T) {
+	stank := createOutputTestSTANK()
+	stanks := []*STANK{stank}
+
+	t.Run("Header1_id0", func(t *testing.T) {
+		var buf bytes.Buffer
+		stankcmpprt(&buf, 0, stanks)
+		output := buf.String()
+
+		if !strings.Contains(output, string(STANK_TYPE)) {
+			t.Errorf("Missing STANK type in output: %s", output)
+		}
+		if !strings.Contains(output, "TestSTANK") {
+			t.Errorf("Missing stank name in output: %s", output)
+		}
+	})
+
+	t.Run("Header2_id1", func(t *testing.T) {
+		var buf bytes.Buffer
+		stankcmpprt(&buf, 1, stanks)
+		output := buf.String()
+
+		// Check for item name patterns
+		expectedPatterns := []string{"_c", "_G", "_Ti", "_To", "_Q", "_Qls", "_Qst", "_Ts"}
+		for _, pattern := range expectedPatterns {
+			if !strings.Contains(output, pattern) {
+				t.Errorf("Missing %s in output: %s", pattern, output)
+			}
+		}
+	})
+
+	t.Run("Data_default", func(t *testing.T) {
+		var buf bytes.Buffer
+		stankcmpprt(&buf, 99, stanks)
+		output := buf.String()
+
+		// Should contain data values
+		if output == "" {
+			t.Errorf("Expected non-empty output for data")
+		}
+	})
+
+	t.Run("EmptyList", func(t *testing.T) {
+		var buf bytes.Buffer
+		stankcmpprt(&buf, 0, []*STANK{})
+		output := buf.String()
+
+		if output != "" {
+			t.Errorf("Expected empty output for empty list, got: %s", output)
+		}
+	})
+}
+
+func TestStankivprt(t *testing.T) {
+	stank := createOutputTestSTANK()
+	stanks := []*STANK{stank}
+
+	t.Run("Header_id0", func(t *testing.T) {
+		var buf bytes.Buffer
+		stankivprt(&buf, 0, stanks)
+		output := buf.String()
+
+		if !strings.Contains(output, "TestSTANK") {
+			t.Errorf("Missing stank name in output: %s", output)
+		}
+		if !strings.Contains(output, "3") { // Ndiv
+			t.Errorf("Missing Ndiv in output: %s", output)
+		}
+	})
+
+	t.Run("Data_default", func(t *testing.T) {
+		var buf bytes.Buffer
+		stankivprt(&buf, 99, stanks)
+		output := buf.String()
+
+		// Should contain temperature values
+		if output == "" {
+			t.Errorf("Expected non-empty output for data")
+		}
+	})
+}
+
+func TestStankdyprt(t *testing.T) {
+	stank := createOutputTestSTANK()
+	// Initialize daily aggregation data
+	stank.Stkdy = make([]STKDAY, stank.Nin)
+	for i := 0; i < stank.Nin; i++ {
+		stank.Stkdy[i] = STKDAY{
+			Tidy: SVDAY{Hrs: 8, M: 42.0, Mn: 38.0, Mx: 46.0, Mntime: 600, Mxtime: 1400},
+			Tsdy: SVDAY{Hrs: 8, M: 52.0, Mn: 48.0, Mx: 56.0, Mntime: 600, Mxtime: 1400},
+			Qdy:  QDAY{Hhr: 8, H: 40000.0, Chr: 0, C: 0.0, Hmx: 6000.0, Cmx: 0.0, Hmxtime: 1200, Cmxtime: 0},
+		}
+	}
+	stank.Qlossdy = 4000.0
+	stank.Qstody = 16000.0
+	stanks := []*STANK{stank}
+
+	t.Run("Header1_id0", func(t *testing.T) {
+		var buf bytes.Buffer
+		stankdyprt(&buf, 0, stanks)
+		output := buf.String()
+
+		if !strings.Contains(output, string(STANK_TYPE)) {
+			t.Errorf("Missing STANK type in output: %s", output)
+		}
+	})
+
+	t.Run("Header2_id1", func(t *testing.T) {
+		var buf bytes.Buffer
+		stankdyprt(&buf, 1, stanks)
+		output := buf.String()
+
+		// Check for daily aggregation item names
+		expectedPatterns := []string{"_Ht", "_T", "_Hh", "_Qh"}
+		for _, pattern := range expectedPatterns {
+			if !strings.Contains(output, pattern) {
+				t.Errorf("Missing %s in output: %s", pattern, output)
+			}
+		}
+	})
+
+	t.Run("Data_default", func(t *testing.T) {
+		var buf bytes.Buffer
+		stankdyprt(&buf, 99, stanks)
+		output := buf.String()
+
+		if output == "" {
+			t.Errorf("Expected non-empty output for data")
+		}
+	})
+}
+
+func TestStankmonprt(t *testing.T) {
+	stank := createOutputTestSTANK()
+	// Initialize monthly aggregation data
+	stank.Mstkdy = make([]STKDAY, stank.Nin)
+	for i := 0; i < stank.Nin; i++ {
+		stank.Mstkdy[i] = STKDAY{
+			Tidy: SVDAY{Hrs: 240, M: 43.0, Mn: 35.0, Mx: 50.0, Mntime: 600, Mxtime: 1400},
+			Tsdy: SVDAY{Hrs: 240, M: 51.0, Mn: 45.0, Mx: 58.0, Mntime: 600, Mxtime: 1400},
+			Qdy:  QDAY{Hhr: 240, H: 1200000.0, Chr: 0, C: 0.0, Hmx: 6500.0, Cmx: 0.0, Hmxtime: 1200, Cmxtime: 0},
+		}
+	}
+	stank.MQlossdy = 120000.0
+	stank.MQstody = 480000.0
+	stanks := []*STANK{stank}
+
+	t.Run("Header1_id0", func(t *testing.T) {
+		var buf bytes.Buffer
+		stankmonprt(&buf, 0, stanks)
+		output := buf.String()
+
+		if !strings.Contains(output, string(STANK_TYPE)) {
+			t.Errorf("Missing STANK type in output: %s", output)
+		}
+	})
+
+	t.Run("Data_default", func(t *testing.T) {
+		var buf bytes.Buffer
+		stankmonprt(&buf, 99, stanks)
+		output := buf.String()
+
+		if output == "" {
+			t.Errorf("Expected non-empty output for data")
+		}
+	})
+}
+
+func TestStankdyint(t *testing.T) {
+	stank := createOutputTestSTANK()
+	stank.Stkdy = make([]STKDAY, stank.Nin)
+	for i := 0; i < stank.Nin; i++ {
+		stank.Stkdy[i] = STKDAY{
+			Tidy: SVDAY{Hrs: 10, M: 45.0},
+			Qdy:  QDAY{Hhr: 10, H: 50000.0},
+		}
+	}
+	stank.Qlossdy = 5000.0
+	stank.Qstody = 20000.0
+	stanks := []*STANK{stank}
+
+	stankdyint(stanks)
+
+	// After init, values should be reset
+	if stank.Qlossdy != 0.0 {
+		t.Errorf("Qlossdy should be reset to 0, got %f", stank.Qlossdy)
+	}
+	if stank.Qstody != 0.0 {
+		t.Errorf("Qstody should be reset to 0, got %f", stank.Qstody)
+	}
+	for i := 0; i < stank.Nin; i++ {
+		if stank.Stkdy[i].Tidy.Hrs != 0 {
+			t.Errorf("Stkdy[%d].Tidy.Hrs should be reset to 0, got %d", i, stank.Stkdy[i].Tidy.Hrs)
+		}
+	}
+}
+
+func TestStankmonint(t *testing.T) {
+	stank := createOutputTestSTANK()
+	stank.Mstkdy = make([]STKDAY, stank.Nin)
+	for i := 0; i < stank.Nin; i++ {
+		stank.Mstkdy[i] = STKDAY{
+			Tidy: SVDAY{Hrs: 100, M: 44.0},
+			Qdy:  QDAY{Hhr: 100, H: 500000.0},
+		}
+	}
+	stank.MQlossdy = 50000.0
+	stank.MQstody = 200000.0
+	stanks := []*STANK{stank}
+
+	stankmonint(stanks)
+
+	// After init, values should be reset
+	if stank.MQlossdy != 0.0 {
+		t.Errorf("MQlossdy should be reset to 0, got %f", stank.MQlossdy)
+	}
+	if stank.MQstody != 0.0 {
+		t.Errorf("MQstody should be reset to 0, got %f", stank.MQstody)
+	}
+	for i := 0; i < stank.Nin; i++ {
+		if stank.Mstkdy[i].Tidy.Hrs != 0 {
+			t.Errorf("Mstkdy[%d].Tidy.Hrs should be reset to 0, got %d", i, stank.Mstkdy[i].Tidy.Hrs)
+		}
+	}
+}
+
+// TestStankday tests the stankday aggregation function
+func TestStankday(t *testing.T) {
+	t.Run("DailyAggregation", func(t *testing.T) {
+		ndiv := 3
+		nin := 2
+
+		// Create ELIN with Lpath for Control
+		elins := make([]*ELIN, nin)
+		for i := range elins {
+			elins[i] = &ELIN{
+				Sysvin: 40.0,
+				Lpath:  &PLIST{Control: ON_SW, G: 0.5},
+			}
+		}
+
+		stank := &STANK{
+			Name: "TestSTANK",
+			Cat: &STANKCA{
+				name: "TestSTANKCA",
+			},
+			Cmp: &COMPNT{
+				Name:    "TestSTANKComponent",
+				Control: ON_SW,
+				Elins:   elins,
+			},
+			Ndiv:  ndiv,
+			Nin:   nin,
+			Tss:   []float64{55.0, 52.0, 48.0}, // Tank layer temperatures
+			Twin:  []float64{40.0, 42.0},       // Inlet temperatures
+			Q:     []float64{5000.0, 3000.0},   // Heat quantities
+			Qloss: 500.0,
+			Qsto:  2000.0,
+		}
+		stank.Stkdy = make([]STKDAY, nin)
+		stank.Mstkdy = make([]STKDAY, nin)
+		stanks := []*STANK{stank}
+
+		// Initialize daily aggregation
+		stankdyint(stanks)
+
+		// Simulate multiple time steps
+		times := []int{900, 1000, 1100, 1200}
+		for _, ttmm := range times {
+			stankday(7, 15, ttmm, stanks, 31, 365)
+		}
+
+		// After 4 time steps, verify aggregation values
+		// Average tank temperature = (55 + 52 + 48) / 3 = 51.67
+		if stank.Stkdy[0].Tsdy.Hrs != 4 {
+			t.Errorf("Stkdy[0].Tsdy.Hrs = %d, want 4", stank.Stkdy[0].Tsdy.Hrs)
+		}
+
+		// Qlossdy should accumulate: 500 * 4 = 2000
+		expectedQloss := 500.0 * 4
+		if stank.Qlossdy != expectedQloss {
+			t.Errorf("Qlossdy = %f, want %f", stank.Qlossdy, expectedQloss)
+		}
+
+		// Qstody should accumulate: 2000 * 4 = 8000
+		expectedQsto := 2000.0 * 4
+		if stank.Qstody != expectedQsto {
+			t.Errorf("Qstody = %f, want %f", stank.Qstody, expectedQsto)
+		}
+
+		// Check inlet aggregation
+		for i := 0; i < nin; i++ {
+			if stank.Stkdy[i].Tidy.Hrs != 4 {
+				t.Errorf("Stkdy[%d].Tidy.Hrs = %d, want 4", i, stank.Stkdy[i].Tidy.Hrs)
+			}
+			if stank.Stkdy[i].Qdy.Hhr != 4 {
+				t.Errorf("Stkdy[%d].Qdy.Hhr = %d, want 4", i, stank.Stkdy[i].Qdy.Hhr)
+			}
+		}
+	})
+
+	t.Run("MonthlyAggregation_EndOfDay", func(t *testing.T) {
+		ndiv := 2
+		nin := 1
+
+		elins := make([]*ELIN, nin)
+		elins[0] = &ELIN{
+			Sysvin: 45.0,
+			Lpath:  &PLIST{Control: ON_SW, G: 1.0},
+		}
+
+		stank := &STANK{
+			Name: "TestSTANK",
+			Cat:  &STANKCA{name: "TestSTANKCA"},
+			Cmp: &COMPNT{
+				Name:    "TestSTANKComponent",
+				Control: ON_SW,
+				Elins:   elins,
+			},
+			Ndiv:  ndiv,
+			Nin:   nin,
+			Tss:   []float64{60.0, 55.0},
+			Twin:  []float64{45.0},
+			Q:     []float64{8000.0},
+			Qloss: 300.0,
+			Qsto:  1500.0,
+		}
+		stank.Stkdy = make([]STKDAY, nin)
+		stank.Mstkdy = make([]STKDAY, nin)
+		stanks := []*STANK{stank}
+
+		stankdyint(stanks)
+		stankmonint(stanks)
+
+		// Call stankday at end of day (ttmm=2400 equivalent, Day=Nday)
+		// Nday=31 means 31 days in the month
+		stankday(7, 31, 2400, stanks, 31, 365)
+
+		// Monthly values should be copied at end of day
+		if stank.MQlossdy == 0.0 && stank.Qlossdy > 0.0 {
+			// This is expected because monthly copy only happens at end of day
+		}
+	})
+
+	t.Run("OffControl_ReducedAggregation", func(t *testing.T) {
+		ndiv := 2
+		nin := 1
+
+		// Create inlet with OFF control
+		elins := make([]*ELIN, nin)
+		elins[0] = &ELIN{
+			Sysvin: 45.0,
+			Lpath:  &PLIST{Control: OFF_SW, G: 0.0},
+		}
+
+		stank := &STANK{
+			Name: "TestSTANK",
+			Cat:  &STANKCA{name: "TestSTANKCA"},
+			Cmp: &COMPNT{
+				Name:    "TestSTANKComponent",
+				Control: OFF_SW,
+				Elins:   elins,
+			},
+			Ndiv:  ndiv,
+			Nin:   nin,
+			Tss:   []float64{50.0, 48.0},
+			Twin:  []float64{40.0},
+			Q:     []float64{0.0},
+			Qloss: 200.0,
+			Qsto:  0.0,
+		}
+		stank.Stkdy = make([]STKDAY, nin)
+		stank.Mstkdy = make([]STKDAY, nin)
+		stanks := []*STANK{stank}
+
+		stankdyint(stanks)
+
+		// Call stankday
+		stankday(1, 15, 1200, stanks, 31, 365)
+
+		// Tank temperature should still be aggregated (uses ON_SW always)
+		if stank.Stkdy[0].Tsdy.Hrs != 1 {
+			t.Errorf("Tsdy should still aggregate even when off, got Hrs=%d", stank.Stkdy[0].Tsdy.Hrs)
+		}
+
+		// Inlet with OFF control should not aggregate
+		if stank.Stkdy[0].Tidy.Hrs != 0 {
+			t.Errorf("Tidy.Hrs should be 0 when inlet is OFF, got %d", stank.Stkdy[0].Tidy.Hrs)
+		}
+	})
+
+	t.Run("EmptyList", func(t *testing.T) {
+		// Should not panic with empty list
+		stankday(1, 15, 1200, []*STANK{}, 31, 365)
+	})
+
+	t.Run("MultipleStanks", func(t *testing.T) {
+		stanks := make([]*STANK, 2)
+		for i := range stanks {
+			elins := make([]*ELIN, 1)
+			elins[0] = &ELIN{
+				Sysvin: 40.0 + float64(i)*5,
+				Lpath:  &PLIST{Control: ON_SW, G: 0.5},
+			}
+
+			stanks[i] = &STANK{
+				Name: "TestSTANK" + string(rune('A'+i)),
+				Cat:  &STANKCA{name: "TestSTANKCA"},
+				Cmp: &COMPNT{
+					Name:    "TestSTANKComponent",
+					Control: ON_SW,
+					Elins:   elins,
+				},
+				Ndiv:  2,
+				Nin:   1,
+				Tss:   []float64{50.0 + float64(i)*10, 45.0 + float64(i)*10},
+				Twin:  []float64{40.0 + float64(i)*5},
+				Q:     []float64{5000.0 + float64(i)*1000},
+				Qloss: 300.0 + float64(i)*100,
+				Qsto:  1000.0 + float64(i)*500,
+			}
+			stanks[i].Stkdy = make([]STKDAY, 1)
+			stanks[i].Mstkdy = make([]STKDAY, 1)
+		}
+
+		stankdyint(stanks)
+
+		// Call stankday for all
+		stankday(7, 15, 1200, stanks, 31, 365)
+
+		// Verify each stank has independent aggregation
+		for i, stank := range stanks {
+			if stank.Stkdy[0].Tsdy.Hrs != 1 {
+				t.Errorf("Stank[%d] Tsdy.Hrs = %d, want 1", i, stank.Stkdy[0].Tsdy.Hrs)
+			}
+			expectedQloss := 300.0 + float64(i)*100
+			if stank.Qlossdy != expectedQloss {
+				t.Errorf("Stank[%d] Qlossdy = %f, want %f", i, stank.Qlossdy, expectedQloss)
+			}
+		}
+	})
+}

@@ -1,6 +1,8 @@
 package eeslism
 
 import (
+	"bytes"
+	"strings"
 	"testing"
 )
 
@@ -684,4 +686,453 @@ func createSeasonalPerformanceREFA() *REFA {
 	refa := createAirSourceHeatPump()
 	// Set up for seasonal performance testing
 	return refa
+}
+
+// createOutputTestREFA creates a REFA configured for output testing
+func createOutputTestREFA() *REFA {
+	refa := createBasicREFAForRefasTest()
+	refa.Tin = 12.0
+	refa.Q = -50000.0
+	refa.E = 15000.0
+	refa.Ph = 500.0
+
+	// Set up daily aggregation values
+	refa.Tidy = SVDAY{Hrs: 8, M: 11.0, Mn: 7.0, Mx: 15.0, Mntime: 6, Mxtime: 14}
+	refa.Qdy = QDAY{Hhr: 0, H: 0.0, Chr: 8, C: 400000.0, Hmxtime: 0, Hmx: 0.0, Cmxtime: 14, Cmx: 60000.0}
+	refa.Edy = EDAY{Hrs: 8, D: 120000.0, Mxtime: 14, Mx: 20000.0}
+	refa.Phdy = EDAY{Hrs: 8, D: 4000.0, Mxtime: 14, Mx: 600.0}
+
+	// Set up monthly aggregation values
+	refa.mTidy = SVDAY{Hrs: 200, M: 10.5, Mn: 5.0, Mx: 16.0, Mntime: 1, Mxtime: 15}
+	refa.mQdy = QDAY{Hhr: 0, H: 0.0, Chr: 200, C: 10000000.0, Hmxtime: 0, Hmx: 0.0, Cmxtime: 15, Cmx: 65000.0}
+	refa.mEdy = EDAY{Hrs: 200, D: 3000000.0, Mxtime: 15, Mx: 22000.0}
+	refa.mPhdy = EDAY{Hrs: 200, D: 100000.0, Mxtime: 15, Mx: 700.0}
+
+	return refa
+}
+
+// TestRefaprint tests the REFA print function
+func TestRefaprint(t *testing.T) {
+	refa := createOutputTestREFA()
+	refas := []*REFA{refa}
+
+	t.Run("Header1_id0", func(t *testing.T) {
+		var buf bytes.Buffer
+		refaprint(&buf, 0, refas)
+		output := buf.String()
+
+		// Check type and count (REFACOMP_TYPE = "REFA")
+		if !strings.Contains(output, "REFA") {
+			t.Error("Missing REFA type in header")
+		}
+		if !strings.Contains(output, refa.Name) {
+			t.Errorf("Missing REFA name %s in header", refa.Name)
+		}
+	})
+
+	t.Run("Header2_id1", func(t *testing.T) {
+		var buf bytes.Buffer
+		refaprint(&buf, 1, refas)
+		output := buf.String()
+
+		// Check item names
+		expectedPatterns := []string{
+			refa.Name + "_c",
+			refa.Name + "_G",
+			refa.Name + "_Ti",
+			refa.Name + "_To",
+			refa.Name + "_Q",
+			refa.Name + "_E",
+			refa.Name + "_P",
+		}
+		for _, pattern := range expectedPatterns {
+			if !strings.Contains(output, pattern) {
+				t.Errorf("Missing expected pattern: %s", pattern)
+			}
+		}
+	})
+
+	t.Run("Data_id99", func(t *testing.T) {
+		var buf bytes.Buffer
+		refaprint(&buf, 99, refas)
+		output := buf.String()
+
+		if len(output) == 0 {
+			t.Error("Data output is empty")
+		}
+	})
+
+	t.Run("EmptyList", func(t *testing.T) {
+		var buf bytes.Buffer
+		refaprint(&buf, 0, []*REFA{})
+		output := buf.String()
+
+		if len(output) != 0 {
+			t.Error("Expected empty output for empty list")
+		}
+	})
+}
+
+// TestRefadyprt tests the REFA daily print function
+func TestRefadyprt(t *testing.T) {
+	refa := createOutputTestREFA()
+	refas := []*REFA{refa}
+
+	t.Run("Header1_id0", func(t *testing.T) {
+		var buf bytes.Buffer
+		refadyprt(&buf, 0, refas)
+		output := buf.String()
+
+		if !strings.Contains(output, "REFA") {
+			t.Error("Missing REFA type in daily header")
+		}
+		if !strings.Contains(output, refa.Name) {
+			t.Errorf("Missing REFA name %s in daily header", refa.Name)
+		}
+	})
+
+	t.Run("Header2_id1", func(t *testing.T) {
+		var buf bytes.Buffer
+		refadyprt(&buf, 1, refas)
+		output := buf.String()
+
+		// Check item patterns
+		expectedPatterns := []string{
+			refa.Name + "_Ht",
+			refa.Name + "_T",
+			refa.Name + "_Hh",
+			refa.Name + "_Qh",
+			refa.Name + "_He",
+			refa.Name + "_E",
+			refa.Name + "_Hp",
+			refa.Name + "_P",
+		}
+		for _, pattern := range expectedPatterns {
+			if !strings.Contains(output, pattern) {
+				t.Errorf("Missing expected pattern: %s", pattern)
+			}
+		}
+	})
+
+	t.Run("Data_id99", func(t *testing.T) {
+		var buf bytes.Buffer
+		refadyprt(&buf, 99, refas)
+		output := buf.String()
+
+		if len(output) == 0 {
+			t.Error("Daily data output is empty")
+		}
+	})
+
+	t.Run("EmptyList", func(t *testing.T) {
+		var buf bytes.Buffer
+		refadyprt(&buf, 0, []*REFA{})
+		output := buf.String()
+
+		if len(output) != 0 {
+			t.Error("Expected empty output for empty list")
+		}
+	})
+}
+
+// TestRefamonprt tests the REFA monthly print function
+func TestRefamonprt(t *testing.T) {
+	refa := createOutputTestREFA()
+	refas := []*REFA{refa}
+
+	t.Run("Header1_id0", func(t *testing.T) {
+		var buf bytes.Buffer
+		refamonprt(&buf, 0, refas)
+		output := buf.String()
+
+		if !strings.Contains(output, "REFA") {
+			t.Error("Missing REFA type in monthly header")
+		}
+		if !strings.Contains(output, refa.Name) {
+			t.Errorf("Missing REFA name %s in monthly header", refa.Name)
+		}
+	})
+
+	t.Run("Header2_id1", func(t *testing.T) {
+		var buf bytes.Buffer
+		refamonprt(&buf, 1, refas)
+		output := buf.String()
+
+		// Check item patterns (same as daily)
+		expectedPatterns := []string{
+			refa.Name + "_Ht",
+			refa.Name + "_T",
+			refa.Name + "_Hh",
+			refa.Name + "_He",
+		}
+		for _, pattern := range expectedPatterns {
+			if !strings.Contains(output, pattern) {
+				t.Errorf("Missing expected pattern: %s", pattern)
+			}
+		}
+	})
+
+	t.Run("Data_id99", func(t *testing.T) {
+		var buf bytes.Buffer
+		refamonprt(&buf, 99, refas)
+		output := buf.String()
+
+		if len(output) == 0 {
+			t.Error("Monthly data output is empty")
+		}
+	})
+
+	t.Run("EmptyList", func(t *testing.T) {
+		var buf bytes.Buffer
+		refamonprt(&buf, 0, []*REFA{})
+		output := buf.String()
+
+		if len(output) != 0 {
+			t.Error("Expected empty output for empty list")
+		}
+	})
+}
+
+// TestRefadyint tests the REFA daily aggregation initialization
+func TestRefadyint(t *testing.T) {
+	t.Run("BasicInitialization", func(t *testing.T) {
+		refa := createOutputTestREFA()
+		refas := []*REFA{refa}
+
+		// Verify values are set before initialization
+		if refa.Tidy.Hrs == 0 {
+			t.Error("Test data not properly set up")
+		}
+
+		refadyint(refas)
+
+		// After initialization, values should be reset
+		if refa.Tidy.Hrs != 0 {
+			t.Error("Tidy.Hrs should be reset to 0")
+		}
+		if refa.Edy.Hrs != 0 {
+			t.Error("Edy.Hrs should be reset to 0")
+		}
+	})
+
+	t.Run("EmptyList", func(t *testing.T) {
+		// Should not panic with empty list
+		refadyint([]*REFA{})
+	})
+
+	t.Run("MultipleRefa", func(t *testing.T) {
+		refa1 := createOutputTestREFA()
+		refa1.Name = "REFA1"
+		refa2 := createOutputTestREFA()
+		refa2.Name = "REFA2"
+		refas := []*REFA{refa1, refa2}
+
+		refadyint(refas)
+
+		for i, refa := range refas {
+			if refa.Tidy.Hrs != 0 {
+				t.Errorf("REFA[%d] Tidy.Hrs should be reset to 0", i)
+			}
+		}
+	})
+}
+
+// TestRefamonint tests the REFA monthly aggregation initialization
+func TestRefamonint(t *testing.T) {
+	t.Run("BasicInitialization", func(t *testing.T) {
+		refa := createOutputTestREFA()
+		refas := []*REFA{refa}
+
+		// Verify values are set before initialization
+		if refa.mTidy.Hrs == 0 {
+			t.Error("Test data not properly set up")
+		}
+
+		refamonint(refas)
+
+		// After initialization, values should be reset
+		if refa.mTidy.Hrs != 0 {
+			t.Error("mTidy.Hrs should be reset to 0")
+		}
+		if refa.mEdy.Hrs != 0 {
+			t.Error("mEdy.Hrs should be reset to 0")
+		}
+	})
+
+	t.Run("EmptyList", func(t *testing.T) {
+		// Should not panic with empty list
+		refamonint([]*REFA{})
+	})
+
+	t.Run("MultipleRefa", func(t *testing.T) {
+		refa1 := createOutputTestREFA()
+		refa1.Name = "REFA1"
+		refa2 := createOutputTestREFA()
+		refa2.Name = "REFA2"
+		refas := []*REFA{refa1, refa2}
+
+		refamonint(refas)
+
+		for i, refa := range refas {
+			if refa.mTidy.Hrs != 0 {
+				t.Errorf("REFA[%d] mTidy.Hrs should be reset to 0", i)
+			}
+		}
+	})
+}
+
+// TestRefaday tests the refaday aggregation function
+func TestRefaday(t *testing.T) {
+	t.Run("DailyAggregation", func(t *testing.T) {
+		refa := createBasicREFAForRefasTest()
+		refa.Cmp.Control = ON_SW
+		refa.Tin = 12.0
+		refa.Q = -50000.0 // Cooling
+		refa.E = 15000.0
+		refa.Ph = 500.0
+
+		refas := []*REFA{refa}
+
+		// Initialize daily aggregation
+		refadyint(refas)
+
+		// Simulate multiple time steps
+		times := []int{900, 1000, 1100, 1200}
+		for _, ttmm := range times {
+			refaday(7, 15, ttmm, refas, 31, 365)
+		}
+
+		// After 4 time steps, verify aggregation
+		if refa.Tidy.Hrs != 4 {
+			t.Errorf("Tidy.Hrs = %d, want 4", refa.Tidy.Hrs)
+		}
+		if refa.Qdy.Chr != 4 {
+			t.Errorf("Qdy.Chr = %d, want 4 (cooling)", refa.Qdy.Chr)
+		}
+		if refa.Edy.Hrs != 4 {
+			t.Errorf("Edy.Hrs = %d, want 4", refa.Edy.Hrs)
+		}
+		if refa.Phdy.Hrs != 4 {
+			t.Errorf("Phdy.Hrs = %d, want 4", refa.Phdy.Hrs)
+		}
+	})
+
+	t.Run("HeatingMode", func(t *testing.T) {
+		refa := createBasicREFAForRefasTest()
+		refa.Cmp.Control = ON_SW
+		refa.Tin = 45.0
+		refa.Q = 40000.0 // Heating (positive)
+		refa.E = 12000.0
+		refa.Ph = 400.0
+
+		refas := []*REFA{refa}
+
+		refadyint(refas)
+		refaday(7, 15, 1200, refas, 31, 365)
+
+		// Heating should aggregate to Hhr
+		if refa.Qdy.Hhr != 1 {
+			t.Errorf("Qdy.Hhr = %d, want 1 (heating)", refa.Qdy.Hhr)
+		}
+	})
+
+	t.Run("OffControl_NoAggregation", func(t *testing.T) {
+		refa := createBasicREFAForRefasTest()
+		refa.Cmp.Control = OFF_SW
+		refa.Tin = 0.0
+		refa.Q = 0.0
+		refa.E = 0.0
+		refa.Ph = 0.0
+
+		refas := []*REFA{refa}
+
+		refadyint(refas)
+		refaday(7, 15, 1200, refas, 31, 365)
+
+		// OFF control should not aggregate
+		if refa.Tidy.Hrs != 0 {
+			t.Errorf("Tidy.Hrs should be 0 when OFF, got %d", refa.Tidy.Hrs)
+		}
+		if refa.Edy.Hrs != 0 {
+			t.Errorf("Edy.Hrs should be 0 when OFF, got %d", refa.Edy.Hrs)
+		}
+	})
+
+	t.Run("MonthlyAggregation_EndOfDay", func(t *testing.T) {
+		refa := createBasicREFAForRefasTest()
+		refa.Cmp.Control = ON_SW
+		refa.Tin = 12.0
+		refa.Q = -50000.0
+		refa.E = 15000.0
+		refa.Ph = 500.0
+
+		refas := []*REFA{refa}
+
+		refadyint(refas)
+		refamonint(refas)
+
+		// Call at end of month
+		refaday(7, 31, 2400, refas, 31, 365)
+
+		// Daily values should be aggregated
+		if refa.Tidy.Hrs != 1 {
+			t.Errorf("Tidy.Hrs = %d, want 1", refa.Tidy.Hrs)
+		}
+	})
+
+	t.Run("EmptyList", func(t *testing.T) {
+		// Should not panic with empty list
+		refaday(7, 15, 1200, []*REFA{}, 31, 365)
+	})
+
+	t.Run("MultipleRefa", func(t *testing.T) {
+		refas := make([]*REFA, 2)
+		for i := range refas {
+			refas[i] = createBasicREFAForRefasTest()
+			refas[i].Name = "REFA" + string(rune('A'+i))
+			refas[i].Cmp.Control = ON_SW
+			refas[i].Tin = 12.0 + float64(i)*2
+			refas[i].Q = -50000.0 - float64(i)*10000
+			refas[i].E = 15000.0 + float64(i)*2000
+			refas[i].Ph = 500.0 + float64(i)*100
+		}
+
+		refadyint(refas)
+		refaday(7, 15, 1200, refas, 31, 365)
+
+		// Verify each refa has independent aggregation
+		for i, refa := range refas {
+			if refa.Tidy.Hrs != 1 {
+				t.Errorf("REFA[%d] Tidy.Hrs = %d, want 1", i, refa.Tidy.Hrs)
+			}
+			if refa.Edy.Hrs != 1 {
+				t.Errorf("REFA[%d] Edy.Hrs = %d, want 1", i, refa.Edy.Hrs)
+			}
+		}
+	})
+
+	t.Run("CrossTabulation", func(t *testing.T) {
+		refa := createBasicREFAForRefasTest()
+		refa.Cmp.Control = ON_SW
+		refa.Tin = 12.0
+		refa.Q = -50000.0
+		refa.E = 15000.0
+		refa.Ph = 500.0
+
+		refas := []*REFA{refa}
+
+		refadyint(refas)
+		refamonint(refas)
+
+		// Test cross-tabulation: mtEdy[Mo][tt] and mtPhdy[Mo][tt]
+		// Mo = Month - 1, tt = ConvertHour(ttmm)
+		refaday(7, 15, 1200, refas, 31, 365)
+
+		// Cross-tabulation should have values at Mo=6, tt=ConvertHour(1200)
+		tt := ConvertHour(1200)
+		// Note: emtsum only updates at end of simulation
+		// Just verify it doesn't panic
+		_ = refa.mtEdy[6][tt]
+		_ = refa.mtPhdy[6][tt]
+	})
 }

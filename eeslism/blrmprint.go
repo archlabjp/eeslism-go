@@ -50,7 +50,7 @@ func Rmsfprint(fo io.Writer, title string, Mon, Day int, time float64, Room []*R
 				for n := 0; n < Rm.N; n++ {
 					S := Sd[Rm.Brs+n]
 					if S.Name == "" {
-						fmt.Fprintf(fo, "%d-%c_Ts\t", n-Rm.Brs, S.ble)
+						fmt.Fprintf(fo, "%d-%c_Ts\t", n, S.ble)
 					} else {
 						fmt.Fprintf(fo, "%s_Ts\t", S.Name)
 					}
@@ -162,7 +162,7 @@ func Rmsfaprint(fo io.Writer, title string, Mon, Day int, time float64, Room []*
 					S := Sd[Rm.Brs+nn]
 					if S.Name == "" {
 						fmt.Fprintf(fo, "%d-%c_K\t%d-%c_alc\t%d-%c_alr\t",
-							n-Rm.Brs, S.ble, n-Rm.Brs, S.ble, n-Rm.Brs, S.ble)
+							nn, S.ble, nn, S.ble, nn, S.ble)
 					} else {
 						fmt.Fprintf(fo, "%s_K\t%s_alc\t%s_alr\t",
 							S.Name, S.Name, S.Name)

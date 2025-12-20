@@ -1,7 +1,13 @@
 package eeslism
 
-const MAXINT_DAY = FNAN
+const MAXINT_DAY = -999.0
 const MININT_DAY = 999.0
+
+// Q_EPSILON は熱量Qの正負判定に使用する閾値（単位：W）
+// 浮動小数点演算の誤差により、本来0であるべき値が微小な正負値になることがある。
+// 物理的に無意味な精度（1マイクロワット）以下の値は「熱移動なし」として扱う。
+// これにより、暖房/冷房時間のカウントが浮動小数点誤差に影響されなくなる。
+const Q_EPSILON = 1.0e-6
 
 /*
 svdyint (Daily Summary Initialization for Scalar Values)
@@ -163,11 +169,11 @@ qdaysum (Daily Summary Accumulation for Heat/Cooling Quantities)
 */
 func qdaysum(time int64, control ControlSWType, Q float64, Qd *QDAY) {
 	if control != OFF_SW {
-		if Q > 0.0 {
+		if Q > Q_EPSILON {
 			Qd.H += Q
 			maxmark(&Qd.Hmx, &Qd.Hmxtime, Q, time)
 			Qd.Hhr++
-		} else if Q < 0.0 {
+		} else if Q < -Q_EPSILON {
 			Qd.C += Q
 			minmark(&Qd.Cmx, &Qd.Cmxtime, Q, time)
 			Qd.Chr++
@@ -208,11 +214,11 @@ func qmonsum(Mon int, Day int, time int, control ControlSWType, Q float64, Qd *Q
 	MoNdTt := int64(1000000*Mon + 10000*Day + time)
 
 	if control != OFF_SW {
-		if Q > 0.0 {
+		if Q > Q_EPSILON {
 			Qd.H += Q
 			maxmark(&Qd.Hmx, &Qd.Hmxtime, Q, MoNdTt)
 			Qd.Hhr++
-		} else if Q < 0.0 {
+		} else if Q < -Q_EPSILON {
 			Qd.C += Q
 			minmark(&Qd.Cmx, &Qd.Cmxtime, Q, MoNdTt)
 			Qd.Chr++
@@ -252,11 +258,11 @@ qdaysumNotOpe (Daily Summary Accumulation for Heat/Cooling Quantities, Including
 運用改善や省エネルギー対策の効果評価を行うための重要な役割を果たします。
 */
 func qdaysumNotOpe(time int64, Q float64, Qd *QDAY) {
-	if Q > 0.0 {
+	if Q > Q_EPSILON {
 		Qd.H += Q
 		maxmark(&Qd.Hmx, &Qd.Hmxtime, Q, time)
 		Qd.Hhr++
-	} else if Q < 0.0 {
+	} else if Q < -Q_EPSILON {
 		Qd.C += Q
 		minmark(&Qd.Cmx, &Qd.Cmxtime, Q, time)
 		Qd.Chr++
@@ -297,11 +303,11 @@ qmonsumNotOpe (Monthly Summary Accumulation for Heat/Cooling Quantities, Includi
 func qmonsumNotOpe(Mon int, Day int, time int, Q float64, Qd *QDAY, Dayend int, SimDayend int) {
 	MoNdTt := int64(1000000*Mon + 10000*Day + time)
 
-	if Q > 0.0 {
+	if Q > Q_EPSILON {
 		Qd.H += Q
 		maxmark(&Qd.Hmx, &Qd.Hmxtime, Q, MoNdTt)
 		Qd.Hhr++
-	} else if Q < 0.0 {
+	} else if Q < -Q_EPSILON {
 		Qd.C += Q
 		minmark(&Qd.Cmx, &Qd.Cmxtime, Q, MoNdTt)
 		Qd.Chr++
@@ -463,7 +469,8 @@ minmark (Minimum Value Marking)
 運用改善や省エネルギー対策の効果評価を行うための重要な役割を果たします。
 */
 func minmark(minval *float64, timemin *int64, v float64, time int64) {
-	if v <= *minval {
+	// C版との互換性：同値の場合も時刻を更新（最後の発生時刻を記録）
+	if v < *minval {
 		*timemin = time
 		*minval = v
 	}
@@ -491,7 +498,8 @@ maxmark (Maximum Value Marking)
 運用改善や省エネルギー対策の効果評価を行うための重要な役割を果たします。
 */
 func maxmark(maxval *float64, timemax *int64, v float64, time int64) {
-	if v >= *maxval {
+	// C版との互換性：strictly greater than（同値では更新しない、最初の発生時刻を記録）
+	if v > *maxval {
 		*timemax = time
 		*maxval = v
 	}

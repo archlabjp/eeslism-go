@@ -1,6 +1,8 @@
 package eeslism
 
 import (
+	"bytes"
+	"strings"
 	"testing"
 )
 
@@ -368,5 +370,134 @@ func TestCoilIntegration(t *testing.T) {
 	}
 	if hccca.eh != 0.0 {
 		t.Errorf("eh = %v, want 0.0", hccca.eh)
+	}
+}
+
+// createOutputTestHCC creates an HCC suitable for output function tests
+func createOutputTestHCC() *HCC {
+	return &HCC{
+		Name: "TestHCC",
+		Cat: &HCCCA{
+			name: "TestHCCCat",
+			et:   0.85,
+			eh:   0.75,
+			KA:   5000.0,
+		},
+		Cmp: &COMPNT{
+			Name:    "TestHCC",
+			Control: ON_SW,
+			Elouts: []*ELOUT{
+				{Control: ON_SW, G: 1.0, Sysv: 18.0}, // Air temp out
+				{Control: ON_SW, G: 1.0, Sysv: 0.008}, // Air humidity out
+				{Control: ON_SW, G: 0.5, Sysv: 12.0}, // Water temp out
+			},
+			Elins: []*ELIN{
+				{Sysvin: 26.0, Lpath: &PLIST{Control: ON_SW}},
+				{Sysvin: 0.012},
+				{Sysvin: 7.0, Lpath: &PLIST{Control: ON_SW}},
+			},
+		},
+		Ga:   1.0,
+		Gw:   0.5,
+		Tain: 26.0,
+		Xain: 0.012,
+		Twin: 7.0,
+		Qs:   8000.0,
+		Ql:   3000.0,
+		Qt:   11000.0,
+		et:   0.85,
+		eh:   0.75,
+	}
+}
+
+func TestHccprint(t *testing.T) {
+	hcc := createOutputTestHCC()
+	hccs := []*HCC{hcc}
+
+	t.Run("Header1_id0", func(t *testing.T) {
+		var buf bytes.Buffer
+		hccprint(&buf, 0, hccs)
+		output := buf.String()
+
+		if !strings.Contains(output, string(HCCOIL_TYPE)) {
+			t.Errorf("Missing HCCOIL type in output: %s", output)
+		}
+		if !strings.Contains(output, "TestHCC") {
+			t.Errorf("Missing HCC name in output: %s", output)
+		}
+	})
+
+	t.Run("Header2_id1", func(t *testing.T) {
+		var buf bytes.Buffer
+		hccprint(&buf, 1, hccs)
+		output := buf.String()
+
+		// Check for item name suffixes
+		expectedPatterns := []string{"_ca", "_Ga", "_Ti", "_To", "_Qs", "_cx", "_xi", "_xo", "_Ql", "_cw", "_Gw", "_Twi", "_Two", "_Qt"}
+		for _, pattern := range expectedPatterns {
+			if !strings.Contains(output, pattern) {
+				t.Errorf("Missing %s in output: %s", pattern, output)
+			}
+		}
+	})
+
+	t.Run("Data_default", func(t *testing.T) {
+		var buf bytes.Buffer
+		hccprint(&buf, 99, hccs)
+		output := buf.String()
+
+		if output == "" {
+			t.Errorf("Expected non-empty output for data")
+		}
+	})
+
+	t.Run("EmptyList", func(t *testing.T) {
+		var buf bytes.Buffer
+		hccprint(&buf, 0, []*HCC{})
+		output := buf.String()
+
+		if output != "" {
+			t.Errorf("Expected empty output for empty list, got: %s", output)
+		}
+	})
+}
+
+func TestHccdyint(t *testing.T) {
+	hcc := createOutputTestHCC()
+	hcc.Taidy = SVDAY{Hrs: 8, M: 24.0}
+	hcc.xaidy = SVDAY{Hrs: 8, M: 0.010}
+	hcc.Twidy = SVDAY{Hrs: 8, M: 8.0}
+	hcc.Qdys = QDAY{Hhr: 8, H: 64000.0}
+	hcc.Qdyl = QDAY{Hhr: 8, H: 24000.0}
+	hcc.Qdyt = QDAY{Hhr: 8, H: 88000.0}
+	hccs := []*HCC{hcc}
+
+	hccdyint(hccs)
+
+	if hcc.Taidy.Hrs != 0 {
+		t.Errorf("Taidy.Hrs should be reset to 0, got %d", hcc.Taidy.Hrs)
+	}
+	if hcc.Qdys.Hhr != 0 {
+		t.Errorf("Qdys.Hhr should be reset to 0, got %d", hcc.Qdys.Hhr)
+	}
+}
+
+func TestHccmonint(t *testing.T) {
+	hcc := createOutputTestHCC()
+	hcc.mTaidy = SVDAY{Hrs: 240, M: 23.0}
+	hcc.mxaidy = SVDAY{Hrs: 240, M: 0.009}
+	hcc.mTwidy = SVDAY{Hrs: 240, M: 7.5}
+	hcc.mQdys = QDAY{Hhr: 240, H: 1920000.0}
+	hcc.mQdyl = QDAY{Hhr: 240, H: 720000.0}
+	hcc.mQdyt = QDAY{Hhr: 240, H: 2640000.0}
+	hccs := []*HCC{hcc}
+
+	hccmonint(hccs)
+
+	if hcc.mTaidy.Hrs != 0 {
+		t.Errorf("mTaidy.Hrs should be reset to 0, got %d", hcc.mTaidy.Hrs)
+	}
+	if hcc.mQdys.Hhr != 0 {
+		t.Errorf("mQdys.Hhr should be reset to 0, got %d", hcc.mQdys.Hhr)
 	}
 }

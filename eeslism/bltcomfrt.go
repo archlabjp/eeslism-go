@@ -67,7 +67,7 @@ func Rmotset(_Room []*ROOM) {
 				Eo.Sysv = Trset
 				Room.Tr = Trset
 
-				if rmld.loadx != nil {
+				if rmld.loadx != nil && len(Room.cmp.Elouts) > 1 {
 					Eo = Room.cmp.Elouts[1]
 					if Eo.Control == LOAD_SW && rmld.hmopt == 'r' {
 						Eo.Sysv = FNXtr(Trset, rmld.Xset)

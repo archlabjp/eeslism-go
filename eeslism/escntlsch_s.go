@@ -265,7 +265,12 @@ func (Plist *PLIST) lpathschbat() {
 	var batop ControlSWType
 	var Tsout, Gbat float64
 	var Stank *STANK
-	var Pelm *PELM
+
+	// 修正: Pelmを配列の先頭に初期化（C版と同様）
+	if len(Plist.Pelm) == 0 {
+		return
+	}
+	Pelm := Plist.Pelm[0]
 
 	Stank = nil
 	for j, Pe := range Plist.Pelm {
@@ -307,7 +312,8 @@ func (Plist *PLIST) lpathschbat() {
 	}
 
 	peiIdx := 0
-	if Stank.Batchop == BTFILL || Stank.Batchop == BTDRAW {
+	// 修正: Stankのnilチェックを追加
+	if Stank != nil && (Stank.Batchop == BTFILL || Stank.Batchop == BTDRAW) {
 		if Pelm.Out.Control == FLWIN_SW {
 			peiIdx++
 		}
@@ -464,7 +470,10 @@ func chqlreset(Hcload *HCLOAD) int {
 	wet := Hcload.Wetmode
 	chmode := Hcload.Chmode
 	Elo := Hcload.Cmp.Elouts[1]
-	//Elos := Hcload.Cmp.Elouts[0]
+
+	// DEBUG: Always output for investigation
+	fmt.Printf("DEBUG Go chqlreset: name=%s wet=%v Ql=%.6f Qs=%.6f Chmode=%c\n",
+		Hcload.Cmp.Name, wet, Ql, Qs, Hcload.Chmode)
 
 	if (wet && Ql > 1.e-6) || (wet && Qs >= 0.0) {
 		Hcload.Wetmode = false

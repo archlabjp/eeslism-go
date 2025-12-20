@@ -24,7 +24,10 @@ import (
 )
 
 // DEBUG_RDPNL: パネルエネルギー計算のデバッグ出力フラグ
-const DEBUG_RDPNL = false
+const DEBUG_RDPNL = true
+
+// DEBUG_RDPNL_COEFF: パネル係数のデバッグ出力フラグ
+const DEBUG_RDPNL_COEFF = false
 
 /*
 Roomene (Room Energy Calculation)
@@ -108,7 +111,7 @@ func Roomene(Rmvls *RMVLS, Room []*ROOM, Rdpnl []*RDPNL, Exsfs *EXSFS, Wd *WDAT)
 		var Wall *WALL
 		Sd = Rdpnl[i].sd[0]
 		Wall = Sd.mw.wall
-		if Rdpnl[i].cmp.Control != 0 {
+		if Rdpnl[i].cmp.Control != OFF_SW {
 			E := Rdpnl[i].cmp.Elouts[0]
 			Rdpnl[i].Tpi = Rdpnl[i].cmp.Elins[0].Sysvin
 			Rdpnl[i].Tpo = E.Sysv
@@ -117,8 +120,8 @@ func Roomene(Rmvls *RMVLS, Room []*ROOM, Rdpnl []*RDPNL, Exsfs *EXSFS, Wd *WDAT)
 
 			// DEBUG: Panel Tpi and Tpo
 			if DEBUG_RDPNL {
-				fmt.Printf("DEBUG Go Rdpnlene: Tpi=%f Tpo=%f G=%f\n",
-					Rdpnl[i].Tpi, Rdpnl[i].Tpo, E.G)
+				fmt.Printf("DEBUG Go Rdpnlene %s: Tpi=%.15f Tpo=%.15f cG=%.15f Q=%.15f\n",
+					Rdpnl[i].Name, Rdpnl[i].Tpi, Rdpnl[i].Tpo, cG, Rdpnl[i].Q)
 			}
 
 			if Wall.WallType == WallType_C {
@@ -229,7 +232,8 @@ func PCMwlchk(counter int, Rmvls *RMVLS, Exsfs *EXSFS, Wd *WDAT, LDreset *int) {
 						PCMresetL := 0
 						nWeightR := FNAN
 						nWeightL := FNAN
-						if PCM != nil && PCM.Iterate {
+						// m=0の場合、Twd[m-1]は配列境界外アクセスになるため除外
+						if PCM != nil && PCM.Iterate && m > 0 {
 							pcmstate.TempPCMave = (Twd[m-1] + Twd[m]) * 0.5
 							pcmstate.TempPCMNodeL = Twd[m-1]
 							pcmstate.TempPCMNodeR = Twd[m]
@@ -293,10 +297,13 @@ func PCMwlchk(counter int, Rmvls *RMVLS, Exsfs *EXSFS, Wd *WDAT, LDreset *int) {
 							} else {
 								nWeight = math.Max(nWeightR, nWeightL)
 							}
-							// Update Toldd[m] with the average value between the previous and current step
-							Toldd[m] = ((1.0 - nWeight) * Toldd[m]) + (nWeight * Twd[m])
-							(*LDreset)++
-							Rmwlcreset++
+							// C version has this reset code commented out
+							// (see open_eeslism/Source/bl/blroomene.c lines 326-330)
+							// To match C behavior, we also comment out this code.
+							_ = nWeight // suppress unused variable warning
+							//Toldd[m] = ((1.0 - nWeight) * Toldd[m]) + (nWeight * Twd[m])
+							//(*LDreset)++
+							//Rmwlcreset++
 						}
 					}
 				}

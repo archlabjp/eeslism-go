@@ -17,6 +17,8 @@
 
 package eeslism
 
+import "fmt"
+
 /*
 Roomelm (Room Element Assignment)
 
@@ -158,6 +160,10 @@ func Roomvar(_Room []*ROOM, _Rdpnl []*RDPNL) {
 		Room := _Room[i]
 
 		compnt := Room.cmp
+		if compnt == nil || len(compnt.Elouts) == 0 {
+			// SYSCMPが定義されていない場合はスキップ
+			continue
+		}
 		elout := compnt.Elouts[0]
 
 		elout.Coeffo = Room.RMt
@@ -199,8 +205,14 @@ func Roomvar(_Room []*ROOM, _Rdpnl []*RDPNL) {
 		}
 
 		// 流量
+		// 湿度用の入力配列はcompnt.Elouts[1].Elinsを使用（C版と同等）
+		elinsX := compnt.Elouts[1].Elins
 		for j := 0; j < Room.Nasup; j++ {
-			G := compnt.Elins[j+Room.Nachr+Room.Ntr+Room.Nrp+Room.Nachr].Lpath.G
+			elin := elinsX[j+Room.Nachr]
+			var G float64 = 0.0
+			if elin.Lpath != nil {
+				G = elin.Lpath.G
+			}
 			elout.Coeffin[j+Room.Nachr] = -G
 			elout.Coeffo += G
 		}
@@ -214,6 +226,25 @@ func Roomvar(_Room []*ROOM, _Rdpnl []*RDPNL) {
 		cG := Spcheat(compnt.Elouts[0].Fluid) * G
 		compnt.Elouts[0].Coeffo = cG
 		compnt.Elouts[0].Co = Rdpnl.EPC
+
+		// DEBUG: パネル係数出力
+		if DEBUG_RDPNL_COEFF {
+			fmt.Printf("DEBUG Go Roomvar RDPNL[%d] %s: G=%.15f cG=%.15f\n", i, Rdpnl.Name, G, cG)
+			fmt.Printf("  EPC=%.15f Epw=%.15f EPt[0]=%.15f\n", Rdpnl.EPC, Rdpnl.Epw, Rdpnl.EPt[0])
+			fmt.Printf("  Coeffo=%.15f Co=%.15f\n", compnt.Elouts[0].Coeffo, compnt.Elouts[0].Co)
+			// 室温と壁温の出力
+			if Rdpnl.MC > 0 {
+				rm := Rdpnl.rm[0]
+				fmt.Printf("  Room[0]=%s Tr=%.15f\n", rm.Name, rm.Tr)
+			}
+			if len(Rdpnl.sd) > 0 {
+				sd := Rdpnl.sd[0]
+				fmt.Printf("  Sd[0] Ts=%.15f Te=%.15f\n", sd.Ts, sd.Te)
+				if sd.mw != nil && len(sd.mw.Told) > 0 {
+					fmt.Printf("  Mw.Told[0]=%.15f\n", sd.mw.Told[0])
+				}
+			}
+		}
 
 		cfin := &compnt.Elouts[0].Coeffin[0]
 		if Rdpnl.sd[0].mw.wall.WallType == WallType_P {

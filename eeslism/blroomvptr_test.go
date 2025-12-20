@@ -110,3 +110,183 @@ func TestRoomldptr(t *testing.T) {
 		})
 	}
 }
+
+func TestRoomldschd(t *testing.T) {
+	t.Run("LoadtBranch_TsetAboveLimit", func(t *testing.T) {
+		// Test loadt != nil with Tset > TEMPLIMIT
+		loadt := ON_SW
+		eo := &ELOUT{Control: ON_SW}
+		eo.Eldobj = eo // Set Eldobj to itself (Eo == Eo.Eldobj)
+		Room := &ROOM{
+			rmld: &RMLOAD{
+				loadt: &loadt,
+				Tset:  25.0, // Above TEMPLIMIT (-100)
+			},
+			cmp: &COMPNT{
+				Elouts: []*ELOUT{eo, {Control: ON_SW}},
+			},
+		}
+
+		roomldschd(Room)
+
+		if Room.cmp.Elouts[0].Control != LOAD_SW {
+			t.Errorf("Expected Control=LOAD_SW, got %v", Room.cmp.Elouts[0].Control)
+		}
+		if Room.cmp.Elouts[0].Sysv != Room.rmld.Tset {
+			t.Errorf("Expected Sysv=%f, got %f", Room.rmld.Tset, Room.cmp.Elouts[0].Sysv)
+		}
+		if Room.Tr != Room.rmld.Tset {
+			t.Errorf("Expected Tr=%f, got %f", Room.rmld.Tset, Room.Tr)
+		}
+	})
+
+	t.Run("LoadtBranch_TsetBelowLimit_WithVAV", func(t *testing.T) {
+		// Test loadt != nil with Tset <= TEMPLIMIT and VAVcontrl set
+		loadt := ON_SW
+		eo := &ELOUT{Control: ON_SW}
+		eo.Eldobj = eo
+		vavEo := &ELOUT{Control: ON_SW}
+		vavCmp := &COMPNT{Control: ON_SW, Elouts: []*ELOUT{vavEo}}
+		vav := &VAV{Cmp: vavCmp}
+		Room := &ROOM{
+			rmld: &RMLOAD{
+				loadt: &loadt,
+				Tset:  -999.0, // Below TEMPLIMIT (-100)
+			},
+			cmp: &COMPNT{
+				Elouts: []*ELOUT{eo, {Control: ON_SW}},
+			},
+			VAVcontrl: vav,
+		}
+
+		roomldschd(Room)
+
+		// VAV should be turned off
+		if Room.VAVcontrl.Cmp.Control != OFF_SW {
+			t.Errorf("Expected VAVcontrl.Cmp.Control=OFF_SW, got %v", Room.VAVcontrl.Cmp.Control)
+		}
+		if Room.VAVcontrl.Cmp.Elouts[0].Control != OFF_SW {
+			t.Errorf("Expected VAVcontrl Elouts[0].Control=OFF_SW, got %v", Room.VAVcontrl.Cmp.Elouts[0].Control)
+		}
+	})
+
+	t.Run("LoadxBranch_RH_XsetPositive", func(t *testing.T) {
+		// Test loadx != nil with hmopt='r' (relative humidity) and Xset > 0
+		loadx := ON_SW
+		eo1 := &ELOUT{Control: ON_SW}
+		eo1.Eldobj = eo1
+		Room := &ROOM{
+			Tr: 25.0, // Room temperature for RH->x conversion
+			rmld: &RMLOAD{
+				loadx: &loadx,
+				Xset:  50.0, // 50% RH
+				hmopt: 'r',
+			},
+			cmp: &COMPNT{
+				Elouts: []*ELOUT{{Control: ON_SW}, eo1},
+			},
+		}
+
+		roomldschd(Room)
+
+		if Room.cmp.Elouts[1].Control != LOAD_SW {
+			t.Errorf("Expected Eo[1].Control=LOAD_SW, got %v", Room.cmp.Elouts[1].Control)
+		}
+		// Sysv should be calculated from FNXtr(25.0, 50.0)
+		expectedX := FNXtr(25.0, 50.0)
+		if Room.cmp.Elouts[1].Sysv != expectedX {
+			t.Errorf("Expected Sysv=FNXtr(25,50)=%f, got %f", expectedX, Room.cmp.Elouts[1].Sysv)
+		}
+	})
+
+	t.Run("LoadxBranch_Tdp_XsetAboveLimit", func(t *testing.T) {
+		// Test loadx != nil with hmopt='d' (dew point) and Xset > TEMPLIMIT
+		loadx := ON_SW
+		eo1 := &ELOUT{Control: ON_SW}
+		eo1.Eldobj = eo1
+		Room := &ROOM{
+			rmld: &RMLOAD{
+				loadx: &loadx,
+				Xset:  15.0, // Dew point temperature
+				hmopt: 'd',
+			},
+			cmp: &COMPNT{
+				Elouts: []*ELOUT{{Control: ON_SW}, eo1},
+			},
+		}
+
+		roomldschd(Room)
+
+		if Room.cmp.Elouts[1].Control != LOAD_SW {
+			t.Errorf("Expected Eo[1].Control=LOAD_SW, got %v", Room.cmp.Elouts[1].Control)
+		}
+	})
+
+	t.Run("LoadxBranch_xr_XsetPositive", func(t *testing.T) {
+		// Test loadx != nil with hmopt='x' (absolute humidity) and Xset > 0
+		loadx := ON_SW
+		eo1 := &ELOUT{Control: ON_SW}
+		eo1.Eldobj = eo1
+		Room := &ROOM{
+			rmld: &RMLOAD{
+				loadx: &loadx,
+				Xset:  0.010, // Absolute humidity [kg/kg]
+				hmopt: 'x',
+			},
+			cmp: &COMPNT{
+				Elouts: []*ELOUT{{Control: ON_SW}, eo1},
+			},
+		}
+
+		roomldschd(Room)
+
+		if Room.cmp.Elouts[1].Control != LOAD_SW {
+			t.Errorf("Expected Eo[1].Control=LOAD_SW, got %v", Room.cmp.Elouts[1].Control)
+		}
+		if Room.cmp.Elouts[1].Sysv != Room.rmld.Xset {
+			t.Errorf("Expected Sysv=%f, got %f", Room.rmld.Xset, Room.cmp.Elouts[1].Sysv)
+		}
+	})
+
+	t.Run("NoLoadPointers_NilRmld", func(t *testing.T) {
+		// Test with rmld = nil
+		Room := &ROOM{
+			rmld: nil,
+			cmp: &COMPNT{
+				Elouts: []*ELOUT{{Control: ON_SW}, {Control: ON_SW}},
+			},
+		}
+
+		// Should not panic
+		roomldschd(Room)
+
+		// Controls should remain unchanged
+		if Room.cmp.Elouts[0].Control != ON_SW {
+			t.Errorf("Control should remain ON_SW, got %v", Room.cmp.Elouts[0].Control)
+		}
+	})
+
+	t.Run("Eldobj_ControlOFF", func(t *testing.T) {
+		// Test when Eldobj.Control == OFF_SW (should not set LOAD_SW)
+		loadt := ON_SW
+		eldobj := &ELOUT{Control: OFF_SW}
+		eo := &ELOUT{Control: ON_SW}
+		eo.Eldobj = eldobj // Different Eldobj with OFF control
+		Room := &ROOM{
+			rmld: &RMLOAD{
+				loadt: &loadt,
+				Tset:  25.0,
+			},
+			cmp: &COMPNT{
+				Elouts: []*ELOUT{eo, {Control: ON_SW}},
+			},
+		}
+
+		roomldschd(Room)
+
+		// Should NOT be set to LOAD_SW because Eldobj.Control == OFF_SW
+		if Room.cmp.Elouts[0].Control != ON_SW {
+			t.Errorf("Control should remain ON_SW when Eldobj.Control==OFF_SW, got %v", Room.cmp.Elouts[0].Control)
+		}
+	})
+}

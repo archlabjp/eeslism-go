@@ -357,6 +357,7 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 							}
 						} else {
 							// 読み取り中の部位が窓以外の場合
+							found := false
 							for j := range Rmvls.Wall {
 								w := Rmvls.Wall[j]
 
@@ -364,7 +365,12 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 									fmt.Printf("!!!!Wall.name=%s  s=%s!!!!\n", get_string_or_null(w.name), s)
 								}
 
-								if w.name == s && w.ble == Sd.ble {
+								// 床と天井は物理的に同じ構造なので相互に参照可能
+								bleMatch := w.ble == Sd.ble ||
+									(w.ble == BLE_InnerFloor && Sd.ble == BLE_Ceil) ||
+									(w.ble == BLE_Ceil && Sd.ble == BLE_InnerFloor)
+
+								if w.name == s && bleMatch {
 									if DEBUG {
 										fmt.Printf("---- j=%d Wallname=%s n=%d\n", j, get_string_or_null(w.name), n)
 									}
@@ -373,11 +379,12 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 									Sd.Rwall = w.Rwall
 									Sd.CAPwall = w.CAPwall
 									Sd.PCMflg = w.PCMflg
+									found = true
 									break
 								}
 							}
 
-							if j == len(Rmvls.Wall) {
+							if !found {
 								err := fmt.Sprintf("Room=%s <wall> ble=%c %s Undefined in <WALL>", Rm.Name, Sd.ble, s)
 								Eprint("<Roomdata>", err)
 								os.Exit(1)
@@ -613,7 +620,9 @@ func Roomdata(tokens *EeTokens, Exs []*EXSF, dfwl *DFWL, Rmvls *RMVLS, Schdl *SC
 			}
 
 			Sd.sfepri = sfemark
-			Sd.Sname = ""
+			// NOTE: Sd.Snameは580行目でrmp=から設定される。
+			// C版では表面定義開始時にNULL初期化するが、Goでは
+			// 構造体のゼロ値が""なので不要。ここでリセットするとバグになる。
 
 			Sd.rm = i
 			Sd.room = Rm

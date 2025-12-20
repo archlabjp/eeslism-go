@@ -1,6 +1,8 @@
 package eeslism
 
 import (
+	"bytes"
+	"strings"
 	"testing"
 )
 
@@ -612,4 +614,619 @@ func createFlowRateBalanceTHEX() *THEX {
 		thex.Cmp.Elouts[i].G = 1.0 // 1 kg/s
 	}
 	return thex
+}
+
+// createOutputTestTHEX creates a THEX configured for output testing
+func createOutputTestTHEX() *THEX {
+	thex := createBasicTHEX()
+	// Set up values for output testing
+	thex.Ge = 1.0
+	thex.Go = 0.9
+	thex.Tein = 25.0
+	thex.Teout = 18.0
+	thex.Toin = 5.0
+	thex.Toout = 12.0
+	thex.Xein = 0.010
+	thex.Xeout = 0.008
+	thex.Xoin = 0.004
+	thex.Xoout = 0.006
+	thex.Hein = 50000.0
+	thex.Heout = 40000.0
+	thex.Hoin = 15000.0
+	thex.Hoout = 25000.0
+	thex.Qes = 7000.0
+	thex.Qel = 3000.0
+	thex.Qet = 10000.0
+	thex.Qos = 6000.0
+	thex.Qol = 2500.0
+	thex.Qot = 8500.0
+
+	// Set up daily aggregation values
+	thex.Teidy = SVDAY{Hrs: 8, M: 24.0, Mn: 20.0, Mx: 28.0, Mntime: 6, Mxtime: 14}
+	thex.Teody = SVDAY{Hrs: 8, M: 17.0, Mn: 14.0, Mx: 20.0, Mntime: 6, Mxtime: 14}
+	thex.Xeidy = SVDAY{Hrs: 8, M: 0.009, Mn: 0.007, Mx: 0.011, Mntime: 6, Mxtime: 14}
+	thex.Xeody = SVDAY{Hrs: 8, M: 0.007, Mn: 0.005, Mx: 0.009, Mntime: 6, Mxtime: 14}
+	thex.Toidy = SVDAY{Hrs: 8, M: 6.0, Mn: 2.0, Mx: 10.0, Mntime: 6, Mxtime: 14}
+	thex.Toody = SVDAY{Hrs: 8, M: 13.0, Mn: 9.0, Mx: 17.0, Mntime: 6, Mxtime: 14}
+	thex.Xoidy = SVDAY{Hrs: 8, M: 0.004, Mn: 0.003, Mx: 0.005, Mntime: 6, Mxtime: 14}
+	thex.Xoody = SVDAY{Hrs: 8, M: 0.006, Mn: 0.005, Mx: 0.007, Mntime: 6, Mxtime: 14}
+
+	thex.Qdyes = QDAY{Hhr: 4, H: 28000.0, Chr: 0, C: 0.0, Hmxtime: 14, Hmx: 8000.0, Cmxtime: 0, Cmx: 0.0}
+	thex.Qdyel = QDAY{Hhr: 4, H: 12000.0, Chr: 0, C: 0.0, Hmxtime: 14, Hmx: 4000.0, Cmxtime: 0, Cmx: 0.0}
+	thex.Qdyet = QDAY{Hhr: 4, H: 40000.0, Chr: 0, C: 0.0, Hmxtime: 14, Hmx: 12000.0, Cmxtime: 0, Cmx: 0.0}
+	thex.Qdyos = QDAY{Hhr: 4, H: 24000.0, Chr: 0, C: 0.0, Hmxtime: 14, Hmx: 7000.0, Cmxtime: 0, Cmx: 0.0}
+	thex.Qdyol = QDAY{Hhr: 4, H: 10000.0, Chr: 0, C: 0.0, Hmxtime: 14, Hmx: 3000.0, Cmxtime: 0, Cmx: 0.0}
+	thex.Qdyot = QDAY{Hhr: 4, H: 34000.0, Chr: 0, C: 0.0, Hmxtime: 14, Hmx: 10000.0, Cmxtime: 0, Cmx: 0.0}
+
+	// Set up monthly aggregation values
+	thex.MTeidy = SVDAY{Hrs: 200, M: 24.5, Mn: 18.0, Mx: 30.0, Mntime: 1, Mxtime: 15}
+	thex.MTeody = SVDAY{Hrs: 200, M: 17.5, Mn: 12.0, Mx: 22.0, Mntime: 1, Mxtime: 15}
+	thex.MXeidy = SVDAY{Hrs: 200, M: 0.0095, Mn: 0.006, Mx: 0.012, Mntime: 1, Mxtime: 15}
+	thex.MXeody = SVDAY{Hrs: 200, M: 0.0075, Mn: 0.004, Mx: 0.010, Mntime: 1, Mxtime: 15}
+	thex.MToidy = SVDAY{Hrs: 200, M: 8.0, Mn: 0.0, Mx: 15.0, Mntime: 1, Mxtime: 15}
+	thex.MToody = SVDAY{Hrs: 200, M: 15.0, Mn: 7.0, Mx: 22.0, Mntime: 1, Mxtime: 15}
+	thex.MXoidy = SVDAY{Hrs: 200, M: 0.005, Mn: 0.002, Mx: 0.008, Mntime: 1, Mxtime: 15}
+	thex.MXoody = SVDAY{Hrs: 200, M: 0.007, Mn: 0.004, Mx: 0.010, Mntime: 1, Mxtime: 15}
+
+	thex.MQdyes = QDAY{Hhr: 100, H: 700000.0, Chr: 0, C: 0.0, Hmxtime: 15, Hmx: 9000.0, Cmxtime: 0, Cmx: 0.0}
+	thex.MQdyel = QDAY{Hhr: 100, H: 300000.0, Chr: 0, C: 0.0, Hmxtime: 15, Hmx: 5000.0, Cmxtime: 0, Cmx: 0.0}
+	thex.MQdyet = QDAY{Hhr: 100, H: 1000000.0, Chr: 0, C: 0.0, Hmxtime: 15, Hmx: 14000.0, Cmxtime: 0, Cmx: 0.0}
+	thex.MQdyos = QDAY{Hhr: 100, H: 600000.0, Chr: 0, C: 0.0, Hmxtime: 15, Hmx: 8000.0, Cmxtime: 0, Cmx: 0.0}
+	thex.MQdyol = QDAY{Hhr: 100, H: 250000.0, Chr: 0, C: 0.0, Hmxtime: 15, Hmx: 4000.0, Cmxtime: 0, Cmx: 0.0}
+	thex.MQdyot = QDAY{Hhr: 100, H: 850000.0, Chr: 0, C: 0.0, Hmxtime: 15, Hmx: 12000.0, Cmxtime: 0, Cmx: 0.0}
+
+	return thex
+}
+
+// TestThexprint tests the THEX print function
+func TestThexprint(t *testing.T) {
+	thex := createOutputTestTHEX()
+	thexs := []*THEX{thex}
+
+	t.Run("Header1_id0", func(t *testing.T) {
+		var buf bytes.Buffer
+		Thexprint(&buf, 0, thexs)
+		output := buf.String()
+
+		// Check type and count
+		if !strings.Contains(output, "THEX") {
+			t.Error("Missing THEX type in header")
+		}
+		if !strings.Contains(output, thex.Name) {
+			t.Errorf("Missing THEX name %s in header", thex.Name)
+		}
+	})
+
+	t.Run("Header2_id1", func(t *testing.T) {
+		var buf bytes.Buffer
+		Thexprint(&buf, 1, thexs)
+		output := buf.String()
+
+		// Check item names
+		expectedPatterns := []string{
+			thex.Name + "_ce",
+			thex.Name + "_Ge",
+			thex.Name + "_Tei",
+			thex.Name + "_Teo",
+			thex.Name + "_xei",
+			thex.Name + "_xeo",
+			thex.Name + "_hei",
+			thex.Name + "_heo",
+			thex.Name + "_Qes",
+			thex.Name + "_Qel",
+			thex.Name + "_Qet",
+			thex.Name + "_co",
+			thex.Name + "_Go",
+			thex.Name + "_Toi",
+			thex.Name + "_Too",
+			thex.Name + "_xoi",
+			thex.Name + "_xoo",
+			thex.Name + "_hoi",
+			thex.Name + "_hoo",
+			thex.Name + "_Qos",
+			thex.Name + "_Qol",
+			thex.Name + "_Qot",
+		}
+		for _, pattern := range expectedPatterns {
+			if !strings.Contains(output, pattern) {
+				t.Errorf("Missing expected pattern: %s", pattern)
+			}
+		}
+	})
+
+	t.Run("Data_id99", func(t *testing.T) {
+		var buf bytes.Buffer
+		Thexprint(&buf, 99, thexs)
+		output := buf.String()
+
+		// Verify output is not empty
+		if len(output) == 0 {
+			t.Error("Data output is empty")
+		}
+	})
+
+	t.Run("EmptyList", func(t *testing.T) {
+		var buf bytes.Buffer
+		Thexprint(&buf, 0, []*THEX{})
+		output := buf.String()
+
+		if len(output) != 0 {
+			t.Error("Expected empty output for empty list")
+		}
+	})
+}
+
+// TestThexdyprt tests the THEX daily print function
+func TestThexdyprt(t *testing.T) {
+	thex := createOutputTestTHEX()
+	thexs := []*THEX{thex}
+
+	t.Run("Header1_id0", func(t *testing.T) {
+		var buf bytes.Buffer
+		Thexdyprt(&buf, 0, thexs)
+		output := buf.String()
+
+		if !strings.Contains(output, "THEX") {
+			t.Error("Missing THEX type in daily header")
+		}
+		if !strings.Contains(output, thex.Name) {
+			t.Errorf("Missing THEX name %s in daily header", thex.Name)
+		}
+	})
+
+	t.Run("Header2_id1", func(t *testing.T) {
+		var buf bytes.Buffer
+		Thexdyprt(&buf, 1, thexs)
+		output := buf.String()
+
+		// Check item patterns
+		expectedPatterns := []string{
+			thex.Name + "_Hte",
+			thex.Name + "_Te",
+			thex.Name + "_Hto",
+			thex.Name + "_To",
+			thex.Name + "_Hxe",
+			thex.Name + "_xe",
+			thex.Name + "_Hxo",
+			thex.Name + "_xo",
+			thex.Name + "_Hhs",
+			thex.Name + "_Qsh",
+		}
+		for _, pattern := range expectedPatterns {
+			if !strings.Contains(output, pattern) {
+				t.Errorf("Missing expected pattern: %s", pattern)
+			}
+		}
+	})
+
+	t.Run("Data_id99", func(t *testing.T) {
+		var buf bytes.Buffer
+		Thexdyprt(&buf, 99, thexs)
+		output := buf.String()
+
+		if len(output) == 0 {
+			t.Error("Daily data output is empty")
+		}
+	})
+
+	t.Run("EmptyList", func(t *testing.T) {
+		var buf bytes.Buffer
+		Thexdyprt(&buf, 0, []*THEX{})
+		output := buf.String()
+
+		if len(output) != 0 {
+			t.Error("Expected empty output for empty list")
+		}
+	})
+}
+
+// TestThexmonprt tests the THEX monthly print function
+func TestThexmonprt(t *testing.T) {
+	thex := createOutputTestTHEX()
+	thexs := []*THEX{thex}
+
+	t.Run("Header1_id0", func(t *testing.T) {
+		var buf bytes.Buffer
+		Thexmonprt(&buf, 0, thexs)
+		output := buf.String()
+
+		if !strings.Contains(output, "THEX") {
+			t.Error("Missing THEX type in monthly header")
+		}
+		if !strings.Contains(output, thex.Name) {
+			t.Errorf("Missing THEX name %s in monthly header", thex.Name)
+		}
+	})
+
+	t.Run("Header2_id1", func(t *testing.T) {
+		var buf bytes.Buffer
+		Thexmonprt(&buf, 1, thexs)
+		output := buf.String()
+
+		// Check item patterns (same as daily)
+		expectedPatterns := []string{
+			thex.Name + "_Hte",
+			thex.Name + "_Te",
+			thex.Name + "_Hto",
+			thex.Name + "_To",
+			thex.Name + "_Hxe",
+			thex.Name + "_xe",
+			thex.Name + "_Hxo",
+			thex.Name + "_xo",
+		}
+		for _, pattern := range expectedPatterns {
+			if !strings.Contains(output, pattern) {
+				t.Errorf("Missing expected pattern: %s", pattern)
+			}
+		}
+	})
+
+	t.Run("Data_id99", func(t *testing.T) {
+		var buf bytes.Buffer
+		Thexmonprt(&buf, 99, thexs)
+		output := buf.String()
+
+		if len(output) == 0 {
+			t.Error("Monthly data output is empty")
+		}
+	})
+
+	t.Run("EmptyList", func(t *testing.T) {
+		var buf bytes.Buffer
+		Thexmonprt(&buf, 0, []*THEX{})
+		output := buf.String()
+
+		if len(output) != 0 {
+			t.Error("Expected empty output for empty list")
+		}
+	})
+}
+
+// TestThexdyint tests the THEX daily aggregation initialization
+func TestThexdyint(t *testing.T) {
+	t.Run("BasicInitialization", func(t *testing.T) {
+		thex := createOutputTestTHEX()
+		thexs := []*THEX{thex}
+
+		// Verify values are set before initialization
+		if thex.Teidy.Hrs == 0 {
+			t.Error("Test data not properly set up")
+		}
+
+		Thexdyint(thexs)
+
+		// After initialization, values should be reset
+		if thex.Teidy.Hrs != 0 {
+			t.Error("Teidy.Hrs should be reset to 0")
+		}
+		if thex.Qdyes.Hhr != 0 {
+			t.Error("Qdyes.Hhr should be reset to 0")
+		}
+	})
+
+	t.Run("EmptyList", func(t *testing.T) {
+		// Should not panic with empty list
+		Thexdyint([]*THEX{})
+	})
+
+	t.Run("MultipleThex", func(t *testing.T) {
+		thex1 := createOutputTestTHEX()
+		thex1.Name = "THEX1"
+		thex2 := createOutputTestTHEX()
+		thex2.Name = "THEX2"
+		thexs := []*THEX{thex1, thex2}
+
+		Thexdyint(thexs)
+
+		for i, thex := range thexs {
+			if thex.Teidy.Hrs != 0 {
+				t.Errorf("THEX[%d] Teidy.Hrs should be reset to 0", i)
+			}
+		}
+	})
+}
+
+// TestThexmonint tests the THEX monthly aggregation initialization
+func TestThexmonint(t *testing.T) {
+	t.Run("BasicInitialization", func(t *testing.T) {
+		thex := createOutputTestTHEX()
+		thexs := []*THEX{thex}
+
+		// Verify values are set before initialization
+		if thex.MTeidy.Hrs == 0 {
+			t.Error("Test data not properly set up")
+		}
+
+		Thexmonint(thexs)
+
+		// After initialization, values should be reset
+		if thex.MTeidy.Hrs != 0 {
+			t.Error("MTeidy.Hrs should be reset to 0")
+		}
+		if thex.MQdyes.Hhr != 0 {
+			t.Error("MQdyes.Hhr should be reset to 0")
+		}
+	})
+
+	t.Run("EmptyList", func(t *testing.T) {
+		// Should not panic with empty list
+		Thexmonint([]*THEX{})
+	})
+
+	t.Run("MultipleThex", func(t *testing.T) {
+		thex1 := createOutputTestTHEX()
+		thex1.Name = "THEX1"
+		thex2 := createOutputTestTHEX()
+		thex2.Name = "THEX2"
+		thexs := []*THEX{thex1, thex2}
+
+		Thexmonint(thexs)
+
+		for i, thex := range thexs {
+			if thex.MTeidy.Hrs != 0 {
+				t.Errorf("THEX[%d] MTeidy.Hrs should be reset to 0", i)
+			}
+		}
+	})
+}
+
+// TestThexdata tests the Thexdata function
+func TestThexdata(t *testing.T) {
+	t.Run("SetName", func(t *testing.T) {
+		thexca := &THEXCA{}
+		result := Thexdata("TestTHEX", thexca)
+
+		if result != 0 {
+			t.Errorf("Thexdata should return 0 for name, got %d", result)
+		}
+		if thexca.Name != "TestTHEX" {
+			t.Errorf("Name = %s, want TestTHEX", thexca.Name)
+		}
+	})
+
+	t.Run("Set_et", func(t *testing.T) {
+		thexca := &THEXCA{}
+		result := Thexdata("et=0.75", thexca)
+
+		if result != 0 {
+			t.Errorf("Thexdata should return 0 for et, got %d", result)
+		}
+		if thexca.et != 0.75 {
+			t.Errorf("et = %f, want 0.75", thexca.et)
+		}
+	})
+
+	t.Run("Set_eh", func(t *testing.T) {
+		thexca := &THEXCA{}
+		result := Thexdata("eh=0.65", thexca)
+
+		if result != 0 {
+			t.Errorf("Thexdata should return 0 for eh, got %d", result)
+		}
+		if thexca.eh != 0.65 {
+			t.Errorf("eh = %f, want 0.65", thexca.eh)
+		}
+	})
+
+	t.Run("UnknownKey", func(t *testing.T) {
+		thexca := &THEXCA{}
+		result := Thexdata("unknown=123", thexca)
+
+		if result != 1 {
+			t.Errorf("Thexdata should return 1 for unknown key, got %d", result)
+		}
+	})
+
+	t.Run("MultipleParameters", func(t *testing.T) {
+		thexca := &THEXCA{}
+
+		// Set name first
+		Thexdata("TestHEX", thexca)
+		if thexca.Name != "TestHEX" {
+			t.Errorf("Name = %s, want TestHEX", thexca.Name)
+		}
+
+		// Then set et
+		Thexdata("et=0.80", thexca)
+		if thexca.et != 0.80 {
+			t.Errorf("et = %f, want 0.80", thexca.et)
+		}
+
+		// Then set eh
+		Thexdata("eh=0.70", thexca)
+		if thexca.eh != 0.70 {
+			t.Errorf("eh = %f, want 0.70", thexca.eh)
+		}
+	})
+}
+
+// TestThexday tests the Thexday aggregation function
+func TestThexday(t *testing.T) {
+	t.Run("DailyAggregation", func(t *testing.T) {
+		thex := createBasicTHEX()
+		thex.Cmp.Control = ON_SW
+		// Set test values
+		thex.Tein = 25.0
+		thex.Teout = 18.0
+		thex.Xein = 0.010
+		thex.Xeout = 0.008
+		thex.Toin = 5.0
+		thex.Toout = 12.0
+		thex.Xoin = 0.004
+		thex.Xoout = 0.006
+		thex.Qes = 7000.0
+		thex.Qel = 3000.0
+		thex.Qet = 10000.0
+		thex.Qos = 6000.0
+		thex.Qol = 2500.0
+		thex.Qot = 8500.0
+
+		thexs := []*THEX{thex}
+
+		// Initialize daily aggregation
+		Thexdyint(thexs)
+
+		// Simulate multiple time steps
+		times := []int{900, 1000, 1100, 1200}
+		for _, ttmm := range times {
+			Thexday(7, 15, ttmm, thexs, 31, 365)
+		}
+
+		// After 4 time steps, verify aggregation
+		if thex.Teidy.Hrs != 4 {
+			t.Errorf("Teidy.Hrs = %d, want 4", thex.Teidy.Hrs)
+		}
+		if thex.Toidy.Hrs != 4 {
+			t.Errorf("Toidy.Hrs = %d, want 4", thex.Toidy.Hrs)
+		}
+		if thex.Xeidy.Hrs != 4 {
+			t.Errorf("Xeidy.Hrs = %d, want 4", thex.Xeidy.Hrs)
+		}
+		if thex.Xoidy.Hrs != 4 {
+			t.Errorf("Xoidy.Hrs = %d, want 4", thex.Xoidy.Hrs)
+		}
+
+		// Check heat quantity aggregation
+		if thex.Qdyes.Hhr != 4 {
+			t.Errorf("Qdyes.Hhr = %d, want 4", thex.Qdyes.Hhr)
+		}
+		if thex.Qdyos.Hhr != 4 {
+			t.Errorf("Qdyos.Hhr = %d, want 4", thex.Qdyos.Hhr)
+		}
+	})
+
+	t.Run("OffControl_NoAggregation", func(t *testing.T) {
+		thex := createBasicTHEX()
+		thex.Cmp.Control = OFF_SW
+		thex.Tein = 20.0
+		thex.Qes = 0.0
+
+		thexs := []*THEX{thex}
+
+		Thexdyint(thexs)
+		Thexday(7, 15, 1200, thexs, 31, 365)
+
+		// OFF control should not aggregate
+		if thex.Teidy.Hrs != 0 {
+			t.Errorf("Teidy.Hrs should be 0 when OFF, got %d", thex.Teidy.Hrs)
+		}
+	})
+
+	t.Run("MonthlyAggregation_EndOfDay", func(t *testing.T) {
+		thex := createBasicTHEX()
+		thex.Cmp.Control = ON_SW
+		thex.Tein = 25.0
+		thex.Teout = 18.0
+		thex.Qes = 7000.0
+
+		thexs := []*THEX{thex}
+
+		Thexdyint(thexs)
+		Thexmonint(thexs)
+
+		// Call at end of month (Day=Nday)
+		Thexday(7, 31, 2400, thexs, 31, 365)
+
+		// Daily values should be aggregated
+		if thex.Teidy.Hrs != 1 {
+			t.Errorf("Teidy.Hrs = %d, want 1", thex.Teidy.Hrs)
+		}
+	})
+
+	t.Run("EmptyList", func(t *testing.T) {
+		// Should not panic with empty list
+		Thexday(7, 15, 1200, []*THEX{}, 31, 365)
+	})
+
+	t.Run("MultipleThex", func(t *testing.T) {
+		thexs := make([]*THEX, 2)
+		for i := range thexs {
+			thexs[i] = createBasicTHEX()
+			thexs[i].Name = "THEX" + string(rune('A'+i))
+			thexs[i].Cmp.Control = ON_SW
+			thexs[i].Tein = 25.0 + float64(i)*2
+			thexs[i].Qes = 7000.0 + float64(i)*1000
+		}
+
+		Thexdyint(thexs)
+		Thexday(7, 15, 1200, thexs, 31, 365)
+
+		// Verify each thex has independent aggregation
+		for i, thex := range thexs {
+			if thex.Teidy.Hrs != 1 {
+				t.Errorf("THEX[%d] Teidy.Hrs = %d, want 1", i, thex.Teidy.Hrs)
+			}
+		}
+	})
+
+	t.Run("AllFieldsAggregated", func(t *testing.T) {
+		thex := createBasicTHEX()
+		thex.Cmp.Control = ON_SW
+		// Set all fields
+		thex.Tein = 25.0
+		thex.Teout = 18.0
+		thex.Xein = 0.010
+		thex.Xeout = 0.008
+		thex.Toin = 5.0
+		thex.Toout = 12.0
+		thex.Xoin = 0.004
+		thex.Xoout = 0.006
+		thex.Qes = 7000.0
+		thex.Qel = 3000.0
+		thex.Qet = 10000.0
+		thex.Qos = 6000.0
+		thex.Qol = 2500.0
+		thex.Qot = 8500.0
+
+		thexs := []*THEX{thex}
+
+		Thexdyint(thexs)
+		Thexday(7, 15, 1200, thexs, 31, 365)
+
+		// Verify all temperature fields aggregated
+		if thex.Teidy.Hrs != 1 {
+			t.Errorf("Teidy.Hrs = %d, want 1", thex.Teidy.Hrs)
+		}
+		if thex.Teody.Hrs != 1 {
+			t.Errorf("Teody.Hrs = %d, want 1", thex.Teody.Hrs)
+		}
+		if thex.Toidy.Hrs != 1 {
+			t.Errorf("Toidy.Hrs = %d, want 1", thex.Toidy.Hrs)
+		}
+		if thex.Toody.Hrs != 1 {
+			t.Errorf("Toody.Hrs = %d, want 1", thex.Toody.Hrs)
+		}
+		if thex.Xeidy.Hrs != 1 {
+			t.Errorf("Xeidy.Hrs = %d, want 1", thex.Xeidy.Hrs)
+		}
+		if thex.Xeody.Hrs != 1 {
+			t.Errorf("Xeody.Hrs = %d, want 1", thex.Xeody.Hrs)
+		}
+		if thex.Xoidy.Hrs != 1 {
+			t.Errorf("Xoidy.Hrs = %d, want 1", thex.Xoidy.Hrs)
+		}
+		if thex.Xoody.Hrs != 1 {
+			t.Errorf("Xoody.Hrs = %d, want 1", thex.Xoody.Hrs)
+		}
+
+		// Verify all heat quantity fields aggregated
+		if thex.Qdyes.Hhr != 1 {
+			t.Errorf("Qdyes.Hhr = %d, want 1", thex.Qdyes.Hhr)
+		}
+		if thex.Qdyel.Hhr != 1 {
+			t.Errorf("Qdyel.Hhr = %d, want 1", thex.Qdyel.Hhr)
+		}
+		if thex.Qdyet.Hhr != 1 {
+			t.Errorf("Qdyet.Hhr = %d, want 1", thex.Qdyet.Hhr)
+		}
+		if thex.Qdyos.Hhr != 1 {
+			t.Errorf("Qdyos.Hhr = %d, want 1", thex.Qdyos.Hhr)
+		}
+		if thex.Qdyol.Hhr != 1 {
+			t.Errorf("Qdyol.Hhr = %d, want 1", thex.Qdyol.Hhr)
+		}
+		if thex.Qdyot.Hhr != 1 {
+			t.Errorf("Qdyot.Hhr = %d, want 1", thex.Qdyot.Hhr)
+		}
+	})
 }

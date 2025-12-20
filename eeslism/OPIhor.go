@@ -109,6 +109,10 @@ func OPIhor(
 	//昼
 	if ns > 0.0 {
 		for i = 0; i < mpn; i++ {
+			// DEBUG: Check mp faia value
+			if i == 0 && nday == 201 {
+				fmt.Printf("DEBUG OPIhor: mp[%d].faia=%f, mp[%d].faig=%f, monten=%d\n", i, mp[i].faia, i, mp[i].faig, monten)
+			}
 			sum = 0.0
 			reff = 0.0
 			CINC(mp[i], ls, ms, ns, &co)

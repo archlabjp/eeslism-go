@@ -89,9 +89,16 @@ func Eesprera(file string) string {
 }
 
 func processLine(line string) string {
-	// "!"以降を削除
-	if index := strings.Index(line, "!"); index != -1 {
-		line = line[:index]
+	// "!"以降を削除 (!=は演算子なのでコメントとして扱わない)
+	for i := 0; i < len(line); i++ {
+		if line[i] == '!' {
+			// `!=`は演算子なのでスキップ
+			if i+1 < len(line) && line[i+1] == '=' {
+				i++ // `=`もスキップ
+				continue
+			}
+			return line[:i]
+		}
 	}
 	return line
 }

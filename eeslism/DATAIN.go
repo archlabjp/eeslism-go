@@ -439,6 +439,8 @@ func rmpdata(fi *EeTokens) *RRMP {
 			break
 		}
 	}
+	fmt.Printf("DEBUG rmpdata: RMP %s wallname=%s xb0=%f yb0=%f Rw=%f Rh=%f ref=%f\n",
+		rp.rmpname, rp.wallname, rp.xb0, rp.yb0, rp.Rw, rp.Rh, rp.ref)
 
 	return rp
 }
@@ -1141,6 +1143,7 @@ func bdpdata(fi *EeTokens, bp *[]*BBDP, Exsf *EXSFS) {
 		}
 
 		bbdp.bdpname = fi.GetToken()
+		fmt.Printf("DEBUG bdpdata: BDP name=%s\n", bbdp.bdpname)
 
 		for !fi.IsEnd() {
 			NAME = fi.GetToken()
@@ -1182,6 +1185,8 @@ func bdpdata(fi *EeTokens, bp *[]*BBDP, Exsf *EXSFS) {
 				os.Exit(1)
 			}
 		}
+		fmt.Printf("DEBUG bdpdata: BDP %s: x0=%f y0=%f z0=%f Wa=%f Wb=%f exw=%f exh=%f\n",
+			bbdp.bdpname, bbdp.x0, bbdp.y0, bbdp.z0, bbdp.Wa, bbdp.Wb, bbdp.exw, bbdp.exh)
 
 		// SBLKの個数を数えてメモリを確保
 		bbdp.SBLK = make([]*sunblk, 0)

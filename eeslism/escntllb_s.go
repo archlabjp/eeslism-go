@@ -395,16 +395,22 @@ func loadptr(loadcmp *COMPNT, load *ControlSWType, s string, _Compnt []*COMPNT) 
 						loadcmp = Compnt
 					}
 
-					Eo := Compnt.Elouts[0]
-					eold := loadcmp.Elouts[0]
+					// OMVAVなど一部のコンポーネントはEloutsを持たないのでチェックが必要
+					// C版ではポインタ演算で問題が顕在化しにくいが、Go版では空スライスアクセスでpanic
+					if len(Compnt.Elouts) > 0 && len(loadcmp.Elouts) > 0 {
+						Eo := Compnt.Elouts[0]
+						eold := loadcmp.Elouts[0]
 
-					if idmrk == 'x' {
-						Eo = Compnt.Elouts[1]
-						eold = loadcmp.Elouts[1]
+						if idmrk == 'x' {
+							if len(Compnt.Elouts) > 1 && len(loadcmp.Elouts) > 1 {
+								Eo = Compnt.Elouts[1]
+								eold = loadcmp.Elouts[1]
+							}
+						}
+
+						Eo.Eldobj = eold
+						eold.Emonitr = Eo
 					}
-
-					Eo.Eldobj = eold
-					eold.Emonitr = Eo
 
 					break
 				}

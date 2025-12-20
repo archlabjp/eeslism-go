@@ -25,7 +25,7 @@ import (
 const WPTOLE = 1.0e-10
 
 // DEBUG_PANEL: パネル係数計算のデバッグ出力フラグ
-const DEBUG_PANEL = true
+const DEBUG_PANEL = false
 
 /*  輻射パネル有効熱容量流量  */
 
@@ -149,11 +149,19 @@ func Panelcf(rdpnl *RDPNL) {
 
 				wall = Mw.wall
 				C1 = Sd.alic
+				if DEBUG_PANEL && m == 0 {
+					fmt.Printf("DEBUG Go Panelcf: nrp=%d N=%d nn=%d alic=%.15f ali=%.15f\n",
+						nrp, N, nn, Sd.alic, Sd.ali)
+				}
 				for j = 0; j < N; j++ {
 					alr := rm.alr[nn+j]
 					Sdd = rm.rsrf[j]
 					if j != nrp {
 						C1 += alr * Sdd.WSR
+						if DEBUG_PANEL && m == 0 {
+							fmt.Printf("DEBUG Go Panelcf j=%d: alr=%.15f WSR=%.15f C1=%.15f\n",
+								j, alr, Sdd.WSR, C1)
+						}
 					}
 				}
 				C1 *= rdpnl.FIp[m] / Sd.ali

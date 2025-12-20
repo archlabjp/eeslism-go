@@ -68,7 +68,7 @@ func OMVAVdata(s string, OMvavca *OMVAVCA) int {
 }
 
 func CollTout(Tcin, G float64, Sd *RMSRF) float64 {
-	var Kc, ca float64
+	var Kc float64
 
 	Wall := Sd.mw.wall
 	if Wall.chrRinput {
@@ -77,7 +77,7 @@ func CollTout(Tcin, G float64, Sd *RMSRF) float64 {
 		Kc = Wall.Kc
 	}
 
-	return Sd.Tcole - (Sd.Tcole-Tcin)*mathExp(-Kc*Sd.A/(ca*G))
+	return Sd.Tcole - (Sd.Tcole-Tcin)*mathExp(-Kc*Sd.A/(Ca*G))
 }
 
 func OMflowcalc(OMvav *OMVAV, Wd *WDAT) float64 {

@@ -214,7 +214,7 @@ func Appldata(fi *EeTokens, schdl *SCHDL, rooms []*ROOM, simc *SIMCONTL) {
 					}
 
 					// 放射成分基準値[W]
-					rm.Apsr, err = readFloat(match[1])
+					rm.Apsr, err = readFloat(match[2])
 					if err != nil {
 						panic(err)
 					}

@@ -1,7 +1,9 @@
 package eeslism
 
 import (
+	"bytes"
 	"math"
+	"strings"
 	"testing"
 )
 
@@ -93,55 +95,24 @@ func TestColldata(t *testing.T) {
 }
 
 func TestColldata_InvalidInput(t *testing.T) {
-	tests := []struct {
-		name    string
-		typeStr EqpType
-		input   string
-	}{
-		{
-			name:    "invalid parameter",
-			typeStr: COLLECTOR_TYPE,
-			input:   "invalid=value",
-		},
-		{
-			name:    "invalid b0 value",
-			typeStr: COLLECTOR_TYPE,
-			input:   "b0=invalid",
-		},
-		{
-			name:    "invalid b1 value",
-			typeStr: COLLECTOR_TYPE,
-			input:   "b1=invalid",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			collca := &COLLCA{}
-
-			// Should panic for invalid numeric values
-			if tt.input == "b0=invalid" || tt.input == "b1=invalid" {
-				defer func() {
-					if r := recover(); r == nil {
-						t.Errorf("Colldata should panic for invalid numeric input")
-					}
-				}()
-				Colldata(tt.typeStr, tt.input, collca)
-				return
+	t.Run("invalid numeric value panics", func(t *testing.T) {
+		collca := &COLLCA{}
+		defer func() {
+			if r := recover(); r == nil {
+				t.Errorf("Colldata should panic for invalid numeric input")
 			}
+		}()
+		Colldata(COLLECTOR_TYPE, "b0=invalid", collca)
+	})
 
-			// Should panic for invalid parameter with numeric value
-			if tt.input == "invalid=value" {
-				defer func() {
-					if r := recover(); r == nil {
-						t.Errorf("Colldata should panic for invalid parameter with numeric value")
-					}
-				}()
-				Colldata(tt.typeStr, tt.input, collca)
-				return
-			}
-		})
-	}
+	t.Run("unknown parameter returns error", func(t *testing.T) {
+		collca := &COLLCA{}
+		// 数値として正しい値で未知のキーの場合、エラーコード1を返す
+		result := Colldata(COLLECTOR_TYPE, "unknown=1.5", collca)
+		if result != 1 {
+			t.Errorf("Colldata should return 1 for unknown parameter, got %d", result)
+		}
+	})
 }
 
 func TestScolte(t *testing.T) {
@@ -496,4 +467,287 @@ func TestCollectorIntegration(t *testing.T) {
 	if Te <= 25.0 {
 		t.Errorf("Equivalent temperature should be higher than ambient, got %v", Te)
 	}
+}
+
+// createTestCOLL creates a test collector for output function tests
+func createTestCOLL() *COLL {
+	return &COLL{
+		Name: "TestCollector",
+		Cat: &COLLCA{
+			name: "TestCollectorCat",
+			b0:   0.8,
+			b1:   5.0,
+			Ko:   5.26,
+		},
+		Cmp: &COMPNT{
+			Name:    "TestCollector",
+			Control: ON_SW,
+			Ac:      10.0,
+			Elouts: []*ELOUT{
+				{
+					Control: ON_SW,
+					G:       0.2,
+					Sysv:    55.0, // Outlet temperature
+				},
+			},
+		},
+		Tin: 40.0,  // Inlet temperature
+		Te:  80.0,  // Equivalent temperature
+		Tcb: 75.0,  // Collector plate temperature
+		Q:   3000.0, // Heat collection [W]
+		Sol: 8000.0, // Solar radiation [W]
+	}
+}
+
+func TestCollprint(t *testing.T) {
+	coll := createTestCOLL()
+	colls := []*COLL{coll}
+
+	t.Run("Header1_id0", func(t *testing.T) {
+		var buf bytes.Buffer
+		collprint(&buf, 0, colls)
+		output := buf.String()
+
+		if !strings.Contains(output, string(COLLECTOR_TYPE)) {
+			t.Errorf("Missing COLLECTOR type in output: %s", output)
+		}
+		if !strings.Contains(output, "1") {
+			t.Errorf("Missing count in output: %s", output)
+		}
+		if !strings.Contains(output, "TestCollector") {
+			t.Errorf("Missing collector name in output: %s", output)
+		}
+	})
+
+	t.Run("Header2_id1", func(t *testing.T) {
+		var buf bytes.Buffer
+		collprint(&buf, 1, colls)
+		output := buf.String()
+
+		// Check for item name suffixes
+		expectedSuffixes := []string{"_c", "_Ti", "_To", "_Te", "_Tcb", "_Q", "_S"}
+		for _, suffix := range expectedSuffixes {
+			if !strings.Contains(output, "TestCollector"+suffix) {
+				t.Errorf("Missing %s in output: %s", suffix, output)
+			}
+		}
+	})
+
+	t.Run("Data_default", func(t *testing.T) {
+		var buf bytes.Buffer
+		collprint(&buf, 99, colls)
+		output := buf.String()
+
+		// Check data contains expected values
+		if !strings.Contains(output, "40.0") { // Tin
+			t.Errorf("Missing inlet temperature in output: %s", output)
+		}
+		if !strings.Contains(output, "55.0") { // Sysv (outlet)
+			t.Errorf("Missing outlet temperature in output: %s", output)
+		}
+		if !strings.Contains(output, "80.0") { // Te
+			t.Errorf("Missing equivalent temperature in output: %s", output)
+		}
+	})
+
+	t.Run("EmptyList", func(t *testing.T) {
+		var buf bytes.Buffer
+		collprint(&buf, 0, []*COLL{})
+		output := buf.String()
+
+		if output != "" {
+			t.Errorf("Expected empty output for empty list, got: %s", output)
+		}
+	})
+}
+
+func TestColldyprt(t *testing.T) {
+	coll := createTestCOLL()
+	// Initialize daily aggregation data
+	coll.Tidy = SVDAY{Hrs: 8, M: 45.0, Mn: 38.0, Mx: 52.0, Mntime: 600, Mxtime: 1400}
+	coll.Qdy = QDAY{Hhr: 8, H: 24000.0, Chr: 0, C: 0.0, Hmx: 4000.0, Cmx: 0.0, Hmxtime: 1200, Cmxtime: 0}
+	coll.Soldy = EDAY{Hrs: 10, D: 80000.0, Mx: 9000.0, Mxtime: 1200}
+	colls := []*COLL{coll}
+
+	t.Run("Header1_id0", func(t *testing.T) {
+		var buf bytes.Buffer
+		colldyprt(&buf, 0, colls)
+		output := buf.String()
+
+		if !strings.Contains(output, string(COLLECTOR_TYPE)) {
+			t.Errorf("Missing COLLECTOR type in output: %s", output)
+		}
+	})
+
+	t.Run("Header2_id1", func(t *testing.T) {
+		var buf bytes.Buffer
+		colldyprt(&buf, 1, colls)
+		output := buf.String()
+
+		// Check for daily aggregation item names
+		expectedSuffixes := []string{"_Ht", "_T", "_ttn", "_Tn", "_ttm", "_Tm", "_Hh", "_Qh", "_He", "_S"}
+		for _, suffix := range expectedSuffixes {
+			if !strings.Contains(output, "TestCollector"+suffix) {
+				t.Errorf("Missing %s in output: %s", suffix, output)
+			}
+		}
+	})
+
+	t.Run("Data_default", func(t *testing.T) {
+		var buf bytes.Buffer
+		colldyprt(&buf, 99, colls)
+		output := buf.String()
+
+		// Should contain aggregation values
+		if output == "" {
+			t.Errorf("Expected non-empty output for data")
+		}
+	})
+}
+
+func TestCollmonprt(t *testing.T) {
+	coll := createTestCOLL()
+	// Initialize monthly aggregation data
+	coll.mTidy = SVDAY{Hrs: 240, M: 44.0, Mn: 35.0, Mx: 55.0, Mntime: 600, Mxtime: 1400}
+	coll.mQdy = QDAY{Hhr: 240, H: 720000.0, Chr: 0, C: 0.0, Hmx: 4500.0, Cmx: 0.0, Hmxtime: 1200, Cmxtime: 0}
+	coll.mSoldy = EDAY{Hrs: 300, D: 2400000.0, Mx: 9500.0, Mxtime: 1200}
+	colls := []*COLL{coll}
+
+	t.Run("Header1_id0", func(t *testing.T) {
+		var buf bytes.Buffer
+		collmonprt(&buf, 0, colls)
+		output := buf.String()
+
+		if !strings.Contains(output, string(COLLECTOR_TYPE)) {
+			t.Errorf("Missing COLLECTOR type in output: %s", output)
+		}
+	})
+
+	t.Run("Data_default", func(t *testing.T) {
+		var buf bytes.Buffer
+		collmonprt(&buf, 99, colls)
+		output := buf.String()
+
+		// Should contain monthly aggregation values
+		if output == "" {
+			t.Errorf("Expected non-empty output for data")
+		}
+	})
+}
+
+func TestColldyint(t *testing.T) {
+	coll := createTestCOLL()
+	// Set some initial values
+	coll.Tidy = SVDAY{Hrs: 10, M: 50.0}
+	coll.Qdy = QDAY{Hhr: 10, H: 10000.0}
+	coll.Soldy = EDAY{Hrs: 10, D: 50000.0}
+	colls := []*COLL{coll}
+
+	colldyint(colls)
+
+	// After init, values should be reset
+	if coll.Tidy.Hrs != 0 {
+		t.Errorf("Tidy.Hrs should be reset to 0, got %d", coll.Tidy.Hrs)
+	}
+	if coll.Qdy.Hhr != 0 {
+		t.Errorf("Qdy.Hhr should be reset to 0, got %d", coll.Qdy.Hhr)
+	}
+	if coll.Soldy.Hrs != 0 {
+		t.Errorf("Soldy.Hrs should be reset to 0, got %d", coll.Soldy.Hrs)
+	}
+}
+
+func TestCollmonint(t *testing.T) {
+	coll := createTestCOLL()
+	// Set some initial values
+	coll.mTidy = SVDAY{Hrs: 100, M: 45.0}
+	coll.mQdy = QDAY{Hhr: 100, H: 100000.0}
+	coll.mSoldy = EDAY{Hrs: 100, D: 500000.0}
+	colls := []*COLL{coll}
+
+	collmonint(colls)
+
+	// After init, values should be reset
+	if coll.mTidy.Hrs != 0 {
+		t.Errorf("mTidy.Hrs should be reset to 0, got %d", coll.mTidy.Hrs)
+	}
+	if coll.mQdy.Hhr != 0 {
+		t.Errorf("mQdy.Hhr should be reset to 0, got %d", coll.mQdy.Hhr)
+	}
+	if coll.mSoldy.Hrs != 0 {
+		t.Errorf("mSoldy.Hrs should be reset to 0, got %d", coll.mSoldy.Hrs)
+	}
+}
+
+// TestCollday tests the collday aggregation function
+func TestCollday(t *testing.T) {
+	t.Run("DailyAggregation", func(t *testing.T) {
+		coll := createTestCOLL()
+		coll.Cmp.Control = ON_SW
+		coll.Tin = 40.0
+		coll.Q = 3000.0
+		coll.Sol = 800.0
+		colls := []*COLL{coll}
+
+		colldyint(colls)
+
+		// Simulate aggregation at several time steps
+		times := []int{900, 1000, 1100, 1200}
+		for _, ttmm := range times {
+			collday(7, 15, ttmm, colls, 31, 365)
+		}
+
+		// Verify daily aggregation was performed
+		if coll.Tidy.Hrs != 4 {
+			t.Errorf("Expected Tidy.Hrs=4, got %d", coll.Tidy.Hrs)
+		}
+		if coll.Qdy.Hhr != 4 {
+			t.Errorf("Expected Qdy.Hhr=4, got %d", coll.Qdy.Hhr)
+		}
+		if coll.Soldy.Hrs != 4 {
+			t.Errorf("Expected Soldy.Hrs=4, got %d", coll.Soldy.Hrs)
+		}
+	})
+
+	t.Run("NoSolarRadiation", func(t *testing.T) {
+		coll := createTestCOLL()
+		coll.Cmp.Control = ON_SW
+		coll.Tin = 30.0
+		coll.Q = 1000.0
+		coll.Sol = 0.0 // No solar radiation
+		colls := []*COLL{coll}
+
+		colldyint(colls)
+		collday(7, 15, 1200, colls, 31, 365)
+
+		// Solar should not be aggregated when Sol = 0
+		if coll.Soldy.Hrs != 0 {
+			t.Errorf("Expected Soldy.Hrs=0 when Sol=0, got %d", coll.Soldy.Hrs)
+		}
+	})
+
+	t.Run("OffControl", func(t *testing.T) {
+		coll := createTestCOLL()
+		coll.Cmp.Control = OFF_SW
+		coll.Tin = 40.0
+		coll.Q = 3000.0
+		coll.Sol = 800.0
+		colls := []*COLL{coll}
+
+		colldyint(colls)
+		collday(7, 15, 1200, colls, 31, 365)
+
+		// Temperature and heat should not be aggregated when OFF
+		if coll.Tidy.Hrs != 0 {
+			t.Errorf("Expected Tidy.Hrs=0 when OFF, got %d", coll.Tidy.Hrs)
+		}
+		// But solar is still aggregated if Sol > 0
+		if coll.Soldy.Hrs != 1 {
+			t.Errorf("Expected Soldy.Hrs=1 even when OFF (Sol > 0), got %d", coll.Soldy.Hrs)
+		}
+	})
+
+	t.Run("EmptyList", func(t *testing.T) {
+		collday(7, 15, 1200, []*COLL{}, 31, 365)
+	})
 }

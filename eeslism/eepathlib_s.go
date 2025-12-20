@@ -62,6 +62,7 @@ func pelmco(pflow FliudType, Pelm *PELM, errkey string) {
 			Pelm.Co = elmo.Id
 		} else if pflow == AIRx_FLD {
 			elmo_idx++
+			elmo = cmp.Elouts[elmo_idx] // Update elmo to point to humidity output
 			Pelm.Out = elmo
 			Pelm.Co = elmo.Id
 		}
@@ -169,20 +170,26 @@ func pelmci(pflow FliudType, Pelm *PELM, errkey string) {
 		// 放射パネル要素の場合
 		//
 		if pflow == WATER_FLD || pflow == AIRa_FLD {
-			Elout_a := cmp.Elouts[0] // 温水または空気温度
-			for i := 0; i < Elout_a.Ni; i++ {
-				elmi := cmp.Elins[i]
-				if elmi.Id == ELIO_f {
-					Pelm.Ci = elmi.Id
-					Pelm.In = elmi
-					break
+			// 修正: Elouts境界チェック追加
+			if len(cmp.Elouts) > 0 {
+				Elout_a := cmp.Elouts[0] // 温水または空気温度
+				for i := 0; i < Elout_a.Ni && i < len(cmp.Elins); i++ {
+					elmi := cmp.Elins[i]
+					if elmi.Id == ELIO_f {
+						Pelm.Ci = elmi.Id
+						Pelm.In = elmi
+						break
+					}
 				}
 			}
 		} else if pflow == AIRx_FLD {
-			Elout_x := cmp.Elouts[1] // 空気湿度
-			elmi := Elout_x.Elins[0]
-			Pelm.Ci = elmi.Id
-			Pelm.In = elmi
+			// 修正: Elouts境界チェック追加
+			if len(cmp.Elouts) > 1 && len(cmp.Elouts[1].Elins) > 0 {
+				Elout_x := cmp.Elouts[1] // 空気湿度
+				elmi := Elout_x.Elins[0]
+				Pelm.Ci = elmi.Id
+				Pelm.In = elmi
+			}
 		}
 	} else if Nin == 1 {
 		// 入口の数が1の場合

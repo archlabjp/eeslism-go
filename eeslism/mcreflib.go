@@ -19,17 +19,20 @@ package eeslism
 
 import (
 	"bufio"
-
 	"os"
+	"path/filepath"
 	"strings"
 )
 
 // 圧縮式冷凍機定格特性入力
 // reflist.efl ファイルから読み取ります。
-func Refcmpdat() []*RFCMP {
-	frf, err := os.Open("reflist.efl")
+func Refcmpdat(efl_path string) []*RFCMP {
+	reflistPath := filepath.Join(efl_path, "reflist.efl")
+	frf, err := os.Open(reflistPath)
 	if err != nil {
 		Eprint(" file ", "reflist.efl")
+		// ファイルが見つからない場合は空のスライスを返す
+		return make([]*RFCMP, 0)
 	}
 	defer frf.Close()
 

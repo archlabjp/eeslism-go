@@ -417,6 +417,12 @@ func Hcldcfv(_Hcload []*HCLOAD) {
 	Tout20 := 20.0
 
 	for _, Hcload := range _Hcload {
+		// DEBUG: Wetmode と RHout の値を確認
+		if Hcload.Cmp != nil {
+			fmt.Printf("DEBUG Hcldcfv: name=%s Wetmode=%v Wet=%v RHout=%.1f Chmode=%d Type=%c\n",
+				Hcload.Cmp.Name, Hcload.Wetmode, Hcload.Wet, Hcload.RHout, Hcload.Chmode, Hcload.Type)
+		}
+
 		Xout15 := FNXtr(Tout15, Hcload.RHout)
 		Xout20 := FNXtr(Tout20, Hcload.RHout)
 		f1 = (Xout20 - Xout15) / (Tout20 - Tout15)

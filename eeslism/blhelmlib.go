@@ -222,7 +222,7 @@ func helmwlsft(i, N int, alr []float64, rmsb []*RMSB, Tm *BHELM) {
 
 	for j := 0; j < N; j++ {
 		if j != i {
-			helmsumpf(1, alr[0], &rmsb[j].Ts, Tm)
+			helmsumpf(1, alr[j], &rmsb[j].Ts, Tm)
 		}
 	}
 

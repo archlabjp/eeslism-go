@@ -169,8 +169,18 @@ func Sysupv(Mpath []*MPATH, Rmvls *RMVLS) {
 			}
 		}
 
+		// C版: Nrdpnl = Rmvls->Nrdpnl;
+		Nrdpnl = len(Rmvls.Rdpnl)
+
 		for i := 0; i < Nrdpnl; i++ {
 			Rdpnl = Rmvls.Rdpnl[i]
+
+			// DEBUG: elinpnlの値を出力
+			if DEBUG_RDPNL_COEFF {
+				fmt.Printf("DEBUG Go Sysupv RDPNL[%d] %s: MC=%d elinpnl=[%d,%d] Nrp=[%d,%d] Ntrm=[%d,%d]\n",
+					i, Rdpnl.Name, Rdpnl.MC, Rdpnl.elinpnl[0], Rdpnl.elinpnl[1],
+					Rdpnl.Nrp[0], Rdpnl.Nrp[1], Rdpnl.Ntrm[0], Rdpnl.Ntrm[1])
+			}
 
 			for j := 0; j < Rdpnl.MC; j++ {
 				rm := Rdpnl.rm[j]
@@ -181,6 +191,14 @@ func Sysupv(Mpath []*MPATH, Rmvls *RMVLS) {
 				for jj := 0; jj < Rdpnl.Nrp[j]; jj++ {
 					rmpnl := rm.rmpnl[rmpnlIdx]
 					elin := Rdpnl.cmp.Elins[elinIdx]
+					// DEBUG: 接続設定を出力
+					if DEBUG_RDPNL_COEFF {
+						upvName := "nil"
+						if rmpnl.pnl.cmp.Elins[0].Upv != nil {
+							upvName = rmpnl.pnl.cmp.Elins[0].Upv.Cmp.Name
+						}
+						fmt.Printf("DEBUG Go Sysupv j=%d jj=%d elinIdx=%d: setting Upv to %s\n", j, jj, elinIdx, upvName)
+					}
 					elin.Upv = rmpnl.pnl.cmp.Elins[0].Upv
 					rmpnlIdx++
 					elinIdx++

@@ -4,6 +4,116 @@ import (
 	"testing"
 )
 
+// TestEvacdata tests the Evacdata function
+func TestEvacdata(t *testing.T) {
+	t.Run("SetName", func(t *testing.T) {
+		evacca := &EVACCA{}
+		result := Evacdata("TestEVACCA", evacca)
+
+		if result != 0 {
+			t.Errorf("Evacdata should return 0 for name, got %d", result)
+		}
+		if evacca.Name != "TestEVACCA" {
+			t.Errorf("Name = %s, want TestEVACCA", evacca.Name)
+		}
+		// Check initial values are INAN/FNAN
+		if evacca.N != INAN {
+			t.Errorf("N should be INAN, got %d", evacca.N)
+		}
+	})
+
+	t.Run("Set_Awet", func(t *testing.T) {
+		evacca := &EVACCA{}
+		result := Evacdata("Awet=2.5", evacca)
+
+		if result != 0 {
+			t.Errorf("Evacdata should return 0 for Awet, got %d", result)
+		}
+		if evacca.Awet != 2.5 {
+			t.Errorf("Awet = %f, want 2.5", evacca.Awet)
+		}
+	})
+
+	t.Run("Set_Adry", func(t *testing.T) {
+		evacca := &EVACCA{}
+		result := Evacdata("Adry=3.0", evacca)
+
+		if result != 0 {
+			t.Errorf("Evacdata should return 0 for Adry, got %d", result)
+		}
+		if evacca.Adry != 3.0 {
+			t.Errorf("Adry = %f, want 3.0", evacca.Adry)
+		}
+	})
+
+	t.Run("Set_hwet", func(t *testing.T) {
+		evacca := &EVACCA{}
+		result := Evacdata("hwet=25.0", evacca)
+
+		if result != 0 {
+			t.Errorf("Evacdata should return 0 for hwet, got %d", result)
+		}
+		if evacca.hwet != 25.0 {
+			t.Errorf("hwet = %f, want 25.0", evacca.hwet)
+		}
+	})
+
+	t.Run("Set_hdry", func(t *testing.T) {
+		evacca := &EVACCA{}
+		result := Evacdata("hdry=20.0", evacca)
+
+		if result != 0 {
+			t.Errorf("Evacdata should return 0 for hdry, got %d", result)
+		}
+		if evacca.hdry != 20.0 {
+			t.Errorf("hdry = %f, want 20.0", evacca.hdry)
+		}
+	})
+
+	t.Run("Set_N", func(t *testing.T) {
+		evacca := &EVACCA{}
+		result := Evacdata("N=5", evacca)
+
+		if result != 0 {
+			t.Errorf("Evacdata should return 0 for N, got %d", result)
+		}
+		if evacca.N != 5 {
+			t.Errorf("N = %d, want 5", evacca.N)
+		}
+	})
+
+	t.Run("Set_Nlayer", func(t *testing.T) {
+		evacca := &EVACCA{}
+		result := Evacdata("Nlayer=10", evacca)
+
+		if result != 0 {
+			t.Errorf("Evacdata should return 0 for Nlayer, got %d", result)
+		}
+		if evacca.Nlayer != 10 {
+			t.Errorf("Nlayer = %d, want 10", evacca.Nlayer)
+		}
+	})
+
+	t.Run("UnknownKey", func(t *testing.T) {
+		evacca := &EVACCA{}
+		result := Evacdata("unknown=123", evacca)
+
+		if result != 1 {
+			t.Errorf("Evacdata should return 1 for unknown key, got %d", result)
+		}
+	})
+
+	t.Run("NameAlreadySet", func(t *testing.T) {
+		// When name is already set and we pass a non-key=value string, return 1
+		evacca := &EVACCA{Name: "ExistingName"}
+		result := Evacdata("AnotherName", evacca)
+
+		if result != 1 {
+			t.Errorf("Evacdata should return 1 when name already set, got %d", result)
+		}
+	})
+}
+
 // TestEvacint tests the EVAC initialization function
 func TestEvacint(t *testing.T) {
 	t.Run("BasicInitialization", func(t *testing.T) {
@@ -424,28 +534,45 @@ func TestEVAC_PerformanceCharacteristics(t *testing.T) {
 // Helper functions to create test EVAC instances
 
 func createBasicEVAC() *EVAC {
-	// Create basic ELOUT and ELIN for EVAC
-	elouts := make([]*ELOUT, 2) // EVAC has 2 outputs (air temp, humidity)
+	// Create 4 ELOUTs for EVAC (Tdry, xdry, Twet, xwet outputs)
+	elouts := make([]*ELOUT, 4)
 	for i := range elouts {
 		elouts[i] = &ELOUT{
 			Control: ON_SW,
-			Sysv:    20.0, // 20°C
-			G:       2.0,  // 2 kg/s
+			Sysv:    20.0,
+			G:       0.5,           // 0.5 kg/s
 			Fluid:   AIR_FLD,
+			Coeffin: make([]float64, 4),
 		}
 	}
-	
+
 	elins := make([]*ELIN, 10) // Sufficient for all connections
 	for i := range elins {
 		elins[i] = &ELIN{
-			Sysvin: 30.0, // 30°C inlet
+			Sysvin: 30.0, // 30°C inlet (temperature)
 		}
 	}
+	// Set humidity values for some elins
+	elins[1].Sysvin = 0.010 // Humidity
+	elins[3].Sysvin = 0.015 // Humidity
+
+	// Link elins to EoTdry (Elouts[0]) - needs 4 elins: Tdryin, xdryin, Twetin, xwetin
+	elouts[0].Elins = []*ELIN{elins[0], elins[1], elins[2], elins[3]}
+	// Other elouts can have fewer elins
+	elouts[1].Elins = []*ELIN{elins[4], elins[5]}
+	elouts[2].Elins = []*ELIN{elins[6], elins[7]}
+	elouts[3].Elins = []*ELIN{elins[8], elins[9]}
 
 	return &EVAC{
 		Name: "TestEVAC",
 		Cat: &EVACCA{
-			Name: "TestEVACCA",
+			Name:   "TestEVACCA",
+			N:      3,    // 3 divisions
+			Adry:   1.0,  // 1 m2 dry side area
+			Awet:   1.0,  // 1 m2 wet side area
+			hdry:   20.0, // 20 W/m2K dry side heat transfer coefficient
+			hwet:   30.0, // 30 W/m2K wet side heat transfer coefficient
+			Nlayer: -1,   // Use hdry/hwet directly
 		},
 		Cmp: &COMPNT{
 			Name:    "TestEVACComponent",
@@ -470,9 +597,11 @@ func createIndirectEvaporativeEVAC() *EVAC {
 
 func createCoefficientTestEVAC() *EVAC {
 	evac := createBasicEVAC()
+	// Initialize with Evacint to allocate memory
+	Evacint([]*EVAC{evac})
 	// Set up for coefficient calculation
 	for i := range evac.Cmp.Elouts {
-		evac.Cmp.Elouts[i].G = 2.0
+		evac.Cmp.Elouts[i].G = 0.5
 		evac.Cmp.Elouts[i].Fluid = AIR_FLD
 	}
 	return evac
@@ -480,8 +609,9 @@ func createCoefficientTestEVAC() *EVAC {
 
 func createDirectEvaporativeCoefficientEVAC() *EVAC {
 	evac := createDirectEvaporativeEVAC()
+	Evacint([]*EVAC{evac})
 	for i := range evac.Cmp.Elouts {
-		evac.Cmp.Elouts[i].G = 2.0
+		evac.Cmp.Elouts[i].G = 0.5
 		evac.Cmp.Elouts[i].Fluid = AIR_FLD
 	}
 	return evac
@@ -489,8 +619,9 @@ func createDirectEvaporativeCoefficientEVAC() *EVAC {
 
 func createIndirectEvaporativeCoefficientEVAC() *EVAC {
 	evac := createIndirectEvaporativeEVAC()
+	Evacint([]*EVAC{evac})
 	for i := range evac.Cmp.Elouts {
-		evac.Cmp.Elouts[i].G = 2.0
+		evac.Cmp.Elouts[i].G = 0.5
 		evac.Cmp.Elouts[i].Fluid = AIR_FLD
 	}
 	return evac
@@ -507,6 +638,8 @@ func createOffControlEVAC() *EVAC {
 
 func createEnergyTestEVAC() *EVAC {
 	evac := createBasicEVAC()
+	// Initialize with Evacint to allocate memory
+	Evacint([]*EVAC{evac})
 	// Set up for energy calculation with realistic values
 	evac.Tdryi = 35.0   // Hot dry side inlet air temperature
 	evac.Xdryi = 0.008  // Low dry side inlet humidity (dry air)
@@ -516,6 +649,9 @@ func createEnergyTestEVAC() *EVAC {
 	evac.Xweti = 0.020  // Wet side inlet humidity
 	evac.Tweto = 32.0   // Wet side outlet temperature
 	evac.Xweto = 0.015  // Wet side outlet humidity
+	// Set flow rates
+	evac.Gdry = 0.5
+	evac.Gwet = 0.5
 	return evac
 }
 
@@ -552,38 +688,53 @@ func createOffControlEnergyEVAC() *EVAC {
 
 func createTemperatureValidationEVAC() *EVAC {
 	evac := createBasicEVAC()
+	Evacint([]*EVAC{evac})
 	// Set up realistic temperature conditions for evaporative cooling
 	evac.Tdryi = 40.0   // Hot dry side inlet air
 	evac.Tdryo = 28.0   // Cooled dry side outlet air
+	evac.Gdry = 0.5
+	evac.Gwet = 0.5
 	return evac
 }
 
 func createHumidityValidationEVAC() *EVAC {
 	evac := createBasicEVAC()
+	Evacint([]*EVAC{evac})
 	// Set up realistic humidity conditions
 	evac.Xdryi = 0.005  // Dry side inlet air
 	evac.Xdryo = 0.012  // Dry side outlet air (humidified)
+	evac.Gdry = 0.5
+	evac.Gwet = 0.5
 	return evac
 }
 
 func createEffectivenessValidationEVAC() *EVAC {
 	evac := createBasicEVAC()
+	Evacint([]*EVAC{evac})
 	// Set up for effectiveness validation
+	evac.Gdry = 0.5
+	evac.Gwet = 0.5
 	return evac
 }
 
 func createCoolingEffectivenessTestEVAC() *EVAC {
 	evac := createBasicEVAC()
+	Evacint([]*EVAC{evac})
 	// Set up for cooling effectiveness testing
 	evac.Tdryi = 38.0   // Hot dry side inlet
 	evac.Tdryo = 26.0   // Cooled dry side outlet
+	evac.Gdry = 0.5
+	evac.Gwet = 0.5
 	return evac
 }
 
 func createWaterConsumptionEVAC() *EVAC {
 	evac := createBasicEVAC()
+	Evacint([]*EVAC{evac})
 	// Set up for water consumption calculation
 	evac.Xdryi = 0.006  // Dry side inlet air
 	evac.Xdryo = 0.014  // Dry side outlet air (humidified)
+	evac.Gdry = 0.5
+	evac.Gwet = 0.5
 	return evac
 }

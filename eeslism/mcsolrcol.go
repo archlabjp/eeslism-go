@@ -168,7 +168,7 @@ func Collene(Coll []*COLL) {
 		}
 
 		// 集熱板温度の計算
-		if coll.Q > 0.0 {
+		if coll.Q > Q_EPSILON {
 			coll.Tcb = coll.Te - coll.Q/(coll.Ac*coll.Cat.Ko)
 		} else {
 			// 集熱ポンプ停止時は相当外気温度に等しいとする

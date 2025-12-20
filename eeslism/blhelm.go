@@ -80,6 +80,10 @@ func Helminit(errkey string, helmkey rune, _Room []*ROOM, Qetotal *QETOTAL) {
 		N := Room.N
 		if N > 0 {
 			Room.rmqe.rmsb = make([]*RMSB, N)
+			// 各要素を初期化（C版ではmalloc(N * sizeof(RMSB))で一括確保）
+			for k = 0; k < N; k++ {
+				Room.rmqe.rmsb[k] = &RMSB{}
+			}
 		}
 
 		if Room.rmqe.rmsb != nil {
@@ -99,6 +103,11 @@ func Helminit(errkey string, helmkey rune, _Room []*ROOM, Qetotal *QETOTAL) {
 				if N > 0 {
 					Rs.Tw = make([]*BHELM, N)
 					Rs.Told = make([]*BHELM, N)
+					// 各要素を初期化（C版ではmalloc(N * sizeof(BHELM))で一括確保）
+					for m := 0; m < N; m++ {
+						Rs.Tw[m] = &BHELM{}
+						Rs.Told[m] = &BHELM{}
+					}
 				}
 			} else {
 				Rs.Tw = nil
@@ -128,6 +137,10 @@ func Helminit(errkey string, helmkey rune, _Room []*ROOM, Qetotal *QETOTAL) {
 		if i == 0 {
 			if Nmax > 0 {
 				Room.rmqe.WSCwk = make([]*BHELM, Nmax)
+				// 各要素を初期化
+				for j := 0; j < Nmax; j++ {
+					Room.rmqe.WSCwk[j] = &BHELM{}
+				}
 
 				Bh := Room.rmqe.WSCwk[0]
 				Bh.trs = 0.0

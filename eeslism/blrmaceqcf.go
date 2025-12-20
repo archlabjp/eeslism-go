@@ -15,8 +15,6 @@
 
 package eeslism
 
-import "fmt"
-
 /* -------------------------------------- */
 
 var __Rmhtrcf_count int
@@ -29,28 +27,15 @@ func Rmhtrcf(exs *EXSFS, emrk []rune, rooms []*ROOM, sds []*RMSRF, wd *WDAT) {
 			brs := room.Brs
 			sds := sds[brs : brs+n]
 
-			if DEBUG {
-				fmt.Printf("Room Name=%s\n", room.Name)
-			}
-
 			// 放射熱交換係数の計算
 			if __Rmhtrcf_count == 0 || emrk[0] == '*' {
 				radex(n, sds, room.F, room.Wradx)
 			}
-			if DEBUG {
-				fmt.Printf("radex end\n")
-			}
 
 			// 放射熱伝達率の入れ替え
 			Radcf0(room.Tsav, &room.alrbold, n, sds, room.Wradx, room.alr)
-			if DEBUG {
-				fmt.Printf("Radcf0 end\n")
-			}
 
 			Htrcf(room.alc, exs.Alosch, exs.Alotype, exs.Exs, room.Tr, n, room.alr, sds, &room.mrk, wd)
-			if DEBUG {
-				fmt.Printf("Htrcf end\n")
-			}
 		}
 
 		__Rmhtrcf_count++
@@ -145,39 +130,47 @@ func Rmexct(Room []*ROOM, Sd []*RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []*SNBK, Qrm 
 		RmSd := Sd[rm.Brs : rm.Brs+rm.N]
 
 		for n, Sdn := range RmSd {
+			// C版と同様に、ループの最初で初期化
+			Sdn.RSsol = 0.0
+			Sdn.RSsold = 0.
+			Fsdw := 0.0
+			Qgtn := 0.0
+			Qga := 0.0
+			Sdn.Qga = 0.0 // ループの最初でクリア（C版互換）
+			Sdn.Qgt = 0.0
+			_ = n // n はデバッグ出力で使用される
 
 			// 内壁/内床/天井の場合は、exsが無効なのでTeの計算のみ行う
 			if Sdn.ble == BLE_InnerWall || Sdn.ble == BLE_InnerFloor || Sdn.ble == BLE_Ceil || Sdn.ble == BLE_d {
 				if Sdn.nxrm < 0 {
 					// 隣室が無い場合
 					Tr := Sdn.room.Trold
-					Eo := Sdn.room.cmp.Elouts[0]
-					if Eo.Control == LOAD_SW {
-						Tr = Sdn.room.rmld.Tset
+					if Sdn.room.cmp != nil && len(Sdn.room.cmp.Elouts) > 0 {
+						Eo := Sdn.room.cmp.Elouts[0]
+						if Eo.Control == LOAD_SW {
+							Tr = Sdn.room.rmld.Tset
+						}
 					}
 					Sdn.Te = Sdn.c*Tr + (1.0-Sdn.c)*Wd.T
 				} else {
 					// 隣室がある場合
 					Tr := Sdn.nextroom.Trold
-					Eo := Sdn.nextroom.cmp.Elouts[0]
-					if Eo.Control == LOAD_SW {
-						Tr = Sdn.nextroom.rmld.Tset
+					if Sdn.nextroom.cmp != nil && len(Sdn.nextroom.cmp.Elouts) > 0 {
+						Eo := Sdn.nextroom.cmp.Elouts[0]
+						if Eo.Control == LOAD_SW {
+							Tr = Sdn.nextroom.rmld.Tset
+						}
 					}
 					Sdn.Te = Sdn.c*Tr + (1.0-Sdn.c)*Wd.T
 				}
 				Sdn.TeEsol = 0.0
 				Sdn.TeErn = 0.0
-				Sdn.Qrn = 0.0 // 内部表面は夜間放射なし
+				Sdn.Qrn = 0.0  // 内部表面は夜間放射なし
+				Sdn.Qga = 0.0  // 内部表面は吸収日射なし
 				continue
 			}
 
 			e := Exs[Sdn.exs]
-
-			Sdn.RSsol = 0.0
-			Sdn.RSsold = 0.
-			Fsdw := 0.0
-			Qgtn := 0.0
-			Qga := 0.0
 
 			var Idre float64     // 直逹日射  [W/m2]
 			var Idf float64      // 拡散日射  [W/m2]
@@ -192,11 +185,6 @@ func Rmexct(Room []*ROOM, Sd []*RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []*SNBK, Qrm 
 					// 日よけの影面積率 [-]
 					Fsdw = FNFsdw(S.Type, S.Ksi, e.Tazm, e.Tprof, S.D, S.W, S.H, S.W1, S.H1, S.W2, S.H2)
 					Sdn.Fsdworg = Fsdw
-
-					if DEBUG {
-						fmt.Printf(" xxx Rmexct xxx i=%d n=%d  sb=%d  type=%d  tazm=%f  tprof=%f Fsdw=%f\n",
-							i, n, sb, S.Type, e.Tazm, e.Tprof, Fsdw)
-					}
 				} else {
 					Fsdw = 0.0
 				}
@@ -204,10 +192,6 @@ func Rmexct(Room []*ROOM, Sd []*RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []*SNBK, Qrm 
 				Idre = e.Idre
 				Idf = e.Idf
 				RN = e.Rn
-
-				if DEBUG {
-					fmt.Printf("1:Fsdw=%f,Idre=%f,Idf=%f,rn=%f Sb=%d Cinc=%f\n", Fsdw, Idre, Idf, RN, sb, e.Cinc)
-				}
 
 			} else { /*---higuchi 070918 end--*/ /*--higuchi 070918 start--*/
 				Fsdw = Sdn.Fsdw
@@ -272,6 +256,7 @@ func Rmexct(Room []*ROOM, Sd []*RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []*SNBK, Qrm 
 					Sdn.TeEsol = 0.0
 					Sdn.TeErn = 0.0
 					Sdn.Qrn = 0.0 // 地中は夜間放射なし
+					Sdn.Qga = 0.0
 				}
 				break
 
@@ -324,11 +309,7 @@ func Rmexct(Room []*ROOM, Sd []*RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []*SNBK, Qrm 
 			Sdn.RS = (Sdn.RSsol*Sdn.A + rm.Hr*Sdn.srh + rm.Lr*Sdn.srl + rm.Ar*Sdn.sra + rm.Qeqp*Sdn.eqrd) / Sdn.A
 			Sdn.RSin = (rm.Hr*Sdn.srh + rm.Lr*Sdn.srl + rm.Ar*Sdn.sra + rm.Qeqp*Sdn.eqrd) / Sdn.A
 			Sdn.RSli = rm.Lr * Sdn.srl / Sdn.A
-
-			if DEBUG {
-				fmt.Printf("----- Rmexct  i=%d n=%d rm.Qgt=%f Fsdw=%f Fsdworg=%f Qgt=%f Qga=%f srg2=%f RSsol=%f RS=%f RSin=%f RSli=%f\n",
-					i, n, rm.Qgt, Sdn.Fsdw, Sdn.Fsdworg, Sdn.Qgt, Sdn.Qga, Sdn.srg2, Sdn.RSsol, Sdn.RS, Sdn.RSin, Sdn.RSli)
-			}
+			_ = n // n はデバッグ出力で使用されていたが、現在は未使用
 		}
 
 		// 室の透過日射熱取得を再度積算（透明間仕切りによる隣接空間からの透過日射を考慮するため）
@@ -354,16 +335,11 @@ func Rmexct(Room []*ROOM, Sd []*RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []*SNBK, Qrm 
 
 	} // 室ループ
 
-	for n, Sdn := range Sd {
+	for _, Sdn := range Sd {
 		// 共用壁の場合の外表面の相当外気温 Te [C] の計算
 		if Sdn.mwtype == RMSRFMwType_C {
 			Sdnx := Sdn.nxsd
 			Sdn.Te = (Sdnx.alir*Sdnx.Tmrt + Sdnx.RS) / Sdnx.ali
-
-			if DEBUG {
-				fmt.Printf("----- Rmexct  n=%d Te=%f nxalir=%f nxTmrt=%f nxSdnx->RS=%f nxali=%f\n",
-					n, Sdn.Te, Sdnx.alir, Sdnx.Tmrt, Sdnx.RS, Sdnx.ali)
-			}
 		}
 	}
 }
@@ -414,19 +390,11 @@ func Rmsurft(rooms []*ROOM, sd []*RMSRF) {
 		r = *(rooms[0].OTsetCwgt)
 	}
 
-	if DEBUG {
-		fmt.Printf("<Rmsurft> Start\n")
-	}
-
 	for i := range rooms {
 		room := rooms[i]
 		n := room.N
 		brs := room.Brs
 		sdr := sd[brs:]
-
-		if DEBUG {
-			fmt.Printf("Room[%d]=%s\tN=%d\tbrs=%d\n", i, room.Name, room.N, room.Brs)
-		}
 
 		// 前時刻の温度の入れ替え
 		room.mrk = 'C'
@@ -444,16 +412,8 @@ func Rmsurft(rooms []*ROOM, sd []*RMSRF) {
 			room.oldTM = room.TM
 		}
 
-		if DEBUG {
-			fmt.Printf("<Rmsurft>  RMsrt start\n")
-		}
-
 		// 室内表面温度の計算
 		RMsrt(room)
-
-		if DEBUG {
-			fmt.Printf("<Rmsurft>  RMsrt end\n")
-		}
 
 		room.Tsav = RTsav(n, sdr)                // 平均表面温度 Ts,av
 		room.Tot = r*room.Tr + (1.0-r)*room.Tsav // 作用温度 Tot
@@ -477,31 +437,15 @@ func Rmsurftd(_Room []*ROOM, Sd []*RMSRF) {
 		r = *(Room.OTsetCwgt)
 	}
 
-	if DEBUG {
-		fmt.Printf("<Rmsurft> Start\n")
-	}
-
 	for i := range _Room {
 		Room := _Room[i]
-
-		if DEBUG {
-			fmt.Printf("Room[%d]=%s\tN=%d\tbrs=%d\n", i, Room.Name, Room.N, Room.Brs)
-		}
 
 		N := Room.N
 		brs := Room.Brs
 		sd := Sd[brs:]
 
-		if DEBUG {
-			fmt.Printf("<Rmsurft>  RMsrt start\n")
-		}
-
 		// 室内表面温度の計算
 		RMsrt(Room)
-
-		if DEBUG {
-			fmt.Printf("<Rmsurft>  RMsrt end\n")
-		}
 
 		Room.Tsav = RTsav(N, sd)
 		Room.Tot = r*Room.Tr + (1.0-r)*Room.Tsav

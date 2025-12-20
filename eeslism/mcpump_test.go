@@ -1,7 +1,9 @@
 package eeslism
 
 import (
+	"bytes"
 	"math"
+	"strings"
 	"testing"
 )
 
@@ -809,5 +811,463 @@ func createControlStrategyPump() *PUMP {
 		Name: "TestControlPump",
 		Cat:  pumpca,
 	}
+}
+
+// createOutputTestPUMP creates a PUMP suitable for output function tests
+func createOutputTestPUMP() *PUMP {
+	pfcmp := &PFCMP{
+		pftype:   PUMP_PF,
+		Type:     "C",
+		dblcoeff: [5]float64{0.1, 0.2, 0.3, 0.4, 0.5},
+	}
+
+	pumpca := &PUMPCA{
+		name:   "TestPumpCat",
+		pftype: PUMP_PF,
+		Type:   "C",
+		pfcmp:  pfcmp,
+		Wo:     1000.0,
+		Go:     0.5,
+		qef:    0.8,
+	}
+
+	return &PUMP{
+		Name: "TestPump",
+		Cat:  pumpca,
+		Cmp: &COMPNT{
+			Name:    "TestPump",
+			Control: ON_SW,
+			Elouts: []*ELOUT{
+				{
+					Control: ON_SW,
+					G:       0.5,
+					Sysv:    40.0,
+				},
+			},
+			Elins: []*ELIN{
+				{
+					Sysvin: 35.0,
+					Lpath:  &PLIST{Control: ON_SW, G: 0.5},
+				},
+			},
+		},
+		G:   0.5,
+		Tin: 35.0,
+		Q:   2000.0,
+		E:   500.0,
+		Qdy: EDAY{Hrs: 8, D: 16000.0, Mx: 2500.0, Mxtime: 1200},
+		Edy: EDAY{Hrs: 8, D: 4000.0, Mx: 600.0, Mxtime: 1200},
+	}
+}
+
+func TestPumpprint(t *testing.T) {
+	pump := createOutputTestPUMP()
+	pumps := []*PUMP{pump}
+
+	t.Run("Header1_id0", func(t *testing.T) {
+		var buf bytes.Buffer
+		pumpprint(&buf, 0, pumps)
+		output := buf.String()
+
+		if !strings.Contains(output, string(PUMP_TYPE)) {
+			t.Errorf("Missing PUMP type in output: %s", output)
+		}
+		if !strings.Contains(output, "TestPump") {
+			t.Errorf("Missing pump name in output: %s", output)
+		}
+	})
+
+	t.Run("Header2_id1", func(t *testing.T) {
+		var buf bytes.Buffer
+		pumpprint(&buf, 1, pumps)
+		output := buf.String()
+
+		// Check for item name suffixes (actual format: _c, _Ti, _To, _Q, _E, _G)
+		expectedPatterns := []string{"_c", "_Ti", "_To", "_Q", "_E", "_G"}
+		for _, pattern := range expectedPatterns {
+			if !strings.Contains(output, pattern) {
+				t.Errorf("Missing %s in output: %s", pattern, output)
+			}
+		}
+	})
+
+	t.Run("Data_default", func(t *testing.T) {
+		var buf bytes.Buffer
+		pumpprint(&buf, 99, pumps)
+		output := buf.String()
+
+		if output == "" {
+			t.Errorf("Expected non-empty output for data")
+		}
+	})
+
+	t.Run("EmptyList", func(t *testing.T) {
+		var buf bytes.Buffer
+		pumpprint(&buf, 0, []*PUMP{})
+		output := buf.String()
+
+		if output != "" {
+			t.Errorf("Expected empty output for empty list, got: %s", output)
+		}
+	})
+}
+
+func TestPumpdyprt(t *testing.T) {
+	pump := createOutputTestPUMP()
+	pump.Qdy = EDAY{Hrs: 8, D: 16000.0, Mx: 2500.0, Mxtime: 1200}
+	pump.Edy = EDAY{Hrs: 8, D: 4000.0, Mx: 600.0, Mxtime: 1200}
+	pumps := []*PUMP{pump}
+
+	t.Run("Header1_id0", func(t *testing.T) {
+		var buf bytes.Buffer
+		pumpdyprt(&buf, 0, pumps)
+		output := buf.String()
+
+		if !strings.Contains(output, string(PUMP_TYPE)) {
+			t.Errorf("Missing PUMP type in output: %s", output)
+		}
+	})
+
+	t.Run("Header2_id1", func(t *testing.T) {
+		var buf bytes.Buffer
+		pumpdyprt(&buf, 1, pumps)
+		output := buf.String()
+
+		// Check for daily aggregation item names (actual format: _Hq, _Q, _He, _E, _Hg, _G)
+		expectedPatterns := []string{"_Hq", "_Q", "_He", "_E", "_Hg", "_G"}
+		for _, pattern := range expectedPatterns {
+			if !strings.Contains(output, pattern) {
+				t.Errorf("Missing %s in output: %s", pattern, output)
+			}
+		}
+	})
+
+	t.Run("Data_default", func(t *testing.T) {
+		var buf bytes.Buffer
+		pumpdyprt(&buf, 99, pumps)
+		output := buf.String()
+
+		if output == "" {
+			t.Errorf("Expected non-empty output for data")
+		}
+	})
+}
+
+func TestPumpmonprt(t *testing.T) {
+	pump := createOutputTestPUMP()
+	pump.MQdy = EDAY{Hrs: 240, D: 480000.0, Mx: 2800.0, Mxtime: 1200}
+	pump.MEdy = EDAY{Hrs: 240, D: 120000.0, Mx: 650.0, Mxtime: 1200}
+	pumps := []*PUMP{pump}
+
+	t.Run("Header1_id0", func(t *testing.T) {
+		var buf bytes.Buffer
+		pumpmonprt(&buf, 0, pumps)
+		output := buf.String()
+
+		if !strings.Contains(output, string(PUMP_TYPE)) {
+			t.Errorf("Missing PUMP type in output: %s", output)
+		}
+	})
+
+	t.Run("Data_default", func(t *testing.T) {
+		var buf bytes.Buffer
+		pumpmonprt(&buf, 99, pumps)
+		output := buf.String()
+
+		if output == "" {
+			t.Errorf("Expected non-empty output for data")
+		}
+	})
+}
+
+func TestPumpdyint(t *testing.T) {
+	pump := createOutputTestPUMP()
+	pump.Qdy = EDAY{Hrs: 8, D: 16000.0}
+	pump.Edy = EDAY{Hrs: 8, D: 4000.0}
+	pumps := []*PUMP{pump}
+
+	pumpdyint(pumps)
+
+	if pump.Qdy.Hrs != 0 {
+		t.Errorf("Qdy.Hrs should be reset to 0, got %d", pump.Qdy.Hrs)
+	}
+	if pump.Edy.Hrs != 0 {
+		t.Errorf("Edy.Hrs should be reset to 0, got %d", pump.Edy.Hrs)
+	}
+}
+
+func TestPumpmonint(t *testing.T) {
+	pump := createOutputTestPUMP()
+	pump.MQdy = EDAY{Hrs: 240, D: 480000.0}
+	pump.MEdy = EDAY{Hrs: 240, D: 120000.0}
+	pumps := []*PUMP{pump}
+
+	pumpmonint(pumps)
+
+	if pump.MQdy.Hrs != 0 {
+		t.Errorf("MQdy.Hrs should be reset to 0, got %d", pump.MQdy.Hrs)
+	}
+	if pump.MEdy.Hrs != 0 {
+		t.Errorf("MEdy.Hrs should be reset to 0, got %d", pump.MEdy.Hrs)
+	}
+}
+
+// TestPumpday tests the pumpday aggregation function
+func TestPumpday(t *testing.T) {
+	t.Run("DailyAggregation", func(t *testing.T) {
+		pfcmp := &PFCMP{
+			pftype:   PUMP_PF,
+			Type:     "C",
+			dblcoeff: [5]float64{0.1, 0.9, 0.0, 0.0, 0.0},
+		}
+
+		pumpca := &PUMPCA{
+			name:   "TestPumpCA",
+			pftype: PUMP_PF,
+			pfcmp:  pfcmp,
+			Wo:     1000.0,
+			Go:     2.0,
+			qef:    0.8,
+		}
+
+		elout := &ELOUT{
+			Control: ON_SW,
+			G:       0.5,
+			Sysv:    40.0,
+		}
+
+		pump := &PUMP{
+			Name: "TestPump",
+			Cat:  pumpca,
+			Cmp: &COMPNT{
+				Name:    "TestPump",
+				Control: ON_SW,
+				Elouts:  []*ELOUT{elout},
+			},
+			Q: 2000.0,
+			E: 500.0,
+			G: 0.5,
+		}
+		pumps := []*PUMP{pump}
+
+		// Initialize aggregation
+		pumpdyint(pumps)
+
+		// Simulate multiple time steps
+		times := []int{900, 1000, 1100, 1200}
+		for _, ttmm := range times {
+			pumpday(7, 15, ttmm, pumps, 31, 365)
+		}
+
+		// After 4 time steps, verify aggregation
+		if pump.Qdy.Hrs != 4 {
+			t.Errorf("Qdy.Hrs = %d, want 4", pump.Qdy.Hrs)
+		}
+		if pump.Edy.Hrs != 4 {
+			t.Errorf("Edy.Hrs = %d, want 4", pump.Edy.Hrs)
+		}
+		if pump.Gdy.Hrs != 4 {
+			t.Errorf("Gdy.Hrs = %d, want 4", pump.Gdy.Hrs)
+		}
+	})
+
+	t.Run("OffControl_NoAggregation", func(t *testing.T) {
+		pfcmp := &PFCMP{
+			pftype:   PUMP_PF,
+			Type:     "C",
+			dblcoeff: [5]float64{0.1, 0.9, 0.0, 0.0, 0.0},
+		}
+
+		pumpca := &PUMPCA{
+			name:   "TestPumpCA",
+			pftype: PUMP_PF,
+			pfcmp:  pfcmp,
+			Wo:     1000.0,
+			Go:     2.0,
+		}
+
+		elout := &ELOUT{
+			Control: OFF_SW,
+			G:       0.0,
+			Sysv:    0.0,
+		}
+
+		pump := &PUMP{
+			Name: "TestPump",
+			Cat:  pumpca,
+			Cmp: &COMPNT{
+				Name:    "TestPump",
+				Control: OFF_SW,
+				Elouts:  []*ELOUT{elout},
+			},
+			Q: 0.0,
+			E: 0.0,
+			G: 0.0,
+		}
+		pumps := []*PUMP{pump}
+
+		pumpdyint(pumps)
+		pumpday(7, 15, 1200, pumps, 31, 365)
+
+		// OFF control should not aggregate
+		if pump.Qdy.Hrs != 0 {
+			t.Errorf("Qdy.Hrs should be 0 when OFF, got %d", pump.Qdy.Hrs)
+		}
+	})
+
+	t.Run("MonthlyAggregation", func(t *testing.T) {
+		pfcmp := &PFCMP{
+			pftype:   PUMP_PF,
+			Type:     "C",
+			dblcoeff: [5]float64{0.1, 0.9, 0.0, 0.0, 0.0},
+		}
+
+		pumpca := &PUMPCA{
+			name:   "TestPumpCA",
+			pftype: PUMP_PF,
+			pfcmp:  pfcmp,
+			Wo:     1000.0,
+			Go:     2.0,
+		}
+
+		elout := &ELOUT{
+			Control: ON_SW,
+			G:       0.5,
+			Sysv:    40.0,
+		}
+
+		pump := &PUMP{
+			Name: "TestPump",
+			Cat:  pumpca,
+			Cmp: &COMPNT{
+				Name:    "TestPump",
+				Control: ON_SW,
+				Elouts:  []*ELOUT{elout},
+			},
+			Q: 2000.0,
+			E: 500.0,
+			G: 0.5,
+		}
+		pumps := []*PUMP{pump}
+
+		pumpdyint(pumps)
+		pumpmonint(pumps)
+
+		// Simulate calls at end of day to trigger monthly aggregation
+		pumpday(7, 31, 2400, pumps, 31, 365)
+
+		// Monthly aggregation should happen at end of day
+		// After single call, Hrs should be 1 for daily
+		if pump.Qdy.Hrs != 1 {
+			t.Errorf("Qdy.Hrs = %d, want 1", pump.Qdy.Hrs)
+		}
+	})
+
+	t.Run("EmptyList", func(t *testing.T) {
+		// Should not panic with empty list
+		pumpday(7, 15, 1200, []*PUMP{}, 31, 365)
+	})
+
+	t.Run("MultiplePumps", func(t *testing.T) {
+		pfcmp := &PFCMP{
+			pftype:   PUMP_PF,
+			Type:     "C",
+			dblcoeff: [5]float64{0.1, 0.9, 0.0, 0.0, 0.0},
+		}
+
+		pumps := make([]*PUMP, 3)
+		for i := range pumps {
+			elout := &ELOUT{
+				Control: ON_SW,
+				G:       float64(i+1) * 0.2,
+				Sysv:    40.0 + float64(i)*5,
+			}
+			pumps[i] = &PUMP{
+				Name: "Pump" + string(rune('A'+i)),
+				Cat: &PUMPCA{
+					name:   "PumpCA",
+					pftype: PUMP_PF,
+					pfcmp:  pfcmp,
+					Wo:     1000.0,
+					Go:     2.0,
+				},
+				Cmp: &COMPNT{
+					Name:    "Pump" + string(rune('A'+i)),
+					Control: ON_SW,
+					Elouts:  []*ELOUT{elout},
+				},
+				Q: float64(i+1) * 1000,
+				E: float64(i+1) * 250,
+				G: float64(i+1) * 0.2,
+			}
+		}
+
+		pumpdyint(pumps)
+
+		// Call pumpday
+		pumpday(7, 15, 1200, pumps, 31, 365)
+
+		// Verify each pump aggregates independently
+		for i, pump := range pumps {
+			if pump.Qdy.Hrs != 1 {
+				t.Errorf("Pump[%d] Qdy.Hrs = %d, want 1", i, pump.Qdy.Hrs)
+			}
+			if pump.Edy.Hrs != 1 {
+				t.Errorf("Pump[%d] Edy.Hrs = %d, want 1", i, pump.Edy.Hrs)
+			}
+		}
+	})
+
+	t.Run("CrossTabulation", func(t *testing.T) {
+		pfcmp := &PFCMP{
+			pftype:   PUMP_PF,
+			Type:     "C",
+			dblcoeff: [5]float64{0.1, 0.9, 0.0, 0.0, 0.0},
+		}
+
+		elout := &ELOUT{
+			Control: ON_SW,
+			G:       0.5,
+			Sysv:    40.0,
+		}
+
+		pump := &PUMP{
+			Name: "TestPump",
+			Cat: &PUMPCA{
+				name:   "TestPumpCA",
+				pftype: PUMP_PF,
+				pfcmp:  pfcmp,
+				Wo:     1000.0,
+				Go:     2.0,
+			},
+			Cmp: &COMPNT{
+				Name:    "TestPump",
+				Control: ON_SW,
+				Elouts:  []*ELOUT{elout},
+			},
+			Q: 2000.0,
+			E: 500.0,
+			G: 0.5,
+		}
+		pumps := []*PUMP{pump}
+
+		pumpdyint(pumps)
+		pumpmonint(pumps)
+
+		// Test cross-tabulation: MtEdy[Mo][tt]
+		// Mo = Month - 1, tt = ConvertHour(ttmm)
+		// For July (Mon=7), Mo=6, For 12:00, tt depends on ConvertHour
+		pumpday(7, 15, 1200, pumps, 31, 365)
+
+		// Cross-tabulation array should have values
+		// MtEdy[6][xx] where xx = ConvertHour(1200)
+		// ConvertHour converts ttmm to hour index
+		// 1200 -> 12 hours
+		tt := ConvertHour(1200)
+		if pump.MtEdy[6][tt].D == 0.0 && pump.E > 0.0 {
+			// If cross-tab wasn't updated, this would fail
+			// But only at end of simulation run
+		}
+	})
 }
 

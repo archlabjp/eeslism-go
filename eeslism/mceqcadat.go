@@ -56,7 +56,7 @@ Eqcadata (Equipment Catalog Data Input)
 システム全体のエネルギー消費量予測、省エネルギー対策の検討、
 および最適な設備システム設計を行うための重要な役割を果たします。
 */
-func Eqcadata(f *EeTokens, Eqcat *EQCAT) {
+func Eqcadata(f *EeTokens, Eqcat *EQCAT, efl_path string) {
 	if Eqcat == nil {
 		panic("Eqcat is nil")
 	}
@@ -87,10 +87,10 @@ func Eqcadata(f *EeTokens, Eqcat *EQCAT) {
 	Eqcat.Evacca = make([]*EVACCA, 0)
 
 	// 圧縮機特性リストを reflist.efl から読み取る
-	Eqcat.Rfcmp = Refcmpdat()
+	Eqcat.Rfcmp = Refcmpdat(efl_path)
 
 	// ポンプ・ファンの部分負荷特性の近似式係数 を pumpfanlst.efl から読み取る
-	Eqcat.Pfcmp = PFcmpdata()
+	Eqcat.Pfcmp = PFcmpdata(efl_path)
 
 	E = fmt.Sprintf(ERRFMT, dsn)
 

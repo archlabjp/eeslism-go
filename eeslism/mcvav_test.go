@@ -1,6 +1,8 @@
 package eeslism
 
 import (
+	"bytes"
+	"strings"
 	"testing"
 )
 
@@ -707,6 +709,112 @@ func createControlSequenceVAV() *VAV {
 	return vav
 }
 
+// TestVAVdata tests the VAVdata function
+func TestVAVdata(t *testing.T) {
+	t.Run("SetName_VAV", func(t *testing.T) {
+		vavca := &VAVCA{}
+		result := VAVdata(VAV_TYPE, "TestVAV", vavca)
+
+		if result != 0 {
+			t.Errorf("VAVdata should return 0 for name, got %d", result)
+		}
+		if vavca.Name != "TestVAV" {
+			t.Errorf("Name = %s, want TestVAV", vavca.Name)
+		}
+		if vavca.Type != VAV_PDT {
+			t.Errorf("Type = %d, want VAV_PDT", vavca.Type)
+		}
+	})
+
+	t.Run("SetName_VWV", func(t *testing.T) {
+		vavca := &VAVCA{}
+		result := VAVdata(VWV_TYPE, "TestVWV", vavca)
+
+		if result != 0 {
+			t.Errorf("VAVdata should return 0 for name, got %d", result)
+		}
+		if vavca.Name != "TestVWV" {
+			t.Errorf("Name = %s, want TestVWV", vavca.Name)
+		}
+		if vavca.Type != VWV_PDT {
+			t.Errorf("Type = %d, want VWV_PDT", vavca.Type)
+		}
+	})
+
+	t.Run("Set_Gmax", func(t *testing.T) {
+		vavca := &VAVCA{}
+		result := VAVdata(VAV_TYPE, "Gmax=2.5", vavca)
+
+		if result != 0 {
+			t.Errorf("VAVdata should return 0 for Gmax, got %d", result)
+		}
+		if vavca.Gmax != 2.5 {
+			t.Errorf("Gmax = %f, want 2.5", vavca.Gmax)
+		}
+	})
+
+	t.Run("Set_Gmin", func(t *testing.T) {
+		vavca := &VAVCA{}
+		result := VAVdata(VAV_TYPE, "Gmin=0.3", vavca)
+
+		if result != 0 {
+			t.Errorf("VAVdata should return 0 for Gmin, got %d", result)
+		}
+		if vavca.Gmin != 0.3 {
+			t.Errorf("Gmin = %f, want 0.3", vavca.Gmin)
+		}
+	})
+
+	t.Run("Set_dTset", func(t *testing.T) {
+		vavca := &VAVCA{}
+		result := VAVdata(VAV_TYPE, "dTset=8.0", vavca)
+
+		if result != 0 {
+			t.Errorf("VAVdata should return 0 for dTset, got %d", result)
+		}
+		if vavca.dTset != 8.0 {
+			t.Errorf("dTset = %f, want 8.0", vavca.dTset)
+		}
+	})
+
+	t.Run("UnknownKey", func(t *testing.T) {
+		vavca := &VAVCA{}
+		result := VAVdata(VAV_TYPE, "unknown=123", vavca)
+
+		if result != 1 {
+			t.Errorf("VAVdata should return 1 for unknown key, got %d", result)
+		}
+	})
+
+	t.Run("MultipleParameters", func(t *testing.T) {
+		vavca := &VAVCA{}
+
+		// Set name first
+		VAVdata(VAV_TYPE, "TestVAV", vavca)
+		if vavca.Name != "TestVAV" {
+			t.Errorf("Name = %s, want TestVAV", vavca.Name)
+		}
+
+		// Set Gmax
+		VAVdata(VAV_TYPE, "Gmax=2.0", vavca)
+		if vavca.Gmax != 2.0 {
+			t.Errorf("Gmax = %f, want 2.0", vavca.Gmax)
+		}
+
+		// Set Gmin
+		VAVdata(VAV_TYPE, "Gmin=0.5", vavca)
+		if vavca.Gmin != 0.5 {
+			t.Errorf("Gmin = %f, want 0.5", vavca.Gmin)
+		}
+
+		// Set dTset
+		VAVdata(VAV_TYPE, "dTset=10.0", vavca)
+		if vavca.dTset != 10.0 {
+			t.Errorf("dTset = %f, want 10.0", vavca.dTset)
+		}
+	})
+}
+
 // TestVavswptr tests the VAV switch pointer function
 func TestVavswptr(t *testing.T) {
 	t.Run("ChmodeBranch", func(t *testing.T) {
@@ -832,6 +940,67 @@ func TestChvavswreset(t *testing.T) {
 		}
 		if vav.G != 1.0 {
 			t.Errorf("Expected G=1.0 (unchanged), got %.2f", vav.G)
+		}
+	})
+}
+
+// TestVavprint tests the VAV output function
+func TestVavprint(t *testing.T) {
+	vav := createBasicVAV()
+	vavs := []*VAV{vav}
+
+	t.Run("Header1_id0", func(t *testing.T) {
+		var buf bytes.Buffer
+		vavprint(&buf, 0, vavs)
+		output := buf.String()
+
+		if !strings.Contains(output, string(VAV_TYPE)) {
+			t.Errorf("Missing VAV type in output: %s", output)
+		}
+		if !strings.Contains(output, "TestVAV") {
+			t.Errorf("Missing VAV name in output: %s", output)
+		}
+		if !strings.Contains(output, "1") {
+			t.Errorf("Missing count in output: %s", output)
+		}
+	})
+
+	t.Run("Header2_id1", func(t *testing.T) {
+		var buf bytes.Buffer
+		vavprint(&buf, 1, vavs)
+		output := buf.String()
+
+		// Check for item name suffixes
+		expectedPatterns := []string{"_c", "_G"}
+		for _, pattern := range expectedPatterns {
+			if !strings.Contains(output, "TestVAV"+pattern) {
+				t.Errorf("Missing %s in output: %s", pattern, output)
+			}
+		}
+	})
+
+	t.Run("Data_default", func(t *testing.T) {
+		var buf bytes.Buffer
+		vavprint(&buf, 99, vavs)
+		output := buf.String()
+
+		// Should contain data values (control char and flow rate)
+		if output == "" {
+			t.Errorf("Expected non-empty output for data")
+		}
+		// Flow rate should be present
+		if !strings.Contains(output, "1.5") { // G = 1.5
+			t.Errorf("Missing flow rate in output: %s", output)
+		}
+	})
+
+	t.Run("EmptyList", func(t *testing.T) {
+		var buf bytes.Buffer
+		vavprint(&buf, 0, []*VAV{})
+		output := buf.String()
+
+		if output != "" {
+			t.Errorf("Expected empty output for empty list, got: %s", output)
 		}
 	})
 }

@@ -22,6 +22,7 @@ import (
 	"io"
 	"math"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -674,8 +675,9 @@ PFcmpdata (Pump/Fan Characteristic Data)
 熱搬送システムや空調システムの省エネルギー設計、
 および運用改善のための意思決定に不可欠な役割を果たします。
 */
-func PFcmpdata() []*PFCMP {
-	fl, err := os.Open("pumpfanlst.efl")
+func PFcmpdata(efl_path string) []*PFCMP {
+	pumpfanlstPath := filepath.Join(efl_path, "pumpfanlst.efl")
+	fl, err := os.Open(pumpfanlstPath)
 	if err != nil {
 		// ファイルが見つからない場合は空のリストを返す
 		return make([]*PFCMP, 0)

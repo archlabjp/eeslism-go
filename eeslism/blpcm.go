@@ -437,7 +437,8 @@ func FNPCMState(Ctype int, Ss, Sl, Ql, Ts, Tl, Tp, T float64, PCMp *PCMPARAM) fl
 	// 潜熱分の補間
 	Qla = 0.0
 
-	Ql = 0.0
+	// NOTE: C版にはここにQl = 0.0がないので削除
+	// Qlを0にすると潜熱計算が無効化されてしまうバグだった
 
 	// 熱伝導率計算の場合は潜熱ゼロ
 	if Ctype == 0 {

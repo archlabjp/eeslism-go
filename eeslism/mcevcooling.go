@@ -340,8 +340,8 @@ func Evaccfv(Evac []*EVAC) {
 
 				// C行列の作成
 				C[ii*5+0] = 0.0                    // Twetの状態方程式には定数項はない
-				C[ii*5+1] = -cat.Awet * *kx * b[0] // xwetの定数項作成
-				C[ii*5+2] = A * b[0]               // Tsの定数項作成
+				C[ii*5+1] = -cat.Awet * *kx * b[ii] // xwetの定数項作成
+				C[ii*5+2] = A * b[ii]               // Tsの定数項作成
 				C[ii*5+3] = 0.0                    // Tdryの係数はゼロ
 				C[ii*5+4] = 0.0                    // xdryの係数はゼロ
 
@@ -355,7 +355,7 @@ func Evaccfv(Evac []*EVAC) {
 				U[N*(5*ii+4)+(5*ii+4)] = 1.0                              // xdryの項
 
 				U[N*(5*ii+0)+(5*ii+2)] = cat.Awet * cat.hwet   // TwetとTsの項
-				U[N*(5*ii+1)+(5*ii+2)] = cat.Awet * *kx * a[0] // xwetとTsの項
+				U[N*(5*ii+1)+(5*ii+2)] = cat.Awet * *kx * a[ii] // xwetとTsの項
 				U[N*(5*ii+2)+(5*ii+0)] = cat.hwet              // TsとTwetの項
 				U[N*(5*ii+2)+(5*ii+1)] = A                     // Tsとxwetの項
 				U[N*(5*ii+2)+(5*ii+3)] = cat.hdry              // TsとTdryの項
@@ -387,13 +387,14 @@ func Evaccfv(Evac []*EVAC) {
 
 			Row := N * (5*(cat.N-1) + 3)
 
-			EoTdry.Coeffo = -1.0                                            // Tdryoutの要素方程式
-			EoTdry.Co = -evac.UXC[5*(cat.N-1)+3]                            // 定数の項
-			EoTdry.Coeffin[0] = -evac.UX[Row+(5*(cat.N-1)+3)] * (Ca * Gdry) // Tdryinの項
-			EoTdry.Coeffin[1] = -evac.UX[Row+(5*(1-1)+4)] * -1.0            // xdryinの項
+			EoTdry.Coeffo = -1.0                                          // Tdryoutの要素方程式
+			EoTdry.Co = -evac.UXC[5*(cat.N-1)+3]                          // 定数の項
+			EoTdry.Coeffin[0] = -evac.UX[Row+(5*(1-1)+3)] * (Ca * Gdry)   // Tdryinの項
+			EoTdry.Coeffin[1] = -evac.UX[Row+(5*(1-1)+4)] * -1.0          // xdryinの項
 			EoTdry.Coeffin[2] = -evac.UX[Row+(5*(cat.N-1)+0)] * (Ca * Gwet) // Twetinの項
-			EoTdry.Coeffin[3] = -evac.UX[Row+(5*(cat.N-1)+1)] * (Gwet)      // xwetinの項
+			EoTdry.Coeffin[3] = -evac.UX[Row+(5*(cat.N-1)+1)] * (Gwet)    // xwetinの項
 
+			Row = N * (5*(cat.N-1) + 4)
 			Eoxdry.Coeffo = -1.0                                            // xdryoutの要素方程式
 			Eoxdry.Co = -evac.UXC[5*(cat.N-1)+4]                            // 定数の項
 			Eoxdry.Coeffin[0] = -evac.UX[Row+(5*(1-1)+4)] * -1.0            // xdryinの項

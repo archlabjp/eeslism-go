@@ -18,9 +18,13 @@ package eeslism
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 )
+
+// PCMデバッグ出力フラグ（環境変数DEBUG_PCMで有効化）
+var debugPCM = os.Getenv("DEBUG_PCM") != ""
 
 /* ------------------------------------------ */
 
@@ -245,6 +249,14 @@ func Wallfdc(M int, mp int, res []float64, cap []float64,
 	// double	Croa;				// 見かけの比熱
 	var ToldPCMave, ToldPCMNodeL, ToldPCMNodeR float64
 
+	// デバッグ出力（環境変数DEBUG_PCMで有効化）
+	wallName := ""
+	if Wall != nil {
+		wallName = Wall.name
+	}
+	debugThisWall := debugPCM && Wall != nil && len(Wall.PCMLyr) > 0
+	_ = wallName // コンパイラ警告回避
+
 	Ul := make([]float64, M)
 	Ur := make([]float64, M)
 	captempL := make([]float64, M+1)
@@ -278,7 +290,10 @@ func Wallfdc(M int, mp int, res []float64, cap []float64,
 			// 相変化温度を考慮した物性値の計算
 
 			// m点の左にPCMがある場合
-			if PCM != nil {
+			// 注意: m=0の場合、Twd[m-1]は配列境界外アクセスになる
+			// 現在の壁体定義では、壁の最初のセグメント（m=0）にPCMが配置されることはない
+			// （内部壁は表面層が先にあるため）
+			if PCM != nil && m > 0 {
 				pcmstate.TempPCMave = (Twd[m-1] + Twd[m]) * 0.5
 				pcmstate.TempPCMNodeL = Twd[m-1]
 				pcmstate.TempPCMNodeR = Twd[m]
@@ -295,9 +310,16 @@ func Wallfdc(M int, mp int, res []float64, cap []float64,
 					T = pcmstate.TempPCMNodeR
 					Toldn = ToldPCMNodeR
 				}
-				//pcmstate.tempPCM = T;
-				// m層の見かけの比熱
 
+				// デバッグ出力
+				if debugThisWall {
+					fmt.Printf("[PCM-L] Wall=%s m=%d: Twd[m-1]=%.6f Twd[m]=%.6f TempPCMave=%.6f\n",
+						wallName, m, Twd[m-1], Twd[m], pcmstate.TempPCMave)
+					fmt.Printf("[PCM-L] Wall=%s m=%d: ToldPCMave=%.6f (from prev iter) T=%.6f Toldn=%.6f AveTemp=%c\n",
+						wallName, m, ToldPCMave, T, Toldn, PCM.AveTemp)
+				}
+
+				// m層の見かけの比熱
 				var Croa float64
 				if PCM.Spctype == 'm' {
 					Croa = FNPCMStatefun(PCM.Ctype, PCM.Cros, PCM.Crol, PCM.Ql, PCM.Ts, PCM.Tl, PCM.Tp, Toldn, T, PCM.DivTemp, &PCM.PCMp)
@@ -306,6 +328,11 @@ func Wallfdc(M int, mp int, res []float64, cap []float64,
 				}
 				if Croa < 0.0 {
 					fmt.Printf("Croa=%f\n", Croa)
+				}
+
+				if debugThisWall {
+					fmt.Printf("[PCM-L] Wall=%s m=%d: Croa=%.6f capm=%.6f\n",
+						wallName, m, Croa, Croa*Wall.L[m])
 				}
 
 				pcmstate.CapmR = Croa
@@ -321,6 +348,11 @@ func Wallfdc(M int, mp int, res []float64, cap []float64,
 				pcmstate.OldLamdaR = lamda
 				pcmstate.LamdaR = lamda
 				resm = Wall.L[m] / lamda
+
+				if debugThisWall {
+					fmt.Printf("[PCM-L] Wall=%s m=%d: lamda=%.6f resm=%.6f\n",
+						wallName, m, lamda, resm)
+				}
 			}
 
 			// m点の右にPCMがある場合
@@ -329,6 +361,9 @@ func Wallfdc(M int, mp int, res []float64, cap []float64,
 				pcmstate1.TempPCMave = (Twd[m] + Twd[m+1]) * 0.5
 				pcmstate1.TempPCMNodeL = Twd[m]
 				pcmstate1.TempPCMNodeR = Twd[m+1]
+				// blroomene.cと同じ論理的に正しい実装: Told[m] + Told[m+1] を使用
+				// 注: blwall.cはTold[m-1]+Told[m]を使用しているが、インデックスが1ずれたバグ
+				// TempPCMaveが(Twd[m]+Twd[m+1])*0.5なので、ToldPCMaveも同じインデックスを使うべき
 				ToldPCMave = (Told[m] + Told[m+1]) * 0.5
 				ToldPCMNodeL = Told[m]
 				ToldPCMNodeR = Told[m+1]
@@ -343,6 +378,16 @@ func Wallfdc(M int, mp int, res []float64, cap []float64,
 					Toldn = ToldPCMNodeL
 				}
 
+				// デバッグ出力
+				if debugThisWall {
+					fmt.Printf("[PCM-R] Wall=%s m=%d: Twd[m]=%.6f Twd[m+1]=%.6f TempPCMave=%.6f\n",
+						wallName, m, Twd[m], Twd[m+1], pcmstate1.TempPCMave)
+					fmt.Printf("[PCM-R] Wall=%s m=%d: Told[m-1]=%.6f Told[m]=%.6f ToldPCMave=%.6f\n",
+						wallName, m, func() float64 { if m > 0 { return Told[m-1] } else { return -1 } }(), Told[m], ToldPCMave)
+					fmt.Printf("[PCM-R] Wall=%s m=%d: T=%.6f Toldn=%.6f AveTemp=%c\n",
+						wallName, m, T, Toldn, PCM1.AveTemp)
+				}
+
 				// m層の見かけの比熱
 				var Croa float64
 				if PCM1.Spctype == 'm' {
@@ -352,6 +397,11 @@ func Wallfdc(M int, mp int, res []float64, cap []float64,
 				}
 				if Croa < 0. {
 					fmt.Printf("Croa=%f\n", Croa)
+				}
+
+				if debugThisWall {
+					fmt.Printf("[PCM-R] Wall=%s m=%d: Croa=%.6f capm1=%.6f lamda will be calculated\n",
+						wallName, m, Croa, Croa*Wall.L[m+1])
 				}
 
 				pcmstate1.CapmL = Croa
@@ -367,6 +417,11 @@ func Wallfdc(M int, mp int, res []float64, cap []float64,
 				pcmstate1.OldLamdaL = lamda
 				pcmstate1.LamdaL = lamda
 				resm1 = Wall.L[m+1] / lamda
+
+				if debugThisWall {
+					fmt.Printf("[PCM-R] Wall=%s m=%d: lamda=%.6f resm1=%.6f\n",
+						wallName, m, lamda, resm1)
+				}
 			}
 
 			// PCMと基材との含有率による重みづけ平均
@@ -548,9 +603,10 @@ func Twall(M, mp int, UX []float64, uo, um, Pc, Ti, To, WpT float64, Told, Tw []
 	}
 
 	// PCMの温度飛び越えのチェック
+	// m=0の場合、Tw[m-1]は配列境界外アクセスになるため除外
 	for m := 0; m < M; m++ {
 		PCMLyr := pcm[m]
-		if PCMLyr != nil {
+		if PCMLyr != nil && m > 0 {
 			// 現在時刻のPCM温度
 			Tpcm := (Tw[m-1] + Tw[m]) * 0.5
 

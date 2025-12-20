@@ -123,6 +123,17 @@ func Syseqv(_Elout []*ELOUT, Syseq *SYSEQ) {
 			cfin := elout.Coeffin[j]
 			elov := elin.Upv
 
+			// DEBUG: RDPNLの全入力要素の状態を出力
+			if DEBUG_RDPNL_COEFF && elout.Cmp != nil && elout.Cmp.Eqptype == RDPANEL_TYPE {
+				elovName := "nil"
+				elovCtrl := "-"
+				if elov != nil {
+					elovName = elov.Cmp.Name
+					elovCtrl = string(elov.Control)
+				}
+				fmt.Printf("DEBUG Go RDPNL elin[%d]: elov=%s control=%s cfin=%.6f\n", j, elovName, elovCtrl, cfin)
+			}
+
 			if elov != nil {
 				if DEBUG {
 					fmt.Printf("xxx syseqv Elout=%d %s  in=%d elov=%s  control=%c sys=%f\n",
@@ -138,6 +149,10 @@ func Syseqv(_Elout []*ELOUT, Syseq *SYSEQ) {
 
 				if elov.Control == ON_SW {
 					n = elin.Upv.Sv
+					// DEBUG: RDPNLの係数加算を詳細出力
+					if DEBUG_RDPNL_COEFF && elout.Cmp != nil && elout.Cmp.Eqptype == RDPANEL_TYPE {
+						fmt.Printf("DEBUG Go Syseqv RDPNL input j=%d: n=%d cfin=%.10f elov=%s\n", j, n, cfin, elov.Cmp.Name)
+					}
 					a[n] += cfin
 				} else if elov.Control == LOAD_SW ||
 					elov.Control == FLWIN_SW ||
@@ -168,6 +183,21 @@ func Syseqv(_Elout []*ELOUT, Syseq *SYSEQ) {
 
 		//for ( i = 0; i < Nsv; i++ )
 		//	fmt.Printf ( "%g\n", sysmcf[i+Nsv*7] ) ;
+	}
+
+	// DEBUG: パネル行のマトリクス値を出力
+	if DEBUG_RDPNL_COEFF && Nsv > 0 {
+		for i := 0; i < m; i++ {
+			if eleq[i] != nil && eleq[i].Cmp != nil {
+				if eleq[i].Cmp.Eqptype == RDPANEL_TYPE {
+					fmt.Printf("DEBUG Go Syseqv RDPNL row %d: ", i)
+					for j := 0; j < Nsv && j < 5; j++ {
+						fmt.Printf("a[%d]=%.10f ", j, sysmcf[Nsv*i+j])
+					}
+					fmt.Printf("b=%.10f\n", syscv[i])
+				}
+			}
+		}
 	}
 
 	if Nsv > 0 {

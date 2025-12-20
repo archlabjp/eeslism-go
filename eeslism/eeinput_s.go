@@ -147,9 +147,21 @@ func NewEeTokens(s string) *EeTokens {
 		//行単位の処理
 		line := scanner.Text()
 
-		// コメントの除去
-		if st := strings.IndexRune(line, '!'); st != -1 {
-			line = line[:st]
+		// コメントの除去 (!=は演算子なのでコメントとして扱わない)
+		commentIdx := -1
+		for i := 0; i < len(line); i++ {
+			if line[i] == '!' {
+				// `!=`は演算子なのでスキップ
+				if i+1 < len(line) && line[i+1] == '=' {
+					i++ // `=`もスキップ
+					continue
+				}
+				commentIdx = i
+				break
+			}
+		}
+		if commentIdx != -1 {
+			line = line[:commentIdx]
 		}
 
 		// 空文字の除去
@@ -782,7 +794,7 @@ func Eeinput(Ipath string, efl_path string, bdata, week, schtba, schnma string, 
 
 		case "EQPCAT":
 			section := tokens.GetSection()
-			Eqcadata(section, Eqcat)
+			Eqcadata(section, Eqcat, efl_path)
 
 		case "SYSCMP": // 接続用のノードを設定している
 			/*****Flwindata(Flwin, Nflwin,  Wd);********/
@@ -811,8 +823,11 @@ func Eeinput(Ipath string, efl_path string, bdata, week, schtba, schnma string, 
 
 		// 20170503 higuchi add
 		case "DIVID":
+			fmt.Printf("DEBUG DIVID: before parse - monten=%d, DE=%f, pos=%d\n", *monten, *DE, tokens.GetPos())
 			section := tokens.GetSection()
+			fmt.Printf("DEBUG DIVID: section tokens=%v\n", section.tokens)
 			dividdata(section, monten, DE)
+			fmt.Printf("DEBUG DIVID: after parse - monten=%d, DE=%f, pos=%d\n", *monten, *DE, tokens.GetPos())
 
 		/*--対象建物データ読み込み--*/
 		case "COORDNT":

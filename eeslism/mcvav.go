@@ -276,8 +276,9 @@ func vavswptr(key []string, VAV *VAV) (VPTR, error) {
 }
 
 func chvavswreset(Qload float64, chmode ControlSWType, vav *VAV) int {
-	if (chmode == HEATING_SW && Qload < 0.0) ||
-		(chmode == COOLING_SW && Qload > 0.0) {
+	// Q_EPSILON を使用して微小な負/正の値を無視（浮動小数点誤差対策）
+	if (chmode == HEATING_SW && Qload < -Q_EPSILON) ||
+		(chmode == COOLING_SW && Qload > Q_EPSILON) {
 		vav.G = vav.Cat.Gmin
 		return 1
 	} else {

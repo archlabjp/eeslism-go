@@ -24,7 +24,7 @@ import (
 )
 
 // DEBUG_RDPNL: パネルエネルギー計算のデバッグ出力フラグ
-const DEBUG_RDPNL = true
+const DEBUG_RDPNL = false
 
 // DEBUG_RDPNL_COEFF: パネル係数のデバッグ出力フラグ
 const DEBUG_RDPNL_COEFF = false

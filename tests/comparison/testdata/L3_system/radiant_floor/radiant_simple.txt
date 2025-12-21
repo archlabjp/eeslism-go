@@ -65,7 +65,7 @@ SYSPTH
 *
 
 CONTL
-	FloorHeatingPath=on ;
+	FloorHeatingPath=ON ;
 	LOAD -e Boiler Boiler_Tout=45 ;
 *
 *

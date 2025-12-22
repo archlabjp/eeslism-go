@@ -872,16 +872,6 @@ func Entry(InFile string, efl_path string) {
 						hcldwetmdreset(Eqsys)
 					}
 
-					// DEBUG: 4/25 20:00 付近の詳細
-					if Daytm.Mon == 4 && Daytm.Day == 25 && Daytm.Time >= 19.0 && Daytm.Time <= 21.0 {
-						for _, hl := range Eqsys.Hcload {
-							if hl.Cmp != nil && hl.Cmp.Name == "RoomAC" {
-								fmt.Printf("DEBUG Go e79: Day=%d Time=%.1f iter=%d Wetmode=%v Wet=%v Xain=%.6f\n",
-									Daytm.Day, Daytm.Time, i, hl.Wetmode, hl.Wet, hl.Xain)
-							}
-						}
-					}
-
 					if DEBUG {
 						fmt.Printf("再計算が必要な機器のループ %d\n", i)
 					}

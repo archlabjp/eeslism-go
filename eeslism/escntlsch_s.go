@@ -471,11 +471,8 @@ func chqlreset(Hcload *HCLOAD) int {
 	chmode := Hcload.Chmode
 	Elo := Hcload.Cmp.Elouts[1]
 
-	// DEBUG: Always output for investigation
-	fmt.Printf("DEBUG Go chqlreset: name=%s wet=%v Ql=%.6f Qs=%.6f Chmode=%c\n",
-		Hcload.Cmp.Name, wet, Ql, Qs, Hcload.Chmode)
-
-	if (wet && Ql > 1.e-6) || (wet && Qs >= 0.0) {
+	// Q_EPSILON を使用して微小な値を無視（浮動小数点誤差対策）
+	if (wet && Ql > Q_EPSILON) || (wet && Qs >= Q_EPSILON) {
 		Hcload.Wetmode = false
 		Elo.Control = ON_SW
 		Elo.Sysld = 'n'
@@ -487,7 +484,8 @@ func chqlreset(Hcload *HCLOAD) int {
 		return 1
 	}
 
-	if chmode == COOLING_SW && (Ql > 0.0 || Qs >= 0.0) {
+	// Q_EPSILON を使用して微小な値を無視（浮動小数点誤差対策）
+	if chmode == COOLING_SW && (Ql > Q_EPSILON || Qs >= Q_EPSILON) {
 		Elo.Control = ON_SW
 		Hcload.Wetmode = false
 		Elo.Sysld = 'n'

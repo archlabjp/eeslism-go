@@ -132,8 +132,9 @@ func Walli(Nbm int, W []BMLST, Wl *WALL, pcm []*PCM) {
 		}
 
 		if k == Nbm {
-			E := fmt.Sprintf("%s", Welm.Code)
+			E := fmt.Sprintf("Material not found: %s", Welm.Code)
 			Eprint("<Walli>", E)
+			os.Exit(EXIT_WBMLST)
 		}
 
 		// 熱伝導率、容積比熱のコピー

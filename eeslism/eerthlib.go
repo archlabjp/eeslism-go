@@ -16,14 +16,12 @@ func Tearth(Z float64, n int, nmx int, Tgro float64, DTg float64, a float64) flo
 /* -------------------------------------------------- */
 
 func Exsfter(day int, daymx int, Tgrav float64, DTgr float64, Exs []*EXSF, Wd *WDAT, tt int) {
-	if Exs != nil {
-		for i := range Exs {
-			_Exs := Exs[i]
-			if _Exs.Typ == EXSFType_E {
-				_Exs.Tearth = Tearth(_Exs.Z, day, daymx, Tgrav, DTgr, _Exs.Erdff)
-			} else if _Exs.Typ == EXSFType_e {
-				_Exs.Tearth = Wd.EarthSurface[day*24+tt]
-			}
+	for i := range Exs {
+		_Exs := Exs[i]
+		if _Exs.Typ == EXSFType_E {
+			_Exs.Tearth = Tearth(_Exs.Z, day, daymx, Tgrav, DTgr, _Exs.Erdff)
+		} else if _Exs.Typ == EXSFType_e {
+			_Exs.Tearth = Wd.EarthSurface[day*24+tt]
 		}
 	}
 }

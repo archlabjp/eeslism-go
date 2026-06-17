@@ -41,14 +41,12 @@ func Rmhtrcf(exs *EXSFS, emrk []rune, rooms []*ROOM, sds []*RMSRF, wd *WDAT) {
 		__Rmhtrcf_count++
 	}
 
-	if sds != nil {
-		for _, sd := range sds {
-			if sd.mwtype == RMSRFMwType_C && sd.mwside == RMSRFMwSideType_i {
-				// 内壁の場合は裏面室の熱伝達率を入れ替える
-				nxsd := sd.nxsd
-				sd.alo = nxsd.ali
-				nxsd.alo = sd.ali
-			}
+	for _, sd := range sds {
+		if sd.mwtype == RMSRFMwType_C && sd.mwside == RMSRFMwSideType_i {
+			// 内壁の場合は裏面室の熱伝達率を入れ替える
+			nxsd := sd.nxsd
+			sd.alo = nxsd.ali
+			nxsd.alo = sd.ali
 		}
 	}
 }
@@ -224,7 +222,6 @@ func Rmexct(Room []*ROOM, Sd []*RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []*SNBK, Qrm 
 				rm.Qrnab += Rab * Sdn.A * Sdn.K // 部屋rmの夜間放射による熱損失 [W]
 
 				Q.Solw += Sdn.A * (Idre + Idf) /*--higuchi add  --*/
-				break
 
 			case BLE_ExternalWall, BLE_Floor, BLE_Roof: // このあたりを参考に修正（相当外気温度の計算）
 				if Sdn.typ != RMSRFType_E && Sdn.typ != RMSRFType_e {
@@ -258,7 +255,6 @@ func Rmexct(Room []*ROOM, Sd []*RMSRF, Wd *WDAT, Exs []*EXSF, Snbk []*SNBK, Qrm 
 					Sdn.Qrn = 0.0 // 地中は夜間放射なし
 					Sdn.Qga = 0.0
 				}
-				break
 
 			// NOTE: BLE_InnerWall, BLE_InnerFloor, BLE_Ceil, BLE_d はループの最初で処理済み
 			}

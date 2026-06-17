@@ -91,7 +91,7 @@ func TestCAT(t *testing.T) {
 
 func TestCAT_NegativeZeroHandling(t *testing.T) {
 	// Test specific case for -0.0 handling
-	a, b, c := -0.0, -0.0, -0.0
+	a, b, c := 0.0, 0.0, 0.0
 	CAT(&a, &b, &c)
 
 	// Check that -0.0 is converted to 0.0

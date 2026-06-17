@@ -213,6 +213,183 @@ func TestSolarWallCollectorEfficiency(t *testing.T) {
 	}
 }
 
+// TestFNScol は集熱器の放射取得熱量計算関数をテストする
+func TestFNScol(t *testing.T) {
+	tests := []struct {
+		name    string
+		ta      float64 // 透過率×吸収率
+		I       float64 // 日射量 [W/m2]
+		EffPV   float64 // 太陽電池発電効率
+		Ku      float64 // 熱損失係数
+		ao      float64 // 外表面熱伝達率
+		Eo      float64 // 放射率
+		Fs      float64 // 天空形態係数
+		RN      float64 // 夜間放射量
+		wantMin float64
+		wantMax float64
+	}{
+		{
+			name: "高日射・太陽電池なし",
+			ta:   0.8, I: 600.0, EffPV: 0.0,
+			Ku: 8.0, ao: 23.0, Eo: 0.9, Fs: 0.5, RN: 50.0,
+			wantMin: 460.0, wantMax: 500.0,
+		},
+		{
+			name: "太陽電池込み",
+			ta:   0.8, I: 600.0, EffPV: 0.15,
+			Ku: 8.0, ao: 23.0, Eo: 0.9, Fs: 0.5, RN: 50.0,
+			wantMin: 370.0, wantMax: 420.0,
+		},
+		{
+			name: "日射ゼロ",
+			ta:   0.8, I: 0.0, EffPV: 0.0,
+			Ku: 8.0, ao: 23.0, Eo: 0.9, Fs: 0.5, RN: 50.0,
+			wantMin: -20.0, wantMax: 0.0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := FNScol(tt.ta, tt.I, tt.EffPV, tt.Ku, tt.ao, tt.Eo, tt.Fs, tt.RN)
+			if got < tt.wantMin || got > tt.wantMax {
+				t.Errorf("FNScol() = %f, want in [%f, %f]", got, tt.wantMin, tt.wantMax)
+			}
+		})
+	}
+}
+
+// TestFNTf は熱媒平均温度計算関数をテストする
+func TestFNTf(t *testing.T) {
+	// FNTf = (1-ECG)*Tcole + ECG*Tcin
+	// ECG大→Tcin(入口)側, ECG=0→Tcole(集熱温度)と一致
+	tests := []struct {
+		name  string
+		Tcin  float64
+		Tcole float64
+		ECG   float64
+		want  float64
+	}{
+		{"流量大(ECG=0.9): 入口温度側に引き寄せられる", 20.0, 50.0, 0.9, 23.0},
+		{"流量ゼロ(ECG=0): 集熱温度と一致", 20.0, 50.0, 0.0, 50.0},
+		{"中間流量(ECG=0.5)", 25.0, 45.0, 0.5, 35.0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := FNTf(tt.Tcin, tt.Tcole, tt.ECG)
+			// 許容誤差 0.1
+			if got < tt.want-0.1 || got > tt.want+0.1 {
+				t.Errorf("FNTf(%f, %f, %f) = %f, want ~%f", tt.Tcin, tt.Tcole, tt.ECG, got, tt.want)
+			}
+		})
+	}
+}
+
+// TestVentAirLayerar は通気層放射熱伝達率計算関数をテストする
+func TestVentAirLayerar(t *testing.T) {
+	tests := []struct {
+		name    string
+		dblEsu  float64 // 上面放射率
+		dblEsd  float64 // 下面放射率
+		dblTsu  float64 // 上面温度 [℃]
+		dblTsd  float64 // 下面温度 [℃]
+		wantMin float64
+		wantMax float64
+	}{
+		{
+			name:    "高放射率・高温",
+			dblEsu: 0.9, dblEsd: 0.9, dblTsu: 50.0, dblTsd: 40.0,
+			wantMin: 4.0, wantMax: 7.0,
+		},
+		{
+			name:    "低放射率",
+			dblEsu: 0.1, dblEsd: 0.1, dblTsu: 30.0, dblTsd: 20.0,
+			wantMin: 0.0, wantMax: 1.0,
+		},
+		{
+			name:    "標準条件",
+			dblEsu: 0.9, dblEsd: 0.9, dblTsu: 20.0, dblTsd: 20.0,
+			wantMin: 4.0, wantMax: 6.0,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := VentAirLayerar(tt.dblEsu, tt.dblEsd, tt.dblTsu, tt.dblTsd)
+			if got < tt.wantMin || got > tt.wantMax {
+				t.Errorf("VentAirLayerar() = %f, want in [%f, %f]", got, tt.wantMin, tt.wantMax)
+			}
+		})
+	}
+}
+
+// TestFNVentAirLayerac は通気層自然対流熱伝達率計算関数をテストする
+func TestFNVentAirLayerac(t *testing.T) {
+	tests := []struct {
+		name         string
+		Tsu          float64 // 上面温度 [℃]
+		Tsd          float64 // 下面温度 [℃]
+		air_layer_t  float64 // 通気層厚さ [m]
+		Wb           float64 // 傾斜角 [rad]
+		wantPositive bool
+	}{
+		{
+			name: "垂直通気層・温度差あり",
+			Tsu: 40.0, Tsd: 20.0, air_layer_t: 0.05, Wb: 0.0,
+			wantPositive: true,
+		},
+		{
+			name: "水平通気層(Wb=π/2)・温度差あり",
+			Tsu: 30.0, Tsd: 20.0, air_layer_t: 0.05, Wb: 1.5708,
+			wantPositive: true,
+		},
+		{
+			name: "標準屋根傾斜(30度)・標準条件",
+			Tsu: 35.0, Tsd: 25.0, air_layer_t: 0.05, Wb: 0.5236,
+			wantPositive: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := FNVentAirLayerac(tt.Tsu, tt.Tsd, tt.air_layer_t, tt.Wb)
+			if tt.wantPositive && got <= 0 {
+				t.Errorf("FNVentAirLayerac() = %f, want positive value", got)
+			}
+		})
+	}
+}
+
+// TestFNJurgesac はユルゲス式による強制対流熱伝達率計算をテストする
+func TestFNJurgesac(t *testing.T) {
+	// FNJurgesac は Sd.dblTf を使うため、適切な構造体を用意する
+	Sd := &RMSRF{
+		dblTf: 30.0, // 集熱空気平均温度 [℃]
+	}
+
+	tests := []struct {
+		name    string
+		dblV    float64 // 流速 [m/s]
+		a       float64 // 通気層幅 [m]
+		b       float64 // 通気層厚さ [m]
+		wantMin float64
+	}{
+		{"低流速", 0.5, 1.0, 0.05, 1.0},
+		{"中流速", 2.0, 1.0, 0.05, 5.0},
+		{"高流速", 5.0, 1.0, 0.05, 10.0},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := FNJurgesac(Sd, tt.dblV, tt.a, tt.b)
+			if got < tt.wantMin {
+				t.Errorf("FNJurgesac(v=%f, a=%f, b=%f) = %f, want >= %f",
+					tt.dblV, tt.a, tt.b, got, tt.wantMin)
+			}
+		})
+	}
+}
+
 func TestSolarWallMultipleCollectors(t *testing.T) {
 	// Test multiple collector sections
 	numSections := 4

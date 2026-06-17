@@ -68,17 +68,23 @@ const (
 	// ---- Satoh Debug VAV  2000/10/30 ----
 	VAV_PDT VAVType = 'A' // 空気
 	VWV_PDT VAVType = 'W' // 温水
+)
 
+const (
 	PIPEDUCT_TYPE EqpType = "PIPE"
 	DUCT_TYPE     EqpType = "DUCT"
-	PIPE_PDT              = 'P'
-	DUCT_PDT              = 'D'
 
 	PUMP_TYPE EqpType = "PUMP"
 
 	FAN_TYPE EqpType = "FAN"
-	PUMP_PF          = 'P'
-	FAN_PF           = 'F'
+)
+
+const (
+	PIPE_PDT = 'P'
+	DUCT_PDT = 'D'
+
+	PUMP_PF = 'P'
+	FAN_PF  = 'F'
 
 	PUMP_C  = "C"
 	PUMP_Vv = "Vv"

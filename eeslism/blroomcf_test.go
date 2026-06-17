@@ -10,9 +10,7 @@ func TestEeroomcf_BasicStructures(t *testing.T) {
 		wd := &WDAT{}
 
 		// Basic structure test - just verify it can be created
-		if wd == nil {
-			t.Errorf("WDAT should not be nil")
-		}
+		_ = wd
 	})
 
 	t.Run("EXSFS structure", func(t *testing.T) {

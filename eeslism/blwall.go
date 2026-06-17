@@ -362,9 +362,6 @@ func Wallfdc(M int, mp int, res []float64, cap []float64,
 				pcmstate1.TempPCMave = (Twd[m] + Twd[m+1]) * 0.5
 				pcmstate1.TempPCMNodeL = Twd[m]
 				pcmstate1.TempPCMNodeR = Twd[m+1]
-				// blroomene.cと同じ論理的に正しい実装: Told[m] + Told[m+1] を使用
-				// 注: blwall.cはTold[m-1]+Told[m]を使用しているが、インデックスが1ずれたバグ
-				// TempPCMaveが(Twd[m]+Twd[m+1])*0.5なので、ToldPCMaveも同じインデックスを使うべき
 				ToldPCMave = (Told[m] + Told[m+1]) * 0.5
 				ToldPCMNodeL = Told[m]
 				ToldPCMNodeR = Told[m+1]

@@ -174,10 +174,6 @@ Boicfv (Boiler Characteristic Function Value Calculation)
 func Boicfv(Boi []*BOI) {
 	var cG, Qocat, Temp float64
 
-	if len(Boi) != len(Boi) {
-		panic("len(Boi) != len(Boi)")
-	}
-
 	for _, boi := range Boi {
 
 		Eo1 := boi.Cmp.Elouts[0]

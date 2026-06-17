@@ -153,7 +153,7 @@ func flindat(Flin *FLIN) {
 	//Err := fmt.Sprintf(ERRFMT, "(flindat)")
 	ss := Flin.Cmp.Tparm
 
-	for _, err := fmt.Sscanf(ss, "%s", &s); err == nil && strings.IndexRune(s, '*') == -1; _, err = fmt.Sscanf(ss, "%s", &s) {
+	for _, err := fmt.Sscanf(ss, "%s", &s); err == nil && !strings.ContainsRune(s, '*'); _, err = fmt.Sscanf(ss, "%s", &s) {
 		ss = ss[len(s):]
 		for len(ss) > 0 && ss[0] == ' ' {
 			ss = ss[1:]

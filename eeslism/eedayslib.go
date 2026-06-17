@@ -470,7 +470,7 @@ minmark (Minimum Value Marking)
 */
 func minmark(minval *float64, timemin *int64, v float64, time int64) {
 	// C版との互換性：同値の場合も時刻を更新（最後の発生時刻を記録）
-	if v < *minval {
+	if v <= *minval {
 		*timemin = time
 		*minval = v
 	}
@@ -499,7 +499,7 @@ maxmark (Maximum Value Marking)
 */
 func maxmark(maxval *float64, timemax *int64, v float64, time int64) {
 	// C版との互換性：strictly greater than（同値では更新しない、最初の発生時刻を記録）
-	if v > *maxval {
+	if v >= *maxval {
 		*timemax = time
 		*maxval = v
 	}

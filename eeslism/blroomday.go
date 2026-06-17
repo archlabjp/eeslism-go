@@ -641,7 +641,6 @@ func paneldyprt(fo io.Writer, id int, _Rdpnl []*RDPNL) {
 				fmt.Fprintf(fo, " %s 1 28\n", Rdpnl.Name)
 			}
 		}
-		break
 
 	case 1:
 		for i := range _Rdpnl {
@@ -673,7 +672,6 @@ func paneldyprt(fo io.Writer, id int, _Rdpnl []*RDPNL) {
 				}
 			}
 		}
-		break
 
 	default:
 		for i := range _Rdpnl {
@@ -705,7 +703,6 @@ func paneldyprt(fo io.Writer, id int, _Rdpnl []*RDPNL) {
 				}
 			}
 		}
-		break
 	}
 }
 
@@ -757,7 +754,6 @@ func panelmonprt(fo io.Writer, id int, _Rdpnl []*RDPNL) {
 				}
 			}
 		}
-		break
 
 	case 1:
 		for i := range _Rdpnl {
@@ -789,7 +785,6 @@ func panelmonprt(fo io.Writer, id int, _Rdpnl []*RDPNL) {
 				}
 			}
 		}
-		break
 
 	default:
 		for i := range _Rdpnl {
@@ -821,7 +816,6 @@ func panelmonprt(fo io.Writer, id int, _Rdpnl []*RDPNL) {
 				}
 			}
 		}
-		break
 	}
 }
 

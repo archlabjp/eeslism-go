@@ -121,10 +121,8 @@ func Helminit(errkey string, helmkey rune, _Room []*ROOM, Qetotal *QETOTAL) {
 				} else {
 					Rs.Type = RMSBType_G
 				}
-				break
 			case BLE_InnerWall, BLE_InnerFloor, BLE_Ceil, BLE_d:
 				Rs.Type = RMSBType_i
-				break
 			}
 		}
 		if Room.N > Nmax {
@@ -320,7 +318,6 @@ func helmrmprint(fo io.Writer, id int, _Room []*ROOM, Qetotal *QETOTAL) {
 			}
 		}
 		fmt.Fprintf(fo, "%s 1 %d\n", Qetotal.Name, 29)
-		break
 
 	case 1:
 		for i := 0; i < Nroom+1; i++ {
@@ -343,7 +340,6 @@ func helmrmprint(fo io.Writer, id int, _Room []*ROOM, Qetotal *QETOTAL) {
 			fmt.Fprintf(fo, "%s_qldhl q f %s_qldcl q f %s_hinl q f\n", name, name, name)
 			fmt.Fprintf(fo, "%s_vol q f %s_vrl q f %s_stol q f\n", name, name, name)
 		}
-		break
 
 	default:
 		for i := 0; i < Nroom+1; i++ {
@@ -381,7 +377,6 @@ func helmrmprint(fo io.Writer, id int, _Room []*ROOM, Qetotal *QETOTAL) {
 					qh.loadhl, qh.loadcl, qh.hinl, qh.vol, qh.vrl, qh.stol)
 			}
 		}
-		break
 	}
 }
 
@@ -489,7 +484,6 @@ func helmsfprint(fo io.Writer, id int, _Room []*ROOM) {
 			fmt.Fprintf(fo, "%s 1 %d\n", Room.Name, 6*Nsf)
 
 		}
-		break
 
 	case 1:
 		for i := range _Room {
@@ -509,7 +503,6 @@ func helmsfprint(fo io.Writer, id int, _Room []*ROOM) {
 				}
 			}
 		}
-		break
 
 	default:
 		for i := range _Room {
@@ -525,7 +518,6 @@ func helmsfprint(fo io.Writer, id int, _Room []*ROOM) {
 			}
 
 		}
-		break
 	}
 }
 
@@ -700,7 +692,6 @@ func helmrmdyprint(fo io.Writer, id int, _Room []*ROOM, Qetotal *QETOTAL) {
 			}
 		}
 		fmt.Fprintf(fo, "%s 1 %d\n", Qetotal.Name, 29)
-		break
 
 	case 1:
 		for i = 0; i < Nroom+1; i++ {
@@ -725,7 +716,6 @@ func helmrmdyprint(fo io.Writer, id int, _Room []*ROOM, Qetotal *QETOTAL) {
 			fmt.Fprintf(fo, "%s_qldhl Q f %s_qldcl Q f %s_hinl Q f\n", name, name, name)
 			fmt.Fprintf(fo, "%s_vol Q f %s_vrl Q f %s_stol Q f\n", name, name, name)
 		}
-		break
 
 	default:
 		for i = 0; i < Nroom+1; i++ {
@@ -773,7 +763,6 @@ func helmrmdyprint(fo io.Writer, id int, _Room []*ROOM, Qetotal *QETOTAL) {
 					qh.vol*Cff_kWh, qh.vrl*Cff_kWh, qh.stol*Cff_kWh)
 			}
 		}
-		break
 	}
 }
 

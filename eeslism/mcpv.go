@@ -210,21 +210,18 @@ func PVprint(fo io.Writer, id int, PV []*PV) {
 		for i := range PV {
 			fmt.Fprintf(fo, " %s 1 4\n", PV[i].Name)
 		}
-		break
 
 	case 1:
 		for i := range PV {
 			fmt.Fprintf(fo, " %s_TPV t f %s_I e f %s_P e f %s_Eff r f \n",
 				PV[i].Name, PV[i].Name, PV[i].Name, PV[i].Name)
 		}
-		break
 
 	default:
 		for i := range PV {
 			fmt.Fprintf(fo, " %4.1f %4.0f %3.0f %.3f\n",
 				PV[i].TPV, PV[i].Iarea, PV[i].Power, PV[i].Eff)
 		}
-		break
 	}
 }
 

@@ -197,7 +197,7 @@ func Compodata(f *EeTokens, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *E
 			vc1.Name = s // <compname1>
 
 			s = f.GetToken()
-			if strings.IndexRune(s, ')') != -1 {
+			if strings.ContainsRune(s, ')') {
 				// "ColdValv)" から "ColdValv" を取得（')'の前を取得）
 				idx := strings.IndexRune(s, ')')
 				s = s[:idx]
@@ -329,10 +329,10 @@ func Compodata(f *EeTokens, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *E
 				default:
 					Eprint(errkey, s)
 				}
-			} else if cio != 'V' && cio != 'S' && (strings.IndexRune(s, '-') != -1 || strings.IndexRune(s, '=') != -1) {
+			} else if cio != 'V' && cio != 'S' && (strings.ContainsRune(s, '-') || strings.ContainsRune(s, '=')) {
 				// PVcap-4000 または PVcap=4000 形式をサポート
 				var idx int
-				if strings.IndexRune(s, '=') != -1 {
+				if strings.ContainsRune(s, '=') {
 					idx = strings.IndexRune(s, '=')
 				} else {
 					idx = strings.IndexRune(s, '-')
@@ -366,7 +366,6 @@ func Compodata(f *EeTokens, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *E
 					if eqpcat(s, comp, Eqcat, Eqsys) {
 						Eprint(errkey, s)
 					}
-					break
 				case 't':
 					// `-type <種類>`
 					comp.Eqptype = EqpType(s)
@@ -407,18 +406,14 @@ func Compodata(f *EeTokens, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *E
 						}
 					}
 
-					break
-
 				case 'i':
 					// `-in`
 					idi = append(idi, ELIO_None)
 					Ni++
-					break
 				case 'o':
 					// `-out`
 					ido = append(ido, ELIO_None)
 					No++
-					break
 				case 'I':
 					// `-Nin <合流数>`
 					// Satoh DEBUG 1998/5/15
@@ -454,7 +449,6 @@ func Compodata(f *EeTokens, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *E
 					for i := 0; i < comp.Nin; i++ {
 						comp.Idi[i] = ' '
 					}
-					break
 				case 'O':
 					// `-Nout <分岐数>`
 					var err error
@@ -467,7 +461,6 @@ func Compodata(f *EeTokens, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *E
 						ido[i] = ELIO_SPACE
 					}
 					comp.Ido = ido
-					break
 
 				case 'L':
 					// `-L <配管長>`
@@ -476,23 +469,18 @@ func Compodata(f *EeTokens, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *E
 						panic(err)
 					}
 					comp.Ivparm = CreateConstantValuePointer(l)
-					break
 				case 'e':
 					// `-env <周囲温度>`
 					comp.Envname = s
-					break
 				case 'r':
 					// `-room <機器設置空間の室名>`
 					comp.Roomname = s
-					break
 				case 'h':
 					// `-hcc <VWV制御するときの制御対象熱交換器名称>`
 					comp.Hccname = s
-					break
 				case 'f':
 					// `-pfloor <VWV制御するときの制御対象床暖房>`
 					comp.Rdpnlname = s
-					break
 				case 'R':
 					// `-roomheff <ボイラ室内置き時の室内供給熱量率>`
 					var err error
@@ -502,15 +490,12 @@ func Compodata(f *EeTokens, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *E
 					if err != nil {
 						panic(err)
 					}
-					break
 				case 's':
 					// `-exs <太陽熱集熱器の方位・傾斜名>`
 					comp.Exsname = s
-					break
 				case 'M':
 					// `-control <集熱器が直列接続の場合に集熱器の要素名を流れ方向に記載する>`
 					comp.Omparm = s
-					break
 				case 'S', 'V':
 					// `-S <????>` or `-V <????>`
 					for {
@@ -522,7 +507,6 @@ func Compodata(f *EeTokens, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *E
 					}
 					s += " *"
 					comp.Tparm = s
-					break
 
 				case 'T':
 					// `-Tinit <蓄熱槽の初期水温>`
@@ -540,7 +524,6 @@ func Compodata(f *EeTokens, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *E
 					} else {
 						comp.Tparm = s
 					}
-					break
 				case 'w':
 					// `-wet` 冷却コイルで出口相対湿度一定の仮定で除湿の計算を行う。
 					wet, err := readFloat(s)
@@ -548,12 +531,10 @@ func Compodata(f *EeTokens, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *E
 						panic(err)
 					}
 					comp.Ivparm = CreateConstantValuePointer(wet)
-					break
 				case 'm':
 					// `-monitor` デバッグ用
 					comp.MonPlistName = s
 					comp.Valvcmp.MonPlistName = s
-					break
 				case 'P':
 					// `-PCMweight <電気蓄熱暖房器の潜熱蓄熱材重量（kg）>`
 					var err error
@@ -561,7 +542,6 @@ func Compodata(f *EeTokens, Rmvls *RMVLS, Eqcat *EQCAT, Cmp *[]*COMPNT, Eqsys *E
 					if err != nil {
 						panic(err)
 					}
-					break
 				}
 			}
 		}

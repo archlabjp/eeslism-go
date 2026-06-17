@@ -1,7 +1,6 @@
 package eeslism
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 	"strings"
@@ -899,7 +898,7 @@ func FindComponent(name string, Compnt []*COMPNT) (int, *COMPNT, error) {
 			return i, cmp, nil
 		}
 	}
-	return -1, nil, errors.New(fmt.Sprintf("Component [%s] not found", name))
+	return -1, nil, fmt.Errorf("Component [%s] not found", name)
 }
 
 /*

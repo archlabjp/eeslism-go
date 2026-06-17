@@ -209,7 +209,6 @@ func kynameptr(s string, Simc *SIMCONTL, _Compnt []*COMPNT,
 // 経路名のポインター
 func pathvptr(nk int, key []string, Mpath []*MPATH) (VPTR, VPTR, error) {
 	var err error
-	var Plist, Plie *PLIST
 	var vptr, vpath VPTR
 
 	found := false
@@ -235,6 +234,7 @@ func pathvptr(nk int, key []string, Mpath []*MPATH) (VPTR, VPTR, error) {
 		err = errors.New("i == Nmpath")
 		Mpe := Mpath[len(Mpath)-1]
 
+		foundInPlist := false
 		for _, Plist := range Mpe.Plist {
 			if Plist.Name != "" {
 				if key[0] == Plist.Name {
@@ -254,11 +254,12 @@ func pathvptr(nk int, key []string, Mpath []*MPATH) (VPTR, VPTR, error) {
 							Ptr:  &Plist.G,
 						}
 					}
+					foundInPlist = true
 					break
 				}
 			}
 		}
-		if Plist == Plie {
+		if !foundInPlist {
 			err = errors.New("Plist == Plie")
 		}
 	}

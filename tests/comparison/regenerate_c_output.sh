@@ -17,7 +17,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TESTDATA_DIR="$SCRIPT_DIR/testdata"
 PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 BASE_DIR="$PROJECT_ROOT/Base"
-C_EESLISM="/home/uda/ws/open_eeslism/build/eeslism"
+C_EESLISM="$PROJECT_ROOT/open_eeslism/build/eeslism"
 GO_EESLISM="$PROJECT_ROOT/eeslism-go"
 
 REGENERATE_GO=false
@@ -87,31 +87,50 @@ regenerate_single_test() {
     echo "Regenerating: $parent/$name ($txt_file) -> $c_out"
 
     # === C版の実行 ===
-    # Baseファイルをコピー（C版は--eflオプションがないため）
-    cp "$BASE_DIR"/* . 2>/dev/null || true
-
     # 既存の.esファイルを削除
     rm -f *.es *.gchi 2>/dev/null || true
 
-    # C版を実行
-    echo "" | timeout 120 "$C_EESLISM" "$txt_file" > /dev/null 2>&1 || true
+    # Baseファイルをコピー（C版は--eflオプション未対応のため）
+    cp "$BASE_DIR"/* . 2>/dev/null || true
+
+    # C版を実行（--eflなし）
+    echo "" | timeout 120 "$C_EESLISM" "$txt_file" > /dev/null 2>&1
     local exit_code=$?
 
-    if [ $exit_code -eq 139 ] || [ $exit_code -eq 11 ]; then
-        echo "  WARNING: C version crashed (segfault)"
+    # エラーチェック
+    local c_failed=false
+    if [ $exit_code -eq 139 ] || [ $exit_code -eq 134 ] || [ $exit_code -eq 136 ] || [ $exit_code -eq 11 ]; then
+        echo "  ERROR: C version crashed (signal $((exit_code - 128)))"
+        c_failed=true
     elif [ $exit_code -eq 124 ]; then
-        echo "  WARNING: C version timed out"
+        echo "  ERROR: C version timed out"
+        c_failed=true
+    elif [ $exit_code -ne 0 ]; then
+        echo "  WARNING: C version exited with code $exit_code"
     fi
 
-    # c_outputディレクトリを作成/クリア
-    mkdir -p "$c_out"
-    rm -f "$c_out"/*.es 2>/dev/null || true
+    # 生成されたファイル数を確認
+    local generated_count=$(ls *.es 2>/dev/null | wc -l)
+    if [ "$generated_count" -eq 0 ]; then
+        echo "  ERROR: C version produced no output files"
+        c_failed=true
+    fi
 
-    # 生成された.esファイルをc_outputに移動
-    mv *.es "$c_out/" 2>/dev/null || true
+    # クラッシュ時はc_outputを更新しない
+    if [ "$c_failed" = true ]; then
+        echo "  SKIP: Not updating $c_out due to errors"
+        rm -f *.es 2>/dev/null || true
+    else
+        # c_outputディレクトリを作成/クリア
+        mkdir -p "$c_out"
+        rm -f "$c_out"/*.es 2>/dev/null || true
 
-    local c_count=$(ls "$c_out"/*.es 2>/dev/null | wc -l)
-    echo "  C version: $c_count files"
+        # 生成された.esファイルをc_outputに移動
+        mv *.es "$c_out/" 2>/dev/null || true
+
+        local c_count=$(ls "$c_out"/*.es 2>/dev/null | wc -l)
+        echo "  C version: $c_count files"
+    fi
 
     # === Go版の実行（--both指定時） ===
     if [ "$REGENERATE_GO" = true ]; then

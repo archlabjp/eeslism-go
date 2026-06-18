@@ -1111,6 +1111,12 @@ func TestComparison_L2_Polygon(t *testing.T) {
 	runComparisonTest(t, "polygon", refDir, testDir)
 }
 
+func TestComparison_L2_Comfort(t *testing.T) {
+	refDir := "../tests/comparison/testdata/L2_equipment/comfort/c_output"
+	testDir := "../tests/comparison/testdata/L2_equipment/comfort/go_output"
+	runComparisonTest(t, "comfort", refDir, testDir)
+}
+
 func TestComparison_L2_Sunbrk(t *testing.T) {
 	refDir := "../tests/comparison/testdata/L2_equipment/sunbrk/c_output"
 	testDir := "../tests/comparison/testdata/L2_equipment/sunbrk/go_output"

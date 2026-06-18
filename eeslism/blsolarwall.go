@@ -637,7 +637,7 @@ func FNVentAirLayerac(Tsu, Tsd, air_layer_t, Wb float64) float64 {
 
 	RacosWb = Ra * mathCos(Wb)
 
-	dblTemp := (1.0 + 1.44*math.Max(0.0, 1.0-1708.0/RacosWb)*(1.0-mathPow(mathSin(1.8*Wb), 1.6)*1708.0/RacosWb) + math.Max(mathPow(RacosWb/5830.0, 1.0/3.0)-1.0, 0.0)) * air_layer_t / lama
+	dblTemp := (1.0 + 1.44*math.Max(0.0, 1.0-1708.0/RacosWb)*(1.0-mathPow(mathSin(1.8*Wb), 1.6)*1708.0/RacosWb) + math.Max(math.Cbrt(RacosWb/5830.0)-1.0, 0.0)) * air_layer_t / lama
 
 	return dblTemp
 }

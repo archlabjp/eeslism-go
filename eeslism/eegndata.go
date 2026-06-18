@@ -191,7 +191,7 @@ func Gdata(section *EeTokens, File string, wfname *string,
 					*dayxs = *days // 助走計算開始日
 					Daytm.Mon = Ms
 					Daytm.Day = Ds
-				} else if strings.IndexRune(s, '-') != -1 {
+				} else if strings.ContainsRune(s, '-') {
 					// For `1/1-12/31`
 					_, err = fmt.Sscanf(s, "%d/%d-%d/%d", &Ms, &Ds, &Me, &De)
 					if err != nil {
@@ -233,7 +233,7 @@ func Gdata(section *EeTokens, File string, wfname *string,
 				case "*debug":
 					DEBUG = true
 				default:
-					if strings.IndexRune(s, '-') == -1 {
+					if !strings.ContainsRune(s, '-') {
 						var Ms, Ds int
 						fmt.Sscanf(s, "%d/%d", &Ms, &Ds)
 						pday[FNNday(Ms, Ds)] = 1

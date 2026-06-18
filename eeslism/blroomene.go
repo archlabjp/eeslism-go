@@ -125,6 +125,9 @@ func Roomene(Rmvls *RMVLS, Room []*ROOM, Rdpnl []*RDPNL, Exsfs *EXSFS, Wd *WDAT)
 			}
 
 			if Wall.WallType == WallType_C {
+				// 通気層の表面温度の計算 (C版 blroomene.c:107相当)
+				FNTsuTsd(Sd, Wd, Exsfs)
+
 				var Kc float64
 				if Wall.chrRinput {
 					Kc = Sd.dblKc
@@ -151,6 +154,11 @@ func Roomene(Rmvls *RMVLS, Room []*ROOM, Rdpnl []*RDPNL, Exsfs *EXSFS, Wd *WDAT)
 				for k := 0; k < Sd.Ndiv; k++ {
 					Sd.Tc[k] = 0.0
 				}
+			}
+
+			// 通気層の表面温度の計算 (C版 blroomene.c:148-149相当)
+			if Wall.WallType == WallType_C {
+				FNTsuTsd(Sd, Wd, Exsfs)
 			}
 		}
 	}

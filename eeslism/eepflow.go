@@ -192,7 +192,7 @@ func Pflow(_Mpath []*MPATH, Wd *WDAT) {
 				}
 
 				// Elinsがnilまたは空の場合はスキップ
-				if cmp.Elins == nil || len(cmp.Elins) == 0 {
+				if len(cmp.Elins) == 0 {
 					continue
 				}
 

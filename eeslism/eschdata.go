@@ -42,7 +42,7 @@ func Dayweek(fi string, week string, daywk []int, key int) {
 		re := regexp.MustCompile(`(\d+)/(\d+)=(\S+)`)
 		matches := re.FindStringSubmatch(week)
 
-		if matches != nil && len(matches) == 4 {
+		if len(matches) == 4 {
 			M, _ = strconv.Atoi(matches[1])
 			D, _ = strconv.Atoi(matches[2])
 			s = matches[3]
@@ -91,7 +91,7 @@ func Dayweek(fi string, week string, daywk []int, key int) {
 		re := regexp.MustCompile(`^(\d+)/(\d+)$`)
 		matches := re.FindStringSubmatch(s)
 
-		if matches != nil && len(matches) == 3 {
+		if len(matches) == 3 {
 			M, _ = strconv.Atoi(matches[1])
 			D, _ = strconv.Atoi(matches[2])
 			d = FNNday(M, D)
@@ -146,7 +146,6 @@ func Schtable(schtba string, Schdl *SCHDL) {
 
 			Schdl.Seasn = append(Schdl.Seasn, Sn)
 
-			break
 		case "-wkd", "WKD":
 			// 曜日設定
 
@@ -169,7 +168,6 @@ func Schtable(schtba string, Schdl *SCHDL) {
 
 			Schdl.Wkdy = append(Schdl.Wkdy, Wk)
 
-			break
 		case "-v", "VL":
 			// 設定値スケジュール定義
 			fields := tokens.GetLogicalLine()
@@ -193,7 +191,6 @@ func Schtable(schtba string, Schdl *SCHDL) {
 
 			Schdl.Dsch = append(Schdl.Dsch, Dh)
 
-			break
 		case "-s", "SW":
 			// 切替設定スケジュール定義
 			fields := tokens.GetLogicalLine()
@@ -234,8 +231,6 @@ func Schtable(schtba string, Schdl *SCHDL) {
 			Dw.Nmod = nmod
 
 			Schdl.Dscw = append(Schdl.Dscw, Dw)
-
-			break
 		}
 	}
 }

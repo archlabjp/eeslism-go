@@ -77,6 +77,7 @@ func TestCoverage_AllComparisonCases(t *testing.T) {
 		"L2_equipment/storage_tank/storage_tank_stratified_test.txt",
 		"L2_equipment/storage_tank/stankvptr_test.txt",
 		"L2_equipment/storage_tank/storage_tank_coil_test.txt",
+		"L2_equipment/comfort/comfort_test.txt",
 		"L2_equipment/sunbrk/sunbrk_test.txt",
 		"L2_equipment/thex/thex_test.txt",
 		"L2_equipment/thex/thex_sched_test.txt",
@@ -98,6 +99,7 @@ func TestCoverage_AllComparisonCases(t *testing.T) {
 		"L3_system/pcm_wall/pcm_wall_test.txt",
 		"L3_system/pcm_wall/pcm_wall_phase_change_test.txt",
 		"L3_system/radiant_floor/radiant_floor_test.txt",
+		"L3_system/solar_wall/solar_wall_test.txt",
 		// L4_annual
 		"L4_annual/standard_house/annual_test.txt",
 		"L4_annual/standard_house/vav_annual_test.txt",

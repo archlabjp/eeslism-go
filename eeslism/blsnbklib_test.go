@@ -95,6 +95,54 @@ func TestFNFsdw(t *testing.T) {
 			h2:       2.0,
 			expected: 0.0, // Should calculate shadow factor
 		},
+		{
+			// type=HL (Ksdw=5): 無限幅水平庇 → FNAsdw2(Dp, Hr, Wr, Hi1) が呼ばれる
+			name:     "Long horizontal overhang (HL)",
+			typ:      5,
+			ksi:      0,
+			tazm:     0.0,
+			tprof:    45.0, // Dp = D * sin(45°) > 0
+			d:        0.8,
+			w:        2.0,
+			h:        1.8,
+			w1:       0.0,
+			h1:       0.2, // Hi1 = 0.2
+			w2:       0.0,
+			h2:       0.0,
+			expected: 0.0, // Fsdw は [0,1] の範囲内
+		},
+		{
+			// type=SL (Ksdw=6): 無限幅袖壁 → FNAsdw2(Da, Wr, Hr, Wi1) が呼ばれる
+			name:     "Long side fin (SL)",
+			typ:      6,
+			ksi:      90,
+			tazm:     30.0, // Da = D * cos(30°) > 0
+			tprof:    30.0,
+			d:        0.6,
+			w:        1.5,
+			h:        1.2,
+			w1:       0.3, // Wi1 = 0.3
+			h1:       0.0,
+			w2:       0.0,
+			h2:       0.0,
+			expected: 0.0, // Fsdw は [0,1] の範囲内
+		},
+		{
+			// type=K (Ksdw=9): 格子ルーバー → FNAsdw3 が呼ばれる
+			name:     "Grid louver (K)",
+			typ:      9,
+			ksi:      0,
+			tazm:     30.0,
+			tprof:    45.0,
+			d:        0.5,
+			w:        1.5,
+			h:        1.2,
+			w1:       0.3, // Wi1
+			h1:       0.2, // Hi1
+			w2:       0.3, // Wi2
+			h2:       0.2, // Hi2
+			expected: 0.0, // Fsdw は [0,1] の範囲内
+		},
 	}
 
 	for _, tt := range tests {

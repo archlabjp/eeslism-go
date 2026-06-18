@@ -343,6 +343,30 @@ func TestFNPCMenthalpy_table_lib(t *testing.T) {
 			t.Errorf("FNPCMenthalpy_table_lib(%f) = %f, want %f", T, result, expected)
 		}
 	})
+
+	t.Run("error case: T between minTemp and first table entry", func(t *testing.T) {
+		// This test covers the error branch (line 580-583) where prevTpcm == nil.
+		// It occurs when minTemp is set lower than T[0], so T passes the minTemp check
+		// but the first table entry is still greater than T, causing immediate break
+		// with prevTpcm still nil.
+		// TableRead sets minTemp = T[0] = 20.0, so we manually lower minTemp to create the gap.
+		ctGap := &CHARTABLE{
+			filename:    "testdata/pcm_enthalpy_test.txt",
+			PCMchar:     'E',
+			tabletype:   'e',
+			minTempChng: 0.5,
+		}
+		TableRead(ctGap)
+		// T[0] == 20.0; lower minTemp to expose the gap
+		ctGap.minTemp = 19.5
+		T := 19.8
+		result := FNPCMenthalpy_table_lib(ctGap, T)
+		// Expected: error branch returns first data point (Chara[0] == 50000.0)
+		expected := ctGap.Chara[0]
+		if result != expected {
+			t.Errorf("FNPCMenthalpy_table_lib(%f) error case = %f, want %f", T, result, expected)
+		}
+	})
 }
 
 func TestFNPCMstate_table(t *testing.T) {

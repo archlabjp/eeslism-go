@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -122,7 +123,7 @@ func PCMdata(fi *EeTokens, dsn string, pcm *[]*PCM, pcmiterate *rune) {
 				case "Ql": // 潜熱量[J/m3]
 					PCMa.Ql = dt
 				case "spcheattable":
-					PCMa.Chartable[0].filename = s
+					PCMa.Chartable[0].filename = filepath.Join(filepath.Dir(dsn), s)
 					PCMa.Spctype = 't'
 				case "table":
 					switch s {
@@ -134,7 +135,7 @@ func PCMdata(fi *EeTokens, dsn string, pcm *[]*PCM, pcmiterate *rune) {
 						Eprint("<PCMdata>", s)
 					}
 				case "conducttable":
-					PCMa.Chartable[1].filename = s
+					PCMa.Chartable[1].filename = filepath.Join(filepath.Dir(dsn), s)
 					PCMa.Condtype = 't'
 				case "minTempChange":
 					PCMa.Chartable[0].minTempChng = dt
@@ -459,7 +460,7 @@ func FNPCMState(Ctype int, Ss, Sl, Ql, Ts, Tl, Tp, T float64, PCMp *PCMPARAM) fl
 		Temp := math.Cosh((2.0 * PCMp.B / PCMp.T) * (T - Tp))
 		Qla = 0.5 * Ql * (2.0 * PCMp.B / PCMp.T) / (Temp * Temp)
 	} else if Ctype == 4 { // ガウス関数（対象）
-		Temp := (T - Tp) / PCMp.B
+		Temp := (T - Tp) / PCMp.b
 		Qla = PCMp.a * mathExp(-0.5*Temp*Temp)
 	} else if Ctype == 5 { // ガウス関数（非対称）
 		Temp := (T - Tp) / PCMp.B
@@ -476,7 +477,7 @@ func FNPCMState(Ctype int, Ss, Sl, Ql, Ts, Tl, Tp, T float64, PCMp *PCMPARAM) fl
 		if T < 0 {
 			Qla = 0.0
 		} else {
-			Qla = mathPow(T, PCMp.f) * (PCMp.a*T*T + PCMp.B*T + PCMp.c) / (PCMp.d*T*T + PCMp.e*T + 1.0)
+			Qla = mathPow(T, PCMp.f) * (PCMp.a*T*T + PCMp.b*T + PCMp.c) / (PCMp.d*T*T + PCMp.e*T + 1.0)
 		}
 	}
 

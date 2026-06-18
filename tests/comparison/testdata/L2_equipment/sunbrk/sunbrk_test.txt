@@ -108,18 +108,18 @@ ROOM
 
 		! 南面外壁（大窓付き）
 		south: -E ExtWall 12.0 ;
-			-W SouthWindow 3.6 ;
+			-W SouthWindow sb=SouthShade 3.6 ;
 
 		! 北面外壁
 		north: -E ExtWall 16.0 ;
 
 		! 東面外壁（窓付き）
 		east:  -E ExtWall 8.0 ;
-			-W EastWindow 1.8 ;
+			-W EastWindow sb=EastShade 1.8 ;
 
 		! 西面外壁（窓付き）
 		west:  -E ExtWall 8.0 ;
-			-W WestWindow 1.8 ;
+			-W WestWindow sb=WestShade 1.8 ;
 
 		! 屋根
 		Hor:   -R Roof 32.0 ;

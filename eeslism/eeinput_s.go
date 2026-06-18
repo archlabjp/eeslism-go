@@ -742,7 +742,7 @@ func Eeinput(Ipath string, efl_path string, bdata, week, schtba, schnma string, 
 
 		case "PCM":
 			section := tokens.GetSection()
-			PCMdata(section, s, &Rmvls.PCM, &Rmvls.Pcmiterate)
+			PCMdata(section, Ipath, &Rmvls.PCM, &Rmvls.Pcmiterate)
 
 		case "WALL":
 			if Fbmlist == "" {

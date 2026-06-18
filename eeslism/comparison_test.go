@@ -956,6 +956,12 @@ func TestComparison_L1_SimpleRoomVent(t *testing.T) {
 	runComparisonTest(t, "simple_room_vent", refDir, testDir)
 }
 
+func TestComparison_L1_SimpleRoomNaturalConvection(t *testing.T) {
+	refDir := "../tests/comparison/testdata/L1_basic/simple_room_natural_convection/c_output"
+	testDir := "../tests/comparison/testdata/L1_basic/simple_room_natural_convection/go_output"
+	runComparisonTest(t, "simple_room_natural_convection", refDir, testDir)
+}
+
 // ============================================================================
 // L2_equipment 比較テスト
 // ============================================================================
@@ -1089,13 +1095,15 @@ func TestComparison_L2_VWV(t *testing.T) {
 	runComparisonTestWithVariants(t, "vwv", baseDir)
 }
 
-// Note: obs, polygon, sunbrk, coordnt, divid tests
+// Note: obs, polygon, sunbrk, sunbrk_type_hl, coordnt, divid tests
 // C版は対話モード要求またはCOORDNTセクションでクラッシュするため、
 // C版出力の再生成ができていません。Go版のみの実行テストとしてスキップ。
 // テストファイルは以下のように整理されています：
 // - obs_test.txt: OBSセクションのみ（COORDNT/DIVIDなし）
 // - polygon_test.txt: POLYGONセクションのみ（COORDNT/DIVIDなし）
 // - sunbrk_test.txt: SUNBRKセクションのみ（COORDNT/DIVIDなし）
+// - sunbrk_type_hl_test.txt: type=HL/SL（無限幅庇・袖壁）テスト
+//   C版はWINDOWセクションのsunbrk=属性を未実装（blinit.cにsprintf引数ミスによるsegfault）
 // - coordnt_test.txt: COORDNT独立テスト
 // - divid_test.txt: DIVID + COORDNT組み合わせテスト
 
@@ -1121,6 +1129,12 @@ func TestComparison_L2_Sunbrk(t *testing.T) {
 	refDir := "../tests/comparison/testdata/L2_equipment/sunbrk/c_output"
 	testDir := "../tests/comparison/testdata/L2_equipment/sunbrk/go_output"
 	runComparisonTest(t, "sunbrk", refDir, testDir)
+}
+
+func TestComparison_L2_SunbrkTypeHL(t *testing.T) {
+	refDir := "../tests/comparison/testdata/L2_equipment/sunbrk_type_hl/c_output"
+	testDir := "../tests/comparison/testdata/L2_equipment/sunbrk_type_hl/go_output"
+	runComparisonTest(t, "sunbrk_type_hl", refDir, testDir)
 }
 
 func TestComparison_L2_Coordnt(t *testing.T) {
@@ -1199,6 +1213,12 @@ func TestPhysicsComparison_L1_SimpleRoomVent(t *testing.T) {
 	refDir := "../tests/comparison/testdata/L1_basic/simple_room_vent/c_output"
 	testDir := "../tests/comparison/testdata/L1_basic/simple_room_vent/go_output"
 	runComparisonTestWithPhysicsThreshold(t, "simple_room_vent", refDir, testDir, 0.01)
+}
+
+func TestPhysicsComparison_L1_SimpleRoomNaturalConvection(t *testing.T) {
+	refDir := "../tests/comparison/testdata/L1_basic/simple_room_natural_convection/c_output"
+	testDir := "../tests/comparison/testdata/L1_basic/simple_room_natural_convection/go_output"
+	runComparisonTestWithPhysicsThreshold(t, "simple_room_natural_convection", refDir, testDir, 0.01)
 }
 
 // --- L2_equipment (観測値 0.00%) ---
@@ -1348,6 +1368,13 @@ func TestPhysicsComparison_L2_Sunbrk(t *testing.T) {
 	refDir := "../tests/comparison/testdata/L2_equipment/sunbrk/c_output"
 	testDir := "../tests/comparison/testdata/L2_equipment/sunbrk/go_output"
 	runComparisonTestWithPhysicsThreshold(t, "sunbrk", refDir, testDir, 0.01)
+}
+
+// 観測値: N/A（C版未対応のためGo版のみ）
+func TestPhysicsComparison_L2_SunbrkTypeHL(t *testing.T) {
+	refDir := "../tests/comparison/testdata/L2_equipment/sunbrk_type_hl/c_output"
+	testDir := "../tests/comparison/testdata/L2_equipment/sunbrk_type_hl/go_output"
+	runComparisonTestWithPhysicsThreshold(t, "sunbrk_type_hl", refDir, testDir, 0.01)
 }
 
 // 観測値: 0.0000%

@@ -232,7 +232,6 @@ FNTtd (Function for Day Length)
 そして日影計算を行うための基礎的な役割を果たします。
 */
 func FNTtd(Decl float64) float64 {
-	var Tlat float64
 	var Cws, Ttd float64
 	Cws = -Tlat * mathTan(Decl)
 	if 1.0 > Cws && Cws > -1.0 {

@@ -33,6 +33,8 @@ func TestCoverage_AllComparisonCases(t *testing.T) {
 		"L1_basic/simple_room_internal_heat/simple_room_internal_heat_test.txt",
 		"L1_basic/simple_room_schedule/simple_room_schedule_test.txt",
 		"L1_basic/simple_room_vent/simple_room_vent_test.txt",
+		"L1_basic/simple_room_natural_convection/simple_room_natural_convection_test.txt",
+		"L1_basic/simple_room_vent_scheduled/simple_room_vent_scheduled_test.txt",
 		// L2_equipment
 		"L2_equipment/air_collector/air_collector_test.txt",
 		"L2_equipment/boiler_heating/boiler_test.txt",
@@ -79,6 +81,7 @@ func TestCoverage_AllComparisonCases(t *testing.T) {
 		"L2_equipment/storage_tank/storage_tank_coil_test.txt",
 		"L2_equipment/comfort/comfort_test.txt",
 		"L2_equipment/sunbrk/sunbrk_test.txt",
+		"L2_equipment/sunbrk_type_hl/sunbrk_type_hl_test.txt",
 		"L2_equipment/thex/thex_test.txt",
 		"L2_equipment/thex/thex_sched_test.txt",
 		"L2_equipment/thex/thex_sensible_test.txt",
@@ -98,6 +101,12 @@ func TestCoverage_AllComparisonCases(t *testing.T) {
 		// L3_system
 		"L3_system/pcm_wall/pcm_wall_test.txt",
 		"L3_system/pcm_wall/pcm_wall_phase_change_test.txt",
+		"L3_system/pcm_wall/pcm_wall_table_test.txt",
+		"L3_system/pcm_wall/pcm_ctype3_test.txt",
+		"L3_system/pcm_wall/pcm_ctype4_test.txt",
+		"L3_system/pcm_wall/pcm_ctype5_test.txt",
+		"L3_system/pcm_wall/pcm_ctype6_test.txt",
+		"L3_system/pcm_wall/pcm_ctype7_test.txt",
 		"L3_system/radiant_floor/radiant_floor_test.txt",
 		"L3_system/solar_wall/solar_wall_test.txt",
 		// L4_annual

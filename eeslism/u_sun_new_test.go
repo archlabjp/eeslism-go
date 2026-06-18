@@ -321,3 +321,191 @@ func TestSolarCalculationConsistency(t *testing.T) {
 		}
 	})
 }
+
+func TestFNTtd(t *testing.T) {
+	// FNTtd uses the global Tlat set by Sunint().
+	// Save and restore globals so this test does not affect others.
+	origLat := Lat
+	origTlat := Tlat
+	defer func() {
+		Lat = origLat
+		Tlat = origTlat
+	}()
+
+	t.Run("Tokyo latitude spring equinox 12h", func(t *testing.T) {
+		Lat = 35.7
+		Sunint()
+		// Decl=0 → Cws=0 → Ttd = 7.6394 * acos(0) ≈ 12.0
+		Ttd := FNTtd(0.0)
+		if math.Abs(Ttd-12.0) > 0.01 {
+			t.Errorf("equinox day length = %.4f, want ≈12.0", Ttd)
+		}
+	})
+
+	t.Run("Tokyo latitude summer solstice ~14.42h", func(t *testing.T) {
+		Lat = 35.7
+		Sunint()
+		Decl := 23.45 * math.Pi / 180.0
+		Ttd := FNTtd(Decl)
+		// Expected ≈ 14.42 hours (calculated via python)
+		if math.Abs(Ttd-14.42) > 0.05 {
+			t.Errorf("summer solstice day length = %.4f, want ≈14.42", Ttd)
+		}
+	})
+
+	t.Run("Tokyo latitude winter solstice ~9.58h", func(t *testing.T) {
+		Lat = 35.7
+		Sunint()
+		Decl := -23.45 * math.Pi / 180.0
+		Ttd := FNTtd(Decl)
+		// Expected ≈ 9.58 hours
+		if math.Abs(Ttd-9.58) > 0.05 {
+			t.Errorf("winter solstice day length = %.4f, want ≈9.58", Ttd)
+		}
+	})
+
+	t.Run("Polar day Lat=80 Decl=20deg returns 24h", func(t *testing.T) {
+		Lat = 80.0
+		Sunint()
+		Decl := 20.0 * math.Pi / 180.0
+		Ttd := FNTtd(Decl)
+		// Cws = -tan(80°)*tan(20°) ≈ -2.06 ≤ -1 → white night → 24h
+		if Ttd != 24.0 {
+			t.Errorf("polar day: got %.4f, want 24.0", Ttd)
+		}
+	})
+
+	t.Run("Polar night Lat=80 Decl=-20deg returns 0h", func(t *testing.T) {
+		Lat = 80.0
+		Sunint()
+		Decl := -20.0 * math.Pi / 180.0
+		Ttd := FNTtd(Decl)
+		// Cws = -tan(80°)*tan(-20°) ≈ +2.06 ≥ 1 → polar night → 0h
+		if Ttd != 0.0 {
+			t.Errorf("polar night: got %.4f, want 0.0", Ttd)
+		}
+	})
+
+	t.Run("summer > winter day length", func(t *testing.T) {
+		Lat = 35.7
+		Sunint()
+		summer := FNTtd(23.45 * math.Pi / 180.0)
+		winter := FNTtd(-23.45 * math.Pi / 180.0)
+		if summer <= winter {
+			t.Errorf("summer (%.4f) should be longer than winter (%.4f)", summer, winter)
+		}
+	})
+}
+
+func TestSrdclr(t *testing.T) {
+	const tol = 0.5 // W/m² tolerance
+
+	t.Run("normal conditions Sh=sin(60deg)", func(t *testing.T) {
+		Io := 1370.0
+		P := 0.75
+		Sh := math.Sin(60.0 * math.Pi / 180.0) // ≈ 0.8660
+		var Idn, Isky float64
+		Srdclr(Io, P, Sh, &Idn, &Isky)
+		// Expected: Idn≈982.77, Isky≈83.66 (pre-calculated)
+		if math.Abs(Idn-982.77) > tol {
+			t.Errorf("Idn = %.4f, want ≈982.77", Idn)
+		}
+		if math.Abs(Isky-83.66) > tol {
+			t.Errorf("Isky = %.4f, want ≈83.66", Isky)
+		}
+	})
+
+	t.Run("Sh at threshold boundary returns zero", func(t *testing.T) {
+		var Idn, Isky float64
+		Srdclr(1370.0, 0.75, 0.0005, &Idn, &Isky)
+		if Idn != 0.0 || Isky != 0.0 {
+			t.Errorf("Sh<=0.001: got Idn=%.4f Isky=%.4f, want both 0", Idn, Isky)
+		}
+	})
+
+	t.Run("Sh=0 returns zero", func(t *testing.T) {
+		var Idn, Isky float64
+		Srdclr(1370.0, 0.75, 0.0, &Idn, &Isky)
+		if Idn != 0.0 || Isky != 0.0 {
+			t.Errorf("Sh=0: got Idn=%.4f Isky=%.4f, want both 0", Idn, Isky)
+		}
+	})
+
+	t.Run("physical bounds: 0 <= Idn <= Io and Isky >= 0", func(t *testing.T) {
+		Io := 1370.0
+		for _, Sh := range []float64{0.1, 0.3, 0.5, 0.7, 0.9, 1.0} {
+			var Idn, Isky float64
+			Srdclr(Io, 0.75, Sh, &Idn, &Isky)
+			if Idn < 0 || Idn > Io {
+				t.Errorf("Sh=%.1f: Idn=%.4f out of range [0, %.1f]", Sh, Idn, Io)
+			}
+			if Isky < 0 {
+				t.Errorf("Sh=%.1f: Isky=%.4f < 0", Sh, Isky)
+			}
+		}
+	})
+}
+
+func TestDnsky(t *testing.T) {
+	const tol = 0.5 // W/m² tolerance
+
+	t.Run("low Kt branch (Ihol=600 Sh=0.7)", func(t *testing.T) {
+		Io := 1370.0
+		Ihol := 600.0
+		Sh := 0.7
+		var Idn, Isky float64
+		Dnsky(Io, Ihol, Sh, &Idn, &Isky)
+		// Kt=0.6257 < threshold=0.7533 → low Kt branch
+		// Expected: Idn≈507.91, Isky≈244.46 (pre-calculated)
+		if math.Abs(Idn-507.91) > tol {
+			t.Errorf("low Kt: Idn=%.4f, want ≈507.91", Idn)
+		}
+		if math.Abs(Isky-244.46) > tol {
+			t.Errorf("low Kt: Isky=%.4f, want ≈244.46", Isky)
+		}
+	})
+
+	t.Run("high Kt branch (Ihol=800 Sh=0.7)", func(t *testing.T) {
+		Io := 1370.0
+		Ihol := 800.0
+		Sh := 0.7
+		var Idn, Isky float64
+		Dnsky(Io, Ihol, Sh, &Idn, &Isky)
+		// Kt=0.8342 >= threshold=0.7533 → high Kt branch
+		// Expected: Idn≈1045.19, Isky≈68.37 (pre-calculated)
+		if math.Abs(Idn-1045.19) > tol {
+			t.Errorf("high Kt: Idn=%.4f, want ≈1045.19", Idn)
+		}
+		if math.Abs(Isky-68.37) > tol {
+			t.Errorf("high Kt: Isky=%.4f, want ≈68.37", Isky)
+		}
+	})
+
+	t.Run("energy conservation: Idn*Sh + Isky == Ihol", func(t *testing.T) {
+		Io := 1370.0
+		for _, tc := range []struct{ Ihol, Sh float64 }{
+			{600.0, 0.7},
+			{800.0, 0.7},
+			{100.0, 0.7},
+		} {
+			var Idn, Isky float64
+			Dnsky(Io, tc.Ihol, tc.Sh, &Idn, &Isky)
+			got := Idn*tc.Sh + Isky
+			if math.Abs(got-tc.Ihol) > 0.01 {
+				t.Errorf("Ihol=%.0f Sh=%.1f: Idn*Sh+Isky=%.6f, want %.6f", tc.Ihol, tc.Sh, got, tc.Ihol)
+			}
+		}
+	})
+
+	t.Run("Sh at threshold returns Idn=0 Isky=Ihol", func(t *testing.T) {
+		var Idn, Isky float64
+		Ihol := 50.0
+		Dnsky(1370.0, Ihol, 0.0005, &Idn, &Isky)
+		if Idn != 0.0 {
+			t.Errorf("Sh<=0.001: Idn=%.4f, want 0", Idn)
+		}
+		if Isky != Ihol {
+			t.Errorf("Sh<=0.001: Isky=%.4f, want %.4f", Isky, Ihol)
+		}
+	})
+}

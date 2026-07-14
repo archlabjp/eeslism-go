@@ -1,0 +1,275 @@
+diff --git a/Source/bl/blinit.c b/Source/bl/blinit.c
+index 0719f88..417e4c4 100644
+--- a/Source/bl/blinit.c
++++ b/Source/bl/blinit.c
+@@ -609,7 +609,7 @@ void Windowdata (FILE *fi, char *dsn, WINDOW **Window, int *Nwindow)
+ 				//	W->AirFlowcat.alr =dt;
+ 				else
+ 				{
+-					sprintf("%s %s\n", E, s);
++					sprintf(Err, "%s %s\n", E, s);
+ 					Eprint("<Windowdata>", Err);
+ 				}
+ 			}
+diff --git a/Source/bl/blwall.c b/Source/bl/blwall.c
+index 4800a6f..f38312e 100644
+--- a/Source/bl/blwall.c
++++ b/Source/bl/blwall.c
+@@ -316,7 +316,7 @@ void Wallfdc(int M, int mp, double *res, double *cap, double Wp, double *UX,
+ 				(pcmstate + 1)->tempPCMave = (Twd[m] + Twd[m + 1]) * 0.5;
+ 				(pcmstate + 1)->tempPCMNodeL = Twd[m];
+ 				(pcmstate + 1)->tempPCMNodeR = Twd[m + 1];
+-				ToldPCMave = (Told[m - 1] + Told[m]) * 0.5;
++				ToldPCMave = (Told[m] + Told[m + 1]) * 0.5;
+ 				ToldPCMNodeL = Told[m];
+ 				ToldPCMNodeR = Told[m + 1];
+ 				// PCM温度
+diff --git a/Source/ee/eeinput_s.c b/Source/ee/eeinput_s.c
+index a660340..8cfcb75 100644
+--- a/Source/ee/eeinput_s.c
++++ b/Source/ee/eeinput_s.c
+@@ -162,7 +162,7 @@ void Eeinput(char *Ipath, SIMCONTL *Simc, SCHDL *Schdl,
+ 	}
+ 
+ 
+-	while (fscanf(fi, "%s", s), printf("=== %s\n", s), s[0] != '*')
++	while (fscanf(fi, "%s", s) != EOF && (printf("=== %s\n", s), s[0] != '*'))
+ 	{
+ 		if (strcmp("TITLE", s) == 0)
+ 		{
+diff --git a/Source/ee/eepathdat.c b/Source/ee/eepathdat.c
+index 443e9fc..5136047 100644
+--- a/Source/ee/eepathdat.c
++++ b/Source/ee/eepathdat.c
+@@ -63,6 +63,18 @@ void Pathdata (FILE *f, char *errkey, SIMCONTL *Simc, WDAT *Wd, int  Ncompnt,  C
+ 	Nm = Mpathcount ( f, &Npl ) ;
+ 	*Nplist = Npl * 2 ;
+ 
++	if ( Nm == 0 )
++	{
++		/* SYSPTHセクションが空またはファイル末尾の場合はスキップ */
++		/* ファイルを '*' またはEOFまで消費してから返る */
++		{
++			char _s[256] ;
++			while ( fscanf ( f, "%s", _s ) != EOF && *_s != '*' )
++				;
++		}
++		return ;
++	}
++
+ 	if ( Nm > 0 )
+ 	{
+ 		if (( *M = ( MPATH * ) malloc (( Nm * 2 ) * sizeof ( MPATH ))) == NULL )
+@@ -567,15 +579,20 @@ void Pathdata (FILE *f, char *errkey, SIMCONTL *Simc, WDAT *Wd, int  Ncompnt,  C
+ 				if (idci == 1)
+ 				{
+ 					pelmci(Mpath->fluid, Pelm, errkey);
+-					Pelm->in->lpath = Plist;
+-				}	  
++					if (Pelm->in != NULL)
++					{
++						Pelm->in->lpath = Plist;
++					}
++				}
+ 				if (idco == 1)
+ 				{
+ 					pelmco(Mpath->fluid, Pelm, errkey);
+ 
+-					Pelm->out->lpath = Plist;
+-					Pelm->out->fluid = Mpath->fluid;
+-
++					if (Pelm->out != NULL)
++					{
++						Pelm->out->lpath = Plist;
++						Pelm->out->fluid = Mpath->fluid;
++					}
+ 				}
+ 			}
+ 		}
+@@ -612,7 +629,10 @@ void Pathdata (FILE *f, char *errkey, SIMCONTL *Simc, WDAT *Wd, int  Ncompnt,  C
+ 			else
+ 			{
+ 				Mpath->type = Plist->type = CIR_PTYP;
+-				Pelm->in->upo = (Pelm + Plist->Nelm -1)->out;	  
++				if (Pelm->in != NULL)
++				{
++					Pelm->in->upo = (Pelm + Plist->Nelm -1)->out;
++				}
+ 			}
+ 
+ 			if ( DEBUG )
+@@ -626,7 +646,8 @@ void Pathdata (FILE *f, char *errkey, SIMCONTL *Simc, WDAT *Wd, int  Ncompnt,  C
+ 				//printf("m=%d \n", m);
+ 				//if((Pelm-1)->out != NULL)
+ 					//printf("name=%s\n", (Pelm-1)->out->cmp->name) ;
+-				Pelm->in->upo = (Pelm - 1)->out;
++				if (Pelm->in != NULL)
++					Pelm->in->upo = (Pelm - 1)->out;
+ 			}
+ 		}
+ 		else
+@@ -669,7 +690,10 @@ void Pathdata (FILE *f, char *errkey, SIMCONTL *Simc, WDAT *Wd, int  Ncompnt,  C
+ 
+ 				Pelm = (Plist->pelm) + 1;
+ 				for (m = 1; m < Plist->Nelm; m++, Pelm++)
+-					Pelm->in->upo = (Pelm - 1)->out;
++					if (Pelm->in != NULL)
++					{
++						Pelm->in->upo = (Pelm - 1)->out;
++					}
+ 
+ 				if ( DEBUG )
+ 				{
+diff --git a/Source/ee/eesyselmalc_s.c b/Source/ee/eesyselmalc_s.c
+index 7964b29..29a3c29 100644
+--- a/Source/ee/eesyselmalc_s.c
++++ b/Source/ee/eesyselmalc_s.c
+@@ -645,7 +645,9 @@ void Elmalloc(char *errkey,
+ 			}
+ 			else
+ 			{
++				Compnt->Nin = Compnt->Nout = 1 ;
+ 				Elout->cmp = Compnt ;
++				Elout->id = Elin->id = *idmrkc ;
+ 				Elout->elins = Elin ;
+ 				Elout->Ni = 1 ;
+ 				Elout++ ;
+diff --git a/Source/ee/eesysupv_s.c b/Source/ee/eesysupv_s.c
+index c7b0485..121e594 100644
+--- a/Source/ee/eesysupv_s.c
++++ b/Source/ee/eesysupv_s.c
+@@ -97,10 +97,14 @@ void Sysupv(int Nmpath, MPATH *Mpath, RMVLS *Rmvls)
+ 					
+ 					if (Pelm->out == NULL)
+ 					{
+-						Pelm->in->upv = up ;
+-						
+-						if (Plist->plmvb == NULL)
+-							Plist->plmvb = Pelm ;
++						/* Pelm->in が NULL でないことを確認してからアクセス */
++						if (Pelm->in != NULL)
++						{
++							Pelm->in->upv = up ;
++
++							if (Plist->plmvb == NULL)
++								Plist->plmvb = Pelm ;
++						}
+ 					}
+ 					else if (Pelm->out->control != OFF_SW)
+ 					{
+@@ -168,11 +172,11 @@ void Sysupv(int Nmpath, MPATH *Mpath, RMVLS *Rmvls)
+ 				}
+ 				if (Mpath->type == CIR_PTYP)
+ 				{
+-					Pelm--;	       
+-					if (Pelm->out->control == OFF_SW)
++					Pelm--;
++					if (Pelm->out != NULL && Pelm->out->control == OFF_SW)
+ 					{
+ 						Pelm = Plist->plmvb;
+-						//if ( Pelm != NULL && Pelm->in != NULL )
++						if ( Pelm != NULL && Pelm->in != NULL )
+ 							Pelm->in->upv = up;
+ 					}
+ 				}
+@@ -199,9 +203,10 @@ void Sysupv(int Nmpath, MPATH *Mpath, RMVLS *Rmvls)
+ 			if (Plist->type == DIVERG_LPTP)
+ 			{
+ 				Pelm = Plist->pelm;
+-				Pelm->out->control = OFF_SW;	    
++				if (Pelm->out != NULL)
++					Pelm->out->control = OFF_SW;
+ 				up = Plist->pelm->cmp->elins->upv;
+-				if ((Pelm = Plist->plmvb) != NULL)
++				if ((Pelm = Plist->plmvb) != NULL && Pelm->in != NULL)
+ 					Pelm->in->upv = up;
+ 			}
+ 		}
+diff --git a/Source/ee/eevcdat.c b/Source/ee/eevcdat.c
+index a698fc1..72ce535 100644
+--- a/Source/ee/eevcdat.c
++++ b/Source/ee/eevcdat.c
+@@ -241,7 +241,9 @@ void Flinint(int Nflin, FLIN *Flin,
+ 	{
+ 	/***printf("<<Flinint>>  i=%d  namet=%s\n", i, Flin->namet);
+ 		****/
+-		
++
++		if (Flin->namet == NULL)
++			continue;
+ 		Flin->vart = envptr(Flin->namet, Simc, Ncompnt, Compnt, Wd, NULL);
+ 		if (Flin->awtype == 'A')
+ 			Flin->varx = envptr(Flin->namex, Simc, Ncompnt, Compnt, Wd, NULL);
+diff --git a/Source/func/DATAIN.c b/Source/func/DATAIN.c
+index 2487f22..8e82aa7 100644
+--- a/Source/func/DATAIN.c
++++ b/Source/func/DATAIN.c
+@@ -247,9 +247,23 @@ void rmpdata(FILE *fi, RRMP *rp, MADO *wp){
+ 
+ 	rp->sumWD = 0;
+ 	//wp = rp->WD;
+-	while (fscanf(fi, "%s", NAME), NAME[0] != ';'){
++	while (1){
++		long wdpos = ftell(fi);
++		if (fscanf(fi, "%s", NAME) == EOF || NAME[0] == ';')
++			break;
+ 
+ 		//printf("<rmpdata> 4 NAME=%s\n", NAME);
++
++		/* BDPブロック終端 '*'（WDセクション無し）は位置を戻して呼び出し元に返す */
++		if (NAME[0] == '*'){
++			fseek(fi, wdpos, SEEK_SET);
++			break;
++		}
++
++		/* WD領域が未確保の場合は安全のため終了 */
++		if (wp == NULL)
++			break;
++
+ 		wp->ref = 0.0;
+ 		wp->grpx = 1.0;
+ 
+diff --git a/Source/mc/mcpump.c b/Source/mc/mcpump.c
+index 2b9eeb8..4776930 100644
+--- a/Source/mc/mcpump.c
++++ b/Source/mc/mcpump.c
+@@ -77,7 +77,7 @@ int Pumpdata (char *cattype, char *s, PUMPCA *Pumpca, int Npfcmp, PFCMP *pfcmp)
+ 				Pumpca->qef= dt;
+ 			else
+ 			{
+-				if (strcmp(Pumpca->type, "P") != 0)
++				if (Pumpca->type == NULL || strcmp(Pumpca->type, "P") != 0)
+ 				{
+ 					if (strcmp(s, "Go") == 0)
+ 						Pumpca->Go =dt;
+@@ -116,7 +116,7 @@ void Pumpint(int Npump, PUMP *Pump, int Nexsf, EXSF *Exs)
+ 	
+ 	for (i = 0; i < Npump; i++, Pump++)
+ 	{
+-		if (strcmp(Pump->cat->type, "P") == 0)
++		if (Pump->cat->type != NULL && strcmp(Pump->cat->type, "P") == 0)
+ 		{
+ 			Pump->sol = NULL;
+ 			exs = Exs;
+@@ -144,7 +144,7 @@ void Pumpflow(int Npump, PUMP *Pump)
+ 	
+ 	for (i = 0; i < Npump; i++, Pump++)
+ 	{
+-		if (strcmp(Pump->cat->type, "P") == 0)
++		if (Pump->cat->type != NULL && strcmp(Pump->cat->type, "P") == 0)
+ 		{
+ 			S = Pump->sol->Iw;
+ 			
+diff --git a/Source/mc/mcvav.c b/Source/mc/mcvav.c
+index bce57d5..b631225 100644
+--- a/Source/mc/mcvav.c
++++ b/Source/mc/mcvav.c
+@@ -248,7 +248,7 @@ void VAVene(int Nvav, VAV *vav, int *VAVrest)
+ 			elo->control = ON_SW;
+ 			elo->sysld = 'n';
+ 			
+-			if ( vav->mon != 'h' )
++			if ( vav->mon != 'h' && elo->emonitr != NULL )
+ 				elo->emonitr->control = ON_SW;
+ 			
+ 			rest = chvavswreset(vav->Q, vav->chmode, vav) ;

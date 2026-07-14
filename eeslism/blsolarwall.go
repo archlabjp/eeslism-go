@@ -615,7 +615,7 @@ FNVentAirLayerac (Function for Ventilated Air Layer Convective Heat Transfer Coe
 */
 func FNVentAirLayerac(Tsu, Tsd, air_layer_t, Wb float64) float64 {
 	var Tas, Ra, anew, a, RacosWb, lama float64
-	g := 9.81 // Assuming the value of gravity
+	g := G // 重力加速度（C版 e79.c: double g = 9.8; の extern 参照に対応）
 
 	var Tsud float64
 	if mathAbs(Tsu-Tsd) < 1.0e-4 {

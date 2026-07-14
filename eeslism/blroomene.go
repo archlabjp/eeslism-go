@@ -703,17 +703,19 @@ func panelprint(fo io.Writer, id int, Rdpnl []*RDPNL) {
 					fmt.Fprintf(fo, "%s_c c c %s_G m f %s_Ti t f %s_To t f %s_Te t f %s_Tf t f %s_Q q f %s_S q f  %s_TPV t f  %s_Iw  q f  %s_P q f\n",
 						Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name,
 						Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name)
+				}
 
-					if Wall.chrRinput {
-						fmt.Fprintf(fo, "%s_Ksu q f %s_Ksd q f %s_Kc q f %s_Tsu t f %s_Tsd t f\n", Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name)
-					}
+				// C版 blroomene.c panelprint case 1 では chrRinput / Ndiv のヘッダ出力は
+				// PVwallFlg の if/else と同じ階層（非PV集熱器でも出力）にある。
+				if Wall.chrRinput {
+					fmt.Fprintf(fo, "%s_Ksu q f %s_Ksd q f %s_Kc q f %s_Tsu t f %s_Tsd t f\n", Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name, Rdpnl[i].Name)
+				}
 
-					if Sd.Ndiv > 0 {
-						for k := 0; k < Sd.Ndiv; k++ {
-							fmt.Fprintf(fo, "%s_Tc[%d] t f  ", Rdpnl[i].Name, k+1)
-						}
-						fmt.Fprintf(fo, "\n")
+				if Sd.Ndiv > 0 {
+					for k := 0; k < Sd.Ndiv; k++ {
+						fmt.Fprintf(fo, "%s_Tc[%d] t f  ", Rdpnl[i].Name, k+1)
 					}
+					fmt.Fprintf(fo, "\n")
 				}
 			}
 		}

@@ -324,6 +324,155 @@ func TestFNPwtr(t *testing.T) {
 	}
 }
 
+func TestFNXth(t *testing.T) {
+	Psyint()
+
+	tests := []struct {
+		name     string
+		temp     float64
+		x        float64
+		tolerance float64
+	}{
+		{name: "25C, X=0.010", temp: 25.0, x: 0.010, tolerance: 1e-9},
+		{name: "0C, X=0.005", temp: 0.0, x: 0.005, tolerance: 1e-9},
+		{name: "30C, X=0.020", temp: 30.0, x: 0.020, tolerance: 1e-9},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h := FNH(tt.temp, tt.x)
+			result := FNXth(tt.temp, h)
+			if math.Abs(result-tt.x) > tt.tolerance {
+				t.Errorf("FNXth(%v, FNH(%v,%v)=%v) = %v, want %v", tt.temp, tt.temp, tt.x, h, result, tt.x)
+			}
+		})
+	}
+}
+
+func TestFNWbtx(t *testing.T) {
+	Psyint()
+
+	tests := []struct {
+		name     string
+		temp     float64
+		x        float64
+		expected float64
+		tolerance float64
+	}{
+		{name: "30C, X=0.015", temp: 30.0, x: 0.015, expected: 23.137443209772876, tolerance: 1e-3},
+		{name: "25C, X=0.010", temp: 25.0, x: 0.010, expected: 17.982751198719917, tolerance: 1e-3},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := FNWbtx(tt.temp, tt.x)
+			if math.Abs(result-tt.expected) > tt.tolerance {
+				t.Errorf("FNWbtx(%v, %v) = %v, want %v ± %v", tt.temp, tt.x, result, tt.expected, tt.tolerance)
+			}
+			// 湿球温度は乾球温度を超えない
+			if result > tt.temp+1e-6 {
+				t.Errorf("FNWbtx(%v, %v) = %v should not exceed dry bulb temperature", tt.temp, tt.x, result)
+			}
+		})
+	}
+}
+
+func TestFNDbrp(t *testing.T) {
+	Psyint()
+
+	tests := []struct {
+		name     string
+		temp     float64
+		rh       float64
+		tolerance float64
+	}{
+		{name: "25C, 50%RH", temp: 25.0, rh: 50.0, tolerance: 0.05},
+		{name: "20C, 60%RH", temp: 20.0, rh: 60.0, tolerance: 0.05},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			pw := FNPwtr(tt.temp, tt.rh)
+			result := FNDbrp(tt.rh, pw)
+			if math.Abs(result-tt.temp) > tt.tolerance {
+				t.Errorf("FNDbrp(%v, FNPwtr(%v,%v)=%v) = %v, want %v ± %v", tt.rh, tt.temp, tt.rh, pw, result, tt.temp, tt.tolerance)
+			}
+		})
+	}
+}
+
+func TestFNDbxr(t *testing.T) {
+	Psyint()
+
+	tests := []struct {
+		name     string
+		temp     float64
+		rh       float64
+		tolerance float64
+	}{
+		{name: "25C, 50%RH", temp: 25.0, rh: 50.0, tolerance: 0.05},
+		{name: "20C, 60%RH", temp: 20.0, rh: 60.0, tolerance: 0.05},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			x := FNXtr(tt.temp, tt.rh)
+			result := FNDbxr(x, tt.rh)
+			if math.Abs(result-tt.temp) > tt.tolerance {
+				t.Errorf("FNDbxr(FNXtr(%v,%v)=%v, %v) = %v, want %v ± %v", tt.temp, tt.rh, x, tt.rh, result, tt.temp, tt.tolerance)
+			}
+		})
+	}
+}
+
+func TestFNDbxw(t *testing.T) {
+	Psyint()
+
+	tests := []struct {
+		name     string
+		temp     float64
+		twb      float64
+		tolerance float64
+	}{
+		{name: "30C, Twb=22", temp: 30.0, twb: 22.0, tolerance: 1e-6},
+		{name: "25C, Twb=18", temp: 25.0, twb: 18.0, tolerance: 1e-6},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			x := FNXtw(tt.temp, tt.twb)
+			result := FNDbxw(x, tt.twb)
+			if math.Abs(result-tt.temp) > tt.tolerance {
+				t.Errorf("FNDbxw(FNXtw(%v,%v)=%v, %v) = %v, want %v ± %v", tt.temp, tt.twb, x, tt.twb, result, tt.temp, tt.tolerance)
+			}
+		})
+	}
+}
+
+func TestFNDbrw(t *testing.T) {
+	Psyint()
+
+	tests := []struct {
+		name     string
+		temp     float64
+		rh       float64
+		tolerance float64
+	}{
+		{name: "28C, 50%RH", temp: 28.0, rh: 50.0, tolerance: 0.05},
+		{name: "25C, 60%RH", temp: 25.0, rh: 60.0, tolerance: 0.05},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			twb := FNWbtx(tt.temp, FNXtr(tt.temp, tt.rh))
+			result := FNDbrw(tt.rh, twb)
+			if math.Abs(result-tt.temp) > tt.tolerance {
+				t.Errorf("FNDbrw(%v, FNWbtx(...)=%v) = %v, want %v ± %v", tt.rh, twb, result, tt.temp, tt.tolerance)
+			}
+		})
+	}
+}
+
 func TestPsychometricConsistency(t *testing.T) {
 	// Initialize psychrometric constants
 	Psyint()

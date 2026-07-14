@@ -1,6 +1,7 @@
 package eeslism
 
 import (
+	"bytes"
 	"math"
 	"testing"
 )
@@ -282,9 +283,65 @@ func TestMatrixOperationsConsistency(t *testing.T) {
 
 		for i := 0; i < N; i++ {
 			if A[i] != C[i] {
-				t.Errorf("Double copy should preserve values, but A[%d]=%v, C[%d]=%v", 
+				t.Errorf("Double copy should preserve values, but A[%d]=%v, C[%d]=%v",
 					i, A[i], i, C[i])
 			}
 		}
+	})
+}
+
+func TestMatfiprint(t *testing.T) {
+	tests := []struct {
+		name     string
+		N        int
+		a        []float64
+		expected string
+	}{
+		{
+			name:     "2x2 matrix",
+			N:        2,
+			a:        []float64{1, 2, 3, 4},
+			expected: "1 2 \n3 4 \n",
+		},
+		{
+			name:     "1x1 matrix",
+			N:        1,
+			a:        []float64{5},
+			expected: "5 \n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var buf bytes.Buffer
+			Matfiprint(&buf, "%g ", tt.N, tt.a)
+			if buf.String() != tt.expected {
+				t.Errorf("Matfiprint() = %q, want %q", buf.String(), tt.expected)
+			}
+		})
+	}
+}
+
+func TestMatprint(t *testing.T) {
+	// stdoutへの出力のみのため、パニックしないことを確認する
+	t.Run("2x2 matrix", func(t *testing.T) {
+		Matprint("%.2g  ", 2, []float64{1, 2, 3, 4})
+	})
+	t.Run("3x3 matrix", func(t *testing.T) {
+		Matprint("%g ", 3, []float64{1, 2, 3, 4, 5, 6, 7, 8, 9})
+	})
+}
+
+func TestMatfprint(t *testing.T) {
+	// stdoutへの出力のみのため、パニックしないことを確認する
+	t.Run("2x2 matrix", func(t *testing.T) {
+		Matfprint("%g ", 2, []float64{1, 2, 3, 4})
+	})
+}
+
+func TestSeqprint(t *testing.T) {
+	// stdoutへの出力のみのため、パニックしないことを確認する
+	t.Run("2x2 system", func(t *testing.T) {
+		Seqprint("%g ", 2, []float64{2, 1, 1, 3}, "%g", []float64{5, 10})
 	})
 }

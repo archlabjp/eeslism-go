@@ -59,7 +59,16 @@ func TestRoomvar(t *testing.T) {
 				{Lpath: &PLIST{G: 2.0}},
 				{Lpath: &PLIST{G: 2.0}},
 			},
-			Elouts: []*ELOUT{{Coeffin: make([]float64, 4)}, {Coeffin: make([]float64, 2)}},
+			Elouts: []*ELOUT{
+				{Coeffin: make([]float64, 4)},
+				{
+					Coeffin: make([]float64, 2),
+					Elins: []*ELIN{
+						{Lpath: &PLIST{G: 2.0}},
+						{Lpath: &PLIST{G: 2.0}},
+					},
+				},
+			},
 		},
 	}
 	Room := []*ROOM{room1}

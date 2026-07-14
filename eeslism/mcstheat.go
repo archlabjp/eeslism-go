@@ -244,10 +244,8 @@ func Stheatcfv(_stheat []*STHEAT) {
 		Tsold := stheat.Tsold
 		pcm := stheat.Pcm
 		if pcm != nil {
-			//NOTE: FNPCMState のシグネチャがヘッダと一致しない。。。
-			// stheat.Hcap = stheat.MPCM *
-			// 	FNPCMState(pcm.Cros, pcm.Crol, pcm.Ql, pcm.Ts, pcm.Tl, Tsold, nil)
-			panic("Cannot call FNPCMState")
+			stheat.Hcap = stheat.MPCM *
+				FNPCMState(pcm.Ctype, pcm.Cros, pcm.Crol, pcm.Ql, pcm.Ts, pcm.Tl, pcm.Tp, Tsold, &pcm.PCMp)
 		} else {
 			stheat.Hcap = stheat.Cat.Hcap
 		}

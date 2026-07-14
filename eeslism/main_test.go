@@ -16,6 +16,13 @@ func Test_StandardPlan(t *testing.T) {
 func Test_Sample(t *testing.T) {
 	// samples/radiant_floor_heating.txtを使った統合テスト
 	// （sample.txtはSYSCMPセクションがないため使用不可）
+	//
+	// 現状スキップ: このサンプルは寝室(Bedroom)の間仕切り壁 "(LivingRoom): -i ;" に
+	// 面積も i= 名も無く、対となる壁から面積を解決できないため A=-999 のまま残り、
+	// blrmdata.go の面積チェックで os.Exit(1) する（C版と同一挙動）。これはテスト
+	// バイナリ全体を巻き添えにするため、入力ファイル側が修正されるまでスキップする。
+	// （入力ファイルの修正は別タスク。testdata の radiant_floor.txt と同一の欠陥）
+	t.Skip("sample radiant_floor_heating.txt has unresolved interior-wall area (A=-999) causing os.Exit — input fix tracked separately")
 	resetPrintStates()
 	Entry("../samples/radiant_floor_heating.txt", "../Base")
 }

@@ -627,6 +627,14 @@ func runSimulationAndCompare(t *testing.T, name, baseDir, eflPath string) {
 		t.Fatalf("Failed to get absolute efl path: %v", err)
 	}
 
+	// C版ベースライン(.es)が無い場合は Entry() 実行前にスキップする。
+	// C版がクラッシュ等で出力を生成できなかった無効ケースは、Go版でも
+	// os.Exit する入力であり、比較対象にできない（テスト全体の巻き添えを防ぐ）。
+	if countESFiles(filepath.Join(absBaseDir, "c_output")) == 0 {
+		t.Skip("no c_output baseline (.es) — C version does not produce output for this case")
+		return
+	}
+
 	// テストディレクトリに移動
 	if err := os.Chdir(absBaseDir); err != nil {
 		t.Fatalf("Failed to change to test directory: %v", err)
@@ -637,6 +645,9 @@ func runSimulationAndCompare(t *testing.T, name, baseDir, eflPath string) {
 	cleanupGeneratedFiles(t, ".")
 
 	// シミュレーション実行
+	// 同一プロセスで Entry() を複数回呼ぶ際、C static 移植のパッケージ変数が
+	// 汚染されるためリセットする
+	ResetGlobalState()
 	t.Logf("Running simulation: %s", testFile)
 	Entry(testFile, absEflPath)
 
@@ -698,6 +709,23 @@ func cleanupGeneratedFiles(t *testing.T, dir string) {
 			os.Remove(match)
 		}
 	}
+}
+
+// countESFiles はディレクトリ配下の .es ファイル数を返す。
+// C版がベースライン出力(.es)を生成できなかった無効ケース（例: 入力誤りで
+// os.Exit するケース）を検出し、Go版シミュレーションの実行前にスキップするために使う。
+func countESFiles(dir string) int {
+	count := 0
+	_ = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return nil
+		}
+		if !info.IsDir() && filepath.Ext(path) == ".es" {
+			count++
+		}
+		return nil
+	})
+	return count
 }
 
 // compareDirectoriesWithGenerated はリファレンスディレクトリと生成されたファイルを比較する
@@ -830,6 +858,15 @@ func runSimulationTestWithVariants(t *testing.T, name, baseDir, eflPath string) 
 		}
 
 		t.Run(variantName, func(t *testing.T) {
+			// C版ベースライン(.es)が無い variant は Entry() 実行前にスキップする。
+			// c_output ディレクトリが空（.es が0件）のケースは、C版がクラッシュ等で
+			// 出力を生成できなかった無効ケースであり、Go版でも os.Exit する入力のため
+			// 比較対象にできない（テストバイナリ全体の巻き添えを防ぐ）。
+			if countESFiles(variantRefDir) == 0 {
+				t.Skip("no c_output baseline (.es) — C version does not produce output for this case")
+				return
+			}
+
 			// 作業ディレクトリを保存
 			origDir, _ := os.Getwd()
 
@@ -838,6 +875,9 @@ func runSimulationTestWithVariants(t *testing.T, name, baseDir, eflPath string) 
 
 			cleanupGeneratedFiles(t, ".")
 
+			// 同一プロセスで Entry() を複数回呼ぶ際、C static 移植のパッケージ変数が
+			// 汚染されるためリセットする
+			ResetGlobalState()
 			t.Logf("Running variant simulation: %s", testFile)
 			Entry(testFile, absEflPath)
 
@@ -954,6 +994,12 @@ func TestComparison_L1_SimpleRoomVent(t *testing.T) {
 	refDir := "../tests/comparison/testdata/L1_basic/simple_room_vent/c_output"
 	testDir := "../tests/comparison/testdata/L1_basic/simple_room_vent/go_output"
 	runComparisonTest(t, "simple_room_vent", refDir, testDir)
+}
+
+func TestComparison_L1_SimpleRoomVentScheduled(t *testing.T) {
+	refDir := "../tests/comparison/testdata/L1_basic/simple_room_vent_scheduled/c_output"
+	testDir := "../tests/comparison/testdata/L1_basic/simple_room_vent_scheduled/go_output"
+	runComparisonTest(t, "simple_room_vent_scheduled", refDir, testDir)
 }
 
 func TestComparison_L1_SimpleRoomNaturalConvection(t *testing.T) {
@@ -1174,6 +1220,12 @@ func TestComparison_L3_RadiantFloor(t *testing.T) {
 	runComparisonTestWithVariants(t, "radiant_floor", baseDir)
 }
 
+// NOTE: solar_wall (L3-04, 屋根一体型空気集熱器 / blsolarwall.go chrRinput=true 経路) は
+// C版基準値・Go版出力とも c_output/go_output に生成済みだが、両者が数値的に一致しない。
+// 大半の物理量は 0.2〜6% ズレ、_sfq/_sc の一部で 75〜100%、温度で最大28℃ の乖離があり、
+// FNKc（空気集熱器の収束）計算経路の移植差と考えられる。実装本体(.go)の修正が必要なため、
+// 本ケースの比較テスト配線は保留とする（別途調査タスク）。
+
 // ============================================================================
 // L4_annual 比較テスト
 // ============================================================================
@@ -1213,6 +1265,12 @@ func TestPhysicsComparison_L1_SimpleRoomVent(t *testing.T) {
 	refDir := "../tests/comparison/testdata/L1_basic/simple_room_vent/c_output"
 	testDir := "../tests/comparison/testdata/L1_basic/simple_room_vent/go_output"
 	runComparisonTestWithPhysicsThreshold(t, "simple_room_vent", refDir, testDir, 0.01)
+}
+
+func TestPhysicsComparison_L1_SimpleRoomVentScheduled(t *testing.T) {
+	refDir := "../tests/comparison/testdata/L1_basic/simple_room_vent_scheduled/c_output"
+	testDir := "../tests/comparison/testdata/L1_basic/simple_room_vent_scheduled/go_output"
+	runComparisonTestWithPhysicsThreshold(t, "simple_room_vent_scheduled", refDir, testDir, 0.01)
 }
 
 func TestPhysicsComparison_L1_SimpleRoomNaturalConvection(t *testing.T) {
@@ -1391,6 +1449,8 @@ func TestPhysicsComparison_L3_RadiantCeiling(t *testing.T) {
 	testDir := "../tests/comparison/testdata/L3_system/radiant_ceiling/go_output"
 	runComparisonTestWithPhysicsThreshold(t, "radiant_ceiling", refDir, testDir, 0.01)
 }
+
+// NOTE: solar_wall の物理値比較テストも保留（上記 TestComparison_L3_RadiantFloor 直後のコメント参照）。
 
 // --- L4_annual ---
 

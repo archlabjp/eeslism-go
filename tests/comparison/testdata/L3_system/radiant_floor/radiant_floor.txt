@@ -122,7 +122,8 @@ ROOM
 		west:  -E 28.0 ;           ! 西外壁：28m2
 
 		! 隣室（寝室）との間仕切り壁
-		(Bedroom): -i 20.0 ;       ! 寝室との内壁：20m2
+		! 共用内壁名 i=LivBedWall を付与し、この側で面積20m2を指定（Bedroom側は名前で継承）
+		(Bedroom): -i i=LivBedWall 20.0 ;   ! 寝室との内壁：20m2
 		
 		! 屋根
 		Hor:   -R alc=6.6 64.0 ;   ! 屋根：64m2、熱伝達率6.6W/m2K
@@ -144,8 +145,8 @@ ROOM
 		west: -E 28.0 ;                 ! 西外壁：28m2
 		east:  -E 28.0 ;                ! 東外壁：28m2
 		
-		! リビングルームとの間仕切り壁（面積指定なし＝共用壁）
-		(LivingRoom): -i ;              ! リビングとの内壁
+		! リビングルームとの間仕切り壁（共用壁：面積は LivBedWall から継承）
+		(LivingRoom): -i i=LivBedWall ;  ! リビングとの内壁（面積20m2をLivingRoom側から継承）
 		
 		! 屋根と床
 		Hor:   -R alc=6.6 64.0 ;        ! 屋根：64m2

@@ -83,7 +83,7 @@ EQPCAT
 	HCC kahcc KA=500 ;
 
 	! 冷凍機（冷水供給用）
-	REFA coolhp a=a c=R m=C Qo=10000 Go=0.1 Two=7 eo=0.7 Qex=12000 Gex=1.0 Tex=35 eex=0.8 Ph=100 ;
+	REFA coolhp a=a c=R m=C Qo=10000 Go=0.1 Two=7 eo=0.7 Qex=12000 Gex=1.0 Tex=35 eex=0.8 W=1500 Ph=100 ;
 *
 
 SYSCMP

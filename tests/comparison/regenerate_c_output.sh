@@ -93,6 +93,13 @@ regenerate_single_test() {
     # Baseファイルをコピー（C版は--eflオプション未対応のため）
     cp "$BASE_DIR"/* . 2>/dev/null || true
 
+    # Baseカタログに紛れ込んでいる .es（例: sample_bdh.es）は、C版の出力ではなく
+    # 残骸なので削除する。これを消しておかないと後段の `mv *.es c_output` で
+    # c_output に混入し、go_output とファイル集合が食い違う原因になる。
+    for base_es in "$BASE_DIR"/*.es; do
+        [ -f "$base_es" ] && rm -f "$(basename "$base_es")" 2>/dev/null || true
+    done
+
     # C版を実行（--eflなし）
     echo "" | timeout 120 "$C_EESLISM" "$txt_file" > /dev/null 2>&1
     local exit_code=$?
@@ -106,7 +113,10 @@ regenerate_single_test() {
         echo "  ERROR: C version timed out"
         c_failed=true
     elif [ $exit_code -ne 0 ]; then
-        echo "  WARNING: C version exited with code $exit_code"
+        # 非ゼロ終了（例: exit 15 の特異行列エラー）は .es が途中で切り詰められる
+        # 可能性があるため、c_output を更新しない
+        echo "  WARNING: C version exited with non-zero code $exit_code (output may be truncated)"
+        c_failed=true
     fi
 
     # 生成されたファイル数を確認

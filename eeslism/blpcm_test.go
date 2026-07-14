@@ -653,9 +653,8 @@ func TestFNPCMState(t *testing.T) {
 		// Calculate expected: sensible heat + skewed error function latent heat
 		sensible := Ss + (Sl-Ss)/(Tl-Ts)*(T-Ts) // 2250
 		// Error function: Ql/sqrt(2*pi) * exp(-(T-Tp)^2/(2*omega^2)) * (1 + erf(skew*(T-Tp)/(sqrt(2)*omega)))
-		// With T=28, Tp=28, omega=1.0, skew=0.5: exp(0) * (1 + erf(0)) = 1 * (1 + 0) = 1
-		// Note: Ql is set to 0 in line 439, so latent = 0
-		latent := 0.0 // Because Ql is set to 0 in the function
+		// With T=28, Tp=28, omega=1.0, skew=0.5: testQl/sqrt(2*pi) * exp(0) * (1 + erf(0)) = testQl/sqrt(2*pi) = 39894.23
+		latent := testQl / math.Sqrt(2.0*math.Pi) * math.Exp(-(T-Tp)*(T-Tp)/((2.0*pcmp.omega)*pcmp.omega)) * (1.0 + math.Erf(pcmp.skew*(T-Tp)/(math.Sqrt(2.0)*pcmp.omega)))
 		expected := sensible + latent
 
 		if result != expected {
@@ -669,12 +668,13 @@ func TestFNPCMState(t *testing.T) {
 
 		// Calculate expected: sensible heat + rational function latent heat
 		sensible := Ss + (Sl-Ss)/(Tl-Ts)*(T-Ts) // 2250
-		// Rational function: T^f * (a*T^2 + B*T + c) / (d*T^2 + e*T + 1)
-		// T=28, f=2.0, a=5000, B=4.0, c=100, d=0.1, e=0.05
-		// 28^2 * (5000*28^2 + 4*28 + 100) / (0.1*28^2 + 0.05*28 + 1)
-		// = 784 * (5000*784 + 112 + 100) / (0.1*784 + 1.4 + 1)
-		// = 784 * (3920000 + 212) / (78.4 + 2.4) = 784 * 3920212 / 80.8
-		numerator := math.Pow(T, pcmp.f) * (pcmp.a*T*T + pcmp.B*T + pcmp.c)
+		// Rational function: T^f * (a*T^2 + b*T + c) / (d*T^2 + e*T + 1)
+		// (implementation uses lowercase pcmp.b = 1.0, not pcmp.B)
+		// T=28, f=2.0, a=5000, b=1.0, c=100, d=0.1, e=0.05
+		// 28^2 * (5000*28^2 + 1*28 + 100) / (0.1*28^2 + 0.05*28 + 1)
+		// = 784 * (3920000 + 28 + 100) / (78.4 + 1.4 + 1)
+		// = 784 * 3920128 / 80.8 = 38036885.54
+		numerator := math.Pow(T, pcmp.f) * (pcmp.a*T*T + pcmp.b*T + pcmp.c)
 		denominator := pcmp.d*T*T + pcmp.e*T + 1.0
 		latent := numerator / denominator
 		expected := sensible + latent

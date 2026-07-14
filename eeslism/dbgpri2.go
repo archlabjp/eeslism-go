@@ -55,7 +55,12 @@ func xprroom(R []*ROOM) {
 	var RMP []float64
 	var Room *ROOM
 
-	Room = R[0]
+	// C版は `Room = R;` で配列先頭ポインタを代入するだけで参照しないため
+	// Nroom==0 でも安全。Go版では R[0] が参照アクセスとなり室0個で panic する
+	// ため、要素が存在する場合のみ代入する。
+	if len(R) > 0 {
+		Room = R[0]
+	}
 	if DEBUG {
 		fmt.Println("--- xprroom")
 		for i := range R {
@@ -78,7 +83,9 @@ func xprroom(R []*ROOM) {
 		}
 	}
 
-	Room = R[0]
+	if len(R) > 0 {
+		Room = R[0]
+	}
 	if Ferr != nil {
 		fmt.Fprintln(Ferr, "--- xprroom")
 		for i := range R {
